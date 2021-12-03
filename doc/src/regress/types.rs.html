@@ -125,7 +125,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Position</span>: <span class="ident">PositionType</span><span class="op">&gt;</span> <span class="ident">LoopData</span><span class="op">&lt;</span><span class="ident">Position</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">entry</span>: <span class="ident">Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LoopData</span><span class="op">&lt;</span><span class="ident">Position</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">entry</span>: <span class="ident">Position</span>) -&gt; <span class="ident">LoopData</span><span class="op">&lt;</span><span class="ident">Position</span><span class="op">&gt;</span> {
         <span class="ident">LoopData</span> { <span class="ident">iters</span>: <span class="number">0</span>, <span class="ident">entry</span> }
     }
 }
@@ -138,27 +138,27 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Position</span>: <span class="ident">PositionType</span><span class="op">&gt;</span> <span class="ident">GroupData</span><span class="op">&lt;</span><span class="ident">Position</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GroupData</span><span class="op">&lt;</span><span class="ident">Position</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">GroupData</span><span class="op">&lt;</span><span class="ident">Position</span><span class="op">&gt;</span> {
         <span class="ident">GroupData</span> {
             <span class="ident">start</span>: <span class="prelude-val">None</span>,
             <span class="ident">end</span>: <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">start_matched</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">start_matched</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">start</span>.<span class="ident">is_some</span>()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">end_matched</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">end_matched</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">end</span>.<span class="ident">is_some</span>()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_range</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ops::Range</span><span class="op">&lt;</span><span class="ident">Position</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_range</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ops::Range</span><span class="op">&lt;</span><span class="ident">Position</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="comment">// Note: we may have only start_matched (if forwards) or end_matched (if</span>
         <span class="comment">// backwards) set.</span>
         <span class="kw">match</span> (<span class="self">self</span>.<span class="ident">start</span>, <span class="self">self</span>.<span class="ident">end</span>) {
-            (<span class="prelude-val">Some</span>(<span class="ident">start</span>), <span class="prelude-val">Some</span>(<span class="ident">end</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ops::Range</span> { <span class="ident">start</span>, <span class="ident">end</span> }),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            (<span class="prelude-val">Some</span>(<span class="ident">start</span>), <span class="prelude-val">Some</span>(<span class="ident">end</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="ident">ops::Range</span> { <span class="ident">start</span>, <span class="ident">end</span> }),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 

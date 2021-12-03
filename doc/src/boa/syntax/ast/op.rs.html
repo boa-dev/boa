@@ -1129,17 +1129,17 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">NumOp</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span> {
         <span class="macro">write!</span>(
             <span class="ident">f</span>,
             <span class="string">&quot;{}&quot;</span>,
             <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-                <span class="ident"><span class="self">Self</span>::Add</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;+&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Sub</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;-&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Div</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;/&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Mul</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;*&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Exp</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;**&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Mod</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;%&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::Add</span> =&gt; <span class="string">&quot;+&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::Sub</span> =&gt; <span class="string">&quot;-&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::Div</span> =&gt; <span class="string">&quot;/&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::Mul</span> =&gt; <span class="string">&quot;*&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::Exp</span> =&gt; <span class="string">&quot;**&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::Mod</span> =&gt; <span class="string">&quot;%&quot;</span>,
             }
         )
     }
@@ -1342,20 +1342,20 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">UnaryOp</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span> {
         <span class="macro">write!</span>(
             <span class="ident">f</span>,
             <span class="string">&quot;{}&quot;</span>,
             <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-                <span class="ident"><span class="self">Self</span>::IncrementPost</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::IncrementPre</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;++&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::DecrementPost</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::DecrementPre</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;--&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Plus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;+&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Minus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;-&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Not</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;!&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Tilde</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;~&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Delete</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;delete&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::TypeOf</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;typeof&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Void</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;void&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::IncrementPost</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::IncrementPre</span> =&gt; <span class="string">&quot;++&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::DecrementPost</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::DecrementPre</span> =&gt; <span class="string">&quot;--&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::Plus</span> =&gt; <span class="string">&quot;+&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::Minus</span> =&gt; <span class="string">&quot;-&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::Not</span> =&gt; <span class="string">&quot;!&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::Tilde</span> =&gt; <span class="string">&quot;~&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::Delete</span> =&gt; <span class="string">&quot;delete&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::TypeOf</span> =&gt; <span class="string">&quot;typeof&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::Void</span> =&gt; <span class="string">&quot;void&quot;</span>,
             }
         )
     }
@@ -1460,17 +1460,17 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">BitOp</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span> {
         <span class="macro">write!</span>(
             <span class="ident">f</span>,
             <span class="string">&quot;{}&quot;</span>,
             <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-                <span class="ident"><span class="self">Self</span>::And</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&amp;&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Or</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;|&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Xor</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;^&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Shl</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&lt;&lt;&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Shr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&gt;&gt;&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::UShr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&gt;&gt;&gt;&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::And</span> =&gt; <span class="string">&quot;&amp;&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::Or</span> =&gt; <span class="string">&quot;|&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::Xor</span> =&gt; <span class="string">&quot;^&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::Shl</span> =&gt; <span class="string">&quot;&lt;&lt;&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::Shr</span> =&gt; <span class="string">&quot;&gt;&gt;&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::UShr</span> =&gt; <span class="string">&quot;&gt;&gt;&gt;&quot;</span>,
             }
         )
     }
@@ -1653,21 +1653,21 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">CompOp</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span> {
         <span class="macro">write!</span>(
             <span class="ident">f</span>,
             <span class="string">&quot;{}&quot;</span>,
             <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-                <span class="ident"><span class="self">Self</span>::Equal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;==&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::NotEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;!=&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::StrictEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;===&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::StrictNotEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;!==&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::GreaterThan</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&gt;&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::GreaterThanOrEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&gt;=&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::LessThan</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&lt;&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::LessThanOrEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&lt;=&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::In</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;in&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::InstanceOf</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;instanceof&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::Equal</span> =&gt; <span class="string">&quot;==&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::NotEqual</span> =&gt; <span class="string">&quot;!=&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::StrictEqual</span> =&gt; <span class="string">&quot;===&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::StrictNotEqual</span> =&gt; <span class="string">&quot;!==&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::GreaterThan</span> =&gt; <span class="string">&quot;&gt;&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::GreaterThanOrEqual</span> =&gt; <span class="string">&quot;&gt;=&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::LessThan</span> =&gt; <span class="string">&quot;&lt;&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::LessThanOrEqual</span> =&gt; <span class="string">&quot;&lt;=&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::In</span> =&gt; <span class="string">&quot;in&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::InstanceOf</span> =&gt; <span class="string">&quot;instanceof&quot;</span>,
             }
         )
     }
@@ -1732,14 +1732,14 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">LogOp</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span> {
         <span class="macro">write!</span>(
             <span class="ident">f</span>,
             <span class="string">&quot;{}&quot;</span>,
             <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-                <span class="ident"><span class="self">Self</span>::And</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&amp;&amp;&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Or</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;||&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Coalesce</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;??&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::And</span> =&gt; <span class="string">&quot;&amp;&amp;&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::Or</span> =&gt; <span class="string">&quot;||&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::Coalesce</span> =&gt; <span class="string">&quot;??&quot;</span>,
             }
         )
     }
@@ -1783,47 +1783,47 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">NumOp</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BinOp</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">op</span>: <span class="ident">NumOp</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">op</span>: <span class="ident">NumOp</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::Num</span>(<span class="ident">op</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">BitOp</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BinOp</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">op</span>: <span class="ident">BitOp</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">op</span>: <span class="ident">BitOp</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::Bit</span>(<span class="ident">op</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">CompOp</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BinOp</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">op</span>: <span class="ident">CompOp</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">op</span>: <span class="ident">CompOp</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::Comp</span>(<span class="ident">op</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">LogOp</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BinOp</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">op</span>: <span class="ident">LogOp</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">op</span>: <span class="ident">LogOp</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::Log</span>(<span class="ident">op</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">AssignOp</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BinOp</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">op</span>: <span class="ident">AssignOp</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">op</span>: <span class="ident">AssignOp</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::Assign</span>(<span class="ident">op</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">BinOp</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span> {
         <span class="macro">write!</span>(
             <span class="ident">f</span>,
             <span class="string">&quot;{}&quot;</span>,
             <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-                <span class="ident"><span class="self">Self</span>::Num</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">op</span>.<span class="ident">to_string</span>(),
-                <span class="ident"><span class="self">Self</span>::Bit</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">op</span>.<span class="ident">to_string</span>(),
-                <span class="ident"><span class="self">Self</span>::Comp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">op</span>.<span class="ident">to_string</span>(),
-                <span class="ident"><span class="self">Self</span>::Log</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">op</span>.<span class="ident">to_string</span>(),
-                <span class="ident"><span class="self">Self</span>::Assign</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">op</span>.<span class="ident">to_string</span>(),
-                <span class="ident"><span class="self">Self</span>::Comma</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;,&quot;</span>.<span class="ident">to_string</span>(),
+                <span class="ident"><span class="self">Self</span>::Num</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) =&gt; <span class="ident">op</span>.<span class="ident">to_string</span>(),
+                <span class="ident"><span class="self">Self</span>::Bit</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) =&gt; <span class="ident">op</span>.<span class="ident">to_string</span>(),
+                <span class="ident"><span class="self">Self</span>::Comp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) =&gt; <span class="ident">op</span>.<span class="ident">to_string</span>(),
+                <span class="ident"><span class="self">Self</span>::Log</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) =&gt; <span class="ident">op</span>.<span class="ident">to_string</span>(),
+                <span class="ident"><span class="self">Self</span>::Assign</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) =&gt; <span class="ident">op</span>.<span class="ident">to_string</span>(),
+                <span class="ident"><span class="self">Self</span>::Comma</span> =&gt; <span class="string">&quot;,&quot;</span>.<span class="ident">to_string</span>(),
             }
         )
     }
@@ -2040,26 +2040,26 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">AssignOp</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span> {
         <span class="macro">write!</span>(
             <span class="ident">f</span>,
             <span class="string">&quot;{}&quot;</span>,
             <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-                <span class="ident"><span class="self">Self</span>::Add</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;+=&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Sub</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;-=&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Mul</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;*=&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Exp</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;**=&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Div</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;/=&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Mod</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;%=&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::And</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&amp;=&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Or</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;|=&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Xor</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;^=&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Shl</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&lt;&lt;=&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Shr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&gt;&gt;=&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Ushr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&gt;&gt;&gt;=&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::BoolAnd</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&amp;&amp;=&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::BoolOr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;||=&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Coalesce</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;??=&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::Add</span> =&gt; <span class="string">&quot;+=&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::Sub</span> =&gt; <span class="string">&quot;-=&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::Mul</span> =&gt; <span class="string">&quot;*=&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::Exp</span> =&gt; <span class="string">&quot;**=&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::Div</span> =&gt; <span class="string">&quot;/=&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::Mod</span> =&gt; <span class="string">&quot;%=&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::And</span> =&gt; <span class="string">&quot;&amp;=&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::Or</span> =&gt; <span class="string">&quot;|=&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::Xor</span> =&gt; <span class="string">&quot;^=&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::Shl</span> =&gt; <span class="string">&quot;&lt;&lt;=&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::Shr</span> =&gt; <span class="string">&quot;&gt;&gt;=&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::Ushr</span> =&gt; <span class="string">&quot;&gt;&gt;&gt;=&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::BoolAnd</span> =&gt; <span class="string">&quot;&amp;&amp;=&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::BoolOr</span> =&gt; <span class="string">&quot;||=&quot;</span>,
+                <span class="ident"><span class="self">Self</span>::Coalesce</span> =&gt; <span class="string">&quot;??=&quot;</span>,
             }
         )
     }

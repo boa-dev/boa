@@ -825,7 +825,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Native functions need to have this signature in order to</span>
 <span class="doccomment">/// be callable from Javascript.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NativeFunctionSignature</span> <span class="op">=</span> <span class="kw">fn</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NativeFunctionSignature</span> <span class="op">=</span> <span class="kw">fn</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>;
 
 <span class="comment">// Allows restricting closures to only `Copy` ones.</span>
 <span class="comment">// Used the sealed pattern to disallow external implementations</span>
@@ -843,12 +843,12 @@
 <span class="doccomment">/// be callable from Javascript, but most of the time the compiler</span>
 <span class="doccomment">/// is smart enough to correctly infer the types.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ClosureFunctionSignature</span>:
-    <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">Captures</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">DynCopy</span> <span class="op">+</span> <span class="ident">DynClone</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>
+    <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">Captures</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">DynCopy</span> <span class="op">+</span> <span class="ident">DynClone</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>
 {
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">ClosureFunctionSignature</span> <span class="kw">for</span> <span class="ident">T</span> <span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">Captures</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Copy</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>
+    <span class="ident">T</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">Captures</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Copy</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>
 {
 }
 
@@ -864,17 +864,17 @@
 
 <span class="kw">impl</span> <span class="ident">ThisMode</span> {
     <span class="doccomment">/// Returns `true` if the this mode is `Lexical`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_lexical</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_lexical</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Lexical</span>)
     }
 
     <span class="doccomment">/// Returns `true` if the this mode is `Strict`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_strict</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_strict</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Strict</span>)
     }
 
     <span class="doccomment">/// Returns `true` if the this mode is `Global`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_global</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_global</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Global</span>)
     }
 }
@@ -887,12 +887,12 @@
 
 <span class="kw">impl</span> <span class="ident">ConstructorKind</span> {
     <span class="doccomment">/// Returns `true` if the constructor kind is `Base`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_base</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_base</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Base</span>)
     }
 
     <span class="doccomment">/// Returns `true` if the constructor kind is `Derived`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_derived</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_derived</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Derived</span>)
     }
 }
@@ -912,7 +912,7 @@
 
 <span class="kw">impl</span> <span class="ident">Captures</span> {
     <span class="doccomment">/// Creates a new capture context.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">captures</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">captures</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">NativeObject</span>,
     {
@@ -924,7 +924,7 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics if it&#39;s already borrowed as `&amp;mut Any`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_any</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">gc::GcCellRef</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="kw">dyn</span> <span class="ident">Any</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_any</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">gc::GcCellRef</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="kw">dyn</span> <span class="ident">Any</span><span class="op">&gt;</span> {
         <span class="ident">Ref::map</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">borrow</span>(), <span class="op">|</span><span class="ident">data</span><span class="op">|</span> <span class="ident">data</span>.<span class="ident">deref</span>().<span class="ident">as_any</span>())
     }
 
@@ -933,7 +933,7 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics if it&#39;s already borrowed as `&amp;mut Any`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mut_any</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">gc::GcCellRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">NativeObject</span><span class="op">&gt;</span>, <span class="kw">dyn</span> <span class="ident">Any</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mut_any</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">gc::GcCellRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">NativeObject</span><span class="op">&gt;</span>, <span class="kw">dyn</span> <span class="ident">Any</span><span class="op">&gt;</span> {
         <span class="ident">RefMut::map</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">borrow_mut</span>(), <span class="op">|</span><span class="ident">data</span><span class="op">|</span> <span class="ident">data</span>.<span class="ident">deref_mut</span>().<span class="ident">as_mut_any</span>())
     }
 }
@@ -971,7 +971,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Function</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Function {{ ... }}&quot;</span>)
     }
 }
@@ -1035,13 +1035,13 @@
     }
 
     <span class="doccomment">/// Returns true if the function object is a constructor.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_constructor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_constructor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Native</span> { <span class="ident">constructor</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">constructor</span>,
-            <span class="ident"><span class="self">Self</span>::Closure</span> { <span class="ident">constructor</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">constructor</span>,
-            <span class="ident"><span class="self">Self</span>::Ordinary</span> { <span class="ident">constructor</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">constructor</span>,
+            <span class="ident"><span class="self">Self</span>::Native</span> { <span class="ident">constructor</span>, .. } =&gt; <span class="kw-2">*</span><span class="ident">constructor</span>,
+            <span class="ident"><span class="self">Self</span>::Closure</span> { <span class="ident">constructor</span>, .. } =&gt; <span class="kw-2">*</span><span class="ident">constructor</span>,
+            <span class="ident"><span class="self">Self</span>::Ordinary</span> { <span class="ident">constructor</span>, .. } =&gt; <span class="kw-2">*</span><span class="ident">constructor</span>,
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>)]</span>
-            <span class="ident"><span class="self">Self</span>::VmOrdinary</span> { <span class="ident">code</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">code</span>.<span class="ident">constructor</span>,
+            <span class="ident"><span class="self">Self</span>::VmOrdinary</span> { <span class="ident">code</span>, .. } =&gt; <span class="ident">code</span>.<span class="ident">constructor</span>,
         }
     }
 }
@@ -1111,7 +1111,7 @@
         <span class="ident">new_target</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span>
             <span class="ident">get_prototype_from_constructor</span>(<span class="ident">new_target</span>, <span class="ident">StandardObjects::function_object</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
@@ -1137,7 +1137,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-function.prototype.apply</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply</span>
-    <span class="kw">fn</span> <span class="ident">apply</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">apply</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let func be the this value.</span>
         <span class="comment">// 2. If IsCallable(func) is false, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_callable</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
@@ -1177,7 +1177,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-function.prototype.bind</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Function/bind</span>
-    <span class="kw">fn</span> <span class="ident">bind</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">bind</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let Target be the this value.</span>
         <span class="comment">// 2. If IsCallable(Target) is false, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_callable</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
@@ -1207,11 +1207,11 @@
                     .<span class="ident">expect</span>(<span class="string">&quot;to_integer_or_infinity cannot fail for a number&quot;</span>)
                 {
                     <span class="comment">// i. If targetLen is +∞𝔽, set L to +∞.</span>
-                    <span class="ident">IntegerOrInfinity::PositiveInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">l</span> <span class="op">=</span> <span class="ident">f64::INFINITY</span>.<span class="ident">into</span>(),
+                    <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; <span class="ident">l</span> <span class="op">=</span> <span class="ident">f64::INFINITY</span>.<span class="ident">into</span>(),
                     <span class="comment">// ii. Else if targetLen is -∞𝔽, set L to 0.</span>
-                    <span class="ident">IntegerOrInfinity::NegativeInfinity</span> <span class="op">=</span><span class="op">&gt;</span> {}
+                    <span class="ident">IntegerOrInfinity::NegativeInfinity</span> =&gt; {}
                     <span class="comment">// iii. Else,</span>
-                    <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">target_len</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">target_len</span>) =&gt; {
                         <span class="comment">// 2. Assert: targetLenAsInt is finite.</span>
                         <span class="comment">// 3. Let argCount be the number of elements in args.</span>
                         <span class="comment">// 4. Set L to max(targetLenAsInt - argCount, 0).</span>
@@ -1258,7 +1258,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-function.prototype.call</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call</span>
-    <span class="kw">fn</span> <span class="ident">call</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">call</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let func be the this value.</span>
         <span class="comment">// 2. If IsCallable(func) is false, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_callable</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
@@ -1274,7 +1274,7 @@
     }
 
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::wrong_self_convention</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">map</span>(<span class="ident">JsObject::borrow</span>);
         <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">object</span>
             .<span class="ident">as_deref</span>()
@@ -1302,14 +1302,14 @@
                     <span class="ident">constructor</span>: <span class="kw">_</span>,
                 },
                 <span class="prelude-val">Some</span>(<span class="ident">name</span>),
-            ) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="macro">format!</span>(<span class="string">&quot;function {}() {{\n  [native Code]\n}}&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">name</span>).<span class="ident">into</span>()),
-            (<span class="ident">Function::Ordinary</span> { <span class="ident">body</span>, <span class="ident">params</span>, .. }, <span class="prelude-val">Some</span>(<span class="ident">name</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            ) =&gt; <span class="prelude-val">Ok</span>(<span class="macro">format!</span>(<span class="string">&quot;function {}() {{\n  [native Code]\n}}&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">name</span>).<span class="ident">into</span>()),
+            (<span class="ident">Function::Ordinary</span> { <span class="ident">body</span>, <span class="ident">params</span>, .. }, <span class="prelude-val">Some</span>(<span class="ident">name</span>)) =&gt; {
                 <span class="kw">let</span> <span class="ident">arguments</span>: <span class="ident">String</span> <span class="op">=</span> {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">argument_list</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
                     <span class="kw">for</span> <span class="ident">params_item</span> <span class="kw">in</span> <span class="ident">params</span>.<span class="ident">iter</span>() {
                         <span class="kw">let</span> <span class="ident">argument_item</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">params_item</span>.<span class="ident">declaration</span>() {
-                            <span class="ident">Declaration::Identifier</span> { <span class="ident">ident</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Cow::Borrowed</span>(<span class="ident">ident</span>.<span class="ident">as_ref</span>()),
-                            <span class="ident">Declaration::Pattern</span>(<span class="ident">pattern</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="ident">Declaration::Identifier</span> { <span class="ident">ident</span>, .. } =&gt; <span class="ident">Cow::Borrowed</span>(<span class="ident">ident</span>.<span class="ident">as_ref</span>()),
+                            <span class="ident">Declaration::Pattern</span>(<span class="ident">pattern</span>) =&gt; {
                                 <span class="ident">Cow::Owned</span>(<span class="macro">format!</span>(<span class="string">&quot;{{{}}}&quot;</span>, <span class="ident">pattern</span>.<span class="ident">idents</span>().<span class="ident">join</span>(<span class="string">&quot;,&quot;</span>)))
                             }
                         };
@@ -1351,7 +1351,7 @@
                 }
             }
 
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="string">&quot;TODO&quot;</span>.<span class="ident">into</span>()),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>(<span class="string">&quot;TODO&quot;</span>.<span class="ident">into</span>()),
         }
     }
 
@@ -1361,13 +1361,13 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-function.prototype-@@hasinstance</span>
-    <span class="kw">fn</span> <span class="ident">has_instance</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">has_instance</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let F be the this value.</span>
         <span class="comment">// 2. Return ? OrdinaryHasInstance(F, V).</span>
         <span class="prelude-val">Ok</span>(<span class="ident">JsValue::ordinary_has_instance</span>(<span class="ident">this</span>, <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>), <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">into</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">prototype</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">prototype</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
     }
 }
@@ -1379,7 +1379,7 @@
         .<span class="ident">union</span>(<span class="ident">Attribute::NON_ENUMERABLE</span>)
         .<span class="ident">union</span>(<span class="ident">Attribute::CONFIGURABLE</span>);
 
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
+    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsValue</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;function&quot;</span>, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let</span> <span class="ident">function_prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">function_object</span>().<span class="ident">prototype</span>();
@@ -1430,7 +1430,7 @@
     <span class="comment">// 1. Assert: F is an extensible object that does not have a &quot;name&quot; own property.</span>
     <span class="comment">// 2. If Type(name) is Symbol, then</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">name</span> {
-        <span class="ident">PropertyKey::Symbol</span>(<span class="ident">sym</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">PropertyKey::Symbol</span>(<span class="ident">sym</span>) =&gt; {
             <span class="comment">// a. Let description be name&#39;s [[Description]] value.</span>
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">desc</span>) <span class="op">=</span> <span class="ident">sym</span>.<span class="ident">description</span>() {
                 <span class="comment">// c. Else, set name to the string-concatenation of &quot;[&quot;, description, and &quot;]&quot;.</span>
@@ -1440,8 +1440,8 @@
                 <span class="ident">Cow::Owned</span>(<span class="ident">JsString::new</span>(<span class="string">&quot;&quot;</span>))
             }
         }
-        <span class="ident">PropertyKey::String</span>(<span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Cow::Borrowed</span>(<span class="ident">string</span>),
-        <span class="ident">PropertyKey::Index</span>(<span class="ident">index</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Cow::Owned</span>(<span class="ident">JsString::new</span>(<span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">index</span>))),
+        <span class="ident">PropertyKey::String</span>(<span class="ident">string</span>) =&gt; <span class="ident">Cow::Borrowed</span>(<span class="ident">string</span>),
+        <span class="ident">PropertyKey::Index</span>(<span class="ident">index</span>) =&gt; <span class="ident">Cow::Owned</span>(<span class="ident">JsString::new</span>(<span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">index</span>))),
     };
 
     <span class="comment">// 3. Else if name is a Private Name, then</span>
@@ -1495,7 +1495,7 @@
         <span class="ident">this</span>: <span class="ident">JsValue</span>,
         <span class="ident">args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let proto be ? targetFunction.[[GetPrototypeOf]]().</span>
         <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="ident">target_function</span>.<span class="ident">__get_prototype_of__</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">is_constructor</span> <span class="op">=</span> <span class="ident">target_function</span>.<span class="ident">is_constructor</span>();
@@ -1524,17 +1524,17 @@
     }
 
     <span class="doccomment">/// Get a reference to the bound function&#39;s this.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">this</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">JsValue</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">this</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">JsValue</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">this</span>
     }
 
     <span class="doccomment">/// Get a reference to the bound function&#39;s target function.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">target_function</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">JsObject</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">target_function</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">JsObject</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">target_function</span>
     }
 
     <span class="doccomment">/// Get a reference to the bound function&#39;s args.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">args</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>] {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">args</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>] {
         <span class="self">self</span>.<span class="ident">args</span>.<span class="ident">as_slice</span>()
     }
 }

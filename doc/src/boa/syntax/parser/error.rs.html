@@ -195,17 +195,17 @@
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ParseResult</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Node</span>, <span class="ident">ParseError</span><span class="op">&gt;</span>;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait</span> <span class="ident">ErrorContext</span> {
-    <span class="kw">fn</span> <span class="ident">context</span>(<span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">context</span>(<span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span>;
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">ErrorContext</span> <span class="kw">for</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">context</span>(<span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">context</span>(<span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">context</span>(<span class="ident">context</span>))
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">LexError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ParseError</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">LexError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseError</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">LexError</span>) -&gt; <span class="ident">ParseError</span> {
         <span class="ident">ParseError::lex</span>(<span class="ident">e</span>)
     }
 }
@@ -242,17 +242,17 @@
 
 <span class="kw">impl</span> <span class="ident">ParseError</span> {
     <span class="doccomment">/// Changes the context of the error, if any.</span>
-    <span class="kw">fn</span> <span class="ident">context</span>(<span class="self">self</span>, <span class="ident">new_context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">context</span>(<span class="self">self</span>, <span class="ident">new_context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident"><span class="self">Self</span>::Expected</span> {
                 <span class="ident">expected</span>, <span class="ident">found</span>, ..
-            } <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::expected</span>(<span class="ident">expected</span>, <span class="ident">found</span>, <span class="ident">new_context</span>),
-            <span class="ident">e</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">e</span>,
+            } =&gt; <span class="ident"><span class="self">Self</span>::expected</span>(<span class="ident">expected</span>, <span class="ident">found</span>, <span class="ident">new_context</span>),
+            <span class="ident">e</span> =&gt; <span class="ident">e</span>,
         }
     }
 
     <span class="doccomment">/// Creates an `Expected` parsing error.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">expected</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">expected</span>: <span class="ident">E</span>, <span class="ident">found</span>: <span class="ident">Token</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">expected</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">expected</span>: <span class="ident">E</span>, <span class="ident">found</span>: <span class="ident">Token</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">TokenKind</span>]<span class="op">&gt;</span><span class="op">&gt;</span>,
     {
@@ -264,7 +264,7 @@
     }
 
     <span class="doccomment">/// Creates an `Expected` parsing error.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">unexpected</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="ident">found</span>: <span class="ident">Token</span>, <span class="ident">message</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">unexpected</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="ident">found</span>: <span class="ident">Token</span>, <span class="ident">message</span>: <span class="ident">C</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">C</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
@@ -275,12 +275,12 @@
     }
 
     <span class="doccomment">/// Creates a &quot;general&quot; parsing error.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">general</span>(<span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">position</span>: <span class="ident">Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">general</span>(<span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">position</span>: <span class="ident">Position</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::General</span> { <span class="ident">message</span>, <span class="ident">position</span> }
     }
 
     <span class="doccomment">/// Creates a &quot;general&quot; parsing error with the specific error message for a wrong function declaration in non-strict mode.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">wrong_function_declaration_non_strict</span>(<span class="ident">position</span>: <span class="ident">Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">wrong_function_declaration_non_strict</span>(<span class="ident">position</span>: <span class="ident">Position</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::General</span> {
             <span class="ident">message</span>: <span class="string">&quot;In non-strict mode code, functions can only be declared at top level, inside a block, or as the body of an if statement.&quot;</span>,
             <span class="ident">position</span>
@@ -288,28 +288,28 @@
     }
 
     <span class="doccomment">/// Creates a parsing error from a lexing error.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">lex</span>(<span class="ident">e</span>: <span class="ident">LexError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">lex</span>(<span class="ident">e</span>: <span class="ident">LexError</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::Lex</span> { <span class="ident">err</span>: <span class="ident">e</span> }
     }
 
     <span class="doccomment">/// Creates a new `Unimplemented` parsing error.</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">unimplemented</span>(<span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">position</span>: <span class="ident">Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">unimplemented</span>(<span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">position</span>: <span class="ident">Position</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::Unimplemented</span> { <span class="ident">message</span>, <span class="ident">position</span> }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">ParseError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident"><span class="self">Self</span>::Expected</span> {
                 <span class="ident">expected</span>,
                 <span class="ident">found</span>,
                 <span class="ident">context</span>,
-            } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(
+            } =&gt; <span class="macro">write!</span>(
                 <span class="ident">f</span>,
                 <span class="string">&quot;expected {}, got &#39;{}&#39; in {} at line {}, col {}&quot;</span>,
-                <span class="kw">if</span> <span class="ident">expected</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+                <span class="kw">if</span> <span class="ident">expected</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
                     <span class="macro">format!</span>(
                         <span class="string">&quot;token &#39;{}&#39;&quot;</span>,
                         <span class="ident">expected</span>.<span class="ident">first</span>().<span class="ident">map</span>(<span class="ident">TokenKind::to_string</span>).<span class="ident">unwrap</span>()
@@ -323,9 +323,9 @@
                             .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">i</span>, <span class="ident">t</span>)<span class="op">|</span> {
                                 <span class="macro">format!</span>(
                                     <span class="string">&quot;{}&#39;{}&#39;&quot;</span>,
-                                    <span class="kw">if</span> <span class="ident">i</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+                                    <span class="kw">if</span> <span class="ident">i</span> <span class="op">==</span> <span class="number">0</span> {
                                         <span class="string">&quot;&quot;</span>
-                                    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">i</span> <span class="op">=</span><span class="op">=</span> <span class="ident">expected</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span> {
+                                    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">i</span> <span class="op">==</span> <span class="ident">expected</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span> {
                                         <span class="string">&quot; or &quot;</span>
                                     } <span class="kw">else</span> {
                                         <span class="string">&quot;, &quot;</span>
@@ -341,7 +341,7 @@
                 <span class="ident">found</span>.<span class="ident">span</span>().<span class="ident">start</span>().<span class="ident">line_number</span>(),
                 <span class="ident">found</span>.<span class="ident">span</span>().<span class="ident">start</span>().<span class="ident">column_number</span>()
             ),
-            <span class="ident"><span class="self">Self</span>::Unexpected</span> { <span class="ident">found</span>, <span class="ident">message</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(
+            <span class="ident"><span class="self">Self</span>::Unexpected</span> { <span class="ident">found</span>, <span class="ident">message</span> } =&gt; <span class="macro">write!</span>(
                 <span class="ident">f</span>,
                 <span class="string">&quot;unexpected token &#39;{}&#39;{} at line {}, col {}&quot;</span>,
                 <span class="ident">found</span>,
@@ -353,16 +353,16 @@
                 <span class="ident">found</span>.<span class="ident">span</span>().<span class="ident">start</span>().<span class="ident">line_number</span>(),
                 <span class="ident">found</span>.<span class="ident">span</span>().<span class="ident">start</span>().<span class="ident">column_number</span>()
             ),
-            <span class="ident"><span class="self">Self</span>::AbruptEnd</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;abrupt end&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::General</span> { <span class="ident">message</span>, <span class="ident">position</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(
+            <span class="ident"><span class="self">Self</span>::AbruptEnd</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;abrupt end&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::General</span> { <span class="ident">message</span>, <span class="ident">position</span> } =&gt; <span class="macro">write!</span>(
                 <span class="ident">f</span>,
                 <span class="string">&quot;{} at line {}, col {}&quot;</span>,
                 <span class="ident">message</span>,
                 <span class="ident">position</span>.<span class="ident">line_number</span>(),
                 <span class="ident">position</span>.<span class="ident">column_number</span>()
             ),
-            <span class="ident"><span class="self">Self</span>::Lex</span> { <span class="ident">err</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">fmt::Display::fmt</span>(<span class="ident">err</span>, <span class="ident">f</span>),
-            <span class="ident"><span class="self">Self</span>::Unimplemented</span> { <span class="ident">message</span>, <span class="ident">position</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(
+            <span class="ident"><span class="self">Self</span>::Lex</span> { <span class="ident">err</span> } =&gt; <span class="ident">fmt::Display::fmt</span>(<span class="ident">err</span>, <span class="ident">f</span>),
+            <span class="ident"><span class="self">Self</span>::Unimplemented</span> { <span class="ident">message</span>, <span class="ident">position</span> } =&gt; <span class="macro">write!</span>(
                 <span class="ident">f</span>,
                 <span class="string">&quot;{} not yet implemented at line {}, col {}&quot;</span>,
                 <span class="ident">message</span>,

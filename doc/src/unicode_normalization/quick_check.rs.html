@@ -205,10 +205,10 @@
 
 <span class="comment">// https://unicode.org/reports/tr15/#Detecting_Normalization_Forms</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">quick_check</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="ident">I</span>, <span class="ident">is_allowed</span>: <span class="ident">F</span>, <span class="ident">stream_safe</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IsNormalized</span>
+<span class="kw">fn</span> <span class="ident">quick_check</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="ident">I</span>, <span class="ident">is_allowed</span>: <span class="ident">F</span>, <span class="ident">stream_safe</span>: <span class="ident">bool</span>) -&gt; <span class="ident">IsNormalized</span>
 <span class="kw">where</span>
     <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">char</span><span class="op">&gt;</span>,
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IsNormalized</span>,
+    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">char</span>) -&gt; <span class="ident">IsNormalized</span>,
 {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_cc</span> <span class="op">=</span> <span class="number">0u8</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">nonstarter_count</span> <span class="op">=</span> <span class="number">0</span>;
@@ -227,9 +227,9 @@
             <span class="kw">return</span> <span class="ident">IsNormalized::No</span>;
         }
         <span class="kw">match</span> <span class="ident">is_allowed</span>(<span class="ident">ch</span>) {
-            <span class="ident">IsNormalized::Yes</span> <span class="op">=</span><span class="op">&gt;</span> (),
-            <span class="ident">IsNormalized::No</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">IsNormalized::No</span>,
-            <span class="ident">IsNormalized::Maybe</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">IsNormalized::Yes</span> =&gt; (),
+            <span class="ident">IsNormalized::No</span> =&gt; <span class="kw">return</span> <span class="ident">IsNormalized::No</span>,
+            <span class="ident">IsNormalized::Maybe</span> =&gt; {
                 <span class="ident">result</span> <span class="op">=</span> <span class="ident">IsNormalized::Maybe</span>;
             }
         }
@@ -241,7 +241,7 @@
             <span class="kw">if</span> <span class="ident">nonstarter_count</span> <span class="op">+</span> <span class="ident">decomp</span>.<span class="ident">leading_nonstarters</span> <span class="op">&gt;</span> <span class="ident">stream_safe::MAX_NONSTARTERS</span> {
                 <span class="kw">return</span> <span class="ident">IsNormalized::No</span>;
             }
-            <span class="kw">if</span> <span class="ident">decomp</span>.<span class="ident">leading_nonstarters</span> <span class="op">=</span><span class="op">=</span> <span class="ident">decomp</span>.<span class="ident">decomposition_len</span> {
+            <span class="kw">if</span> <span class="ident">decomp</span>.<span class="ident">leading_nonstarters</span> <span class="op">==</span> <span class="ident">decomp</span>.<span class="ident">decomposition_len</span> {
                 <span class="ident">nonstarter_count</span> <span class="op">+</span><span class="op">=</span> <span class="ident">decomp</span>.<span class="ident">decomposition_len</span>;
             } <span class="kw">else</span> {
                 <span class="ident">nonstarter_count</span> <span class="op">=</span> <span class="ident">decomp</span>.<span class="ident">trailing_nonstarters</span>;
@@ -256,97 +256,97 @@
 <span class="doccomment">/// `IsNormalized::Maybe` if further checks are necessary.  In this case a check</span>
 <span class="doccomment">/// like `s.chars().nfc().eq(s.chars())` should suffice.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_nfc_quick</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">char</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IsNormalized</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_nfc_quick</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">char</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="ident">I</span>) -&gt; <span class="ident">IsNormalized</span> {
     <span class="ident">quick_check</span>(<span class="ident">s</span>, <span class="ident">tables::qc_nfc</span>, <span class="bool-val">false</span>)
 }
 
 <span class="doccomment">/// Quickly check if a string is in NFKC.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_nfkc_quick</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">char</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IsNormalized</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_nfkc_quick</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">char</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="ident">I</span>) -&gt; <span class="ident">IsNormalized</span> {
     <span class="ident">quick_check</span>(<span class="ident">s</span>, <span class="ident">tables::qc_nfkc</span>, <span class="bool-val">false</span>)
 }
 
 <span class="doccomment">/// Quickly check if a string is in NFD.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_nfd_quick</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">char</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IsNormalized</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_nfd_quick</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">char</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="ident">I</span>) -&gt; <span class="ident">IsNormalized</span> {
     <span class="ident">quick_check</span>(<span class="ident">s</span>, <span class="ident">tables::qc_nfd</span>, <span class="bool-val">false</span>)
 }
 
 <span class="doccomment">/// Quickly check if a string is in NFKD.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_nfkd_quick</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">char</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IsNormalized</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_nfkd_quick</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">char</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="ident">I</span>) -&gt; <span class="ident">IsNormalized</span> {
     <span class="ident">quick_check</span>(<span class="ident">s</span>, <span class="ident">tables::qc_nfkd</span>, <span class="bool-val">false</span>)
 }
 
 <span class="doccomment">/// Quickly check if a string is Stream-Safe NFC.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_nfc_stream_safe_quick</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">char</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IsNormalized</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_nfc_stream_safe_quick</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">char</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="ident">I</span>) -&gt; <span class="ident">IsNormalized</span> {
     <span class="ident">quick_check</span>(<span class="ident">s</span>, <span class="ident">tables::qc_nfc</span>, <span class="bool-val">true</span>)
 }
 
 <span class="doccomment">/// Quickly check if a string is Stream-Safe NFD.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_nfd_stream_safe_quick</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">char</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IsNormalized</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_nfd_stream_safe_quick</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">char</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="ident">I</span>) -&gt; <span class="ident">IsNormalized</span> {
     <span class="ident">quick_check</span>(<span class="ident">s</span>, <span class="ident">tables::qc_nfd</span>, <span class="bool-val">true</span>)
 }
 
 <span class="doccomment">/// Authoritatively check if a string is in NFC.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_nfc</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_nfc</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span> {
     <span class="kw">match</span> <span class="ident">is_nfc_quick</span>(<span class="ident">s</span>.<span class="ident">chars</span>()) {
-        <span class="ident">IsNormalized::Yes</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-        <span class="ident">IsNormalized::No</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-        <span class="ident">IsNormalized::Maybe</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>.<span class="ident">chars</span>().<span class="ident">eq</span>(<span class="ident">s</span>.<span class="ident">chars</span>().<span class="ident">nfc</span>()),
+        <span class="ident">IsNormalized::Yes</span> =&gt; <span class="bool-val">true</span>,
+        <span class="ident">IsNormalized::No</span> =&gt; <span class="bool-val">false</span>,
+        <span class="ident">IsNormalized::Maybe</span> =&gt; <span class="ident">s</span>.<span class="ident">chars</span>().<span class="ident">eq</span>(<span class="ident">s</span>.<span class="ident">chars</span>().<span class="ident">nfc</span>()),
     }
 }
 
 <span class="doccomment">/// Authoritatively check if a string is in NFKC.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_nfkc</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_nfkc</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span> {
     <span class="kw">match</span> <span class="ident">is_nfkc_quick</span>(<span class="ident">s</span>.<span class="ident">chars</span>()) {
-        <span class="ident">IsNormalized::Yes</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-        <span class="ident">IsNormalized::No</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-        <span class="ident">IsNormalized::Maybe</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>.<span class="ident">chars</span>().<span class="ident">eq</span>(<span class="ident">s</span>.<span class="ident">chars</span>().<span class="ident">nfkc</span>()),
+        <span class="ident">IsNormalized::Yes</span> =&gt; <span class="bool-val">true</span>,
+        <span class="ident">IsNormalized::No</span> =&gt; <span class="bool-val">false</span>,
+        <span class="ident">IsNormalized::Maybe</span> =&gt; <span class="ident">s</span>.<span class="ident">chars</span>().<span class="ident">eq</span>(<span class="ident">s</span>.<span class="ident">chars</span>().<span class="ident">nfkc</span>()),
     }
 }
 
 <span class="doccomment">/// Authoritatively check if a string is in NFD.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_nfd</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_nfd</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span> {
     <span class="kw">match</span> <span class="ident">is_nfd_quick</span>(<span class="ident">s</span>.<span class="ident">chars</span>()) {
-        <span class="ident">IsNormalized::Yes</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-        <span class="ident">IsNormalized::No</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-        <span class="ident">IsNormalized::Maybe</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>.<span class="ident">chars</span>().<span class="ident">eq</span>(<span class="ident">s</span>.<span class="ident">chars</span>().<span class="ident">nfd</span>()),
+        <span class="ident">IsNormalized::Yes</span> =&gt; <span class="bool-val">true</span>,
+        <span class="ident">IsNormalized::No</span> =&gt; <span class="bool-val">false</span>,
+        <span class="ident">IsNormalized::Maybe</span> =&gt; <span class="ident">s</span>.<span class="ident">chars</span>().<span class="ident">eq</span>(<span class="ident">s</span>.<span class="ident">chars</span>().<span class="ident">nfd</span>()),
     }
 }
 
 <span class="doccomment">/// Authoritatively check if a string is in NFKD.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_nfkd</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_nfkd</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span> {
     <span class="kw">match</span> <span class="ident">is_nfkd_quick</span>(<span class="ident">s</span>.<span class="ident">chars</span>()) {
-        <span class="ident">IsNormalized::Yes</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-        <span class="ident">IsNormalized::No</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-        <span class="ident">IsNormalized::Maybe</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>.<span class="ident">chars</span>().<span class="ident">eq</span>(<span class="ident">s</span>.<span class="ident">chars</span>().<span class="ident">nfkd</span>()),
+        <span class="ident">IsNormalized::Yes</span> =&gt; <span class="bool-val">true</span>,
+        <span class="ident">IsNormalized::No</span> =&gt; <span class="bool-val">false</span>,
+        <span class="ident">IsNormalized::Maybe</span> =&gt; <span class="ident">s</span>.<span class="ident">chars</span>().<span class="ident">eq</span>(<span class="ident">s</span>.<span class="ident">chars</span>().<span class="ident">nfkd</span>()),
     }
 }
 
 <span class="doccomment">/// Authoritatively check if a string is Stream-Safe NFC.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_nfc_stream_safe</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_nfc_stream_safe</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span> {
     <span class="kw">match</span> <span class="ident">is_nfc_stream_safe_quick</span>(<span class="ident">s</span>.<span class="ident">chars</span>()) {
-        <span class="ident">IsNormalized::Yes</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-        <span class="ident">IsNormalized::No</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-        <span class="ident">IsNormalized::Maybe</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>.<span class="ident">chars</span>().<span class="ident">eq</span>(<span class="ident">s</span>.<span class="ident">chars</span>().<span class="ident">stream_safe</span>().<span class="ident">nfc</span>()),
+        <span class="ident">IsNormalized::Yes</span> =&gt; <span class="bool-val">true</span>,
+        <span class="ident">IsNormalized::No</span> =&gt; <span class="bool-val">false</span>,
+        <span class="ident">IsNormalized::Maybe</span> =&gt; <span class="ident">s</span>.<span class="ident">chars</span>().<span class="ident">eq</span>(<span class="ident">s</span>.<span class="ident">chars</span>().<span class="ident">stream_safe</span>().<span class="ident">nfc</span>()),
     }
 }
 
 <span class="doccomment">/// Authoritatively check if a string is Stream-Safe NFD.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_nfd_stream_safe</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_nfd_stream_safe</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span> {
     <span class="kw">match</span> <span class="ident">is_nfd_stream_safe_quick</span>(<span class="ident">s</span>.<span class="ident">chars</span>()) {
-        <span class="ident">IsNormalized::Yes</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-        <span class="ident">IsNormalized::No</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-        <span class="ident">IsNormalized::Maybe</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>.<span class="ident">chars</span>().<span class="ident">eq</span>(<span class="ident">s</span>.<span class="ident">chars</span>().<span class="ident">stream_safe</span>().<span class="ident">nfd</span>()),
+        <span class="ident">IsNormalized::Yes</span> =&gt; <span class="bool-val">true</span>,
+        <span class="ident">IsNormalized::No</span> =&gt; <span class="bool-val">false</span>,
+        <span class="ident">IsNormalized::Maybe</span> =&gt; <span class="ident">s</span>.<span class="ident">chars</span>().<span class="ident">eq</span>(<span class="ident">s</span>.<span class="ident">chars</span>().<span class="ident">stream_safe</span>().<span class="ident">nfd</span>()),
     }
 }
 

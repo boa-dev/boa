@@ -85,13 +85,13 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">quote_expr</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::fragment::Fragment::Expr</span>(<span class="macro">quote!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>)<span class="kw-2">*</span>))
     }
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">quote_block</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::fragment::Fragment::Block</span>(<span class="macro">quote!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>)<span class="kw-2">*</span>))
     }
 }
@@ -102,8 +102,8 @@
 <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">Expr</span> {
     <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TokenStream</span>) {
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span> {
-            <span class="ident">Fragment::Expr</span>(<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">expr</span>.<span class="ident">to_tokens</span>(<span class="ident">out</span>),
-            <span class="ident">Fragment::Block</span>(<span class="ident">block</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Fragment::Expr</span>(<span class="ident">expr</span>) =&gt; <span class="ident">expr</span>.<span class="ident">to_tokens</span>(<span class="ident">out</span>),
+            <span class="ident">Fragment::Block</span>(<span class="ident">block</span>) =&gt; {
                 <span class="ident">token::Brace::default</span>().<span class="ident">surround</span>(<span class="ident">out</span>, <span class="op">|</span><span class="ident">out</span><span class="op">|</span> <span class="ident">block</span>.<span class="ident">to_tokens</span>(<span class="ident">out</span>));
             }
         }
@@ -115,8 +115,8 @@
 <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">Stmts</span> {
     <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TokenStream</span>) {
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span> {
-            <span class="ident">Fragment::Expr</span>(<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">expr</span>.<span class="ident">to_tokens</span>(<span class="ident">out</span>),
-            <span class="ident">Fragment::Block</span>(<span class="ident">block</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">block</span>.<span class="ident">to_tokens</span>(<span class="ident">out</span>),
+            <span class="ident">Fragment::Expr</span>(<span class="ident">expr</span>) =&gt; <span class="ident">expr</span>.<span class="ident">to_tokens</span>(<span class="ident">out</span>),
+            <span class="ident">Fragment::Block</span>(<span class="ident">block</span>) =&gt; <span class="ident">block</span>.<span class="ident">to_tokens</span>(<span class="ident">out</span>),
         }
     }
 }
@@ -127,11 +127,11 @@
 <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">Match</span> {
     <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TokenStream</span>) {
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span> {
-            <span class="ident">Fragment::Expr</span>(<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Fragment::Expr</span>(<span class="ident">expr</span>) =&gt; {
                 <span class="ident">expr</span>.<span class="ident">to_tokens</span>(<span class="ident">out</span>);
                 <span class="op">&lt;</span><span class="macro">Token!</span>[,]<span class="op">&gt;</span><span class="ident">::default</span>().<span class="ident">to_tokens</span>(<span class="ident">out</span>);
             }
-            <span class="ident">Fragment::Block</span>(<span class="ident">block</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Fragment::Block</span>(<span class="ident">block</span>) =&gt; {
                 <span class="ident">token::Brace::default</span>().<span class="ident">surround</span>(<span class="ident">out</span>, <span class="op">|</span><span class="ident">out</span><span class="op">|</span> <span class="ident">block</span>.<span class="ident">to_tokens</span>(<span class="ident">out</span>));
             }
         }
@@ -139,10 +139,10 @@
 }
 
 <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">TokenStream</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Fragment</span> {
-    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">TokenStream</span> {
+    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">TokenStream</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Fragment::Expr</span>(<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">expr</span>,
-            <span class="ident">Fragment::Block</span>(<span class="ident">block</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">block</span>,
+            <span class="ident">Fragment::Expr</span>(<span class="ident">expr</span>) =&gt; <span class="ident">expr</span>,
+            <span class="ident">Fragment::Block</span>(<span class="ident">block</span>) =&gt; <span class="ident">block</span>,
         }
     }
 }

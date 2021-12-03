@@ -1093,7 +1093,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`HyphenSplitter`]: struct.HyphenSplitter.html</span>
     <span class="doccomment">/// [`WordSplitter`]: trait.WordSplitter.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">width</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Wrapper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">HyphenSplitter</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">width</span>: <span class="ident">usize</span>) -&gt; <span class="ident">Wrapper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">HyphenSplitter</span><span class="op">&gt;</span> {
         <span class="ident">Wrapper::with_splitter</span>(<span class="ident">width</span>, <span class="ident">HyphenSplitter</span>)
     }
 
@@ -1112,7 +1112,7 @@
     <span class="doccomment">/// let wrapper = Wrapper::new(termwidth());</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;term_size&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_termwidth</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Wrapper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">HyphenSplitter</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_termwidth</span>() -&gt; <span class="ident">Wrapper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">HyphenSplitter</span><span class="op">&gt;</span> {
         <span class="ident">Wrapper::new</span>(<span class="ident">termwidth</span>())
     }
 }
@@ -1123,7 +1123,7 @@
     <span class="doccomment">/// longer than `width` to be broken.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`WordSplitter`]: trait.WordSplitter.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_splitter</span>(<span class="ident">width</span>: <span class="ident">usize</span>, <span class="ident">splitter</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Wrapper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_splitter</span>(<span class="ident">width</span>: <span class="ident">usize</span>, <span class="ident">splitter</span>: <span class="ident">S</span>) -&gt; <span class="ident">Wrapper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span> {
         <span class="ident">Wrapper</span> {
             <span class="ident">width</span>: <span class="ident">width</span>,
             <span class="ident">initial_indent</span>: <span class="string">&quot;&quot;</span>,
@@ -1149,7 +1149,7 @@
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`self.initial_indent`]: #structfield.initial_indent</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">initial_indent</span>(<span class="self">self</span>, <span class="ident">indent</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Wrapper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">initial_indent</span>(<span class="self">self</span>, <span class="ident">indent</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="ident">Wrapper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span> {
         <span class="ident">Wrapper</span> {
             <span class="ident">initial_indent</span>: <span class="ident">indent</span>,
             ..<span class="self">self</span>
@@ -1174,7 +1174,7 @@
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`self.subsequent_indent`]: #structfield.subsequent_indent</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">subsequent_indent</span>(<span class="self">self</span>, <span class="ident">indent</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Wrapper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">subsequent_indent</span>(<span class="self">self</span>, <span class="ident">indent</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="ident">Wrapper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span> {
         <span class="ident">Wrapper</span> {
             <span class="ident">subsequent_indent</span>: <span class="ident">indent</span>,
             ..<span class="self">self</span>
@@ -1186,7 +1186,7 @@
     <span class="doccomment">/// sticking out into the right margin.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`self.break_words`]: #structfield.break_words</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">break_words</span>(<span class="self">self</span>, <span class="ident">setting</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Wrapper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">break_words</span>(<span class="self">self</span>, <span class="ident">setting</span>: <span class="ident">bool</span>) -&gt; <span class="ident">Wrapper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span> {
         <span class="ident">Wrapper</span> {
             <span class="ident">break_words</span>: <span class="ident">setting</span>,
             ..<span class="self">self</span>
@@ -1215,7 +1215,7 @@
     <span class="doccomment">/// assert_eq!(wrapper.fill(&quot;Memory safety without garbage collection.&quot;),</span>
     <span class="doccomment">///            &quot;Memory safety\nwithout garbage\ncollection.&quot;);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fill</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fill</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">String</span> {
         <span class="comment">// This will avoid reallocation in simple cases (no</span>
         <span class="comment">// indentation, no hyphenation).</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">String::with_capacity</span>(<span class="ident">s</span>.<span class="ident">len</span>());
@@ -1269,7 +1269,7 @@
     <span class="doccomment">///            vec![&quot;First line.&quot;, &quot;Second line.&quot;]);</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wrap</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wrap</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">wrap_iter</span>(<span class="ident">s</span>).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
     }
 
@@ -1315,7 +1315,7 @@
     <span class="doccomment">/// [`self.splitter`]: #structfield.splitter</span>
     <span class="doccomment">/// [`WordSplitter`]: trait.WordSplitter.html</span>
     <span class="doccomment">/// [`WrapIter`]: struct.WrapIter.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wrap_iter</span><span class="op">&lt;</span><span class="lifetime">&#39;w</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;w</span> <span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">WrapIter</span><span class="op">&lt;</span><span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wrap_iter</span><span class="op">&lt;</span><span class="lifetime">&#39;w</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;w</span> <span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="ident">WrapIter</span><span class="op">&lt;</span><span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span> {
         <span class="ident">WrapIter</span> {
             <span class="ident">wrapper</span>: <span class="self">self</span>,
             <span class="ident">inner</span>: <span class="ident">WrapIterImpl::new</span>(<span class="self">self</span>, <span class="ident">s</span>),
@@ -1355,7 +1355,7 @@
     <span class="doccomment">/// [`WordSplitter`]: trait.WordSplitter.html</span>
     <span class="doccomment">/// [`IntoWrapIter`]: struct.IntoWrapIter.html</span>
     <span class="doccomment">/// [`wrap_iter`]: #method.wrap_iter</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_wrap_iter</span>(<span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IntoWrapIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_wrap_iter</span>(<span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="ident">IntoWrapIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">WrapIterImpl::new</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>);
 
         <span class="ident">IntoWrapIter</span> {
@@ -1383,7 +1383,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span>: <span class="ident">WordSplitter</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">IntoWrapIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">str</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">wrapper</span>)
     }
 }
@@ -1405,14 +1405,14 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;a</span>: <span class="lifetime">&#39;w</span>, <span class="ident">S</span>: <span class="ident">WordSplitter</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">WrapIter</span><span class="op">&lt;</span><span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">str</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">next</span>(<span class="self">self</span>.<span class="ident">wrapper</span>)
     }
 }
 
 <span class="doccomment">/// Like `char::is_whitespace`, but non-breaking spaces don&#39;t count.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">is_whitespace</span>(<span class="ident">ch</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">fn</span> <span class="ident">is_whitespace</span>(<span class="ident">ch</span>: <span class="ident">char</span>) -&gt; <span class="ident">bool</span> {
     <span class="ident">ch</span>.<span class="ident">is_whitespace</span>() <span class="op">&amp;&amp;</span> <span class="ident">ch</span> <span class="op">!</span><span class="op">=</span> <span class="ident">NBSP</span>
 }
 
@@ -1440,7 +1440,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">WrapIterImpl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">WordSplitter</span><span class="op">&gt;</span>(<span class="ident">wrapper</span>: <span class="kw-2">&amp;</span><span class="ident">Wrapper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">WrapIterImpl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">WordSplitter</span><span class="op">&gt;</span>(<span class="ident">wrapper</span>: <span class="kw-2">&amp;</span><span class="ident">Wrapper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="ident">WrapIterImpl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="ident">WrapIterImpl</span> {
             <span class="ident">source</span>: <span class="ident">s</span>,
             <span class="ident">char_indices</span>: <span class="ident">s</span>.<span class="ident">char_indices</span>(),
@@ -1454,15 +1454,15 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">create_result_line</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">WordSplitter</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">wrapper</span>: <span class="kw-2">&amp;</span><span class="ident">Wrapper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">str</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">start</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+    <span class="kw">fn</span> <span class="ident">create_result_line</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">WordSplitter</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">wrapper</span>: <span class="kw-2">&amp;</span><span class="ident">Wrapper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span>) -&gt; <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">str</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">start</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="ident">Cow::from</span>(<span class="ident">wrapper</span>.<span class="ident">initial_indent</span>)
         } <span class="kw">else</span> {
             <span class="ident">Cow::from</span>(<span class="ident">wrapper</span>.<span class="ident">subsequent_indent</span>)
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">next</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">WordSplitter</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">wrapper</span>: <span class="kw-2">&amp;</span><span class="ident">Wrapper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">WordSplitter</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">wrapper</span>: <span class="kw-2">&amp;</span><span class="ident">Wrapper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">finished</span> {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
@@ -1471,7 +1471,7 @@
             <span class="kw">let</span> <span class="ident">char_width</span> <span class="op">=</span> <span class="ident">ch</span>.<span class="ident">width</span>().<span class="ident">unwrap_or</span>(<span class="number">0</span>);
             <span class="kw">let</span> <span class="ident">char_len</span> <span class="op">=</span> <span class="ident">ch</span>.<span class="ident">len_utf8</span>();
 
-            <span class="kw">if</span> <span class="ident">ch</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;\n&#39;</span> {
+            <span class="kw">if</span> <span class="ident">ch</span> <span class="op">==</span> <span class="string">&#39;\n&#39;</span> {
                 <span class="self">self</span>.<span class="ident">split</span> <span class="op">=</span> <span class="ident">idx</span>;
                 <span class="self">self</span>.<span class="ident">split_len</span> <span class="op">=</span> <span class="ident">char_len</span>;
                 <span class="self">self</span>.<span class="ident">line_width_at_split</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">line_width</span>;
@@ -1504,8 +1504,8 @@
                 <span class="self">self</span>.<span class="ident">in_whitespace</span> <span class="op">=</span> <span class="bool-val">false</span>;
                 <span class="kw">let</span> <span class="ident">remaining_text</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">source</span>[<span class="self">self</span>.<span class="ident">split</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">split_len</span>..];
                 <span class="kw">let</span> <span class="ident">final_word</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">remaining_text</span>.<span class="ident">find</span>(<span class="ident">is_whitespace</span>) {
-                    <span class="prelude-val">Some</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">remaining_text</span>[..<span class="ident">i</span>],
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">remaining_text</span>,
+                    <span class="prelude-val">Some</span>(<span class="ident">i</span>) =&gt; <span class="kw-2">&amp;</span><span class="ident">remaining_text</span>[..<span class="ident">i</span>],
+                    <span class="prelude-val">None</span> =&gt; <span class="ident">remaining_text</span>,
                 };
 
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hyphen</span> <span class="op">=</span> <span class="string">&quot;&quot;</span>;
@@ -1588,7 +1588,7 @@
 <span class="doccomment">///     .subsequent_indent(&quot;  &quot;);</span>
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;term_size&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">termwidth</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">termwidth</span>() -&gt; <span class="ident">usize</span> {
     <span class="ident">term_size::dimensions_stdout</span>().<span class="ident">map_or</span>(<span class="number">80</span>, <span class="op">|</span>(<span class="ident">w</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">w</span>)
 }
 
@@ -1614,7 +1614,7 @@
 <span class="doccomment">/// [`wrap`]: fn.wrap.html</span>
 <span class="doccomment">/// [`wrap_iter`]: fn.wrap_iter.html</span>
 <span class="doccomment">/// [`fill` method]: struct.Wrapper.html#method.fill</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fill</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">width</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fill</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">width</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
     <span class="ident">Wrapper::new</span>(<span class="ident">width</span>).<span class="ident">fill</span>(<span class="ident">s</span>)
 }
 
@@ -1646,7 +1646,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`wrap_iter`]: fn.wrap_iter.html</span>
 <span class="doccomment">/// [`wrap` method]: struct.Wrapper.html#method.wrap</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wrap</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">width</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wrap</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">width</span>: <span class="ident">usize</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="ident">Wrapper::new</span>(<span class="ident">width</span>).<span class="ident">wrap</span>(<span class="ident">s</span>)
 }
 
@@ -1682,7 +1682,7 @@
 <span class="doccomment">/// [`into_wrap_iter`]: struct.Wrapper.html#method.into_wrap_iter</span>
 <span class="doccomment">/// [`IntoWrapIter`]: struct.IntoWrapIter.html</span>
 <span class="doccomment">/// [`WrapIter`]: struct.WrapIter.html</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wrap_iter</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">width</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IntoWrapIter</span><span class="op">&lt;</span><span class="ident">HyphenSplitter</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wrap_iter</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">width</span>: <span class="ident">usize</span>) -&gt; <span class="ident">IntoWrapIter</span><span class="op">&lt;</span><span class="ident">HyphenSplitter</span><span class="op">&gt;</span> {
     <span class="ident">Wrapper::new</span>(<span class="ident">width</span>).<span class="ident">into_wrap_iter</span>(<span class="ident">s</span>)
 }
 

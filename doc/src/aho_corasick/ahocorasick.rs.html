@@ -2259,7 +2259,7 @@
     <span class="doccomment">/// ]);</span>
     <span class="doccomment">/// assert_eq!(Some(1), ac.find(&quot;xxx bar xxx&quot;).map(|m| m.pattern()));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">P</span><span class="op">&gt;</span>(<span class="ident">patterns</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AhoCorasick</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">P</span><span class="op">&gt;</span>(<span class="ident">patterns</span>: <span class="ident">I</span>) -&gt; <span class="ident">AhoCorasick</span>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">P</span><span class="op">&gt;</span>,
         <span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>,
@@ -2294,7 +2294,7 @@
     <span class="doccomment">/// ]);</span>
     <span class="doccomment">/// assert_eq!(Some(1), ac.find(&quot;xxx bar xxx&quot;).map(|m| m.pattern()));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_auto_configured</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="ident">patterns</span>: <span class="kw-2">&amp;</span>[<span class="ident">B</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AhoCorasick</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_auto_configured</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="ident">patterns</span>: <span class="kw-2">&amp;</span>[<span class="ident">B</span>]) -&gt; <span class="ident">AhoCorasick</span>
     <span class="kw">where</span>
         <span class="ident">B</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>,
     {
@@ -2323,7 +2323,7 @@
     <span class="doccomment">/// assert!(ac.is_match(&quot;xxx bar xxx&quot;));</span>
     <span class="doccomment">/// assert!(!ac.is_match(&quot;xxx qux xxx&quot;));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_match</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">haystack</span>: <span class="ident">B</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_match</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">haystack</span>: <span class="ident">B</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">earliest_find</span>(<span class="ident">haystack</span>).<span class="ident">is_some</span>()
     }
 
@@ -2351,7 +2351,7 @@
     <span class="doccomment">/// assert_eq!(1, mat.pattern());</span>
     <span class="doccomment">/// assert_eq!((1, 2), (mat.start(), mat.end()));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">earliest_find</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">haystack</span>: <span class="ident">B</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">earliest_find</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">haystack</span>: <span class="ident">B</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prestate</span> <span class="op">=</span> <span class="ident">PrefilterState::new</span>(<span class="self">self</span>.<span class="ident">max_pattern_len</span>());
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">start</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">imp</span>.<span class="ident">start_state</span>();
         <span class="self">self</span>.<span class="ident">imp</span>.<span class="ident">earliest_find_at</span>(
@@ -2423,7 +2423,7 @@
     <span class="doccomment">/// let mat = ac.find(haystack).expect(&quot;should have a match&quot;);</span>
     <span class="doccomment">/// assert_eq!(&quot;abcd&quot;, &amp;haystack[mat.start()..mat.end()]);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">haystack</span>: <span class="ident">B</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">haystack</span>: <span class="ident">B</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prestate</span> <span class="op">=</span> <span class="ident">PrefilterState::new</span>(<span class="self">self</span>.<span class="ident">max_pattern_len</span>());
         <span class="self">self</span>.<span class="ident">imp</span>.<span class="ident">find_at_no_state</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">prestate</span>, <span class="ident">haystack</span>.<span class="ident">as_ref</span>(), <span class="number">0</span>)
     }
@@ -2493,7 +2493,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">B</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">B</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FindIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">S</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">FindIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">S</span><span class="op">&gt;</span> {
         <span class="ident">FindIter::new</span>(<span class="self">self</span>, <span class="ident">haystack</span>.<span class="ident">as_ref</span>())
     }
 
@@ -2536,7 +2536,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_overlapping_iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">B</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">B</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FindOverlappingIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">S</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">FindOverlappingIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">S</span><span class="op">&gt;</span> {
         <span class="ident">FindOverlappingIter::new</span>(<span class="self">self</span>, <span class="ident">haystack</span>.<span class="ident">as_ref</span>())
     }
 
@@ -2569,7 +2569,7 @@
     <span class="doccomment">/// let result = ac.replace_all(haystack, &amp;[&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);</span>
     <span class="doccomment">/// assert_eq!(&quot;x the z to the xage&quot;, result);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">replace_all</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">replace_with</span>: <span class="kw-2">&amp;</span>[<span class="ident">B</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">replace_all</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">replace_with</span>: <span class="kw-2">&amp;</span>[<span class="ident">B</span>]) -&gt; <span class="ident">String</span>
     <span class="kw">where</span>
         <span class="ident">B</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
     {
@@ -2620,7 +2620,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">replace_with</span>: <span class="kw-2">&amp;</span>[<span class="ident">B</span>],
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>
+    ) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">B</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>,
     {
@@ -2691,7 +2691,7 @@
         <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">String</span>,
         <span class="kw-2">mut</span> <span class="ident">replace_with</span>: <span class="ident">F</span>,
     ) <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">Match</span>, <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">Match</span>, <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">String</span>) -&gt; <span class="ident">bool</span>,
     {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_match</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">for</span> <span class="ident">mat</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">find_iter</span>(<span class="ident">haystack</span>) {
@@ -2757,7 +2757,7 @@
         <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
         <span class="kw-2">mut</span> <span class="ident">replace_with</span>: <span class="ident">F</span>,
     ) <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">Match</span>, <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">Match</span>, <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) -&gt; <span class="ident">bool</span>,
     {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_match</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">for</span> <span class="ident">mat</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">find_iter</span>(<span class="ident">haystack</span>) {
@@ -2828,7 +2828,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stream_find_iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span>: <span class="ident">io::Read</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>,
         <span class="ident">rdr</span>: <span class="ident">R</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StreamFindIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span>, <span class="ident">S</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">StreamFindIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span>, <span class="ident">S</span><span class="op">&gt;</span> {
         <span class="ident">StreamFindIter::new</span>(<span class="self">self</span>, <span class="ident">rdr</span>)
     }
 
@@ -2895,7 +2895,7 @@
         <span class="ident">rdr</span>: <span class="ident">R</span>,
         <span class="ident">wtr</span>: <span class="ident">W</span>,
         <span class="ident">replace_with</span>: <span class="kw-2">&amp;</span>[<span class="ident">B</span>],
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
+    ) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">R</span>: <span class="ident">io::Read</span>,
         <span class="ident">W</span>: <span class="ident">io::Write</span>,
@@ -2980,20 +2980,20 @@
         <span class="ident">rdr</span>: <span class="ident">R</span>,
         <span class="kw-2">mut</span> <span class="ident">wtr</span>: <span class="ident">W</span>,
         <span class="kw-2">mut</span> <span class="ident">replace_with</span>: <span class="ident">F</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
+    ) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">R</span>: <span class="ident">io::Read</span>,
         <span class="ident">W</span>: <span class="ident">io::Write</span>,
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">Match</span>, <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">W</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">Match</span>, <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">W</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>,
     {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">it</span> <span class="op">=</span> <span class="ident">StreamChunkIter::new</span>(<span class="self">self</span>, <span class="ident">rdr</span>);
         <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">result</span>) <span class="op">=</span> <span class="ident">it</span>.<span class="ident">next</span>() {
             <span class="kw">let</span> <span class="ident">chunk</span> <span class="op">=</span> <span class="ident">result</span><span class="question-mark">?</span>;
             <span class="kw">match</span> <span class="ident">chunk</span> {
-                <span class="ident">StreamChunk::NonMatch</span> { <span class="ident">bytes</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">StreamChunk::NonMatch</span> { <span class="ident">bytes</span>, .. } =&gt; {
                     <span class="ident">wtr</span>.<span class="ident">write_all</span>(<span class="ident">bytes</span>)<span class="question-mark">?</span>;
                 }
-                <span class="ident">StreamChunk::Match</span> { <span class="ident">bytes</span>, <span class="ident">mat</span> } <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">StreamChunk::Match</span> { <span class="ident">bytes</span>, <span class="ident">mat</span> } =&gt; {
                     <span class="ident">replace_with</span>(<span class="kw-2">&amp;</span><span class="ident">mat</span>, <span class="ident">bytes</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">wtr</span>)<span class="question-mark">?</span>;
                 }
             }
@@ -3015,7 +3015,7 @@
     <span class="doccomment">/// ]);</span>
     <span class="doccomment">/// assert_eq!(&amp;MatchKind::Standard, ac.match_kind());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">match_kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">MatchKind</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">match_kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">MatchKind</span> {
         <span class="self">self</span>.<span class="ident">imp</span>.<span class="ident">match_kind</span>()
     }
 
@@ -3033,7 +3033,7 @@
     <span class="doccomment">/// ]);</span>
     <span class="doccomment">/// assert_eq!(4, ac.max_pattern_len());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_pattern_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_pattern_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="ident">imp</span>.<span class="ident">max_pattern_len</span>()
     }
 
@@ -3058,7 +3058,7 @@
     <span class="doccomment">/// ]);</span>
     <span class="doccomment">/// assert_eq!(3, ac.pattern_count());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pattern_count</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pattern_count</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="ident">imp</span>.<span class="ident">pattern_count</span>()
     }
 
@@ -3090,7 +3090,7 @@
     <span class="doccomment">///     .build(&amp;[&quot;foo&quot;, &quot;bar&quot;, &quot;baz&quot;]);</span>
     <span class="doccomment">/// assert!(!ac.supports_overlapping());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">supports_overlapping</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">supports_overlapping</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">match_kind</span>.<span class="ident">supports_overlapping</span>()
     }
 
@@ -3120,7 +3120,7 @@
     <span class="doccomment">///     .build(&amp;[&quot;foo&quot;, &quot;bar&quot;, &quot;baz&quot;]);</span>
     <span class="doccomment">/// assert!(!ac.supports_stream());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">supports_stream</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">supports_stream</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">match_kind</span>.<span class="ident">supports_stream</span>()
     }
 
@@ -3152,10 +3152,10 @@
     <span class="doccomment">///     .build(&amp;[&quot;foo&quot;, &quot;bar&quot;, &quot;baz&quot;]);</span>
     <span class="doccomment">/// assert_eq!(1_248, ac.heap_bytes());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">heap_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">heap_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">imp</span> {
-            <span class="ident">Imp::NFA</span>(<span class="kw-2">ref</span> <span class="ident">nfa</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">nfa</span>.<span class="ident">heap_bytes</span>(),
-            <span class="ident">Imp::DFA</span>(<span class="kw-2">ref</span> <span class="ident">dfa</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">dfa</span>.<span class="ident">heap_bytes</span>(),
+            <span class="ident">Imp::NFA</span>(<span class="kw-2">ref</span> <span class="ident">nfa</span>) =&gt; <span class="ident">nfa</span>.<span class="ident">heap_bytes</span>(),
+            <span class="ident">Imp::DFA</span>(<span class="kw-2">ref</span> <span class="ident">dfa</span>) =&gt; <span class="ident">dfa</span>.<span class="ident">heap_bytes</span>(),
         }
     }
 }
@@ -3171,55 +3171,55 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span> <span class="ident">Imp</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Returns the type of match semantics implemented by this automaton.</span>
-    <span class="kw">fn</span> <span class="ident">match_kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">MatchKind</span> {
+    <span class="kw">fn</span> <span class="ident">match_kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">MatchKind</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Imp::NFA</span>(<span class="kw-2">ref</span> <span class="ident">nfa</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">nfa</span>.<span class="ident">match_kind</span>(),
-            <span class="ident">Imp::DFA</span>(<span class="kw-2">ref</span> <span class="ident">dfa</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">dfa</span>.<span class="ident">match_kind</span>(),
+            <span class="ident">Imp::NFA</span>(<span class="kw-2">ref</span> <span class="ident">nfa</span>) =&gt; <span class="ident">nfa</span>.<span class="ident">match_kind</span>(),
+            <span class="ident">Imp::DFA</span>(<span class="kw-2">ref</span> <span class="ident">dfa</span>) =&gt; <span class="ident">dfa</span>.<span class="ident">match_kind</span>(),
         }
     }
 
     <span class="doccomment">/// Returns the identifier of the start state.</span>
-    <span class="kw">fn</span> <span class="ident">start_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">S</span> {
+    <span class="kw">fn</span> <span class="ident">start_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">S</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Imp::NFA</span>(<span class="kw-2">ref</span> <span class="ident">nfa</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">nfa</span>.<span class="ident">start_state</span>(),
-            <span class="ident">Imp::DFA</span>(<span class="kw-2">ref</span> <span class="ident">dfa</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">dfa</span>.<span class="ident">start_state</span>(),
+            <span class="ident">Imp::NFA</span>(<span class="kw-2">ref</span> <span class="ident">nfa</span>) =&gt; <span class="ident">nfa</span>.<span class="ident">start_state</span>(),
+            <span class="ident">Imp::DFA</span>(<span class="kw-2">ref</span> <span class="ident">dfa</span>) =&gt; <span class="ident">dfa</span>.<span class="ident">start_state</span>(),
         }
     }
 
     <span class="doccomment">/// The length, in bytes, of the longest pattern in this automaton. This</span>
     <span class="doccomment">/// information is useful for maintaining correct buffer sizes when</span>
     <span class="doccomment">/// searching on streams.</span>
-    <span class="kw">fn</span> <span class="ident">max_pattern_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">max_pattern_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Imp::NFA</span>(<span class="kw-2">ref</span> <span class="ident">nfa</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">nfa</span>.<span class="ident">max_pattern_len</span>(),
-            <span class="ident">Imp::DFA</span>(<span class="kw-2">ref</span> <span class="ident">dfa</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">dfa</span>.<span class="ident">max_pattern_len</span>(),
+            <span class="ident">Imp::NFA</span>(<span class="kw-2">ref</span> <span class="ident">nfa</span>) =&gt; <span class="ident">nfa</span>.<span class="ident">max_pattern_len</span>(),
+            <span class="ident">Imp::DFA</span>(<span class="kw-2">ref</span> <span class="ident">dfa</span>) =&gt; <span class="ident">dfa</span>.<span class="ident">max_pattern_len</span>(),
         }
     }
 
     <span class="doccomment">/// The total number of patterns added to this automaton. This includes</span>
     <span class="doccomment">/// patterns that may never match. The maximum matching pattern that can be</span>
     <span class="doccomment">/// reported is exactly one less than this number.</span>
-    <span class="kw">fn</span> <span class="ident">pattern_count</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">pattern_count</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Imp::NFA</span>(<span class="kw-2">ref</span> <span class="ident">nfa</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">nfa</span>.<span class="ident">pattern_count</span>(),
-            <span class="ident">Imp::DFA</span>(<span class="kw-2">ref</span> <span class="ident">dfa</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">dfa</span>.<span class="ident">pattern_count</span>(),
+            <span class="ident">Imp::NFA</span>(<span class="kw-2">ref</span> <span class="ident">nfa</span>) =&gt; <span class="ident">nfa</span>.<span class="ident">pattern_count</span>(),
+            <span class="ident">Imp::DFA</span>(<span class="kw-2">ref</span> <span class="ident">dfa</span>) =&gt; <span class="ident">dfa</span>.<span class="ident">pattern_count</span>(),
         }
     }
 
     <span class="doccomment">/// Returns the prefilter object, if one exists, for the underlying</span>
     <span class="doccomment">/// automaton.</span>
-    <span class="kw">fn</span> <span class="ident">prefilter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Prefilter</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">prefilter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Prefilter</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Imp::NFA</span>(<span class="kw-2">ref</span> <span class="ident">nfa</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">nfa</span>.<span class="ident">prefilter</span>(),
-            <span class="ident">Imp::DFA</span>(<span class="kw-2">ref</span> <span class="ident">dfa</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">dfa</span>.<span class="ident">prefilter</span>(),
+            <span class="ident">Imp::NFA</span>(<span class="kw-2">ref</span> <span class="ident">nfa</span>) =&gt; <span class="ident">nfa</span>.<span class="ident">prefilter</span>(),
+            <span class="ident">Imp::DFA</span>(<span class="kw-2">ref</span> <span class="ident">dfa</span>) =&gt; <span class="ident">dfa</span>.<span class="ident">prefilter</span>(),
         }
     }
 
     <span class="doccomment">/// Returns true if and only if we should attempt to use a prefilter.</span>
-    <span class="kw">fn</span> <span class="ident">use_prefilter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">use_prefilter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">prefilter</span>() {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="bool-val">false</span>,
-            <span class="prelude-val">Some</span>(<span class="ident">p</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">p</span>,
+            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="bool-val">false</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">p</span>) =&gt; <span class="ident">p</span>,
         };
         <span class="op">!</span><span class="ident">p</span>.<span class="ident">looks_for_non_start_of_match</span>()
     }
@@ -3232,16 +3232,16 @@
         <span class="ident">at</span>: <span class="ident">usize</span>,
         <span class="ident">state_id</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">S</span>,
         <span class="ident">match_index</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Imp::NFA</span>(<span class="kw-2">ref</span> <span class="ident">nfa</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">nfa</span>.<span class="ident">overlapping_find_at</span>(
+            <span class="ident">Imp::NFA</span>(<span class="kw-2">ref</span> <span class="ident">nfa</span>) =&gt; <span class="ident">nfa</span>.<span class="ident">overlapping_find_at</span>(
                 <span class="ident">prestate</span>,
                 <span class="ident">haystack</span>,
                 <span class="ident">at</span>,
                 <span class="ident">state_id</span>,
                 <span class="ident">match_index</span>,
             ),
-            <span class="ident">Imp::DFA</span>(<span class="kw-2">ref</span> <span class="ident">dfa</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">dfa</span>.<span class="ident">overlapping_find_at</span>(
+            <span class="ident">Imp::DFA</span>(<span class="kw-2">ref</span> <span class="ident">dfa</span>) =&gt; <span class="ident">dfa</span>.<span class="ident">overlapping_find_at</span>(
                 <span class="ident">prestate</span>,
                 <span class="ident">haystack</span>,
                 <span class="ident">at</span>,
@@ -3258,12 +3258,12 @@
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">at</span>: <span class="ident">usize</span>,
         <span class="ident">state_id</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">S</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Imp::NFA</span>(<span class="kw-2">ref</span> <span class="ident">nfa</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Imp::NFA</span>(<span class="kw-2">ref</span> <span class="ident">nfa</span>) =&gt; {
                 <span class="ident">nfa</span>.<span class="ident">earliest_find_at</span>(<span class="ident">prestate</span>, <span class="ident">haystack</span>, <span class="ident">at</span>, <span class="ident">state_id</span>)
             }
-            <span class="ident">Imp::DFA</span>(<span class="kw-2">ref</span> <span class="ident">dfa</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Imp::DFA</span>(<span class="kw-2">ref</span> <span class="ident">dfa</span>) =&gt; {
                 <span class="ident">dfa</span>.<span class="ident">earliest_find_at</span>(<span class="ident">prestate</span>, <span class="ident">haystack</span>, <span class="ident">at</span>, <span class="ident">state_id</span>)
             }
         }
@@ -3275,10 +3275,10 @@
         <span class="ident">prestate</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PrefilterState</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">at</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Imp::NFA</span>(<span class="kw-2">ref</span> <span class="ident">nfa</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">nfa</span>.<span class="ident">find_at_no_state</span>(<span class="ident">prestate</span>, <span class="ident">haystack</span>, <span class="ident">at</span>),
-            <span class="ident">Imp::DFA</span>(<span class="kw-2">ref</span> <span class="ident">dfa</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">dfa</span>.<span class="ident">find_at_no_state</span>(<span class="ident">prestate</span>, <span class="ident">haystack</span>, <span class="ident">at</span>),
+            <span class="ident">Imp::NFA</span>(<span class="kw-2">ref</span> <span class="ident">nfa</span>) =&gt; <span class="ident">nfa</span>.<span class="ident">find_at_no_state</span>(<span class="ident">prestate</span>, <span class="ident">haystack</span>, <span class="ident">at</span>),
+            <span class="ident">Imp::DFA</span>(<span class="kw-2">ref</span> <span class="ident">dfa</span>) =&gt; <span class="ident">dfa</span>.<span class="ident">find_at_no_state</span>(<span class="ident">prestate</span>, <span class="ident">haystack</span>, <span class="ident">at</span>),
         }
     }
 }
@@ -3308,7 +3308,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span> <span class="ident">FindIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ac</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">AhoCorasick</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FindIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ac</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">AhoCorasick</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">FindIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">S</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">prestate</span> <span class="op">=</span> <span class="ident">PrefilterState::new</span>(<span class="ident">ac</span>.<span class="ident">max_pattern_len</span>());
         <span class="ident">FindIter</span> { <span class="ident">fsm</span>: <span class="kw-2">&amp;</span><span class="ident">ac</span>.<span class="ident">imp</span>, <span class="ident">prestate</span>, <span class="ident">haystack</span>, <span class="ident">pos</span>: <span class="number">0</span> }
     }
@@ -3317,7 +3317,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">FindIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">S</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">Match</span>;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">pos</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">haystack</span>.<span class="ident">len</span>() {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
@@ -3327,10 +3327,10 @@
             <span class="self">self</span>.<span class="ident">pos</span>,
         );
         <span class="kw">let</span> <span class="ident">mat</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">result</span> {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
-            <span class="prelude-val">Some</span>(<span class="ident">mat</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mat</span>,
+            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">mat</span>) =&gt; <span class="ident">mat</span>,
         };
-        <span class="kw">if</span> <span class="ident">mat</span>.<span class="ident">end</span>() <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">pos</span> {
+        <span class="kw">if</span> <span class="ident">mat</span>.<span class="ident">end</span>() <span class="op">==</span> <span class="self">self</span>.<span class="ident">pos</span> {
             <span class="comment">// If the automaton can match the empty string and if we found an</span>
             <span class="comment">// empty match, then we need to forcefully move the position.</span>
             <span class="self">self</span>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
@@ -3371,7 +3371,7 @@
     <span class="kw">fn</span> <span class="ident">new</span>(
         <span class="ident">ac</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">AhoCorasick</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> [<span class="ident">u8</span>],
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FindOverlappingIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">S</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">FindOverlappingIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">S</span><span class="op">&gt;</span> {
         <span class="macro">assert!</span>(
             <span class="ident">ac</span>.<span class="ident">supports_overlapping</span>(),
             <span class="string">&quot;automaton does not support overlapping searches&quot;</span>
@@ -3392,7 +3392,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">FindOverlappingIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">S</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">Match</span>;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">fsm</span>.<span class="ident">overlapping_find_at</span>(
             <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">prestate</span>,
             <span class="self">self</span>.<span class="ident">haystack</span>,
@@ -3401,8 +3401,8 @@
             <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">match_index</span>,
         );
         <span class="kw">match</span> <span class="ident">result</span> {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
-            <span class="prelude-val">Some</span>(<span class="ident">m</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">m</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">pos</span> <span class="op">=</span> <span class="ident">m</span>.<span class="ident">end</span>();
                 <span class="prelude-val">Some</span>(<span class="ident">m</span>)
             }
@@ -3433,7 +3433,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span>: <span class="ident">io::Read</span>, <span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span> <span class="ident">StreamFindIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ac</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">AhoCorasick</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">rdr</span>: <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StreamFindIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span>, <span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ac</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">AhoCorasick</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">rdr</span>: <span class="ident">R</span>) -&gt; <span class="ident">StreamFindIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span>, <span class="ident">S</span><span class="op">&gt;</span> {
         <span class="ident">StreamFindIter</span> { <span class="ident">it</span>: <span class="ident">StreamChunkIter::new</span>(<span class="ident">ac</span>, <span class="ident">rdr</span>) }
     }
 }
@@ -3441,13 +3441,13 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span>: <span class="ident">io::Read</span>, <span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">StreamFindIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span>, <span class="ident">S</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">loop</span> {
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">it</span>.<span class="ident">next</span>() {
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
-                <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">err</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">err</span>)),
-                <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">StreamChunk::NonMatch</span> { .. })) <span class="op">=</span><span class="op">&gt;</span> {}
-                <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">StreamChunk::Match</span> { <span class="ident">mat</span>, .. })) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+                <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">err</span>)) =&gt; <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">err</span>)),
+                <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">StreamChunk::NonMatch</span> { .. })) =&gt; {}
+                <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">StreamChunk::Match</span> { <span class="ident">mat</span>, .. })) =&gt; {
                     <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">mat</span>));
                 }
             }
@@ -3506,7 +3506,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span>: <span class="ident">io::Read</span>, <span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span> <span class="ident">StreamChunkIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ac</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">AhoCorasick</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">rdr</span>: <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StreamChunkIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span>, <span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ac</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">AhoCorasick</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">rdr</span>: <span class="ident">R</span>) -&gt; <span class="ident">StreamChunkIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span>, <span class="ident">S</span><span class="op">&gt;</span> {
         <span class="macro">assert!</span>(
             <span class="ident">ac</span>.<span class="ident">supports_stream</span>(),
             <span class="string">&quot;stream searching is only supported for Standard match semantics&quot;</span>
@@ -3533,7 +3533,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">next</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;r</span> <span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">StreamChunk</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;r</span> <span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">StreamChunk</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">loop</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">mat</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">pending_match</span>.<span class="ident">take</span>() {
                 <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">buf</span>.<span class="ident">buffer</span>()[<span class="ident">mat</span>.<span class="ident">start</span>()..<span class="ident">mat</span>.<span class="ident">end</span>()];
@@ -3563,8 +3563,8 @@
                     <span class="self">self</span>.<span class="ident">buf</span>.<span class="ident">roll</span>();
                 }
                 <span class="kw">match</span> <span class="self">self</span>.<span class="ident">buf</span>.<span class="ident">fill</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">rdr</span>) {
-                    <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">err</span>)),
-                    <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">err</span>)),
+                    <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>) =&gt; {
                         <span class="comment">// We&#39;ve hit EOF, but if there are still some</span>
                         <span class="comment">// unreported bytes remaining, return them now.</span>
                         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">report_pos</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">buf</span>.<span class="ident">len</span>() {
@@ -3585,7 +3585,7 @@
                             <span class="self">self</span>.<span class="ident">has_empty_match_at_end</span> <span class="op">=</span> <span class="bool-val">false</span>;
                         }
                     }
-                    <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>) <span class="op">=</span><span class="op">&gt;</span> {}
+                    <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>) =&gt; {}
                 }
             }
             <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">fsm</span>.<span class="ident">earliest_find_at</span>(
@@ -3595,12 +3595,12 @@
                 <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">state_id</span>,
             );
             <span class="kw">match</span> <span class="ident">result</span> {
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">None</span> =&gt; {
                     <span class="self">self</span>.<span class="ident">search_pos</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">buf</span>.<span class="ident">len</span>();
                 }
-                <span class="prelude-val">Some</span>(<span class="ident">mat</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">mat</span>) =&gt; {
                     <span class="self">self</span>.<span class="ident">state_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">fsm</span>.<span class="ident">start_state</span>();
-                    <span class="kw">if</span> <span class="ident">mat</span>.<span class="ident">end</span>() <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">search_pos</span> {
+                    <span class="kw">if</span> <span class="ident">mat</span>.<span class="ident">end</span>() <span class="op">==</span> <span class="self">self</span>.<span class="ident">search_pos</span> {
                         <span class="comment">// If the automaton can match the empty string and if</span>
                         <span class="comment">// we found an empty match, then we need to forcefully</span>
                         <span class="comment">// move the position.</span>
@@ -3623,7 +3623,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">unreported</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">unreported</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">search_pos</span>.<span class="ident">saturating_sub</span>(<span class="self">self</span>.<span class="ident">buf</span>.<span class="ident">min_buffer_len</span>());
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">report_pos</span> <span class="op">&lt;</span> <span class="ident">end</span> {
             <span class="prelude-val">Some</span>(<span class="ident">end</span>)
@@ -3642,7 +3642,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">AhoCorasickBuilder</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AhoCorasickBuilder</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="ident">AhoCorasickBuilder</span> {
         <span class="ident">AhoCorasickBuilder::new</span>()
     }
 }
@@ -3654,7 +3654,7 @@
     <span class="doccomment">/// to set, try using</span>
     <span class="doccomment">/// [`AhoCorasick::new_auto_configured`](struct.AhoCorasick.html#method.new_auto_configured)</span>
     <span class="doccomment">/// instead.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AhoCorasickBuilder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">AhoCorasickBuilder</span> {
         <span class="ident">AhoCorasickBuilder</span> {
             <span class="ident">nfa_builder</span>: <span class="ident">nfa::Builder::new</span>(),
             <span class="ident">dfa_builder</span>: <span class="ident">dfa::Builder::new</span>(),
@@ -3685,7 +3685,7 @@
     <span class="doccomment">///     .build(patterns);</span>
     <span class="doccomment">/// assert_eq!(Some(1), ac.find(&quot;xxx bar xxx&quot;).map(|m| m.pattern()));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">P</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">patterns</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AhoCorasick</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">P</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">patterns</span>: <span class="ident">I</span>) -&gt; <span class="ident">AhoCorasick</span>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">P</span><span class="op">&gt;</span>,
         <span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>,
@@ -3750,7 +3750,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_with_size</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">I</span>, <span class="ident">P</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">patterns</span>: <span class="ident">I</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AhoCorasick</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span>
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AhoCorasick</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">S</span>: <span class="ident">StateID</span>,
         <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">P</span><span class="op">&gt;</span>,
@@ -3795,7 +3795,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">auto_configure</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">patterns</span>: <span class="kw-2">&amp;</span>[<span class="ident">B</span>],
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">AhoCorasickBuilder</span> {
+    ) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">AhoCorasickBuilder</span> {
         <span class="comment">// N.B. Currently we only use the length of `patterns` to make a</span>
         <span class="comment">// decision here, and could therefore ask for an `ExactSizeIterator`</span>
         <span class="comment">// instead. But it&#39;s conceivable that we might adapt this to look at</span>
@@ -3889,7 +3889,7 @@
     <span class="doccomment">/// let mat = ac.find(haystack).expect(&quot;should have a match&quot;);</span>
     <span class="doccomment">/// assert_eq!(&quot;abcd&quot;, &amp;haystack[mat.start()..mat.end()]);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">match_kind</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">kind</span>: <span class="ident">MatchKind</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">AhoCorasickBuilder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">match_kind</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">kind</span>: <span class="ident">MatchKind</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">AhoCorasickBuilder</span> {
         <span class="self">self</span>.<span class="ident">nfa_builder</span>.<span class="ident">match_kind</span>(<span class="ident">kind</span>);
         <span class="self">self</span>
     }
@@ -3930,7 +3930,7 @@
     <span class="doccomment">/// assert_eq!(2, ac.find_overlapping_iter(haystack).count());</span>
     <span class="doccomment">/// // A non-anchored search would return 3 matches.</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">anchored</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">AhoCorasickBuilder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">anchored</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">AhoCorasickBuilder</span> {
         <span class="self">self</span>.<span class="ident">nfa_builder</span>.<span class="ident">anchored</span>(<span class="ident">yes</span>);
         <span class="self">self</span>
     }
@@ -3965,7 +3965,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ascii_case_insensitive</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">yes</span>: <span class="ident">bool</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">AhoCorasickBuilder</span> {
+    ) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">AhoCorasickBuilder</span> {
         <span class="self">self</span>.<span class="ident">nfa_builder</span>.<span class="ident">ascii_case_insensitive</span>(<span class="ident">yes</span>);
         <span class="self">self</span>
     }
@@ -3988,7 +3988,7 @@
     <span class="doccomment">/// By default, this is set to a low but non-zero number.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This setting has no effect if the `dfa` option is enabled.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dense_depth</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">depth</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">AhoCorasickBuilder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dense_depth</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">depth</span>: <span class="ident">usize</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">AhoCorasickBuilder</span> {
         <span class="self">self</span>.<span class="ident">nfa_builder</span>.<span class="ident">dense_depth</span>(<span class="ident">depth</span>);
         <span class="self">self</span>
     }
@@ -4014,7 +4014,7 @@
     <span class="doccomment">/// small number of fairly short patterns (~1000), or if you want the</span>
     <span class="doccomment">/// fastest possible search without regard to compilation time or space</span>
     <span class="doccomment">/// usage.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dfa</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">AhoCorasickBuilder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dfa</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">AhoCorasickBuilder</span> {
         <span class="self">self</span>.<span class="ident">dfa</span> <span class="op">=</span> <span class="ident">yes</span>;
         <span class="self">self</span>
     }
@@ -4028,7 +4028,7 @@
     <span class="doccomment">/// sub-optimal for a particular workload.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This is enabled by default.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prefilter</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">AhoCorasickBuilder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prefilter</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">AhoCorasickBuilder</span> {
         <span class="self">self</span>.<span class="ident">nfa_builder</span>.<span class="ident">prefilter</span>(<span class="ident">yes</span>);
         <span class="self">self</span>
     }
@@ -4063,7 +4063,7 @@
         <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.7.16&quot;</span>,
         <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;not carrying its weight, will be always enabled, see: https://github.com/BurntSushi/aho-corasick/issues/57&quot;</span>
     )]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">byte_classes</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">AhoCorasickBuilder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">byte_classes</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">AhoCorasickBuilder</span> {
         <span class="self">self</span>.<span class="ident">dfa_builder</span>.<span class="ident">byte_classes</span>(<span class="ident">yes</span>);
         <span class="self">self</span>
     }
@@ -4095,7 +4095,7 @@
         <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.7.16&quot;</span>,
         <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;not carrying its weight, will be always enabled, see: https://github.com/BurntSushi/aho-corasick/issues/57&quot;</span>
     )]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">premultiply</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">AhoCorasickBuilder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">premultiply</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">AhoCorasickBuilder</span> {
         <span class="self">self</span>.<span class="ident">dfa_builder</span>.<span class="ident">premultiply</span>(<span class="ident">yes</span>);
         <span class="self">self</span>
     }
@@ -4219,47 +4219,47 @@
 
 <span class="doccomment">/// The default match kind is `MatchKind::Standard`.</span>
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">MatchKind</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MatchKind</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="ident">MatchKind</span> {
         <span class="ident">MatchKind::Standard</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">MatchKind</span> {
-    <span class="kw">fn</span> <span class="ident">supports_overlapping</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">supports_overlapping</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">is_standard</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">supports_stream</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">supports_stream</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="comment">// TODO: It may be possible to support this. It&#39;s hard.</span>
         <span class="comment">//</span>
         <span class="comment">// See: https://github.com/rust-lang/regex/issues/425#issuecomment-471367838</span>
         <span class="self">self</span>.<span class="ident">is_standard</span>()
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_standard</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span><span class="op">=</span> <span class="ident">MatchKind::Standard</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_standard</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="kw-2">*</span><span class="self">self</span> <span class="op">==</span> <span class="ident">MatchKind::Standard</span>
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_leftmost</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span><span class="op">=</span> <span class="ident">MatchKind::LeftmostFirst</span>
-            <span class="op">|</span><span class="op">|</span> <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span><span class="op">=</span> <span class="ident">MatchKind::LeftmostLongest</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_leftmost</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="kw-2">*</span><span class="self">self</span> <span class="op">==</span> <span class="ident">MatchKind::LeftmostFirst</span>
+            <span class="op">|</span><span class="op">|</span> <span class="kw-2">*</span><span class="self">self</span> <span class="op">==</span> <span class="ident">MatchKind::LeftmostLongest</span>
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_leftmost_first</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span><span class="op">=</span> <span class="ident">MatchKind::LeftmostFirst</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_leftmost_first</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="kw-2">*</span><span class="self">self</span> <span class="op">==</span> <span class="ident">MatchKind::LeftmostFirst</span>
     }
 
     <span class="doccomment">/// Convert this match kind into a packed match kind. If this match kind</span>
     <span class="doccomment">/// corresponds to standard semantics, then this returns None, since</span>
     <span class="doccomment">/// packed searching does not support standard semantics.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">as_packed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">packed::MatchKind</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">as_packed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">packed::MatchKind</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">MatchKind::Standard</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="ident">MatchKind::LeftmostFirst</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">packed::MatchKind::LeftmostFirst</span>),
-            <span class="ident">MatchKind::LeftmostLongest</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">MatchKind::Standard</span> =&gt; <span class="prelude-val">None</span>,
+            <span class="ident">MatchKind::LeftmostFirst</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">packed::MatchKind::LeftmostFirst</span>),
+            <span class="ident">MatchKind::LeftmostLongest</span> =&gt; {
                 <span class="prelude-val">Some</span>(<span class="ident">packed::MatchKind::LeftmostLongest</span>)
             }
-            <span class="ident">MatchKind::__Nonexhaustive</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+            <span class="ident">MatchKind::__Nonexhaustive</span> =&gt; <span class="macro">unreachable!</span>(),
         }
     }
 }

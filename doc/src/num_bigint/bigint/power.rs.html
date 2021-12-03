@@ -104,7 +104,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Computes the effect of the exponent on the sign.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">powsign</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Integer</span><span class="op">&gt;</span>(<span class="ident">sign</span>: <span class="ident">Sign</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Sign</span> {
+<span class="kw">fn</span> <span class="ident">powsign</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Integer</span><span class="op">&gt;</span>(<span class="ident">sign</span>: <span class="ident">Sign</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">Sign</span> {
     <span class="kw">if</span> <span class="ident">other</span>.<span class="ident">is_zero</span>() {
         <span class="ident">Plus</span>
     } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">sign</span> <span class="op">!</span><span class="op">=</span> <span class="ident">Minus</span> <span class="op">|</span><span class="op">|</span> <span class="ident">other</span>.<span class="ident">is_odd</span>() {
@@ -115,12 +115,12 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">pow_impl</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:<span class="ident">ty</span>) =&gt; {
         <span class="kw">impl</span> <span class="ident">Pow</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BigInt</span> {
             <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">BigInt</span>;
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">pow</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BigInt</span> {
+            <span class="kw">fn</span> <span class="ident">pow</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>) -&gt; <span class="ident">BigInt</span> {
                 <span class="ident">BigInt::from_biguint</span>(<span class="ident">powsign</span>(<span class="self">self</span>.<span class="ident">sign</span>, <span class="kw-2">&amp;</span><span class="ident">rhs</span>), <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">pow</span>(<span class="ident">rhs</span>))
             }
         }
@@ -129,7 +129,7 @@
             <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">BigInt</span>;
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">pow</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BigInt</span> {
+            <span class="kw">fn</span> <span class="ident">pow</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>) -&gt; <span class="ident">BigInt</span> {
                 <span class="ident">BigInt::from_biguint</span>(<span class="ident">powsign</span>(<span class="self">self</span>.<span class="ident">sign</span>, <span class="ident">rhs</span>), <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">pow</span>(<span class="ident">rhs</span>))
             }
         }
@@ -138,7 +138,7 @@
             <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">BigInt</span>;
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">pow</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BigInt</span> {
+            <span class="kw">fn</span> <span class="ident">pow</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>) -&gt; <span class="ident">BigInt</span> {
                 <span class="ident">BigInt::from_biguint</span>(<span class="ident">powsign</span>(<span class="self">self</span>.<span class="ident">sign</span>, <span class="kw-2">&amp;</span><span class="ident">rhs</span>), <span class="ident">Pow::pow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">data</span>, <span class="ident">rhs</span>))
             }
         }
@@ -147,7 +147,7 @@
             <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">BigInt</span>;
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">pow</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BigInt</span> {
+            <span class="kw">fn</span> <span class="ident">pow</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>) -&gt; <span class="ident">BigInt</span> {
                 <span class="ident">BigInt::from_biguint</span>(<span class="ident">powsign</span>(<span class="self">self</span>.<span class="ident">sign</span>, <span class="ident">rhs</span>), <span class="ident">Pow::pow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">data</span>, <span class="ident">rhs</span>))
             }
         }
@@ -162,7 +162,7 @@
 <span class="macro">pow_impl!</span>(<span class="ident">u128</span>);
 <span class="macro">pow_impl!</span>(<span class="ident">BigUint</span>);
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">modpow</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="ident">BigInt</span>, <span class="ident">exponent</span>: <span class="kw-2">&amp;</span><span class="ident">BigInt</span>, <span class="ident">modulus</span>: <span class="kw-2">&amp;</span><span class="ident">BigInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BigInt</span> {
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">modpow</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="ident">BigInt</span>, <span class="ident">exponent</span>: <span class="kw-2">&amp;</span><span class="ident">BigInt</span>, <span class="ident">modulus</span>: <span class="kw-2">&amp;</span><span class="ident">BigInt</span>) -&gt; <span class="ident">BigInt</span> {
     <span class="macro">assert!</span>(
         <span class="op">!</span><span class="ident">exponent</span>.<span class="ident">is_negative</span>(),
         <span class="string">&quot;negative exponentiation is not supported!&quot;</span>
@@ -179,10 +179,10 @@
 
     <span class="comment">// The sign of the result follows the modulus, like `mod_floor`.</span>
     <span class="kw">let</span> (<span class="ident">sign</span>, <span class="ident">mag</span>) <span class="op">=</span> <span class="kw">match</span> (<span class="ident">x</span>.<span class="ident">is_negative</span>() <span class="op">&amp;&amp;</span> <span class="ident">exponent</span>.<span class="ident">is_odd</span>(), <span class="ident">modulus</span>.<span class="ident">is_negative</span>()) {
-        (<span class="bool-val">false</span>, <span class="bool-val">false</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">Plus</span>, <span class="ident">result</span>),
-        (<span class="bool-val">true</span>, <span class="bool-val">false</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">Plus</span>, <span class="kw-2">&amp;</span><span class="ident">modulus</span>.<span class="ident">data</span> <span class="op">-</span> <span class="ident">result</span>),
-        (<span class="bool-val">false</span>, <span class="bool-val">true</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">Minus</span>, <span class="kw-2">&amp;</span><span class="ident">modulus</span>.<span class="ident">data</span> <span class="op">-</span> <span class="ident">result</span>),
-        (<span class="bool-val">true</span>, <span class="bool-val">true</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">Minus</span>, <span class="ident">result</span>),
+        (<span class="bool-val">false</span>, <span class="bool-val">false</span>) =&gt; (<span class="ident">Plus</span>, <span class="ident">result</span>),
+        (<span class="bool-val">true</span>, <span class="bool-val">false</span>) =&gt; (<span class="ident">Plus</span>, <span class="kw-2">&amp;</span><span class="ident">modulus</span>.<span class="ident">data</span> <span class="op">-</span> <span class="ident">result</span>),
+        (<span class="bool-val">false</span>, <span class="bool-val">true</span>) =&gt; (<span class="ident">Minus</span>, <span class="kw-2">&amp;</span><span class="ident">modulus</span>.<span class="ident">data</span> <span class="op">-</span> <span class="ident">result</span>),
+        (<span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; (<span class="ident">Minus</span>, <span class="ident">result</span>),
     };
     <span class="ident">BigInt::from_biguint</span>(<span class="ident">sign</span>, <span class="ident">mag</span>)
 }

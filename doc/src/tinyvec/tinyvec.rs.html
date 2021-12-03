@@ -1648,40 +1648,40 @@
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docs_rs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)))]</span>
 <span class="macro">macro_rules!</span> <span class="ident">tiny_vec</span> {
-  (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">array_type</span>:<span class="ident">ty</span> <span class="op">=</span><span class="op">&gt;</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">elem</span>:<span class="ident">expr</span>),<span class="op">*</span> $(,)<span class="question-mark">?</span>) <span class="op">=</span><span class="op">&gt;</span> {
+  (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">array_type</span>:<span class="ident">ty</span> =&gt; $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">elem</span>:<span class="ident">expr</span>),<span class="op">*</span> $(,)<span class="question-mark">?</span>) =&gt; {
     {
       <span class="comment">// https://github.com/rust-lang/lang-team/issues/28</span>
       <span class="kw">const</span> <span class="ident">INVOKED_ELEM_COUNT</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0</span> $( <span class="op">+</span> { <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">elem</span>); <span class="number">1</span> })<span class="kw-2">*</span>;
       <span class="comment">// If we have more `$elem` than the `CAPACITY` we will simply go directly</span>
       <span class="comment">// to constructing on the heap.</span>
       <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::TinyVec::constructor_for_capacity</span>(<span class="ident">INVOKED_ELEM_COUNT</span>) {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::TinyVecConstructor::Inline</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> {
-          <span class="ident">f</span>(<span class="macro-nonterminal">$</span><span class="macro">crate::array_vec!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">array_type</span> <span class="op">=</span><span class="op">&gt;</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">elem</span>),<span class="kw-2">*</span>))
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::TinyVecConstructor::Inline</span>(<span class="ident">f</span>) =&gt; {
+          <span class="ident">f</span>(<span class="macro-nonterminal">$</span><span class="macro">crate::array_vec!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">array_type</span> =&gt; $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">elem</span>),<span class="kw-2">*</span>))
         }
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::TinyVecConstructor::Heap</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::TinyVecConstructor::Heap</span>(<span class="ident">f</span>) =&gt; {
           <span class="ident">f</span>(<span class="macro">vec!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">elem</span>),<span class="kw-2">*</span>))
         }
       }
     }
   };
-  (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">array_type</span>:<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
+  (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">array_type</span>:<span class="ident">ty</span>) =&gt; {
     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::TinyVec</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">array_type</span><span class="op">&gt;</span><span class="ident">::default</span>()
   };
-  ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">elem</span>:<span class="ident">expr</span>),<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
-    <span class="macro-nonterminal">$</span><span class="macro">crate::tiny_vec!</span>(<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">elem</span>),<span class="kw-2">*</span>)
+  ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">elem</span>:<span class="ident">expr</span>),<span class="kw-2">*</span>) =&gt; {
+    <span class="macro-nonterminal">$</span><span class="macro">crate::tiny_vec!</span>(<span class="kw">_</span> =&gt; $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">elem</span>),<span class="kw-2">*</span>)
   };
-  (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">elem</span>:<span class="ident">expr</span>; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">n</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+  (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">elem</span>:<span class="ident">expr</span>; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">n</span>:<span class="ident">expr</span>) =&gt; {
     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::TinyVec::from</span>([<span class="macro-nonterminal">$</span><span class="macro-nonterminal">elem</span>; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">n</span>])
   };
-  () <span class="op">=</span><span class="op">&gt;</span> {
+  () =&gt; {
     <span class="macro-nonterminal">$</span><span class="macro">crate::tiny_vec!</span>(<span class="kw">_</span>)
   };
 }
 
 <span class="attribute">#[<span class="macro-nonterminal">doc</span>(<span class="ident">hidden</span>)]</span> <span class="comment">// Internal implementation details of `tiny_vec!`</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">TinyVecConstructor</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> {
-  <span class="ident">Inline</span>(<span class="kw">fn</span>(<span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TinyVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>),
-  <span class="ident">Heap</span>(<span class="kw">fn</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">A::Item</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TinyVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>),
+  <span class="ident">Inline</span>(<span class="kw">fn</span>(<span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>) -&gt; <span class="ident">TinyVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>),
+  <span class="ident">Heap</span>(<span class="kw">fn</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">A::Item</span><span class="op">&gt;</span>) -&gt; <span class="ident">TinyVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>),
 }
 
 <span class="doccomment">/// A vector that starts inline, but can automatically move to the heap.</span>
@@ -1719,10 +1719,10 @@
   <span class="ident">A::Item</span>: <span class="ident">Clone</span>,
 {
   <span class="attribute">#[<span class="ident">inline</span>]</span>
-  <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+  <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
     <span class="kw">match</span> <span class="self">self</span> {
-      <span class="ident"><span class="self">Self</span>::Heap</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Heap</span>(<span class="ident">v</span>.<span class="ident">clone</span>()),
-      <span class="ident"><span class="self">Self</span>::Inline</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Inline</span>(<span class="ident">v</span>.<span class="ident">clone</span>()),
+      <span class="ident"><span class="self">Self</span>::Heap</span>(<span class="ident">v</span>) =&gt; <span class="ident"><span class="self">Self</span>::Heap</span>(<span class="ident">v</span>.<span class="ident">clone</span>()),
+      <span class="ident"><span class="self">Self</span>::Inline</span>(<span class="ident">v</span>) =&gt; <span class="ident"><span class="self">Self</span>::Inline</span>(<span class="ident">v</span>.<span class="ident">clone</span>()),
     }
   }
 
@@ -1744,7 +1744,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">TinyVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
   <span class="attribute">#[<span class="ident">inline</span>]</span>
   <span class="attribute">#[<span class="ident">must_use</span>]</span>
-  <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+  <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
     <span class="ident">TinyVec::Inline</span>(<span class="ident">ArrayVec::default</span>())
   }
 }
@@ -1756,7 +1756,7 @@
     <span class="kw">type</span> <span class="ident">Mirror</span> <span class="op">=</span> <span class="ident">TinyVec</span>;
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Target</span>;
+    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Target</span>;
   }
 }
 
@@ -1765,7 +1765,7 @@
     <span class="kw">type</span> <span class="ident">Mirror</span> <span class="op">=</span> <span class="ident">TinyVec</span>;
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident"><span class="self">Self</span>::Target</span>;
+    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident"><span class="self">Self</span>::Target</span>;
   }
 }
 
@@ -1773,7 +1773,7 @@
   <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">I</span> <span class="kw">as</span> <span class="ident">SliceIndex</span><span class="op">&lt;</span>[<span class="ident">A::Item</span>]<span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Output</span>;
   <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
   <span class="attribute">#[<span class="ident">must_use</span>]</span>
-  <span class="kw">fn</span> <span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Output</span> {
+  <span class="kw">fn</span> <span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">I</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Output</span> {
     <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">deref</span>()[<span class="ident">index</span>]
   }
 }
@@ -1781,7 +1781,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span>, <span class="ident">I</span>: <span class="ident">SliceIndex</span><span class="op">&lt;</span>[<span class="ident">A::Item</span>]<span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">IndexMut</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TinyVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
   <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
   <span class="attribute">#[<span class="ident">must_use</span>]</span>
-  <span class="kw">fn</span> <span class="ident">index_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident"><span class="self">Self</span>::Output</span> {
+  <span class="kw">fn</span> <span class="ident">index_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">I</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident"><span class="self">Self</span>::Output</span> {
     <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">deref_mut</span>()[<span class="ident">index</span>]
   }
 }
@@ -1790,13 +1790,13 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docs_rs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)))]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">std::io::Write</span> <span class="kw">for</span> <span class="ident">TinyVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
   <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-  <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std::io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+  <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
     <span class="self">self</span>.<span class="ident">extend_from_slice</span>(<span class="ident">buf</span>);
     <span class="prelude-val">Ok</span>(<span class="ident">buf</span>.<span class="ident">len</span>())
   }
 
   <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-  <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+  <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="prelude-val">Ok</span>(())
   }
 }
@@ -1808,7 +1808,7 @@
   <span class="ident">A::Item</span>: <span class="ident">Serialize</span>,
 {
   <span class="attribute">#[<span class="ident">must_use</span>]</span>
-  <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S::Ok</span>, <span class="ident">S::Error</span><span class="op">&gt;</span>
+  <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S::Ok</span>, <span class="ident">S::Error</span><span class="op">&gt;</span>
   <span class="kw">where</span>
     <span class="ident">S</span>: <span class="ident">Serializer</span>,
   {
@@ -1826,7 +1826,7 @@
 <span class="kw">where</span>
   <span class="ident">A::Item</span>: <span class="ident">Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
 {
-  <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">D::Error</span><span class="op">&gt;</span>
+  <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">D::Error</span><span class="op">&gt;</span>
   <span class="kw">where</span>
     <span class="ident">D</span>: <span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
   {
@@ -1841,7 +1841,7 @@
   <span class="ident">A</span>: <span class="ident">Array</span>,
   <span class="ident">A::Item</span>: <span class="ident">arbitrary::Arbitrary</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
 {
-  <span class="kw">fn</span> <span class="ident">arbitrary</span>(<span class="ident">u</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">arbitrary::Unstructured</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">arbitrary::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+  <span class="kw">fn</span> <span class="ident">arbitrary</span>(<span class="ident">u</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">arbitrary::Unstructured</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <span class="ident">arbitrary::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">Vec::arbitrary</span>(<span class="ident">u</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tv</span> <span class="op">=</span> <span class="ident">TinyVec::Heap</span>(<span class="ident">v</span>);
     <span class="ident">tv</span>.<span class="ident">shrink_to_fit</span>();
@@ -1853,16 +1853,16 @@
   <span class="doccomment">/// Returns whether elements are on heap</span>
   <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
   <span class="attribute">#[<span class="ident">must_use</span>]</span>
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_heap</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_heap</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
     <span class="kw">match</span> <span class="self">self</span> {
-      <span class="ident">TinyVec::Heap</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-      <span class="ident">TinyVec::Inline</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+      <span class="ident">TinyVec::Heap</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+      <span class="ident">TinyVec::Inline</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
     }
   }
   <span class="doccomment">/// Returns whether elements are on stack</span>
   <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
   <span class="attribute">#[<span class="ident">must_use</span>]</span>
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_inline</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_inline</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
     <span class="op">!</span><span class="self">self</span>.<span class="ident">is_heap</span>()
   }
 
@@ -1879,8 +1879,8 @@
   <span class="doccomment">/// ```</span>
   <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shrink_to_fit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
     <span class="kw">let</span> <span class="ident">vec</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span> {
-      <span class="ident">TinyVec::Inline</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span>,
-      <span class="ident">TinyVec::Heap</span>(<span class="ident">h</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">h</span>,
+      <span class="ident">TinyVec::Inline</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span>,
+      <span class="ident">TinyVec::Heap</span>(<span class="ident">h</span>) =&gt; <span class="ident">h</span>,
     };
 
     <span class="kw">if</span> <span class="ident">vec</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="ident">A::CAPACITY</span> {
@@ -1906,8 +1906,8 @@
   <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::missing_inline_in_public_items</span>)]</span>
   <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">move_to_the_heap</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
     <span class="kw">let</span> <span class="ident">arr</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span> {
-      <span class="ident">TinyVec::Heap</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span>,
-      <span class="ident">TinyVec::Inline</span>(<span class="ident">a</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span>,
+      <span class="ident">TinyVec::Heap</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span>,
+      <span class="ident">TinyVec::Inline</span>(<span class="ident">a</span>) =&gt; <span class="ident">a</span>,
     };
 
     <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">arr</span>.<span class="ident">drain_to_vec</span>();
@@ -1926,8 +1926,8 @@
   <span class="doccomment">/// ```</span>
   <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">move_to_the_heap_and_reserve</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) {
     <span class="kw">let</span> <span class="ident">arr</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span> {
-      <span class="ident">TinyVec::Heap</span>(<span class="ident">h</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">h</span>.<span class="ident">reserve</span>(<span class="ident">n</span>),
-      <span class="ident">TinyVec::Inline</span>(<span class="ident">a</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span>,
+      <span class="ident">TinyVec::Heap</span>(<span class="ident">h</span>) =&gt; <span class="kw">return</span> <span class="ident">h</span>.<span class="ident">reserve</span>(<span class="ident">n</span>),
+      <span class="ident">TinyVec::Inline</span>(<span class="ident">a</span>) =&gt; <span class="ident">a</span>,
     };
 
     <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">arr</span>.<span class="ident">drain_to_vec_and_reserve</span>(<span class="ident">n</span>);
@@ -1946,8 +1946,8 @@
   <span class="doccomment">/// ```</span>
   <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reserve</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) {
     <span class="kw">let</span> <span class="ident">arr</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span> {
-      <span class="ident">TinyVec::Heap</span>(<span class="ident">h</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">h</span>.<span class="ident">reserve</span>(<span class="ident">n</span>),
-      <span class="ident">TinyVec::Inline</span>(<span class="ident">a</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span>,
+      <span class="ident">TinyVec::Heap</span>(<span class="ident">h</span>) =&gt; <span class="kw">return</span> <span class="ident">h</span>.<span class="ident">reserve</span>(<span class="ident">n</span>),
+      <span class="ident">TinyVec::Inline</span>(<span class="ident">a</span>) =&gt; <span class="ident">a</span>,
     };
 
     <span class="kw">if</span> <span class="ident">n</span> <span class="op">&gt;</span> <span class="ident">arr</span>.<span class="ident">capacity</span>() <span class="op">-</span> <span class="ident">arr</span>.<span class="ident">len</span>() {
@@ -1978,8 +1978,8 @@
   <span class="doccomment">/// ```</span>
   <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reserve_exact</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) {
     <span class="kw">let</span> <span class="ident">arr</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span> {
-      <span class="ident">TinyVec::Heap</span>(<span class="ident">h</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">h</span>.<span class="ident">reserve_exact</span>(<span class="ident">n</span>),
-      <span class="ident">TinyVec::Inline</span>(<span class="ident">a</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span>,
+      <span class="ident">TinyVec::Heap</span>(<span class="ident">h</span>) =&gt; <span class="kw">return</span> <span class="ident">h</span>.<span class="ident">reserve_exact</span>(<span class="ident">n</span>),
+      <span class="ident">TinyVec::Inline</span>(<span class="ident">a</span>) =&gt; <span class="ident">a</span>,
     };
 
     <span class="kw">if</span> <span class="ident">n</span> <span class="op">&gt;</span> <span class="ident">arr</span>.<span class="ident">capacity</span>() <span class="op">-</span> <span class="ident">arr</span>.<span class="ident">len</span>() {
@@ -2007,7 +2007,7 @@
   <span class="doccomment">/// ```</span>
   <span class="attribute">#[<span class="ident">inline</span>]</span>
   <span class="attribute">#[<span class="ident">must_use</span>]</span>
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_capacity</span>(<span class="ident">cap</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_capacity</span>(<span class="ident">cap</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
     <span class="kw">if</span> <span class="ident">cap</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">A::CAPACITY</span> {
       <span class="ident">TinyVec::Inline</span>(<span class="ident">ArrayVec::default</span>())
     } <span class="kw">else</span> {
@@ -2025,9 +2025,9 @@
 
     <span class="comment">/* Doing append should be faster, because it is effectively a memcpy */</span>
     <span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
-      (<span class="ident">TinyVec::Heap</span>(<span class="ident">sh</span>), <span class="ident">TinyVec::Heap</span>(<span class="ident">oh</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">sh</span>.<span class="ident">append</span>(<span class="ident">oh</span>),
-      (<span class="ident">TinyVec::Inline</span>(<span class="ident">a</span>), <span class="ident">TinyVec::Heap</span>(<span class="ident">h</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span>.<span class="ident">extend</span>(<span class="ident">h</span>.<span class="ident">drain</span>(..)),
-      (<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">this</span>, <span class="ident">TinyVec::Inline</span>(<span class="ident">arr</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">this</span>.<span class="ident">extend</span>(<span class="ident">arr</span>.<span class="ident">drain</span>(..)),
+      (<span class="ident">TinyVec::Heap</span>(<span class="ident">sh</span>), <span class="ident">TinyVec::Heap</span>(<span class="ident">oh</span>)) =&gt; <span class="ident">sh</span>.<span class="ident">append</span>(<span class="ident">oh</span>),
+      (<span class="ident">TinyVec::Inline</span>(<span class="ident">a</span>), <span class="ident">TinyVec::Heap</span>(<span class="ident">h</span>)) =&gt; <span class="ident">a</span>.<span class="ident">extend</span>(<span class="ident">h</span>.<span class="ident">drain</span>(..)),
+      (<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">this</span>, <span class="ident">TinyVec::Inline</span>(<span class="ident">arr</span>)) =&gt; <span class="ident">this</span>.<span class="ident">extend</span>(<span class="ident">arr</span>.<span class="ident">drain</span>(..)),
     }
   }
 
@@ -2036,8 +2036,8 @@
   <span class="attribute">#[<span class="ident">inline</span>]</span>
   <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>) {
     <span class="kw">match</span> <span class="ident">other</span> {
-      <span class="ident">TinyVec::Inline</span>(<span class="ident">a</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">extend</span>(<span class="ident">a</span>.<span class="ident">drain</span>(..)),
-      <span class="ident">TinyVec::Heap</span>(<span class="ident">h</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">extend</span>(<span class="ident">h</span>.<span class="ident">drain</span>(..)),
+      <span class="ident">TinyVec::Inline</span>(<span class="ident">a</span>) =&gt; <span class="self">self</span>.<span class="ident">extend</span>(<span class="ident">a</span>.<span class="ident">drain</span>(..)),
+      <span class="ident">TinyVec::Heap</span>(<span class="ident">h</span>) =&gt; <span class="self">self</span>.<span class="ident">extend</span>(<span class="ident">h</span>.<span class="ident">drain</span>(..)),
     }
   }
 
@@ -2061,14 +2061,14 @@
     <span class="doccomment">/// assert_eq!(tv.as_slice(), &amp;[&quot;quack&quot;, &quot;zap&quot;][..]);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">swap_remove</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">A::Item</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">swap_remove</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="ident">A::Item</span>;
 
     <span class="doccomment">/// Remove and return the last element of the vec, if there is one.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ## Failure</span>
     <span class="doccomment">/// * If the vec is empty you get `None`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">A::Item</span><span class="op">&gt;</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">A::Item</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Removes the item at `index`, shifting all others down by one index.</span>
     <span class="doccomment">///</span>
@@ -2087,12 +2087,12 @@
     <span class="doccomment">/// assert_eq!(tv.as_slice(), &amp;[1, 3][..]);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">A::Item</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="ident">A::Item</span>;
 
     <span class="doccomment">/// The length of the vec (in elements).</span>
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">usize</span>;
 
     <span class="doccomment">/// The capacity of the `TinyVec`.</span>
     <span class="doccomment">///</span>
@@ -2100,7 +2100,7 @@
     <span class="doccomment">/// Otherwise its the result of the underlying Vec::capacity.</span>
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">capacity</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">capacity</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">usize</span>;
 
     <span class="doccomment">/// Reduces the vec&#39;s length to the given value.</span>
     <span class="doccomment">///</span>
@@ -2115,7 +2115,7 @@
     <span class="doccomment">/// This pointer has provenance over the _entire_ backing array/buffer.</span>
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mut_ptr</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">A::Item</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mut_ptr</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">A::Item</span>;
 
     <span class="doccomment">/// A const pointer to the backing array.</span>
     <span class="doccomment">///</span>
@@ -2124,7 +2124,7 @@
     <span class="doccomment">/// This pointer has provenance over the _entire_ backing array/buffer.</span>
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_ptr</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">A::Item</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_ptr</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">A::Item</span>;
   }
 
   <span class="doccomment">/// Walk the vec and keep only the elements that pass the predicate given.</span>
@@ -2139,24 +2139,24 @@
   <span class="doccomment">/// assert_eq!(tv.as_slice(), &amp;[2, 4][..]);</span>
   <span class="doccomment">/// ```</span>
   <span class="attribute">#[<span class="ident">inline</span>]</span>
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">retain</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">A::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span><span class="op">&gt;</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>, <span class="ident">acceptable</span>: <span class="ident">F</span>) {
+  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">retain</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">A::Item</span>) -&gt; <span class="ident">bool</span><span class="op">&gt;</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>, <span class="ident">acceptable</span>: <span class="ident">F</span>) {
     <span class="kw">match</span> <span class="self">self</span> {
-      <span class="ident">TinyVec::Inline</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i</span>.<span class="ident">retain</span>(<span class="ident">acceptable</span>),
-      <span class="ident">TinyVec::Heap</span>(<span class="ident">h</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">h</span>.<span class="ident">retain</span>(<span class="ident">acceptable</span>),
+      <span class="ident">TinyVec::Inline</span>(<span class="ident">i</span>) =&gt; <span class="ident">i</span>.<span class="ident">retain</span>(<span class="ident">acceptable</span>),
+      <span class="ident">TinyVec::Heap</span>(<span class="ident">h</span>) =&gt; <span class="ident">h</span>.<span class="ident">retain</span>(<span class="ident">acceptable</span>),
     }
   }
 
   <span class="doccomment">/// Helper for getting the mut slice.</span>
   <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
   <span class="attribute">#[<span class="ident">must_use</span>]</span>
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mut_slice</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">A::Item</span>] {
+  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mut_slice</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">A::Item</span>] {
     <span class="self">self</span>.<span class="ident">deref_mut</span>()
   }
 
   <span class="doccomment">/// Helper for getting the shared slice.</span>
   <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
   <span class="attribute">#[<span class="ident">must_use</span>]</span>
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_slice</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">A::Item</span>] {
+  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_slice</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">A::Item</span>] {
     <span class="self">self</span>.<span class="ident">deref</span>()
   }
 
@@ -2173,7 +2173,7 @@
   <span class="kw">where</span>
     <span class="ident">A::Item</span>: <span class="ident">PartialEq</span>,
   {
-    <span class="self">self</span>.<span class="ident">dedup_by</span>(<span class="op">|</span><span class="ident">a</span>, <span class="ident">b</span><span class="op">|</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b</span>)
+    <span class="self">self</span>.<span class="ident">dedup_by</span>(<span class="op">|</span><span class="ident">a</span>, <span class="ident">b</span><span class="op">|</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">b</span>)
   }
 
   <span class="doccomment">/// De-duplicates the vec according to the predicate given.</span>
@@ -2181,7 +2181,7 @@
   <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
   <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dedup_by</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">same_bucket</span>: <span class="ident">F</span>)
   <span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">A::Item</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">A::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>,
+    <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">A::Item</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">A::Item</span>) -&gt; <span class="ident">bool</span>,
   {
     <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> {
       <span class="kw">let</span> (<span class="ident">dedup</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">as_mut_slice</span>().<span class="ident">partition_dedup_by</span>(<span class="ident">same_bucket</span>);
@@ -2195,10 +2195,10 @@
   <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
   <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dedup_by_key</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">key</span>: <span class="ident">F</span>)
   <span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">A::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">K</span>,
+    <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">A::Item</span>) -&gt; <span class="ident">K</span>,
     <span class="ident">K</span>: <span class="ident">PartialEq</span>,
   {
-    <span class="self">self</span>.<span class="ident">dedup_by</span>(<span class="op">|</span><span class="ident">a</span>, <span class="ident">b</span><span class="op">|</span> <span class="ident">key</span>(<span class="ident">a</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">key</span>(<span class="ident">b</span>))
+    <span class="self">self</span>.<span class="ident">dedup_by</span>(<span class="op">|</span><span class="ident">a</span>, <span class="ident">b</span><span class="op">|</span> <span class="ident">key</span>(<span class="ident">a</span>) <span class="op">==</span> <span class="ident">key</span>(<span class="ident">b</span>))
   }
 
   <span class="doccomment">/// Creates a draining iterator that removes the specified range in the vector</span>
@@ -2227,10 +2227,10 @@
   <span class="attribute">#[<span class="ident">inline</span>]</span>
   <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">drain</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">RangeBounds</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span>(
     <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">range</span>: <span class="ident">R</span>,
-  ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TinyVecDrain</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">A</span><span class="op">&gt;</span> {
+  ) -&gt; <span class="ident">TinyVecDrain</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">A</span><span class="op">&gt;</span> {
     <span class="kw">match</span> <span class="self">self</span> {
-      <span class="ident">TinyVec::Inline</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TinyVecDrain::Inline</span>(<span class="ident">i</span>.<span class="ident">drain</span>(<span class="ident">range</span>)),
-      <span class="ident">TinyVec::Heap</span>(<span class="ident">h</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TinyVecDrain::Heap</span>(<span class="ident">h</span>.<span class="ident">drain</span>(<span class="ident">range</span>)),
+      <span class="ident">TinyVec::Inline</span>(<span class="ident">i</span>) =&gt; <span class="ident">TinyVecDrain::Inline</span>(<span class="ident">i</span>.<span class="ident">drain</span>(<span class="ident">range</span>)),
+      <span class="ident">TinyVec::Heap</span>(<span class="ident">h</span>) =&gt; <span class="ident">TinyVecDrain::Heap</span>(<span class="ident">h</span>.<span class="ident">drain</span>(<span class="ident">range</span>)),
     }
   }
 
@@ -2248,8 +2248,8 @@
   {
     <span class="self">self</span>.<span class="ident">reserve</span>(<span class="ident">sli</span>.<span class="ident">len</span>());
     <span class="kw">match</span> <span class="self">self</span> {
-      <span class="ident">TinyVec::Inline</span>(<span class="ident">a</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span>.<span class="ident">extend_from_slice</span>(<span class="ident">sli</span>),
-      <span class="ident">TinyVec::Heap</span>(<span class="ident">h</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">h</span>.<span class="ident">extend_from_slice</span>(<span class="ident">sli</span>),
+      <span class="ident">TinyVec::Inline</span>(<span class="ident">a</span>) =&gt; <span class="ident">a</span>.<span class="ident">extend_from_slice</span>(<span class="ident">sli</span>),
+      <span class="ident">TinyVec::Heap</span>(<span class="ident">h</span>) =&gt; <span class="ident">h</span>.<span class="ident">extend_from_slice</span>(<span class="ident">sli</span>),
     }
   }
 
@@ -2263,10 +2263,10 @@
   <span class="attribute">#[<span class="ident">inline</span>]</span>
   <span class="attribute">#[<span class="ident">must_use</span>]</span>
   <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::match_wild_err_arm</span>)]</span>
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_array_len</span>(<span class="ident">data</span>: <span class="ident">A</span>, <span class="ident">len</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_array_len</span>(<span class="ident">data</span>: <span class="ident">A</span>, <span class="ident">len</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
     <span class="kw">match</span> <span class="ident"><span class="self">Self</span>::try_from_array_len</span>(<span class="ident">data</span>, <span class="ident">len</span>) {
-      <span class="prelude-val">Ok</span>(<span class="ident">out</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">out</span>,
-      <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+      <span class="prelude-val">Ok</span>(<span class="ident">out</span>) =&gt; <span class="ident">out</span>,
+      <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
         <span class="macro">panic!</span>(<span class="string">&quot;TinyVec: length {} exceeds capacity {}!&quot;</span>, <span class="ident">len</span>, <span class="ident">A::CAPACITY</span>)
       }
     }
@@ -2277,7 +2277,7 @@
   <span class="doccomment">/// SemVer guarantee.</span>
   <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
   <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">constructor_for_capacity</span>(<span class="ident">cap</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TinyVecConstructor</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
+  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">constructor_for_capacity</span>(<span class="ident">cap</span>: <span class="ident">usize</span>) -&gt; <span class="ident">TinyVecConstructor</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="ident">cap</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">A::CAPACITY</span> {
       <span class="ident">TinyVecConstructor::Inline</span>(<span class="ident">TinyVec::Inline</span>)
     } <span class="kw">else</span> {
@@ -2310,8 +2310,8 @@
     );
 
     <span class="kw">let</span> <span class="ident">arr</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span> {
-      <span class="ident">TinyVec::Heap</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">v</span>.<span class="ident">insert</span>(<span class="ident">index</span>, <span class="ident">item</span>),
-      <span class="ident">TinyVec::Inline</span>(<span class="ident">a</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span>,
+      <span class="ident">TinyVec::Heap</span>(<span class="ident">v</span>) =&gt; <span class="kw">return</span> <span class="ident">v</span>.<span class="ident">insert</span>(<span class="ident">index</span>, <span class="ident">item</span>),
+      <span class="ident">TinyVec::Inline</span>(<span class="ident">a</span>) =&gt; <span class="ident">a</span>,
     };
 
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span> <span class="ident">arr</span>.<span class="ident">try_insert</span>(<span class="ident">index</span>, <span class="ident">item</span>) {
@@ -2328,14 +2328,14 @@
   <span class="doccomment">/// If the vec is empty.</span>
   <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
   <span class="attribute">#[<span class="ident">must_use</span>]</span>
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-    <span class="self">self</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span>
+  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+    <span class="self">self</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span>
   }
 
   <span class="doccomment">/// Makes a new, empty vec.</span>
   <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
   <span class="attribute">#[<span class="ident">must_use</span>]</span>
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
     <span class="ident"><span class="self">Self</span>::default</span>()
   }
 
@@ -2362,7 +2362,7 @@
     <span class="attribute">#[<span class="ident">cold</span>]</span>
     <span class="kw">fn</span> <span class="ident">drain_to_heap_and_push</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span>(
       <span class="ident">arr</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>, <span class="ident">val</span>: <span class="ident">A::Item</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TinyVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">TinyVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
       <span class="comment">/* Make the Vec twice the size to amortize the cost of draining */</span>
       <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">arr</span>.<span class="ident">drain_to_vec_and_reserve</span>(<span class="ident">arr</span>.<span class="ident">len</span>());
       <span class="ident">v</span>.<span class="ident">push</span>(<span class="ident">val</span>);
@@ -2370,8 +2370,8 @@
     }
 
     <span class="kw">match</span> <span class="self">self</span> {
-      <span class="ident">TinyVec::Heap</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>.<span class="ident">push</span>(<span class="ident">val</span>),
-      <span class="ident">TinyVec::Inline</span>(<span class="ident">arr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+      <span class="ident">TinyVec::Heap</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span>.<span class="ident">push</span>(<span class="ident">val</span>),
+      <span class="ident">TinyVec::Inline</span>(<span class="ident">arr</span>) =&gt; {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span> <span class="ident">arr</span>.<span class="ident">try_push</span>(<span class="ident">val</span>) {
           <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="ident">drain_to_heap_and_push</span>(<span class="ident">arr</span>, <span class="ident">x</span>);
         }
@@ -2428,15 +2428,15 @@
   <span class="doccomment">/// assert_eq!(tv.as_slice(), &amp;[2, 4, 8, 16][..]);</span>
   <span class="doccomment">/// ```</span>
   <span class="attribute">#[<span class="ident">inline</span>]</span>
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resize_with</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnMut</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">A::Item</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">new_len</span>: <span class="ident">usize</span>, <span class="ident">f</span>: <span class="ident">F</span>) {
+  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resize_with</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnMut</span>() -&gt; <span class="ident">A::Item</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">new_len</span>: <span class="ident">usize</span>, <span class="ident">f</span>: <span class="ident">F</span>) {
     <span class="kw">match</span> <span class="ident">new_len</span>.<span class="ident">checked_sub</span>(<span class="self">self</span>.<span class="ident">len</span>()) {
-      <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="self">self</span>.<span class="ident">truncate</span>(<span class="ident">new_len</span>),
-      <span class="prelude-val">Some</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">reserve</span>(<span class="ident">n</span>),
+      <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="self">self</span>.<span class="ident">truncate</span>(<span class="ident">new_len</span>),
+      <span class="prelude-val">Some</span>(<span class="ident">n</span>) =&gt; <span class="self">self</span>.<span class="ident">reserve</span>(<span class="ident">n</span>),
     }
 
     <span class="kw">match</span> <span class="self">self</span> {
-      <span class="ident">TinyVec::Inline</span>(<span class="ident">a</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span>.<span class="ident">resize_with</span>(<span class="ident">new_len</span>, <span class="ident">f</span>),
-      <span class="ident">TinyVec::Heap</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>.<span class="ident">resize_with</span>(<span class="ident">new_len</span>, <span class="ident">f</span>),
+      <span class="ident">TinyVec::Inline</span>(<span class="ident">a</span>) =&gt; <span class="ident">a</span>.<span class="ident">resize_with</span>(<span class="ident">new_len</span>, <span class="ident">f</span>),
+      <span class="ident">TinyVec::Heap</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span>.<span class="ident">resize_with</span>(<span class="ident">new_len</span>, <span class="ident">f</span>),
     }
   }
 
@@ -2458,10 +2458,10 @@
   <span class="doccomment">/// assert_eq!(tv2.as_slice(), &amp;[2, 3][..]);</span>
   <span class="doccomment">/// ```</span>
   <span class="attribute">#[<span class="ident">inline</span>]</span>
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">split_off</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">at</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">split_off</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">at</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
     <span class="kw">match</span> <span class="self">self</span> {
-      <span class="ident">TinyVec::Inline</span>(<span class="ident">a</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TinyVec::Inline</span>(<span class="ident">a</span>.<span class="ident">split_off</span>(<span class="ident">at</span>)),
-      <span class="ident">TinyVec::Heap</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TinyVec::Heap</span>(<span class="ident">v</span>.<span class="ident">split_off</span>(<span class="ident">at</span>)),
+      <span class="ident">TinyVec::Inline</span>(<span class="ident">a</span>) =&gt; <span class="ident">TinyVec::Inline</span>(<span class="ident">a</span>.<span class="ident">split_off</span>(<span class="ident">at</span>)),
+      <span class="ident">TinyVec::Heap</span>(<span class="ident">v</span>) =&gt; <span class="ident">TinyVec::Heap</span>(<span class="ident">v</span>.<span class="ident">split_off</span>(<span class="ident">at</span>)),
     }
   }
 
@@ -2491,21 +2491,21 @@
   <span class="attribute">#[<span class="ident">inline</span>]</span>
   <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">splice</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">I</span><span class="op">&gt;</span>(
     <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">range</span>: <span class="ident">R</span>, <span class="ident">replacement</span>: <span class="ident">I</span>,
-  ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TinyVecSplice</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">A</span>, <span class="ident">core::iter::Fuse</span><span class="op">&lt;</span><span class="ident">I::IntoIter</span><span class="op">&gt;</span><span class="op">&gt;</span>
+  ) -&gt; <span class="ident">TinyVecSplice</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">A</span>, <span class="ident">core::iter::Fuse</span><span class="op">&lt;</span><span class="ident">I::IntoIter</span><span class="op">&gt;</span><span class="op">&gt;</span>
   <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">RangeBounds</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
     <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">A::Item</span><span class="op">&gt;</span>,
   {
     <span class="kw">use</span> <span class="ident">core::ops::Bound</span>;
     <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">range</span>.<span class="ident">start_bound</span>() {
-      <span class="ident">Bound::Included</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">x</span>,
-      <span class="ident">Bound::Excluded</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">saturating_add</span>(<span class="number">1</span>),
-      <span class="ident">Bound::Unbounded</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
+      <span class="ident">Bound::Included</span>(<span class="ident">x</span>) =&gt; <span class="kw-2">*</span><span class="ident">x</span>,
+      <span class="ident">Bound::Excluded</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">saturating_add</span>(<span class="number">1</span>),
+      <span class="ident">Bound::Unbounded</span> =&gt; <span class="number">0</span>,
     };
     <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">range</span>.<span class="ident">end_bound</span>() {
-      <span class="ident">Bound::Included</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">saturating_add</span>(<span class="number">1</span>),
-      <span class="ident">Bound::Excluded</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">x</span>,
-      <span class="ident">Bound::Unbounded</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">len</span>(),
+      <span class="ident">Bound::Included</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">saturating_add</span>(<span class="number">1</span>),
+      <span class="ident">Bound::Excluded</span>(<span class="ident">x</span>) =&gt; <span class="kw-2">*</span><span class="ident">x</span>,
+      <span class="ident">Bound::Unbounded</span> =&gt; <span class="self">self</span>.<span class="ident">len</span>(),
     };
     <span class="macro">assert!</span>(
       <span class="ident">start</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">end</span>,
@@ -2538,7 +2538,7 @@
   <span class="doccomment">/// If the given length is greater than the capacity of the array this will</span>
   <span class="doccomment">/// error, and you&#39;ll get the array back in the `Err`.</span>
   <span class="attribute">#[<span class="ident">inline</span>]</span>
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_from_array_len</span>(<span class="ident">data</span>: <span class="ident">A</span>, <span class="ident">len</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">A</span><span class="op">&gt;</span> {
+  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_from_array_len</span>(<span class="ident">data</span>: <span class="ident">A</span>, <span class="ident">len</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">A</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">arr</span> <span class="op">=</span> <span class="ident">ArrayVec::try_from_array_len</span>(<span class="ident">data</span>, <span class="ident">len</span>)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(<span class="ident">TinyVec::Inline</span>(<span class="ident">arr</span>))
   }
@@ -2562,22 +2562,22 @@
     <span class="kw">type</span> <span class="ident">Mirror</span> <span class="op">=</span> <span class="ident">TinyVecDrain</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>;
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">nth</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">nth</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>;
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>);
+    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>);
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">last</span>(<span class="self">self</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">last</span>(<span class="self">self</span>: <span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>;
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">count</span>(<span class="self">self</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span>;
+    <span class="kw">fn</span> <span class="ident">count</span>(<span class="self">self</span>: <span class="self">Self</span>) -&gt; <span class="ident">usize</span>;
   }
 
   <span class="attribute">#[<span class="ident">inline</span>]</span>
   <span class="kw">fn</span> <span class="ident">for_each</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident"><span class="self">Self</span>::Item</span>)<span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) {
     <span class="kw">match</span> <span class="self">self</span> {
-      <span class="ident">TinyVecDrain::Inline</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i</span>.<span class="ident">for_each</span>(<span class="ident">f</span>),
-      <span class="ident">TinyVecDrain::Heap</span>(<span class="ident">h</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">h</span>.<span class="ident">for_each</span>(<span class="ident">f</span>),
+      <span class="ident">TinyVecDrain::Inline</span>(<span class="ident">i</span>) =&gt; <span class="ident">i</span>.<span class="ident">for_each</span>(<span class="ident">f</span>),
+      <span class="ident">TinyVecDrain::Heap</span>(<span class="ident">h</span>) =&gt; <span class="ident">h</span>.<span class="ident">for_each</span>(<span class="ident">f</span>),
     }
   }
 }
@@ -2587,11 +2587,11 @@
     <span class="kw">type</span> <span class="ident">Mirror</span> <span class="op">=</span> <span class="ident">TinyVecDrain</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>;
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustc_1_40&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">nth_back</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">nth_back</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>;
   }
 }
 
@@ -2613,10 +2613,10 @@
   <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">A::Item</span>;
 
   <span class="attribute">#[<span class="ident">inline</span>]</span>
-  <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">A::Item</span><span class="op">&gt;</span> {
+  <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">A::Item</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="self">self</span>.<span class="ident">removal_start</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">removal_end</span> {
       <span class="kw">match</span> <span class="self">self</span>.<span class="ident">replacement</span>.<span class="ident">next</span>() {
-        <span class="prelude-val">Some</span>(<span class="ident">replacement</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Some</span>(<span class="ident">replacement</span>) =&gt; {
           <span class="kw">let</span> <span class="ident">removed</span> <span class="op">=</span> <span class="ident">core::mem::replace</span>(
             <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">parent</span>[<span class="self">self</span>.<span class="ident">removal_start</span>],
             <span class="ident">replacement</span>,
@@ -2624,7 +2624,7 @@
           <span class="self">self</span>.<span class="ident">removal_start</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
           <span class="prelude-val">Some</span>(<span class="ident">removed</span>)
         }
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">None</span> =&gt; {
           <span class="kw">let</span> <span class="ident">removed</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parent</span>.<span class="ident">remove</span>(<span class="self">self</span>.<span class="ident">removal_start</span>);
           <span class="self">self</span>.<span class="ident">removal_end</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
           <span class="prelude-val">Some</span>(<span class="ident">removed</span>)
@@ -2636,7 +2636,7 @@
   }
 
   <span class="attribute">#[<span class="ident">inline</span>]</span>
-  <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
+  <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
     <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">len</span>();
     (<span class="ident">len</span>, <span class="prelude-val">Some</span>(<span class="ident">len</span>))
   }
@@ -2648,7 +2648,7 @@
   <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">A::Item</span><span class="op">&gt;</span>,
 {
   <span class="attribute">#[<span class="ident">inline</span>]</span>
-  <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+  <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
     <span class="self">self</span>.<span class="ident">removal_end</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">removal_start</span>
   }
 }
@@ -2666,10 +2666,10 @@
   <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">A::Item</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">DoubleEndedIterator</span>,
 {
   <span class="attribute">#[<span class="ident">inline</span>]</span>
-  <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">A::Item</span><span class="op">&gt;</span> {
+  <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">A::Item</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="self">self</span>.<span class="ident">removal_start</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">removal_end</span> {
       <span class="kw">match</span> <span class="self">self</span>.<span class="ident">replacement</span>.<span class="ident">next_back</span>() {
-        <span class="prelude-val">Some</span>(<span class="ident">replacement</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Some</span>(<span class="ident">replacement</span>) =&gt; {
           <span class="kw">let</span> <span class="ident">removed</span> <span class="op">=</span> <span class="ident">core::mem::replace</span>(
             <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">parent</span>[<span class="self">self</span>.<span class="ident">removal_end</span> <span class="op">-</span> <span class="number">1</span>],
             <span class="ident">replacement</span>,
@@ -2677,7 +2677,7 @@
           <span class="self">self</span>.<span class="ident">removal_end</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
           <span class="prelude-val">Some</span>(<span class="ident">removed</span>)
         }
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">None</span> =&gt; {
           <span class="kw">let</span> <span class="ident">removed</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parent</span>.<span class="ident">remove</span>(<span class="self">self</span>.<span class="ident">removal_end</span> <span class="op">-</span> <span class="number">1</span>);
           <span class="self">self</span>.<span class="ident">removal_end</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
           <span class="prelude-val">Some</span>(<span class="ident">removed</span>)
@@ -2708,7 +2708,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">AsMut</span><span class="op">&lt;</span>[<span class="ident">A::Item</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TinyVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
   <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
   <span class="attribute">#[<span class="ident">must_use</span>]</span>
-  <span class="kw">fn</span> <span class="ident">as_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">A::Item</span>] {
+  <span class="kw">fn</span> <span class="ident">as_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">A::Item</span>] {
     <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="self">self</span>
   }
 }
@@ -2716,7 +2716,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">A::Item</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TinyVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
   <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
   <span class="attribute">#[<span class="ident">must_use</span>]</span>
-  <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">A::Item</span>] {
+  <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">A::Item</span>] {
     <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>
   }
 }
@@ -2724,7 +2724,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">Borrow</span><span class="op">&lt;</span>[<span class="ident">A::Item</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TinyVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
   <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
   <span class="attribute">#[<span class="ident">must_use</span>]</span>
-  <span class="kw">fn</span> <span class="ident">borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">A::Item</span>] {
+  <span class="kw">fn</span> <span class="ident">borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">A::Item</span>] {
     <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>
   }
 }
@@ -2732,7 +2732,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">BorrowMut</span><span class="op">&lt;</span>[<span class="ident">A::Item</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TinyVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
   <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
   <span class="attribute">#[<span class="ident">must_use</span>]</span>
-  <span class="kw">fn</span> <span class="ident">borrow_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">A::Item</span>] {
+  <span class="kw">fn</span> <span class="ident">borrow_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">A::Item</span>] {
     <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="self">self</span>
   }
 }
@@ -2745,16 +2745,16 @@
     <span class="self">self</span>.<span class="ident">reserve</span>(<span class="ident">lower_bound</span>);
 
     <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span> {
-      <span class="ident">TinyVec::Heap</span>(<span class="ident">h</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">h</span>.<span class="ident">extend</span>(<span class="ident">iter</span>),
-      <span class="ident">TinyVec::Inline</span>(<span class="ident">a</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span>,
+      <span class="ident">TinyVec::Heap</span>(<span class="ident">h</span>) =&gt; <span class="kw">return</span> <span class="ident">h</span>.<span class="ident">extend</span>(<span class="ident">iter</span>),
+      <span class="ident">TinyVec::Inline</span>(<span class="ident">a</span>) =&gt; <span class="ident">a</span>,
     };
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">fill</span>(<span class="ident">iter</span>);
     <span class="kw">let</span> <span class="ident">maybe</span> <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">next</span>();
 
     <span class="kw">let</span> <span class="ident">surely</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">maybe</span> {
-      <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>,
-      <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span>,
+      <span class="prelude-val">Some</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>,
+      <span class="prelude-val">None</span> =&gt; <span class="kw">return</span>,
     };
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">drain_to_vec_and_reserve</span>(<span class="ident">a</span>.<span class="ident">len</span>());
@@ -2767,13 +2767,13 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TinyVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
   <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
   <span class="attribute">#[<span class="ident">must_use</span>]</span>
-  <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">arr</span>: <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+  <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">arr</span>: <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
     <span class="ident">TinyVec::Inline</span>(<span class="ident">arr</span>)
   }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TinyVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
-  <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">array</span>: <span class="ident">A</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+  <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">array</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span> {
     <span class="ident">TinyVec::Inline</span>(<span class="ident">ArrayVec::from</span>(<span class="ident">array</span>))
   }
 }
@@ -2785,7 +2785,7 @@
 {
   <span class="attribute">#[<span class="ident">inline</span>]</span>
   <span class="attribute">#[<span class="ident">must_use</span>]</span>
-  <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span>[<span class="ident">T</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+  <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span>[<span class="ident">T</span>]) -&gt; <span class="self">Self</span> {
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">arr</span>) <span class="op">=</span> <span class="ident">ArrayVec::try_from</span>(<span class="ident">slice</span>) {
       <span class="ident">TinyVec::Inline</span>(<span class="ident">arr</span>)
     } <span class="kw">else</span> {
@@ -2801,7 +2801,7 @@
 {
   <span class="attribute">#[<span class="ident">inline</span>]</span>
   <span class="attribute">#[<span class="ident">must_use</span>]</span>
-  <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+  <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>]) -&gt; <span class="self">Self</span> {
     <span class="ident"><span class="self">Self</span>::from</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">slice</span>)
   }
 }
@@ -2809,7 +2809,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">FromIterator</span><span class="op">&lt;</span><span class="ident">A::Item</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TinyVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
   <span class="attribute">#[<span class="ident">inline</span>]</span>
   <span class="attribute">#[<span class="ident">must_use</span>]</span>
-  <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">A::Item</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+  <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">A::Item</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">av</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::default</span>();
     <span class="ident">av</span>.<span class="ident">extend</span>(<span class="ident">iter</span>);
     <span class="ident">av</span>
@@ -2831,7 +2831,7 @@
     <span class="doccomment">/// Returns the remaining items of this iterator as a slice.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_slice</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">A::Item</span>];
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_slice</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">A::Item</span>];
   }
 }
 
@@ -2844,20 +2844,20 @@
     <span class="kw">type</span> <span class="ident">Mirror</span> <span class="op">=</span> <span class="ident">TinyVecIterator</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>);
+    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>);
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">count</span>(<span class="self">self</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span>;
+    <span class="kw">fn</span> <span class="ident">count</span>(<span class="self">self</span>: <span class="self">Self</span>) -&gt; <span class="ident">usize</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">last</span>(<span class="self">self</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">last</span>(<span class="self">self</span>: <span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">nth</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">A::Item</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">nth</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">A::Item</span><span class="op">&gt;</span>;
   }
 }
 
@@ -2866,11 +2866,11 @@
     <span class="kw">type</span> <span class="ident">Mirror</span> <span class="op">=</span> <span class="ident">TinyVecIterator</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>;
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustc_1_40&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">nth_back</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">nth_back</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>;
   }
 }
 
@@ -2879,7 +2879,7 @@
   <span class="ident">A::Item</span>: <span class="ident">Debug</span>,
 {
   <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::missing_inline_in_public_items</span>)]</span>
-  <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">core::fmt::Result</span> {
+  <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">core::fmt::Result</span> {
     <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;TinyVecIterator&quot;</span>).<span class="ident">field</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">as_slice</span>()).<span class="ident">finish</span>()
   }
 }
@@ -2889,10 +2889,10 @@
   <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">TinyVecIterator</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>;
   <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
   <span class="attribute">#[<span class="ident">must_use</span>]</span>
-  <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::IntoIter</span> {
+  <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::IntoIter</span> {
     <span class="kw">match</span> <span class="self">self</span> {
-      <span class="ident">TinyVec::Inline</span>(<span class="ident">a</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TinyVecIterator::Inline</span>(<span class="ident">a</span>.<span class="ident">into_iter</span>()),
-      <span class="ident">TinyVec::Heap</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TinyVecIterator::Heap</span>(<span class="ident">v</span>.<span class="ident">into_iter</span>()),
+      <span class="ident">TinyVec::Inline</span>(<span class="ident">a</span>) =&gt; <span class="ident">TinyVecIterator::Inline</span>(<span class="ident">a</span>.<span class="ident">into_iter</span>()),
+      <span class="ident">TinyVec::Heap</span>(<span class="ident">v</span>) =&gt; <span class="ident">TinyVecIterator::Heap</span>(<span class="ident">v</span>.<span class="ident">into_iter</span>()),
     }
   }
 }
@@ -2902,7 +2902,7 @@
   <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">core::slice::IterMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A::Item</span><span class="op">&gt;</span>;
   <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
   <span class="attribute">#[<span class="ident">must_use</span>]</span>
-  <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::IntoIter</span> {
+  <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::IntoIter</span> {
     <span class="self">self</span>.<span class="ident">iter_mut</span>()
   }
 }
@@ -2912,7 +2912,7 @@
   <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">core::slice::Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A::Item</span><span class="op">&gt;</span>;
   <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
   <span class="attribute">#[<span class="ident">must_use</span>]</span>
-  <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::IntoIter</span> {
+  <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::IntoIter</span> {
     <span class="self">self</span>.<span class="ident">iter</span>()
   }
 }
@@ -2923,7 +2923,7 @@
 {
   <span class="attribute">#[<span class="ident">inline</span>]</span>
   <span class="attribute">#[<span class="ident">must_use</span>]</span>
-  <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+  <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
     <span class="self">self</span>.<span class="ident">as_slice</span>().<span class="ident">eq</span>(<span class="ident">other</span>.<span class="ident">as_slice</span>())
   }
 }
@@ -2935,7 +2935,7 @@
 {
   <span class="attribute">#[<span class="ident">inline</span>]</span>
   <span class="attribute">#[<span class="ident">must_use</span>]</span>
-  <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">core::cmp::Ordering</span><span class="op">&gt;</span> {
+  <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">core::cmp::Ordering</span><span class="op">&gt;</span> {
     <span class="self">self</span>.<span class="ident">as_slice</span>().<span class="ident">partial_cmp</span>(<span class="ident">other</span>.<span class="ident">as_slice</span>())
   }
 }
@@ -2945,7 +2945,7 @@
 {
   <span class="attribute">#[<span class="ident">inline</span>]</span>
   <span class="attribute">#[<span class="ident">must_use</span>]</span>
-  <span class="kw">fn</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">core::cmp::Ordering</span> {
+  <span class="kw">fn</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">core::cmp::Ordering</span> {
     <span class="self">self</span>.<span class="ident">as_slice</span>().<span class="ident">cmp</span>(<span class="ident">other</span>.<span class="ident">as_slice</span>())
   }
 }
@@ -2956,7 +2956,7 @@
 {
   <span class="attribute">#[<span class="ident">inline</span>]</span>
   <span class="attribute">#[<span class="ident">must_use</span>]</span>
-  <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="op">&amp;&amp;</span><span class="ident">A</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+  <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="op">&amp;&amp;</span><span class="ident">A</span>) -&gt; <span class="ident">bool</span> {
     <span class="self">self</span>.<span class="ident">as_slice</span>().<span class="ident">eq</span>(<span class="ident">other</span>.<span class="ident">as_slice</span>())
   }
 }
@@ -2967,7 +2967,7 @@
 {
   <span class="attribute">#[<span class="ident">inline</span>]</span>
   <span class="attribute">#[<span class="ident">must_use</span>]</span>
-  <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="op">&amp;&amp;</span>[<span class="ident">A::Item</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+  <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="op">&amp;&amp;</span>[<span class="ident">A::Item</span>]) -&gt; <span class="ident">bool</span> {
     <span class="self">self</span>.<span class="ident">as_slice</span>().<span class="ident">eq</span>(<span class="kw-2">*</span><span class="ident">other</span>)
   }
 }
@@ -2991,7 +2991,7 @@
   <span class="ident">A::Item</span>: <span class="ident">Binary</span>,
 {
   <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::missing_inline_in_public_items</span>)]</span>
-  <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">core::fmt::Result</span> {
+  <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span>) -&gt; <span class="ident">core::fmt::Result</span> {
     <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;[&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">alternate</span>() {
       <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;\n    &quot;</span>)<span class="question-mark">?</span>;
@@ -3014,7 +3014,7 @@
   <span class="ident">A::Item</span>: <span class="ident">Debug</span>,
 {
   <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::missing_inline_in_public_items</span>)]</span>
-  <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">core::fmt::Result</span> {
+  <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span>) -&gt; <span class="ident">core::fmt::Result</span> {
     <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;[&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">alternate</span>() {
       <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;\n    &quot;</span>)<span class="question-mark">?</span>;
@@ -3037,7 +3037,7 @@
   <span class="ident">A::Item</span>: <span class="ident">Display</span>,
 {
   <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::missing_inline_in_public_items</span>)]</span>
-  <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">core::fmt::Result</span> {
+  <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span>) -&gt; <span class="ident">core::fmt::Result</span> {
     <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;[&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">alternate</span>() {
       <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;\n    &quot;</span>)<span class="question-mark">?</span>;
@@ -3060,7 +3060,7 @@
   <span class="ident">A::Item</span>: <span class="ident">LowerExp</span>,
 {
   <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::missing_inline_in_public_items</span>)]</span>
-  <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">core::fmt::Result</span> {
+  <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span>) -&gt; <span class="ident">core::fmt::Result</span> {
     <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;[&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">alternate</span>() {
       <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;\n    &quot;</span>)<span class="question-mark">?</span>;
@@ -3083,7 +3083,7 @@
   <span class="ident">A::Item</span>: <span class="ident">LowerHex</span>,
 {
   <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::missing_inline_in_public_items</span>)]</span>
-  <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">core::fmt::Result</span> {
+  <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span>) -&gt; <span class="ident">core::fmt::Result</span> {
     <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;[&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">alternate</span>() {
       <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;\n    &quot;</span>)<span class="question-mark">?</span>;
@@ -3106,7 +3106,7 @@
   <span class="ident">A::Item</span>: <span class="ident">Octal</span>,
 {
   <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::missing_inline_in_public_items</span>)]</span>
-  <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">core::fmt::Result</span> {
+  <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span>) -&gt; <span class="ident">core::fmt::Result</span> {
     <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;[&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">alternate</span>() {
       <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;\n    &quot;</span>)<span class="question-mark">?</span>;
@@ -3129,7 +3129,7 @@
   <span class="ident">A::Item</span>: <span class="ident">Pointer</span>,
 {
   <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::missing_inline_in_public_items</span>)]</span>
-  <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">core::fmt::Result</span> {
+  <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span>) -&gt; <span class="ident">core::fmt::Result</span> {
     <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;[&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">alternate</span>() {
       <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;\n    &quot;</span>)<span class="question-mark">?</span>;
@@ -3152,7 +3152,7 @@
   <span class="ident">A::Item</span>: <span class="ident">UpperExp</span>,
 {
   <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::missing_inline_in_public_items</span>)]</span>
-  <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">core::fmt::Result</span> {
+  <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span>) -&gt; <span class="ident">core::fmt::Result</span> {
     <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;[&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">alternate</span>() {
       <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;\n    &quot;</span>)<span class="question-mark">?</span>;
@@ -3175,7 +3175,7 @@
   <span class="ident">A::Item</span>: <span class="ident">UpperHex</span>,
 {
   <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::missing_inline_in_public_items</span>)]</span>
-  <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">core::fmt::Result</span> {
+  <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span>) -&gt; <span class="ident">core::fmt::Result</span> {
     <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;[&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">alternate</span>() {
       <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;\n    &quot;</span>)<span class="question-mark">?</span>;
@@ -3206,17 +3206,17 @@
 
   <span class="kw">fn</span> <span class="ident">expecting</span>(
     <span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">core::fmt::Formatter</span>,
-  ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">core::fmt::Result</span> {
+  ) -&gt; <span class="ident">core::fmt::Result</span> {
     <span class="ident">formatter</span>.<span class="ident">write_str</span>(<span class="string">&quot;a sequence&quot;</span>)
   }
 
-  <span class="kw">fn</span> <span class="ident">visit_seq</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">seq</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Value</span>, <span class="ident">S::Error</span><span class="op">&gt;</span>
+  <span class="kw">fn</span> <span class="ident">visit_seq</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">seq</span>: <span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Value</span>, <span class="ident">S::Error</span><span class="op">&gt;</span>
   <span class="kw">where</span>
     <span class="ident">S</span>: <span class="ident">SeqAccess</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
   {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_tinyvec</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">seq</span>.<span class="ident">size_hint</span>() {
-      <span class="prelude-val">Some</span>(<span class="ident">expected_size</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TinyVec::with_capacity</span>(<span class="ident">expected_size</span>),
-      <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Default::default</span>(),
+      <span class="prelude-val">Some</span>(<span class="ident">expected_size</span>) =&gt; <span class="ident">TinyVec::with_capacity</span>(<span class="ident">expected_size</span>),
+      <span class="prelude-val">None</span> =&gt; <span class="ident">Default::default</span>(),
     };
 
     <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">seq</span>.<span class="ident">next_element</span>()<span class="question-mark">?</span> {

@@ -58,8 +58,8 @@
 }
 
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">AES_set_encrypt_key</span>(<span class="ident">userKey</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>, <span class="ident">bits</span>: <span class="ident">c_int</span>, <span class="ident">key</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">AES_KEY</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">AES_set_decrypt_key</span>(<span class="ident">userKey</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>, <span class="ident">bits</span>: <span class="ident">c_int</span>, <span class="ident">key</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">AES_KEY</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">AES_set_encrypt_key</span>(<span class="ident">userKey</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>, <span class="ident">bits</span>: <span class="ident">c_int</span>, <span class="ident">key</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">AES_KEY</span>) -&gt; <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">AES_set_decrypt_key</span>(<span class="ident">userKey</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>, <span class="ident">bits</span>: <span class="ident">c_int</span>, <span class="ident">key</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">AES_KEY</span>) -&gt; <span class="ident">c_int</span>;
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">AES_ige_encrypt</span>(
         <span class="ident">in_</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>,
@@ -76,7 +76,7 @@
         <span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>,
         <span class="ident">in_</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>,
         <span class="ident">inlen</span>: <span class="ident">c_uint</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">AES_unwrap_key</span>(
         <span class="ident">key</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">AES_KEY</span>,
@@ -84,7 +84,7 @@
         <span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>,
         <span class="ident">in_</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>,
         <span class="ident">inlen</span>: <span class="ident">c_uint</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl_sys" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>

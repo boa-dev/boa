@@ -69,7 +69,7 @@
 <span class="comment">// (unfortunately there&#39;s no error code for `unused_must_use`)</span>
 
 <span class="macro">macro_rules!</span> <span class="ident">must_use</span> {
-    ($( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span> <span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">expr</span>:<span class="ident">meta</span>]</span> )<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {$(
+    ($( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span> <span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">expr</span>:<span class="ident">meta</span>]</span> )<span class="kw-2">*</span>) =&gt; {$(
         <span class="doccomment">/// First sanity check that the expression is OK.</span>
         <span class="doccomment">///</span>
         <span class="doccomment">/// ```</span>

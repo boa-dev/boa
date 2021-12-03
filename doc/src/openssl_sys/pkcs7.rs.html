@@ -119,12 +119,12 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PKCS7_NO_DUAL_CONTENT</span>: <span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x10000</span>;
 
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">d2i_PKCS7</span>(<span class="ident">a</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PKCS7</span>, <span class="ident">pp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>, <span class="ident">length</span>: <span class="ident">c_long</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PKCS7</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">d2i_PKCS7</span>(<span class="ident">a</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PKCS7</span>, <span class="ident">pp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>, <span class="ident">length</span>: <span class="ident">c_long</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PKCS7</span>;
 }
 
 <span class="macro">const_ptr_api!</span> {
     <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">i2d_PKCS7</span>(<span class="ident">a</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">PKCS7</span>, <span class="ident">buf</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">i2d_PKCS7</span>(<span class="ident">a</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">PKCS7</span>, <span class="ident">buf</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>) -&gt; <span class="ident">c_int</span>;
     }
 }
 
@@ -134,7 +134,7 @@
         <span class="ident">b</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>,
         <span class="ident">cipher</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>,
         <span class="ident">flags</span>: <span class="ident">c_int</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PKCS7</span>;
+    ) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PKCS7</span>;
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PKCS7_verify</span>(
         <span class="ident">pkcs7</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PKCS7</span>,
@@ -143,13 +143,13 @@
         <span class="ident">indata</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>,
         <span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>,
         <span class="ident">flags</span>: <span class="ident">c_int</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PKCS7_get0_signers</span>(
         <span class="ident">pkcs7</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PKCS7</span>,
         <span class="ident">certs</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">stack_st_X509</span>,
         <span class="ident">flags</span>: <span class="ident">c_int</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">stack_st_X509</span>;
+    ) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">stack_st_X509</span>;
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PKCS7_sign</span>(
         <span class="ident">signcert</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509</span>,
@@ -157,7 +157,7 @@
         <span class="ident">certs</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">stack_st_X509</span>,
         <span class="ident">data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>,
         <span class="ident">flags</span>: <span class="ident">c_int</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PKCS7</span>;
+    ) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PKCS7</span>;
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PKCS7_decrypt</span>(
         <span class="ident">pkcs7</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PKCS7</span>,
@@ -165,7 +165,7 @@
         <span class="ident">cert</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509</span>,
         <span class="ident">data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>,
         <span class="ident">flags</span>: <span class="ident">c_int</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PKCS7_free</span>(<span class="ident">pkcs7</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PKCS7</span>);
 
@@ -174,9 +174,9 @@
         <span class="ident">pkcs7</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PKCS7</span>,
         <span class="ident">data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>,
         <span class="ident">flags</span>: <span class="ident">c_int</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SMIME_read_PKCS7</span>(<span class="ident">bio</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>, <span class="ident">bcont</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PKCS7</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SMIME_read_PKCS7</span>(<span class="ident">bio</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>, <span class="ident">bcont</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PKCS7</span>;
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl_sys" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>

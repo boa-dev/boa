@@ -350,7 +350,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Decimal</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;Decimal&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;num_digits&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">num_digits</span>)
             .<span class="ident">field</span>(<span class="string">&quot;decimal_point&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">decimal_point</span>)
@@ -362,19 +362,19 @@
 }
 
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">Decimal</span> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">num_digits</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">num_digits</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">decimal_point</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">decimal_point</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">negative</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">negative</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">truncated</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">truncated</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">digits</span>[..] <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">digits</span>[..]
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">num_digits</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">num_digits</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">decimal_point</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">decimal_point</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">negative</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">negative</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">truncated</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">truncated</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">digits</span>[..] <span class="op">==</span> <span class="ident">other</span>.<span class="ident">digits</span>[..]
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Eq</span> <span class="kw">for</span> <span class="ident">Decimal</span> {}
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Decimal</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">num_digits</span>: <span class="number">0</span>,
             <span class="ident">decimal_point</span>: <span class="number">0</span>,
@@ -400,14 +400,14 @@
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">trim</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="kw">while</span> <span class="self">self</span>.<span class="ident">num_digits</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">digits</span>[<span class="self">self</span>.<span class="ident">num_digits</span> <span class="op">-</span> <span class="number">1</span>] <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">while</span> <span class="self">self</span>.<span class="ident">num_digits</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">digits</span>[<span class="self">self</span>.<span class="ident">num_digits</span> <span class="op">-</span> <span class="number">1</span>] <span class="op">==</span> <span class="number">0</span> {
             <span class="self">self</span>.<span class="ident">num_digits</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
         }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">round</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">num_digits</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">decimal_point</span> <span class="op">&lt;</span> <span class="number">0</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">round</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u64</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">num_digits</span> <span class="op">==</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">decimal_point</span> <span class="op">&lt;</span> <span class="number">0</span> {
             <span class="kw">return</span> <span class="number">0</span>;
         } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">decimal_point</span> <span class="op">&gt;</span> <span class="number">18</span> {
             <span class="kw">return</span> <span class="number">0xFFFF_FFFF_FFFF_FFFF_u64</span>;
@@ -423,7 +423,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">round_up</span> <span class="op">=</span> <span class="bool-val">false</span>;
         <span class="kw">if</span> <span class="ident">dp</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">num_digits</span> {
             <span class="ident">round_up</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">digits</span>[<span class="ident">dp</span>] <span class="op">&gt;</span><span class="op">=</span> <span class="number">5</span>;
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">digits</span>[<span class="ident">dp</span>] <span class="op">=</span><span class="op">=</span> <span class="number">5</span> <span class="op">&amp;&amp;</span> <span class="ident">dp</span> <span class="op">+</span> <span class="number">1</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">num_digits</span> {
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">digits</span>[<span class="ident">dp</span>] <span class="op">==</span> <span class="number">5</span> <span class="op">&amp;&amp;</span> <span class="ident">dp</span> <span class="op">+</span> <span class="number">1</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">num_digits</span> {
                 <span class="ident">round_up</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">truncated</span> <span class="op">|</span><span class="op">|</span> ((<span class="ident">dp</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>) <span class="op">&amp;&amp;</span> (<span class="number">1</span> <span class="op">&amp;</span> <span class="self">self</span>.<span class="ident">digits</span>[<span class="ident">dp</span> <span class="op">-</span> <span class="number">1</span>] <span class="op">!</span><span class="op">=</span> <span class="number">0</span>))
             }
         }
@@ -435,7 +435,7 @@
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">left_shift</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">shift</span>: <span class="ident">usize</span>) {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">num_digits</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">num_digits</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="kw">return</span>;
         }
         <span class="kw">let</span> <span class="ident">num_new_digits</span> <span class="op">=</span> <span class="ident">number_of_digits_decimal_left_shift</span>(<span class="self">self</span>, <span class="ident">shift</span>);
@@ -479,14 +479,14 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">read_index</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">write_index</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">n</span> <span class="op">=</span> <span class="number">0_u64</span>;
-        <span class="kw">while</span> (<span class="ident">n</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">shift</span>) <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">while</span> (<span class="ident">n</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">shift</span>) <span class="op">==</span> <span class="number">0</span> {
             <span class="kw">if</span> <span class="ident">read_index</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">num_digits</span> {
                 <span class="ident">n</span> <span class="op">=</span> (<span class="number">10</span> <span class="op">*</span> <span class="ident">n</span>) <span class="op">+</span> <span class="self">self</span>.<span class="ident">digits</span>[<span class="ident">read_index</span>] <span class="kw">as</span> <span class="ident">u64</span>;
                 <span class="ident">read_index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">n</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">n</span> <span class="op">==</span> <span class="number">0</span> {
                 <span class="kw">return</span>;
             } <span class="kw">else</span> {
-                <span class="kw">while</span> (<span class="ident">n</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">shift</span>) <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+                <span class="kw">while</span> (<span class="ident">n</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">shift</span>) <span class="op">==</span> <span class="number">0</span> {
                     <span class="ident">n</span> <span class="kw-2">*</span><span class="op">=</span> <span class="number">10</span>;
                     <span class="ident">read_index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 }
@@ -525,13 +525,13 @@
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_decimal</span>(<span class="kw-2">mut</span> <span class="ident">s</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Decimal</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_decimal</span>(<span class="kw-2">mut</span> <span class="ident">s</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">Decimal</span> {
     <span class="comment">// can&#39;t fail since it follows a call to parse_number</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">d</span> <span class="op">=</span> <span class="ident">Decimal::default</span>();
     <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">s</span>;
     <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">get_first</span>();
-    <span class="ident">d</span>.<span class="ident">negative</span> <span class="op">=</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;-&#39;</span>;
-    <span class="kw">if</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;-&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;+&#39;</span> {
+    <span class="ident">d</span>.<span class="ident">negative</span> <span class="op">=</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">b&#39;-&#39;</span>;
+    <span class="kw">if</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">b&#39;-&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">b&#39;+&#39;</span> {
         <span class="ident">s</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">advance</span>(<span class="number">1</span>);
     }
     <span class="ident">s</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">skip_chars</span>(<span class="string">b&#39;0&#39;</span>);
@@ -539,7 +539,7 @@
     <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">check_first</span>(<span class="string">b&#39;.&#39;</span>) {
         <span class="ident">s</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">advance</span>(<span class="number">1</span>);
         <span class="kw">let</span> <span class="ident">first</span> <span class="op">=</span> <span class="ident">s</span>;
-        <span class="kw">if</span> <span class="ident">d</span>.<span class="ident">num_digits</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">d</span>.<span class="ident">num_digits</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="ident">s</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">skip_chars</span>(<span class="string">b&#39;0&#39;</span>);
         }
         <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>) {
@@ -560,7 +560,7 @@
         <span class="comment">// Ignore the trailing zeros if there are any</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">n_trailing_zeros</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">c</span> <span class="kw">in</span> <span class="ident">start</span>[..(<span class="ident">start</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">s</span>.<span class="ident">len</span>())].<span class="ident">iter</span>().<span class="ident">rev</span>() {
-            <span class="kw">if</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;0&#39;</span> {
+            <span class="kw">if</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">b&#39;0&#39;</span> {
                 <span class="ident">n_trailing_zeros</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">c</span> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;.&#39;</span> {
                 <span class="kw">break</span>;
@@ -598,7 +598,7 @@
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">number_of_digits_decimal_left_shift</span>(<span class="ident">d</span>: <span class="kw-2">&amp;</span><span class="ident">Decimal</span>, <span class="kw-2">mut</span> <span class="ident">shift</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">fn</span> <span class="ident">number_of_digits_decimal_left_shift</span>(<span class="ident">d</span>: <span class="kw-2">&amp;</span><span class="ident">Decimal</span>, <span class="kw-2">mut</span> <span class="ident">shift</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span> {
     <span class="kw">const</span> <span class="ident">TABLE</span>: [<span class="ident">u16</span>; <span class="number">65</span>] <span class="op">=</span> [
         <span class="number">0x0000</span>, <span class="number">0x0800</span>, <span class="number">0x0801</span>, <span class="number">0x0803</span>, <span class="number">0x1006</span>, <span class="number">0x1009</span>, <span class="number">0x100D</span>, <span class="number">0x1812</span>, <span class="number">0x1817</span>, <span class="number">0x181D</span>, <span class="number">0x2024</span>,
         <span class="number">0x202B</span>, <span class="number">0x2033</span>, <span class="number">0x203C</span>, <span class="number">0x2846</span>, <span class="number">0x2850</span>, <span class="number">0x285B</span>, <span class="number">0x3067</span>, <span class="number">0x3073</span>, <span class="number">0x3080</span>, <span class="number">0x388E</span>, <span class="number">0x389C</span>,
@@ -664,7 +664,7 @@
     <span class="kw">for</span> (<span class="ident">i</span>, <span class="kw-2">&amp;</span><span class="ident">p5</span>) <span class="kw">in</span> <span class="ident">pow5</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>().<span class="ident">take</span>(<span class="ident">pow5_b</span> <span class="op">-</span> <span class="ident">pow5_a</span>) {
         <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">d</span>.<span class="ident">num_digits</span> {
             <span class="kw">return</span> <span class="ident">num_new_digits</span> <span class="op">-</span> <span class="number">1</span>;
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">d</span>.<span class="ident">digits</span>[<span class="ident">i</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">p5</span> {
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">d</span>.<span class="ident">digits</span>[<span class="ident">i</span>] <span class="op">==</span> <span class="ident">p5</span> {
             <span class="kw">continue</span>;
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">d</span>.<span class="ident">digits</span>[<span class="ident">i</span>] <span class="op">&lt;</span> <span class="ident">p5</span> {
             <span class="kw">return</span> <span class="ident">num_new_digits</span> <span class="op">-</span> <span class="number">1</span>;

@@ -272,7 +272,7 @@
 <span class="comment">// Add with carry:</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">use_addcarry</span>, <span class="ident">u64_digit</span>))]</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">adc</span>(<span class="ident">carry</span>: <span class="ident">u8</span>, <span class="ident">a</span>: <span class="ident">u64</span>, <span class="ident">b</span>: <span class="ident">u64</span>, <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span> {
+<span class="kw">fn</span> <span class="ident">adc</span>(<span class="ident">carry</span>: <span class="ident">u8</span>, <span class="ident">a</span>: <span class="ident">u64</span>, <span class="ident">b</span>: <span class="ident">u64</span>, <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">u64</span>) -&gt; <span class="ident">u8</span> {
     <span class="comment">// Safety: There are absolutely no safety concerns with calling `_addcarry_u64`.</span>
     <span class="comment">// It&#39;s just unsafe for API consistency with other intrinsics.</span>
     <span class="kw">unsafe</span> { <span class="ident">arch::_addcarry_u64</span>(<span class="ident">carry</span>, <span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">out</span>) }
@@ -280,7 +280,7 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">use_addcarry</span>, <span class="ident">not</span>(<span class="ident">u64_digit</span>)))]</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">adc</span>(<span class="ident">carry</span>: <span class="ident">u8</span>, <span class="ident">a</span>: <span class="ident">u32</span>, <span class="ident">b</span>: <span class="ident">u32</span>, <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span> {
+<span class="kw">fn</span> <span class="ident">adc</span>(<span class="ident">carry</span>: <span class="ident">u8</span>, <span class="ident">a</span>: <span class="ident">u32</span>, <span class="ident">b</span>: <span class="ident">u32</span>, <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">u32</span>) -&gt; <span class="ident">u8</span> {
     <span class="comment">// Safety: There are absolutely no safety concerns with calling `_addcarry_u32`.</span>
     <span class="comment">// It&#39;s just unsafe for API consistency with other intrinsics.</span>
     <span class="kw">unsafe</span> { <span class="ident">arch::_addcarry_u32</span>(<span class="ident">carry</span>, <span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">out</span>) }
@@ -289,7 +289,7 @@
 <span class="comment">// fallback for environments where we don&#39;t have an addcarry intrinsic</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">use_addcarry</span>))]</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">adc</span>(<span class="ident">carry</span>: <span class="ident">u8</span>, <span class="ident">a</span>: <span class="ident">BigDigit</span>, <span class="ident">b</span>: <span class="ident">BigDigit</span>, <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">BigDigit</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span> {
+<span class="kw">fn</span> <span class="ident">adc</span>(<span class="ident">carry</span>: <span class="ident">u8</span>, <span class="ident">a</span>: <span class="ident">BigDigit</span>, <span class="ident">b</span>: <span class="ident">BigDigit</span>, <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">BigDigit</span>) -&gt; <span class="ident">u8</span> {
     <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::big_digit::DoubleBigDigit</span>;
 
     <span class="kw">let</span> <span class="ident">sum</span> <span class="op">=</span> <span class="ident">DoubleBigDigit::from</span>(<span class="ident">a</span>) <span class="op">+</span> <span class="ident">DoubleBigDigit::from</span>(<span class="ident">b</span>) <span class="op">+</span> <span class="ident">DoubleBigDigit::from</span>(<span class="ident">carry</span>);
@@ -304,7 +304,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// The caller _must_ ensure that `a` is at least as long as `b`.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">__add2</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">BigDigit</span>], <span class="ident">b</span>: <span class="kw-2">&amp;</span>[<span class="ident">BigDigit</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BigDigit</span> {
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">__add2</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">BigDigit</span>], <span class="ident">b</span>: <span class="kw-2">&amp;</span>[<span class="ident">BigDigit</span>]) -&gt; <span class="ident">BigDigit</span> {
     <span class="macro">debug_assert!</span>(<span class="ident">a</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">b</span>.<span class="ident">len</span>());
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">carry</span> <span class="op">=</span> <span class="number">0</span>;
@@ -317,7 +317,7 @@
     <span class="kw">if</span> <span class="ident">carry</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
         <span class="kw">for</span> <span class="ident">a</span> <span class="kw">in</span> <span class="ident">a_hi</span> {
             <span class="ident">carry</span> <span class="op">=</span> <span class="ident">adc</span>(<span class="ident">carry</span>, <span class="kw-2">*</span><span class="ident">a</span>, <span class="number">0</span>, <span class="ident">a</span>);
-            <span class="kw">if</span> <span class="ident">carry</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">if</span> <span class="ident">carry</span> <span class="op">==</span> <span class="number">0</span> {
                 <span class="kw">break</span>;
             }
         }
@@ -334,7 +334,7 @@
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">add2</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">BigDigit</span>], <span class="ident">b</span>: <span class="kw-2">&amp;</span>[<span class="ident">BigDigit</span>]) {
     <span class="kw">let</span> <span class="ident">carry</span> <span class="op">=</span> <span class="ident">__add2</span>(<span class="ident">a</span>, <span class="ident">b</span>);
 
-    <span class="macro">debug_assert!</span>(<span class="ident">carry</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
+    <span class="macro">debug_assert!</span>(<span class="ident">carry</span> <span class="op">==</span> <span class="number">0</span>);
 }
 
 <span class="macro">forward_all_binop_to_val_ref_commutative!</span>(<span class="kw">impl</span> <span class="ident">Add</span> <span class="kw">for</span> <span class="ident">BigUint</span>, <span class="ident">add</span>);
@@ -343,7 +343,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Add</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">BigUint</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BigUint</span> {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">BigUint</span>;
 
-    <span class="kw">fn</span> <span class="ident">add</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">BigUint</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BigUint</span> {
+    <span class="kw">fn</span> <span class="ident">add</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">BigUint</span>) -&gt; <span class="ident">BigUint</span> {
         <span class="self">self</span> <span class="op">+</span><span class="op">=</span> <span class="ident">other</span>;
         <span class="self">self</span>
     }
@@ -375,7 +375,7 @@
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">BigUint</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">add</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BigUint</span> {
+    <span class="kw">fn</span> <span class="ident">add</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="ident">u32</span>) -&gt; <span class="ident">BigUint</span> {
         <span class="self">self</span> <span class="op">+</span><span class="op">=</span> <span class="ident">other</span>;
         <span class="self">self</span>
     }
@@ -401,7 +401,7 @@
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">BigUint</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">add</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BigUint</span> {
+    <span class="kw">fn</span> <span class="ident">add</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="ident">u64</span>) -&gt; <span class="ident">BigUint</span> {
         <span class="self">self</span> <span class="op">+</span><span class="op">=</span> <span class="ident">other</span>;
         <span class="self">self</span>
     }
@@ -412,7 +412,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">add_assign</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="ident">u64</span>) {
         <span class="kw">let</span> (<span class="ident">hi</span>, <span class="ident">lo</span>) <span class="op">=</span> <span class="ident">big_digit::from_doublebigdigit</span>(<span class="ident">other</span>);
-        <span class="kw">if</span> <span class="ident">hi</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">hi</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="kw-2">*</span><span class="self">self</span> <span class="op">+</span><span class="op">=</span> <span class="ident">lo</span>;
         } <span class="kw">else</span> {
             <span class="kw">while</span> <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">2</span> {
@@ -446,7 +446,7 @@
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">BigUint</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">add</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="ident">u128</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BigUint</span> {
+    <span class="kw">fn</span> <span class="ident">add</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="ident">u128</span>) -&gt; <span class="ident">BigUint</span> {
         <span class="self">self</span> <span class="op">+</span><span class="op">=</span> <span class="ident">other</span>;
         <span class="self">self</span>
     }
@@ -483,7 +483,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">add_assign</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="ident">u128</span>) {
         <span class="kw">let</span> (<span class="ident">hi</span>, <span class="ident">lo</span>) <span class="op">=</span> <span class="ident">big_digit::from_doublebigdigit</span>(<span class="ident">other</span>);
-        <span class="kw">if</span> <span class="ident">hi</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">hi</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="kw-2">*</span><span class="self">self</span> <span class="op">+</span><span class="op">=</span> <span class="ident">lo</span>;
         } <span class="kw">else</span> {
             <span class="kw">while</span> <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">2</span> {
@@ -500,7 +500,7 @@
 
 <span class="kw">impl</span> <span class="ident">CheckedAdd</span> <span class="kw">for</span> <span class="ident">BigUint</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">checked_add</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="ident">BigUint</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BigUint</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">checked_add</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="ident">BigUint</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BigUint</span><span class="op">&gt;</span> {
         <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">add</span>(<span class="ident">v</span>))
     }
 }

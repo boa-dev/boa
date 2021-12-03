@@ -1,14 +1,14 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="The whole point."><meta name="keywords" content="rust, rustlang, rust-lang, quote"><title>quote in quote - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script id="default-settings" ></script><script src="../storage.js"></script><script src="../crates.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../favicon.svg"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc macro"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../quote/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><div class="sidebar-elems"><h2 class="location">Other items in<br><a href="index.html">quote</a></h2><div id="sidebar-vars" data-name="quote" data-ty="macro" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../wheel.svg"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="in-band">Macro <a href="index.html">quote</a>::<wbr><a class="macro" href="#">quote</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/quote/lib.rs.html#480-489" title="goto source code">[src]</a></span></h1><div class="docblock type-decl"><div class="example-wrap"><pre class="rust macro"><code><span class="macro">macro_rules!</span> <span class="ident">quote</span> {
-    () <span class="op">=</span><span class="op">&gt;</span> { ... };
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span> : <span class="ident">tt</span>) <span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> { ... };
+    () =&gt; { ... };
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span> : <span class="ident">tt</span>) <span class="kw-2">*</span>) =&gt; { ... };
 }</code></pre></div>
 </div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>The whole point.</p>
 <p>Performs variable interpolation against the input and produces it as
 <a href="../proc_macro2/struct.TokenStream.html" title="proc_macro2::TokenStream"><code>proc_macro2::TokenStream</code></a>.</p>
 <p>Note: for returning tokens to the compiler in a procedural macro, use
-<code>.into()</code> on the result to convert to <a href="https://doc.rust-lang.org/1.56.1/proc_macro/struct.TokenStream.html" title="proc_macro::TokenStream"><code>proc_macro::TokenStream</code></a>.</p>
+<code>.into()</code> on the result to convert to <a href="https://doc.rust-lang.org/1.57.0/proc_macro/struct.TokenStream.html" title="proc_macro::TokenStream"><code>proc_macro::TokenStream</code></a>.</p>
 <br>
-<h1 id="interpolation" class="section-header"><a href="#interpolation">Interpolation</a></h1>
+<h2 id="interpolation" class="section-header"><a href="#interpolation">Interpolation</a></h2>
 <p>Variable interpolation is done with <code>#var</code> (similar to <code>$var</code> in
 <code>macro_rules!</code> macros). This grabs the <code>var</code> variable that is currently in
 scope and inserts it in that location in the output tokens. Any type
@@ -27,13 +27,13 @@ for each one. The variables in an interpolation may be a <code>Vec</code>, slice
 <li><code>#( #k =&gt; println!(&quot;{}&quot;, #v), )*</code> — even multiple interpolations</li>
 </ul>
 <br>
-<h1 id="hygiene" class="section-header"><a href="#hygiene">Hygiene</a></h1>
+<h2 id="hygiene" class="section-header"><a href="#hygiene">Hygiene</a></h2>
 <p>Any interpolated tokens preserve the <code>Span</code> information provided by their
 <code>ToTokens</code> implementation. Tokens that originate within the <code>quote!</code>
 invocation are spanned with <a href="https://docs.rs/proc-macro2/1.0/proc_macro2/struct.Span.html#method.call_site"><code>Span::call_site()</code></a>.</p>
 <p>A different span can be provided through the <a href="macro.quote_spanned.html"><code>quote_spanned!</code></a> macro.</p>
 <br>
-<h1 id="return-type" class="section-header"><a href="#return-type">Return type</a></h1>
+<h2 id="return-type" class="section-header"><a href="#return-type">Return type</a></h2>
 <p>The macro evaluates to an expression of type <code>proc_macro2::TokenStream</code>.
 Meanwhile Rust procedural macros are expected to return the type
 <code>proc_macro::TokenStream</code>.</p>
@@ -48,7 +48,7 @@ contexts.</p>
 <code>quote!</code> from a procedural macro usually looks like <code>tokens.into()</code> or
 <code>proc_macro::TokenStream::from(tokens)</code>.</p>
 <br>
-<h1 id="examples" class="section-header"><a href="#examples">Examples</a></h1><h3 id="procedural-macro" class="section-header"><a href="#procedural-macro">Procedural macro</a></h3>
+<h2 id="examples" class="section-header"><a href="#examples">Examples</a></h2><h4 id="procedural-macro" class="section-header"><a href="#procedural-macro">Procedural macro</a></h4>
 <p>The structure of a basic procedural macro is as follows. Refer to the <a href="https://github.com/dtolnay/syn">Syn</a>
 crate for further useful guidance on using <code>quote!</code> as part of a procedural
 macro.</p>
@@ -59,7 +59,7 @@ macro.</p>
 <span class="kw">use</span> <span class="ident">quote::quote</span>;
 
 <span class="attribute">#[<span class="ident">proc_macro_derive</span>(<span class="ident">HeapSize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">derive_heap_size</span>(<span class="ident">input</span>: <span class="ident">TokenStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">derive_heap_size</span>(<span class="ident">input</span>: <span class="ident">TokenStream</span>) -&gt; <span class="ident">TokenStream</span> {
     <span class="comment">// Parse the input and figure out what implementation to generate...</span>
     <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="comment">/* ... */</span>;
     <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="comment">/* ... */</span>;
@@ -67,7 +67,7 @@ macro.</p>
     <span class="kw">let</span> <span class="ident">expanded</span> <span class="op">=</span> <span class="macro">quote!</span> {
         <span class="comment">// The generated impl.</span>
         <span class="kw">impl</span> <span class="ident">heapsize::HeapSize</span> <span class="kw">for</span> #<span class="ident">name</span> {
-            <span class="kw">fn</span> <span class="ident">heap_size_of_children</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+            <span class="kw">fn</span> <span class="ident">heap_size_of_children</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
                 #<span class="ident">expr</span>
             }
         }
@@ -77,7 +77,7 @@ macro.</p>
     <span class="ident">TokenStream::from</span>(<span class="ident">expanded</span>)
 }</code></pre></div>
 <p><br></p>
-<h3 id="combining-quoted-fragments" class="section-header"><a href="#combining-quoted-fragments">Combining quoted fragments</a></h3>
+<h4 id="combining-quoted-fragments" class="section-header"><a href="#combining-quoted-fragments">Combining quoted fragments</a></h4>
 <p>Usually you don’t end up constructing an entire final <code>TokenStream</code> in one
 piece. Different parts may come from different helper functions. The tokens
 produced by <code>quote!</code> themselves implement <code>ToTokens</code> and so can be
@@ -91,7 +91,7 @@ interpolated into later <code>quote!</code> invocations to build up a final resu
     #<span class="ident">methods</span>
 };</code></pre></div>
 <p><br></p>
-<h3 id="constructing-identifiers" class="section-header"><a href="#constructing-identifiers">Constructing identifiers</a></h3>
+<h4 id="constructing-identifiers" class="section-header"><a href="#constructing-identifiers">Constructing identifiers</a></h4>
 <p>Suppose we have an identifier <code>ident</code> which came from somewhere in a macro
 input and we need to modify it in some way for the macro output. Let’s
 consider prepending the identifier with an underscore.</p>
@@ -121,7 +121,7 @@ will not handle <code>ident</code> being a raw identifier.</p>
     <span class="kw">let</span> <span class="kw-2">mut</span> #<span class="ident">varname</span> <span class="op">=</span> <span class="number">0</span>;
 }</code></pre></div>
 <p><br></p>
-<h3 id="making-method-calls" class="section-header"><a href="#making-method-calls">Making method calls</a></h3>
+<h4 id="making-method-calls" class="section-header"><a href="#making-method-calls">Making method calls</a></h4>
 <p>Let’s say our macro requires some type specified in the macro input to have
 a constructor called <code>new</code>. We have the type in a variable called
 <code>field_type</code> of type <code>syn::Type</code> and want to invoke the constructor.</p>
@@ -146,7 +146,7 @@ but for macros often the following is more convenient.</p>
     <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="op">&lt;</span>#<span class="ident">field_type</span> <span class="kw">as</span> <span class="ident">core::default::Default</span><span class="op">&gt;</span><span class="ident">::default</span>();
 }</code></pre></div>
 <p><br></p>
-<h3 id="interpolating-text-inside-of-doc-comments" class="section-header"><a href="#interpolating-text-inside-of-doc-comments">Interpolating text inside of doc comments</a></h3>
+<h4 id="interpolating-text-inside-of-doc-comments" class="section-header"><a href="#interpolating-text-inside-of-doc-comments">Interpolating text inside of doc comments</a></h4>
 <p>Neither doc comments nor string literals get interpolation behavior in
 quote:</p>
 
@@ -174,7 +174,7 @@ formatting the doc string literal outside of quote.</p>
     <span class="doccomment">/// ...</span>
 }</code></pre></div>
 <p><br></p>
-<h3 id="indexing-into-a-tuple-struct" class="section-header"><a href="#indexing-into-a-tuple-struct">Indexing into a tuple struct</a></h3>
+<h4 id="indexing-into-a-tuple-struct" class="section-header"><a href="#indexing-into-a-tuple-struct">Indexing into a tuple struct</a></h4>
 <p>When interpolating indices of a tuple or tuple struct, we need them not to
 appears suffixed as integer literals by interpolating them as <a href="https://docs.rs/syn/1.0/syn/struct.Index.html"><code>syn::Index</code></a>
 instead.</p>

@@ -88,7 +88,7 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::float::Float</span>;
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_long_mantissa</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">Float</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AdjustedMantissa</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_long_mantissa</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">Float</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">AdjustedMantissa</span> {
     <span class="kw">const</span> <span class="ident">MAX_SHIFT</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">60</span>;
     <span class="kw">const</span> <span class="ident">NUM_POWERS</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">19</span>;
     <span class="kw">const</span> <span class="ident">POWERS</span>: [<span class="ident">u8</span>; <span class="number">19</span>] <span class="op">=</span> [
@@ -108,7 +108,7 @@
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">d</span> <span class="op">=</span> <span class="ident">parse_decimal</span>(<span class="ident">s</span>);
 
-    <span class="kw">if</span> <span class="ident">d</span>.<span class="ident">num_digits</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">d</span>.<span class="ident">decimal_point</span> <span class="op">&lt;</span> <span class="op">-</span><span class="number">324</span> {
+    <span class="kw">if</span> <span class="ident">d</span>.<span class="ident">num_digits</span> <span class="op">==</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">d</span>.<span class="ident">decimal_point</span> <span class="op">&lt;</span> <span class="op">-</span><span class="number">324</span> {
         <span class="kw">return</span> <span class="ident">am_zero</span>;
     } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">d</span>.<span class="ident">decimal_point</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">310</span> {
         <span class="kw">return</span> <span class="ident">am_inf</span>;
@@ -124,11 +124,11 @@
         <span class="ident">exp2</span> <span class="op">+</span><span class="op">=</span> <span class="ident">shift</span> <span class="kw">as</span> <span class="ident">i32</span>;
     }
     <span class="kw">while</span> <span class="ident">d</span>.<span class="ident">decimal_point</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0</span> {
-        <span class="kw">let</span> <span class="ident">shift</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">d</span>.<span class="ident">decimal_point</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">let</span> <span class="ident">shift</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">d</span>.<span class="ident">decimal_point</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="kw">match</span> <span class="ident">d</span>.<span class="ident">digits</span>[<span class="number">0</span>] {
-                <span class="ident">digit</span> <span class="kw">if</span> <span class="ident">digit</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">5</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
-                <span class="number">0</span> <span class="op">|</span> <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">2</span>,
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,
+                <span class="ident">digit</span> <span class="kw">if</span> <span class="ident">digit</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">5</span> =&gt; <span class="kw">break</span>,
+                <span class="number">0</span> <span class="op">|</span> <span class="number">1</span> =&gt; <span class="number">2</span>,
+                <span class="kw">_</span> =&gt; <span class="number">1</span>,
             }
         } <span class="kw">else</span> {
             <span class="ident">get_shift</span>((<span class="op">-</span><span class="ident">d</span>.<span class="ident">decimal_point</span>) <span class="kw">as</span> <span class="kw">_</span>)

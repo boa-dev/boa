@@ -57,7 +57,7 @@
 <span class="kw">use</span> <span class="ident">std::hash</span>::{<span class="ident">Hash</span>, <span class="ident">Hasher</span>};
 
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">JsValue</span> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
         <span class="ident"><span class="self">Self</span>::same_value_zero</span>(<span class="self">self</span>, <span class="ident">other</span>)
     }
 }
@@ -75,7 +75,7 @@
 
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">RationalHashable</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
         <span class="ident">Number::same_value</span>(<span class="self">self</span>.<span class="number">0</span>, <span class="ident">other</span>.<span class="number">0</span>)
     }
 }
@@ -92,15 +92,15 @@
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">JsValue</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="ident">Hasher</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>) {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Undefined</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">UndefinedHashable</span>.<span class="ident">hash</span>(<span class="ident">state</span>),
-            <span class="ident"><span class="self">Self</span>::Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">NullHashable</span>.<span class="ident">hash</span>(<span class="ident">state</span>),
-            <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">string</span>.<span class="ident">hash</span>(<span class="ident">state</span>),
-            <span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="ident">boolean</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">boolean</span>.<span class="ident">hash</span>(<span class="ident">state</span>),
-            <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">integer</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">RationalHashable</span>(<span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">integer</span>)).<span class="ident">hash</span>(<span class="ident">state</span>),
-            <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">bigint</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">bigint</span>.<span class="ident">hash</span>(<span class="ident">state</span>),
-            <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">rational</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">RationalHashable</span>(<span class="kw-2">*</span><span class="ident">rational</span>).<span class="ident">hash</span>(<span class="ident">state</span>),
-            <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Hash::hash</span>(<span class="ident">symbol</span>, <span class="ident">state</span>),
-            <span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">std::ptr::hash</span>(<span class="ident">object</span>.<span class="ident">as_ref</span>(), <span class="ident">state</span>),
+            <span class="ident"><span class="self">Self</span>::Undefined</span> =&gt; <span class="ident">UndefinedHashable</span>.<span class="ident">hash</span>(<span class="ident">state</span>),
+            <span class="ident"><span class="self">Self</span>::Null</span> =&gt; <span class="ident">NullHashable</span>.<span class="ident">hash</span>(<span class="ident">state</span>),
+            <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) =&gt; <span class="ident">string</span>.<span class="ident">hash</span>(<span class="ident">state</span>),
+            <span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="ident">boolean</span>) =&gt; <span class="ident">boolean</span>.<span class="ident">hash</span>(<span class="ident">state</span>),
+            <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">integer</span>) =&gt; <span class="ident">RationalHashable</span>(<span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">integer</span>)).<span class="ident">hash</span>(<span class="ident">state</span>),
+            <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">bigint</span>) =&gt; <span class="ident">bigint</span>.<span class="ident">hash</span>(<span class="ident">state</span>),
+            <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">rational</span>) =&gt; <span class="ident">RationalHashable</span>(<span class="kw-2">*</span><span class="ident">rational</span>).<span class="ident">hash</span>(<span class="ident">state</span>),
+            <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) =&gt; <span class="ident">Hash::hash</span>(<span class="ident">symbol</span>, <span class="ident">state</span>),
+            <span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) =&gt; <span class="ident">std::ptr::hash</span>(<span class="ident">object</span>.<span class="ident">as_ref</span>(), <span class="ident">state</span>),
         }
     }
 }

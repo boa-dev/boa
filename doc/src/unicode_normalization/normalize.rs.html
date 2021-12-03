@@ -274,7 +274,7 @@
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">fn</span> <span class="ident">decompose</span><span class="op">&lt;</span><span class="ident">D</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">c</span>: <span class="ident">char</span>, <span class="ident">decompose_char</span>: <span class="ident">D</span>, <span class="kw-2">mut</span> <span class="ident">emit_char</span>: <span class="ident">F</span>)
 <span class="kw">where</span>
-    <span class="ident">D</span>: <span class="ident">Fn</span>(<span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">char</span>]<span class="op">&gt;</span>,
+    <span class="ident">D</span>: <span class="ident">Fn</span>(<span class="ident">char</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">char</span>]<span class="op">&gt;</span>,
     <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">char</span>),
 {
     <span class="comment">// 7-bit ASCII never decomposes</span>
@@ -303,7 +303,7 @@
 <span class="doccomment">/// Compose two characters into a single character, if possible.</span>
 <span class="doccomment">/// See [Unicode Standard Annex #15](http://www.unicode.org/reports/tr15/)</span>
 <span class="doccomment">/// for more information.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compose</span>(<span class="ident">a</span>: <span class="ident">char</span>, <span class="ident">b</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compose</span>(<span class="ident">a</span>: <span class="ident">char</span>, <span class="ident">b</span>: <span class="ident">char</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span> {
     <span class="ident">compose_hangul</span>(<span class="ident">a</span>, <span class="ident">b</span>).<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">composition_table</span>(<span class="ident">a</span>, <span class="ident">b</span>))
 }
 
@@ -328,7 +328,7 @@
 <span class="comment">// i.e. `T_BASE + 1 ... T_LAST`.</span>
 <span class="kw">const</span> <span class="ident">T_FIRST</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">T_BASE</span> <span class="op">+</span> <span class="number">1</span>;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_hangul_syllable</span>(<span class="ident">c</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_hangul_syllable</span>(<span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="ident">bool</span> {
     (<span class="ident">c</span> <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&gt;</span><span class="op">=</span> <span class="ident">S_BASE</span> <span class="op">&amp;&amp;</span> (<span class="ident">c</span> <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span> (<span class="ident">S_BASE</span> <span class="op">+</span> <span class="ident">S_COUNT</span>)
 }
 
@@ -355,7 +355,7 @@
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">hangul_decomposition_length</span>(<span class="ident">s</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">hangul_decomposition_length</span>(<span class="ident">s</span>: <span class="ident">char</span>) -&gt; <span class="ident">usize</span> {
     <span class="kw">let</span> <span class="ident">si</span> <span class="op">=</span> <span class="ident">s</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="op">-</span> <span class="ident">S_BASE</span>;
     <span class="kw">let</span> <span class="ident">ti</span> <span class="op">=</span> <span class="ident">si</span> <span class="op">%</span> <span class="ident">T_COUNT</span>;
     <span class="kw">if</span> <span class="ident">ti</span> <span class="op">&gt;</span> <span class="number">0</span> {
@@ -369,11 +369,11 @@
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unsafe_code</span>)]</span>
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">ellipsis_inclusive_range_patterns</span>)]</span>
-<span class="kw">fn</span> <span class="ident">compose_hangul</span>(<span class="ident">a</span>: <span class="ident">char</span>, <span class="ident">b</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">compose_hangul</span>(<span class="ident">a</span>: <span class="ident">char</span>, <span class="ident">b</span>: <span class="ident">char</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span> {
     <span class="kw">let</span> (<span class="ident">a</span>, <span class="ident">b</span>) <span class="op">=</span> (<span class="ident">a</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">b</span> <span class="kw">as</span> <span class="ident">u32</span>);
     <span class="kw">match</span> (<span class="ident">a</span>, <span class="ident">b</span>) {
         <span class="comment">// Compose a leading consonant and a vowel together into an LV_Syllable</span>
-        (<span class="ident">L_BASE</span>...<span class="ident">L_LAST</span>, <span class="ident">V_BASE</span>...<span class="ident">V_LAST</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        (<span class="ident">L_BASE</span>...<span class="ident">L_LAST</span>, <span class="ident">V_BASE</span>...<span class="ident">V_LAST</span>) =&gt; {
             <span class="kw">let</span> <span class="ident">l_index</span> <span class="op">=</span> <span class="ident">a</span> <span class="op">-</span> <span class="ident">L_BASE</span>;
             <span class="kw">let</span> <span class="ident">v_index</span> <span class="op">=</span> <span class="ident">b</span> <span class="op">-</span> <span class="ident">V_BASE</span>;
             <span class="kw">let</span> <span class="ident">lv_index</span> <span class="op">=</span> <span class="ident">l_index</span> <span class="op">*</span> <span class="ident">N_COUNT</span> <span class="op">+</span> <span class="ident">v_index</span> <span class="op">*</span> <span class="ident">T_COUNT</span>;
@@ -381,10 +381,10 @@
             <span class="prelude-val">Some</span>(<span class="kw">unsafe</span> { <span class="ident">char::from_u32_unchecked</span>(<span class="ident">s</span>) })
         }
         <span class="comment">// Compose an LV_Syllable and a trailing consonant into an LVT_Syllable</span>
-        (<span class="ident">S_BASE</span>...<span class="ident">S_LAST</span>, <span class="ident">T_FIRST</span>...<span class="ident">T_LAST</span>) <span class="kw">if</span> (<span class="ident">a</span> <span class="op">-</span> <span class="ident">S_BASE</span>) <span class="op">%</span> <span class="ident">T_COUNT</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> {
+        (<span class="ident">S_BASE</span>...<span class="ident">S_LAST</span>, <span class="ident">T_FIRST</span>...<span class="ident">T_LAST</span>) <span class="kw">if</span> (<span class="ident">a</span> <span class="op">-</span> <span class="ident">S_BASE</span>) <span class="op">%</span> <span class="ident">T_COUNT</span> <span class="op">==</span> <span class="number">0</span> =&gt; {
             <span class="prelude-val">Some</span>(<span class="kw">unsafe</span> { <span class="ident">char::from_u32_unchecked</span>(<span class="ident">a</span> <span class="op">+</span> (<span class="ident">b</span> <span class="op">-</span> <span class="ident">T_BASE</span>)) })
         }
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+        <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
     }
 }
 

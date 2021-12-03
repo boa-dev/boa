@@ -436,7 +436,7 @@
 <span class="doccomment">/// println!(&quot;{}&quot;, &quot;bright cyan&quot;.bright_cyan());	// will print correctly</span>
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_virtual_terminal</span>(<span class="ident">use_virtual</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_virtual_terminal</span>(<span class="ident">use_virtual</span>: <span class="ident">bool</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
     <span class="kw">use</span> <span class="ident">winapi</span>::{
         <span class="ident">shared::minwindef::DWORD</span>,
         <span class="ident">um</span>::{
@@ -453,18 +453,18 @@
         <span class="ident">GetConsoleMode</span>(<span class="ident">handle</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">original_mode</span>);
 
         <span class="kw">let</span> <span class="ident">enabled</span> <span class="op">=</span> <span class="ident">original_mode</span> <span class="op">&amp;</span> <span class="ident">ENABLE_VIRTUAL_TERMINAL_PROCESSING</span>
-            <span class="op">=</span><span class="op">=</span> <span class="ident">ENABLE_VIRTUAL_TERMINAL_PROCESSING</span>;
+            <span class="op">==</span> <span class="ident">ENABLE_VIRTUAL_TERMINAL_PROCESSING</span>;
 
         <span class="kw">match</span> (<span class="ident">use_virtual</span>, <span class="ident">enabled</span>) {
             <span class="comment">// not enabled, should be enabled</span>
-            (<span class="bool-val">true</span>, <span class="bool-val">false</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            (<span class="bool-val">true</span>, <span class="bool-val">false</span>) =&gt; {
                 <span class="ident">SetConsoleMode</span>(<span class="ident">handle</span>, <span class="ident">ENABLE_VIRTUAL_TERMINAL_PROCESSING</span> <span class="op">|</span> <span class="ident">original_mode</span>)
             }
             <span class="comment">// already enabled, should be disabled</span>
-            (<span class="bool-val">false</span>, <span class="bool-val">true</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            (<span class="bool-val">false</span>, <span class="bool-val">true</span>) =&gt; {
                 <span class="ident">SetConsoleMode</span>(<span class="ident">handle</span>, <span class="ident">ENABLE_VIRTUAL_TERMINAL_PROCESSING</span> <span class="op">^</span> <span class="ident">original_mode</span>)
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
+            <span class="kw">_</span> =&gt; <span class="number">0</span>,
         };
     }
 
@@ -498,7 +498,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">ShouldColorize</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ShouldColorize</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="ident">ShouldColorize</span> {
         <span class="ident">ShouldColorize</span> {
             <span class="ident">clicolor</span>: <span class="bool-val">true</span>,
             <span class="ident">clicolor_force</span>: <span class="prelude-val">None</span>,
@@ -513,7 +513,7 @@
     <span class="doccomment">/// whether colorization should be used or not.</span>
     <span class="doccomment">/// `CLICOLOR_FORCE` takes highest priority, followed by `NO_COLOR`,</span>
     <span class="doccomment">/// followed by `CLICOLOR` combined with tty check.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_env</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_env</span>() -&gt; <span class="self">Self</span> {
         <span class="ident">ShouldColorize</span> {
             <span class="ident">clicolor</span>: <span class="ident">ShouldColorize::normalize_env</span>(<span class="ident">env::var</span>(<span class="string">&quot;CLICOLOR&quot;</span>)).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="bool-val">true</span>)
                 <span class="op">&amp;&amp;</span> <span class="ident">atty::is</span>(<span class="ident">atty::Stream::Stdout</span>),
@@ -526,7 +526,7 @@
     }
 
     <span class="doccomment">/// Returns if the current coloring is expected.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">should_colorize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">should_colorize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_manual_override</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) {
             <span class="kw">return</span> <span class="self">self</span>.<span class="ident">manual_override</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
         }
@@ -552,18 +552,18 @@
 
     <span class="comment">/* private */</span>
 
-    <span class="kw">fn</span> <span class="ident">normalize_env</span>(<span class="ident">env_res</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">env::VarError</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">normalize_env</span>(<span class="ident">env_res</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">env::VarError</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">env_res</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">string</span> <span class="op">!</span><span class="op">=</span> <span class="string">&quot;0&quot;</span>),
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="prelude-val">Ok</span>(<span class="ident">string</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">string</span> <span class="op">!</span><span class="op">=</span> <span class="string">&quot;0&quot;</span>),
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
         }
     }
 
     <span class="kw">fn</span> <span class="ident">resolve_clicolor_force</span>(
         <span class="ident">no_color</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">env::VarError</span><span class="op">&gt;</span>,
         <span class="ident">clicolor_force</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">env::VarError</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">ShouldColorize::normalize_env</span>(<span class="ident">clicolor_force</span>) <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="ident">ShouldColorize::normalize_env</span>(<span class="ident">clicolor_force</span>) <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
             <span class="prelude-val">Some</span>(<span class="bool-val">true</span>)
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">ShouldColorize::normalize_env</span>(<span class="ident">no_color</span>).<span class="ident">is_some</span>() {
             <span class="prelude-val">Some</span>(<span class="bool-val">false</span>)
@@ -600,11 +600,11 @@
                 });
 
                 <span class="ident">ctx</span>.<span class="ident">it</span>(<span class="string">&quot;should return Some(true) if != 0&quot;</span>, <span class="op">|</span><span class="op">|</span> {
-                    <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">ShouldColorize::normalize_env</span>(<span class="prelude-val">Ok</span>(<span class="ident">String::from</span>(<span class="string">&quot;1&quot;</span>)))
+                    <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) <span class="op">==</span> <span class="ident">ShouldColorize::normalize_env</span>(<span class="prelude-val">Ok</span>(<span class="ident">String::from</span>(<span class="string">&quot;1&quot;</span>)))
                 });
 
                 <span class="ident">ctx</span>.<span class="ident">it</span>(<span class="string">&quot;should return Some(false) if == 0&quot;</span>, <span class="op">|</span><span class="op">|</span> {
-                    <span class="prelude-val">Some</span>(<span class="bool-val">false</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">ShouldColorize::normalize_env</span>(<span class="prelude-val">Ok</span>(<span class="ident">String::from</span>(<span class="string">&quot;0&quot;</span>)))
+                    <span class="prelude-val">Some</span>(<span class="bool-val">false</span>) <span class="op">==</span> <span class="ident">ShouldColorize::normalize_env</span>(<span class="prelude-val">Ok</span>(<span class="ident">String::from</span>(<span class="string">&quot;0&quot;</span>)))
                 });
             });
 
@@ -700,7 +700,7 @@
                         <span class="ident">clicolor</span>: <span class="bool-val">false</span>,
                         ..<span class="ident">ShouldColorize::default</span>()
                     };
-                    <span class="bool-val">false</span> <span class="op">=</span><span class="op">=</span> <span class="ident">colorize_control</span>.<span class="ident">should_colorize</span>()
+                    <span class="bool-val">false</span> <span class="op">==</span> <span class="ident">colorize_control</span>.<span class="ident">should_colorize</span>()
                 });
 
                 <span class="ident">ctx</span>.<span class="ident">it</span>(<span class="string">&quot;clicolor == true means colors !&quot;</span>, <span class="op">|</span><span class="op">|</span> {
@@ -708,11 +708,11 @@
                         <span class="ident">clicolor</span>: <span class="bool-val">true</span>,
                         ..<span class="ident">ShouldColorize::default</span>()
                     };
-                    <span class="bool-val">true</span> <span class="op">=</span><span class="op">=</span> <span class="ident">colorize_control</span>.<span class="ident">should_colorize</span>()
+                    <span class="bool-val">true</span> <span class="op">==</span> <span class="ident">colorize_control</span>.<span class="ident">should_colorize</span>()
                 });
 
                 <span class="ident">ctx</span>.<span class="ident">it</span>(<span class="string">&quot;unset clicolors implies true&quot;</span>, <span class="op">|</span><span class="op">|</span> {
-                    <span class="bool-val">true</span> <span class="op">=</span><span class="op">=</span> <span class="ident">ShouldColorize::default</span>().<span class="ident">should_colorize</span>()
+                    <span class="bool-val">true</span> <span class="op">==</span> <span class="ident">ShouldColorize::default</span>().<span class="ident">should_colorize</span>()
                 });
             });
 
@@ -726,7 +726,7 @@
                             ..<span class="ident">ShouldColorize::default</span>()
                         };
 
-                        <span class="bool-val">true</span> <span class="op">=</span><span class="op">=</span> <span class="ident">colorize_control</span>.<span class="ident">should_colorize</span>()
+                        <span class="bool-val">true</span> <span class="op">==</span> <span class="ident">colorize_control</span>.<span class="ident">should_colorize</span>()
                     },
                 );
 
@@ -739,7 +739,7 @@
                             ..<span class="ident">ShouldColorize::default</span>()
                         };
 
-                        <span class="bool-val">false</span> <span class="op">=</span><span class="op">=</span> <span class="ident">colorize_control</span>.<span class="ident">should_colorize</span>()
+                        <span class="bool-val">false</span> <span class="op">==</span> <span class="ident">colorize_control</span>.<span class="ident">should_colorize</span>()
                     },
                 );
             });
@@ -754,7 +754,7 @@
                         .. <span class="ident">ShouldColorize::default</span>()
                     };
 
-                    <span class="bool-val">true</span> <span class="op">=</span><span class="op">=</span> <span class="ident">colorize_control</span>.<span class="ident">should_colorize</span>()
+                    <span class="bool-val">true</span> <span class="op">==</span> <span class="ident">colorize_control</span>.<span class="ident">should_colorize</span>()
                 });
 
                 <span class="ident">ctx</span>.<span class="ident">it</span>(<span class="string">&quot;should not colorize if manual_override is false, but clicolor is true or clicolor_force is true&quot;</span>, <span class="op">|</span><span class="op">|</span> {
@@ -766,7 +766,7 @@
                         .. <span class="ident">ShouldColorize::default</span>()
                     };
 
-                    <span class="bool-val">false</span> <span class="op">=</span><span class="op">=</span> <span class="ident">colorize_control</span>.<span class="ident">should_colorize</span>()
+                    <span class="bool-val">false</span> <span class="op">==</span> <span class="ident">colorize_control</span>.<span class="ident">should_colorize</span>()
                 })
             });
 

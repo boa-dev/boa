@@ -711,7 +711,7 @@
 
     <span class="kw">use</span> <span class="ident">num_bigint::BigUint</span>;
 
-    <span class="kw">fn</span> <span class="ident">compute_pow5_128</span>(<span class="ident">q</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">u64</span>, <span class="ident">u64</span>) {
+    <span class="kw">fn</span> <span class="ident">compute_pow5_128</span>(<span class="ident">q</span>: <span class="ident">i32</span>) -&gt; (<span class="ident">u64</span>, <span class="ident">u64</span>) {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">c</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">q</span> <span class="op">&lt;</span> <span class="number">0</span> {
             <span class="kw">let</span> <span class="ident">pow5</span> <span class="op">=</span> <span class="ident">BigUint::from</span>(<span class="number">5_u8</span>).<span class="ident">pow</span>((<span class="op">-</span><span class="ident">q</span>) <span class="kw">as</span> <span class="ident">u32</span>);
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">z</span> <span class="op">=</span> <span class="number">0_u16</span>;

@@ -2079,7 +2079,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Buffer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Allocates a new buffer with the specified capacity.</span>
-    <span class="kw">fn</span> <span class="ident">alloc</span>(<span class="ident">cap</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Buffer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">alloc</span>(<span class="ident">cap</span>: <span class="ident">usize</span>) -&gt; <span class="ident">Buffer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="macro">debug_assert_eq!</span>(<span class="ident">cap</span>, <span class="ident">cap</span>.<span class="ident">next_power_of_two</span>());
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">cap</span>);
@@ -2095,7 +2095,7 @@
     }
 
     <span class="doccomment">/// Returns a pointer to the task at the specified `index`.</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">isize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">T</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">isize</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">T</span> {
         <span class="comment">// `self.cap` is always a power of two.</span>
         <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">offset</span>(<span class="ident">index</span> <span class="op">&amp;</span> (<span class="self">self</span>.<span class="ident">cap</span> <span class="op">-</span> <span class="number">1</span>) <span class="kw">as</span> <span class="ident">isize</span>)
     }
@@ -2116,13 +2116,13 @@
     <span class="doccomment">/// technically speaking a data race and therefore UB. We should use an atomic load here, but</span>
     <span class="doccomment">/// that would be more expensive and difficult to implement generically for all types `T`.</span>
     <span class="doccomment">/// Hence, as a hack, we use a volatile write instead.</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">isize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">isize</span>) -&gt; <span class="ident">T</span> {
         <span class="ident">ptr::read_volatile</span>(<span class="self">self</span>.<span class="ident">at</span>(<span class="ident">index</span>))
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Buffer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Buffer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Buffer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="ident">Buffer</span> {
             <span class="ident">ptr</span>: <span class="self">self</span>.<span class="ident">ptr</span>,
             <span class="ident">cap</span>: <span class="self">self</span>.<span class="ident">cap</span>,
@@ -2256,7 +2256,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// let w = Worker::&lt;i32&gt;::new_fifo();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_fifo</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Worker</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_fifo</span>() -&gt; <span class="ident">Worker</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">Buffer::alloc</span>(<span class="ident">MIN_CAP</span>);
 
         <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">CachePadded::new</span>(<span class="ident">Inner</span> {
@@ -2284,7 +2284,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// let w = Worker::&lt;i32&gt;::new_lifo();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_lifo</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Worker</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_lifo</span>() -&gt; <span class="ident">Worker</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">Buffer::alloc</span>(<span class="ident">MIN_CAP</span>);
 
         <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">CachePadded::new</span>(<span class="ident">Inner</span> {
@@ -2313,7 +2313,7 @@
     <span class="doccomment">/// let w = Worker::&lt;i32&gt;::new_lifo();</span>
     <span class="doccomment">/// let s = w.stealer();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stealer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Stealer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stealer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Stealer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="ident">Stealer</span> {
             <span class="ident">inner</span>: <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>(),
             <span class="ident">flavor</span>: <span class="self">self</span>.<span class="ident">flavor</span>,
@@ -2394,7 +2394,7 @@
     <span class="doccomment">/// w.push(1);</span>
     <span class="doccomment">/// assert!(!w.is_empty());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">back</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
         <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">front</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>);
         <span class="ident">b</span>.<span class="ident">wrapping_sub</span>(<span class="ident">f</span>) <span class="op">&lt;</span><span class="op">=</span> <span class="number">0</span>
@@ -2413,7 +2413,7 @@
     <span class="doccomment">/// w.push(1);</span>
     <span class="doccomment">/// assert_eq!(w.len(), 2);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">back</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
         <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">front</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>);
         <span class="ident">b</span>.<span class="ident">wrapping_sub</span>(<span class="ident">f</span>).<span class="ident">max</span>(<span class="number">0</span>) <span class="kw">as</span> <span class="ident">usize</span>
@@ -2477,7 +2477,7 @@
     <span class="doccomment">/// assert_eq!(w.pop(), Some(2));</span>
     <span class="doccomment">/// assert_eq!(w.pop(), None);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="comment">// Load the back and front index.</span>
         <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">back</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
         <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">front</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
@@ -2492,7 +2492,7 @@
 
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">flavor</span> {
             <span class="comment">// Pop from the front of the queue.</span>
-            <span class="ident">Flavor::Fifo</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Flavor::Fifo</span> =&gt; {
                 <span class="comment">// Try incrementing the front index to pop the task.</span>
                 <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">front</span>.<span class="ident">fetch_add</span>(<span class="number">1</span>, <span class="ident">Ordering::SeqCst</span>);
                 <span class="kw">let</span> <span class="ident">new_f</span> <span class="op">=</span> <span class="ident">f</span>.<span class="ident">wrapping_add</span>(<span class="number">1</span>);
@@ -2517,7 +2517,7 @@
             }
 
             <span class="comment">// Pop from the back of the queue.</span>
-            <span class="ident">Flavor::Lifo</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Flavor::Lifo</span> =&gt; {
                 <span class="comment">// Decrement the back index.</span>
                 <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">wrapping_sub</span>(<span class="number">1</span>);
                 <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">back</span>.<span class="ident">store</span>(<span class="ident">b</span>, <span class="ident">Ordering::Relaxed</span>);
@@ -2540,7 +2540,7 @@
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">task</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="prelude-val">Some</span>(<span class="ident">buffer</span>.<span class="ident">read</span>(<span class="ident">b</span>)) };
 
                     <span class="comment">// Are we popping the last task from the queue?</span>
-                    <span class="kw">if</span> <span class="ident">len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+                    <span class="kw">if</span> <span class="ident">len</span> <span class="op">==</span> <span class="number">0</span> {
                         <span class="comment">// Try incrementing the front index.</span>
                         <span class="kw">if</span> <span class="self">self</span>
                             .<span class="ident">inner</span>
@@ -2576,7 +2576,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Worker</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">pad</span>(<span class="string">&quot;Worker { .. }&quot;</span>)
     }
 }
@@ -2625,7 +2625,7 @@
     <span class="doccomment">/// w.push(1);</span>
     <span class="doccomment">/// assert!(!s.is_empty());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">front</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
         <span class="ident">atomic::fence</span>(<span class="ident">Ordering::SeqCst</span>);
         <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">back</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
@@ -2646,7 +2646,7 @@
     <span class="doccomment">/// w.push(2);</span>
     <span class="doccomment">/// assert_eq!(s.len(), 2);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">front</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
         <span class="ident">atomic::fence</span>(<span class="ident">Ordering::SeqCst</span>);
         <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">back</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
@@ -2668,7 +2668,7 @@
     <span class="doccomment">/// assert_eq!(s.steal(), Steal::Success(1));</span>
     <span class="doccomment">/// assert_eq!(s.steal(), Steal::Success(2));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">steal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Steal</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">steal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Steal</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="comment">// Load the front index.</span>
         <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">front</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
 
@@ -2736,7 +2736,7 @@
     <span class="doccomment">/// assert_eq!(w2.pop(), Some(1));</span>
     <span class="doccomment">/// assert_eq!(w2.pop(), Some(2));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">steal_batch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="ident">Worker</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Steal</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">steal_batch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="ident">Worker</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">Steal</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">Arc::ptr_eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>, <span class="kw-2">&amp;</span><span class="ident">dest</span>.<span class="ident">inner</span>) {
             <span class="kw">if</span> <span class="ident">dest</span>.<span class="ident">is_empty</span>() {
                 <span class="kw">return</span> <span class="ident">Steal::Empty</span>;
@@ -2782,10 +2782,10 @@
 
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">flavor</span> {
             <span class="comment">// Steal a batch of tasks from the front at once.</span>
-            <span class="ident">Flavor::Fifo</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Flavor::Fifo</span> =&gt; {
                 <span class="comment">// Copy the batch from the source to the destination buffer.</span>
                 <span class="kw">match</span> <span class="ident">dest</span>.<span class="ident">flavor</span> {
-                    <span class="ident">Flavor::Fifo</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">Flavor::Fifo</span> =&gt; {
                         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">batch_size</span> {
                             <span class="kw">unsafe</span> {
                                 <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <span class="ident">buffer</span>.<span class="ident">deref</span>().<span class="ident">read</span>(<span class="ident">f</span>.<span class="ident">wrapping_add</span>(<span class="ident">i</span>));
@@ -2793,7 +2793,7 @@
                             }
                         }
                     }
-                    <span class="ident">Flavor::Lifo</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">Flavor::Lifo</span> =&gt; {
                         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">batch_size</span> {
                             <span class="kw">unsafe</span> {
                                 <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <span class="ident">buffer</span>.<span class="ident">deref</span>().<span class="ident">read</span>(<span class="ident">f</span>.<span class="ident">wrapping_add</span>(<span class="ident">i</span>));
@@ -2824,7 +2824,7 @@
             }
 
             <span class="comment">// Steal a batch of tasks from the front one by one.</span>
-            <span class="ident">Flavor::Lifo</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Flavor::Lifo</span> =&gt; {
                 <span class="comment">// This loop may modify the batch_size, which triggers a clippy lint warning.</span>
                 <span class="comment">// Use a new variable to avoid the warning, and to make it clear we aren&#39;t</span>
                 <span class="comment">// modifying the loop exit condition during iteration.</span>
@@ -2881,12 +2881,12 @@
                 }
 
                 <span class="comment">// If we didn&#39;t steal anything, the operation needs to be retried.</span>
-                <span class="kw">if</span> <span class="ident">batch_size</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+                <span class="kw">if</span> <span class="ident">batch_size</span> <span class="op">==</span> <span class="number">0</span> {
                     <span class="kw">return</span> <span class="ident">Steal::Retry</span>;
                 }
 
                 <span class="comment">// If stealing into a FIFO queue, stolen tasks need to be reversed.</span>
-                <span class="kw">if</span> <span class="ident">dest</span>.<span class="ident">flavor</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Flavor::Fifo</span> {
+                <span class="kw">if</span> <span class="ident">dest</span>.<span class="ident">flavor</span> <span class="op">==</span> <span class="ident">Flavor::Fifo</span> {
                     <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">batch_size</span> <span class="op">/</span> <span class="number">2</span> {
                         <span class="kw">unsafe</span> {
                             <span class="kw">let</span> <span class="ident">i1</span> <span class="op">=</span> <span class="ident">dest_b</span>.<span class="ident">wrapping_sub</span>(<span class="ident">batch_size</span> <span class="op">-</span> <span class="ident">i</span>);
@@ -2935,11 +2935,11 @@
     <span class="doccomment">/// assert_eq!(s.steal_batch_and_pop(&amp;w2), Steal::Success(1));</span>
     <span class="doccomment">/// assert_eq!(w2.pop(), Some(2));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">steal_batch_and_pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="ident">Worker</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Steal</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">steal_batch_and_pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="ident">Worker</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">Steal</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">Arc::ptr_eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>, <span class="kw-2">&amp;</span><span class="ident">dest</span>.<span class="ident">inner</span>) {
             <span class="kw">match</span> <span class="ident">dest</span>.<span class="ident">pop</span>() {
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Steal::Empty</span>,
-                <span class="prelude-val">Some</span>(<span class="ident">task</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Steal::Success</span>(<span class="ident">task</span>),
+                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="ident">Steal::Empty</span>,
+                <span class="prelude-val">Some</span>(<span class="ident">task</span>) =&gt; <span class="kw">return</span> <span class="ident">Steal::Success</span>(<span class="ident">task</span>),
             }
         }
 
@@ -2983,10 +2983,10 @@
 
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">flavor</span> {
             <span class="comment">// Steal a batch of tasks from the front at once.</span>
-            <span class="ident">Flavor::Fifo</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Flavor::Fifo</span> =&gt; {
                 <span class="comment">// Copy the batch from the source to the destination buffer.</span>
                 <span class="kw">match</span> <span class="ident">dest</span>.<span class="ident">flavor</span> {
-                    <span class="ident">Flavor::Fifo</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">Flavor::Fifo</span> =&gt; {
                         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">batch_size</span> {
                             <span class="kw">unsafe</span> {
                                 <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <span class="ident">buffer</span>.<span class="ident">deref</span>().<span class="ident">read</span>(<span class="ident">f</span>.<span class="ident">wrapping_add</span>(<span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>));
@@ -2994,7 +2994,7 @@
                             }
                         }
                     }
-                    <span class="ident">Flavor::Lifo</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">Flavor::Lifo</span> =&gt; {
                         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">batch_size</span> {
                             <span class="kw">unsafe</span> {
                                 <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <span class="ident">buffer</span>.<span class="ident">deref</span>().<span class="ident">read</span>(<span class="ident">f</span>.<span class="ident">wrapping_add</span>(<span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>));
@@ -3027,7 +3027,7 @@
             }
 
             <span class="comment">// Steal a batch of tasks from the front one by one.</span>
-            <span class="ident">Flavor::Lifo</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Flavor::Lifo</span> =&gt; {
                 <span class="comment">// Try incrementing the front index to steal the task.</span>
                 <span class="kw">if</span> <span class="self">self</span>
                     .<span class="ident">inner</span>
@@ -3097,7 +3097,7 @@
                 }
 
                 <span class="comment">// If stealing into a FIFO queue, stolen tasks need to be reversed.</span>
-                <span class="kw">if</span> <span class="ident">dest</span>.<span class="ident">flavor</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Flavor::Fifo</span> {
+                <span class="kw">if</span> <span class="ident">dest</span>.<span class="ident">flavor</span> <span class="op">==</span> <span class="ident">Flavor::Fifo</span> {
                     <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">batch_size</span> <span class="op">/</span> <span class="number">2</span> {
                         <span class="kw">unsafe</span> {
                             <span class="kw">let</span> <span class="ident">i1</span> <span class="op">=</span> <span class="ident">dest_b</span>.<span class="ident">wrapping_sub</span>(<span class="ident">batch_size</span> <span class="op">-</span> <span class="ident">i</span>);
@@ -3126,7 +3126,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Stealer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Stealer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Stealer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="ident">Stealer</span> {
             <span class="ident">inner</span>: <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>(),
             <span class="ident">flavor</span>: <span class="self">self</span>.<span class="ident">flavor</span>,
@@ -3135,7 +3135,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Stealer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">pad</span>(<span class="string">&quot;Stealer { .. }&quot;</span>)
     }
 }
@@ -3170,7 +3170,7 @@
     <span class="doccomment">/// Waits until a task is written into the slot.</span>
     <span class="kw">fn</span> <span class="ident">wait_write</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">let</span> <span class="ident">backoff</span> <span class="op">=</span> <span class="ident">Backoff::new</span>();
-        <span class="kw">while</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>) <span class="op">&amp;</span> <span class="ident">WRITE</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">while</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>) <span class="op">&amp;</span> <span class="ident">WRITE</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="ident">backoff</span>.<span class="ident">snooze</span>();
         }
     }
@@ -3189,7 +3189,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Block</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Creates an empty block that starts at `start_index`.</span>
-    <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Block</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">Block</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="comment">// SAFETY: This is safe because:</span>
         <span class="comment">//  [1] `Block::next` (AtomicPtr) may be safely zero initialized.</span>
         <span class="comment">//  [2] `Block::slots` (Array) may be safely zero initialized because of [3, 4].</span>
@@ -3200,7 +3200,7 @@
     }
 
     <span class="doccomment">/// Waits until the next pointer is set.</span>
-    <span class="kw">fn</span> <span class="ident">wait_next</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Block</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">wait_next</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Block</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">backoff</span> <span class="op">=</span> <span class="ident">Backoff::new</span>();
         <span class="kw">loop</span> {
             <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
@@ -3219,8 +3219,8 @@
             <span class="kw">let</span> <span class="ident">slot</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">this</span>).<span class="ident">slots</span>.<span class="ident">get_unchecked</span>(<span class="ident">i</span>);
 
             <span class="comment">// Mark the `DESTROY` bit if a thread is still using the slot.</span>
-            <span class="kw">if</span> <span class="ident">slot</span>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>) <span class="op">&amp;</span> <span class="ident">READ</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>
-                <span class="op">&amp;&amp;</span> <span class="ident">slot</span>.<span class="ident">state</span>.<span class="ident">fetch_or</span>(<span class="ident">DESTROY</span>, <span class="ident">Ordering::AcqRel</span>) <span class="op">&amp;</span> <span class="ident">READ</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>
+            <span class="kw">if</span> <span class="ident">slot</span>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>) <span class="op">&amp;</span> <span class="ident">READ</span> <span class="op">==</span> <span class="number">0</span>
+                <span class="op">&amp;&amp;</span> <span class="ident">slot</span>.<span class="ident">state</span>.<span class="ident">fetch_or</span>(<span class="ident">DESTROY</span>, <span class="ident">Ordering::AcqRel</span>) <span class="op">&amp;</span> <span class="ident">READ</span> <span class="op">==</span> <span class="number">0</span>
             {
                 <span class="comment">// If a thread is still using the slot, it will continue destruction of the block.</span>
                 <span class="kw">return</span>;
@@ -3274,7 +3274,7 @@
 <span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Send</span><span class="op">&gt;</span> <span class="ident">Sync</span> <span class="kw">for</span> <span class="ident">Injector</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Injector</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="ident">Box::into_raw</span>(<span class="ident">Box::new</span>(<span class="ident">Block</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::new</span>()));
         <span class="self">Self</span> {
             <span class="ident">head</span>: <span class="ident">CachePadded::new</span>(<span class="ident">Position</span> {
@@ -3300,7 +3300,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// let q = Injector::&lt;i32&gt;::new();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Injector</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">Injector</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="ident"><span class="self">Self</span>::default</span>()
     }
 
@@ -3326,7 +3326,7 @@
             <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> (<span class="ident">tail</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">SHIFT</span>) <span class="op">%</span> <span class="ident">LAP</span>;
 
             <span class="comment">// If we reached the end of the block, wait until the next one is installed.</span>
-            <span class="kw">if</span> <span class="ident">offset</span> <span class="op">=</span><span class="op">=</span> <span class="ident">BLOCK_CAP</span> {
+            <span class="kw">if</span> <span class="ident">offset</span> <span class="op">==</span> <span class="ident">BLOCK_CAP</span> {
                 <span class="ident">backoff</span>.<span class="ident">snooze</span>();
                 <span class="ident">tail</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tail</span>.<span class="ident">index</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
                 <span class="ident">block</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tail</span>.<span class="ident">block</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
@@ -3335,7 +3335,7 @@
 
             <span class="comment">// If we&#39;re going to have to install the next block, allocate it in advance in order to</span>
             <span class="comment">// make the wait for other threads as short as possible.</span>
-            <span class="kw">if</span> <span class="ident">offset</span> <span class="op">+</span> <span class="number">1</span> <span class="op">=</span><span class="op">=</span> <span class="ident">BLOCK_CAP</span> <span class="op">&amp;&amp;</span> <span class="ident">next_block</span>.<span class="ident">is_none</span>() {
+            <span class="kw">if</span> <span class="ident">offset</span> <span class="op">+</span> <span class="number">1</span> <span class="op">==</span> <span class="ident">BLOCK_CAP</span> <span class="op">&amp;&amp;</span> <span class="ident">next_block</span>.<span class="ident">is_none</span>() {
                 <span class="ident">next_block</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">Block</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::new</span>()));
             }
 
@@ -3348,9 +3348,9 @@
                 <span class="ident">Ordering::SeqCst</span>,
                 <span class="ident">Ordering::Acquire</span>,
             ) {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> {
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">unsafe</span> {
                     <span class="comment">// If we&#39;ve reached the end of the block, install the next one.</span>
-                    <span class="kw">if</span> <span class="ident">offset</span> <span class="op">+</span> <span class="number">1</span> <span class="op">=</span><span class="op">=</span> <span class="ident">BLOCK_CAP</span> {
+                    <span class="kw">if</span> <span class="ident">offset</span> <span class="op">+</span> <span class="number">1</span> <span class="op">==</span> <span class="ident">BLOCK_CAP</span> {
                         <span class="kw">let</span> <span class="ident">next_block</span> <span class="op">=</span> <span class="ident">Box::into_raw</span>(<span class="ident">next_block</span>.<span class="ident">unwrap</span>());
                         <span class="kw">let</span> <span class="ident">next_index</span> <span class="op">=</span> <span class="ident">new_tail</span>.<span class="ident">wrapping_add</span>(<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">SHIFT</span>);
 
@@ -3366,7 +3366,7 @@
 
                     <span class="kw">return</span>;
                 },
-                <span class="prelude-val">Err</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Err</span>(<span class="ident">t</span>) =&gt; {
                     <span class="ident">tail</span> <span class="op">=</span> <span class="ident">t</span>;
                     <span class="ident">block</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tail</span>.<span class="ident">block</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
                     <span class="ident">backoff</span>.<span class="ident">spin</span>();
@@ -3390,7 +3390,7 @@
     <span class="doccomment">/// assert_eq!(q.steal(), Steal::Success(2));</span>
     <span class="doccomment">/// assert_eq!(q.steal(), Steal::Empty);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">steal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Steal</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">steal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Steal</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">head</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">block</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">offset</span>;
@@ -3404,7 +3404,7 @@
             <span class="ident">offset</span> <span class="op">=</span> (<span class="ident">head</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">SHIFT</span>) <span class="op">%</span> <span class="ident">LAP</span>;
 
             <span class="comment">// If we reached the end of the block, wait until the next one is installed.</span>
-            <span class="kw">if</span> <span class="ident">offset</span> <span class="op">=</span><span class="op">=</span> <span class="ident">BLOCK_CAP</span> {
+            <span class="kw">if</span> <span class="ident">offset</span> <span class="op">==</span> <span class="ident">BLOCK_CAP</span> {
                 <span class="ident">backoff</span>.<span class="ident">snooze</span>();
             } <span class="kw">else</span> {
                 <span class="kw">break</span>;
@@ -3413,12 +3413,12 @@
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_head</span> <span class="op">=</span> <span class="ident">head</span> <span class="op">+</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">SHIFT</span>);
 
-        <span class="kw">if</span> <span class="ident">new_head</span> <span class="op">&amp;</span> <span class="ident">HAS_NEXT</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">new_head</span> <span class="op">&amp;</span> <span class="ident">HAS_NEXT</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="ident">atomic::fence</span>(<span class="ident">Ordering::SeqCst</span>);
             <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tail</span>.<span class="ident">index</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
 
             <span class="comment">// If the tail equals the head, that means the queue is empty.</span>
-            <span class="kw">if</span> <span class="ident">head</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">SHIFT</span> <span class="op">=</span><span class="op">=</span> <span class="ident">tail</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">SHIFT</span> {
+            <span class="kw">if</span> <span class="ident">head</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">SHIFT</span> <span class="op">==</span> <span class="ident">tail</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">SHIFT</span> {
                 <span class="kw">return</span> <span class="ident">Steal::Empty</span>;
             }
 
@@ -3440,7 +3440,7 @@
 
         <span class="kw">unsafe</span> {
             <span class="comment">// If we&#39;ve reached the end of the block, move to the next one.</span>
-            <span class="kw">if</span> <span class="ident">offset</span> <span class="op">+</span> <span class="number">1</span> <span class="op">=</span><span class="op">=</span> <span class="ident">BLOCK_CAP</span> {
+            <span class="kw">if</span> <span class="ident">offset</span> <span class="op">+</span> <span class="number">1</span> <span class="op">==</span> <span class="ident">BLOCK_CAP</span> {
                 <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">block</span>).<span class="ident">wait_next</span>();
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">next_index</span> <span class="op">=</span> (<span class="ident">new_head</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident">HAS_NEXT</span>).<span class="ident">wrapping_add</span>(<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">SHIFT</span>);
                 <span class="kw">if</span> <span class="op">!</span>(<span class="kw-2">*</span><span class="ident">next</span>).<span class="ident">next</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>).<span class="ident">is_null</span>() {
@@ -3458,7 +3458,7 @@
 
             <span class="comment">// Destroy the block if we&#39;ve reached the end, or if another thread wanted to destroy</span>
             <span class="comment">// but couldn&#39;t because we were busy reading from the slot.</span>
-            <span class="kw">if</span> (<span class="ident">offset</span> <span class="op">+</span> <span class="number">1</span> <span class="op">=</span><span class="op">=</span> <span class="ident">BLOCK_CAP</span>)
+            <span class="kw">if</span> (<span class="ident">offset</span> <span class="op">+</span> <span class="number">1</span> <span class="op">==</span> <span class="ident">BLOCK_CAP</span>)
                 <span class="op">|</span><span class="op">|</span> (<span class="ident">slot</span>.<span class="ident">state</span>.<span class="ident">fetch_or</span>(<span class="ident">READ</span>, <span class="ident">Ordering::AcqRel</span>) <span class="op">&amp;</span> <span class="ident">DESTROY</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>)
             {
                 <span class="ident">Block::destroy</span>(<span class="ident">block</span>, <span class="ident">offset</span>);
@@ -3489,7 +3489,7 @@
     <span class="doccomment">/// assert_eq!(w.pop(), Some(1));</span>
     <span class="doccomment">/// assert_eq!(w.pop(), Some(2));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">steal_batch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="ident">Worker</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Steal</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">steal_batch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="ident">Worker</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">Steal</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">head</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">block</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">offset</span>;
@@ -3503,7 +3503,7 @@
             <span class="ident">offset</span> <span class="op">=</span> (<span class="ident">head</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">SHIFT</span>) <span class="op">%</span> <span class="ident">LAP</span>;
 
             <span class="comment">// If we reached the end of the block, wait until the next one is installed.</span>
-            <span class="kw">if</span> <span class="ident">offset</span> <span class="op">=</span><span class="op">=</span> <span class="ident">BLOCK_CAP</span> {
+            <span class="kw">if</span> <span class="ident">offset</span> <span class="op">==</span> <span class="ident">BLOCK_CAP</span> {
                 <span class="ident">backoff</span>.<span class="ident">snooze</span>();
             } <span class="kw">else</span> {
                 <span class="kw">break</span>;
@@ -3513,12 +3513,12 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_head</span> <span class="op">=</span> <span class="ident">head</span>;
         <span class="kw">let</span> <span class="ident">advance</span>;
 
-        <span class="kw">if</span> <span class="ident">new_head</span> <span class="op">&amp;</span> <span class="ident">HAS_NEXT</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">new_head</span> <span class="op">&amp;</span> <span class="ident">HAS_NEXT</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="ident">atomic::fence</span>(<span class="ident">Ordering::SeqCst</span>);
             <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tail</span>.<span class="ident">index</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
 
             <span class="comment">// If the tail equals the head, that means the queue is empty.</span>
-            <span class="kw">if</span> <span class="ident">head</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">SHIFT</span> <span class="op">=</span><span class="op">=</span> <span class="ident">tail</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">SHIFT</span> {
+            <span class="kw">if</span> <span class="ident">head</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">SHIFT</span> <span class="op">==</span> <span class="ident">tail</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">SHIFT</span> {
                 <span class="kw">return</span> <span class="ident">Steal::Empty</span>;
             }
 
@@ -3561,7 +3561,7 @@
 
         <span class="kw">unsafe</span> {
             <span class="comment">// If we&#39;ve reached the end of the block, move to the next one.</span>
-            <span class="kw">if</span> <span class="ident">new_offset</span> <span class="op">=</span><span class="op">=</span> <span class="ident">BLOCK_CAP</span> {
+            <span class="kw">if</span> <span class="ident">new_offset</span> <span class="op">==</span> <span class="ident">BLOCK_CAP</span> {
                 <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">block</span>).<span class="ident">wait_next</span>();
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">next_index</span> <span class="op">=</span> (<span class="ident">new_head</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident">HAS_NEXT</span>).<span class="ident">wrapping_add</span>(<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">SHIFT</span>);
                 <span class="kw">if</span> <span class="op">!</span>(<span class="kw-2">*</span><span class="ident">next</span>).<span class="ident">next</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>).<span class="ident">is_null</span>() {
@@ -3574,7 +3574,7 @@
 
             <span class="comment">// Copy values from the injector into the destination queue.</span>
             <span class="kw">match</span> <span class="ident">dest</span>.<span class="ident">flavor</span> {
-                <span class="ident">Flavor::Fifo</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Flavor::Fifo</span> =&gt; {
                     <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">batch_size</span> {
                         <span class="comment">// Read the task.</span>
                         <span class="kw">let</span> <span class="ident">slot</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">block</span>).<span class="ident">slots</span>.<span class="ident">get_unchecked</span>(<span class="ident">offset</span> <span class="op">+</span> <span class="ident">i</span>);
@@ -3586,7 +3586,7 @@
                     }
                 }
 
-                <span class="ident">Flavor::Lifo</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Flavor::Lifo</span> =&gt; {
                     <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">batch_size</span> {
                         <span class="comment">// Read the task.</span>
                         <span class="kw">let</span> <span class="ident">slot</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">block</span>).<span class="ident">slots</span>.<span class="ident">get_unchecked</span>(<span class="ident">offset</span> <span class="op">+</span> <span class="ident">i</span>);
@@ -3611,7 +3611,7 @@
 
             <span class="comment">// Destroy the block if we&#39;ve reached the end, or if another thread wanted to destroy</span>
             <span class="comment">// but couldn&#39;t because we were busy reading from the slot.</span>
-            <span class="kw">if</span> <span class="ident">new_offset</span> <span class="op">=</span><span class="op">=</span> <span class="ident">BLOCK_CAP</span> {
+            <span class="kw">if</span> <span class="ident">new_offset</span> <span class="op">==</span> <span class="ident">BLOCK_CAP</span> {
                 <span class="ident">Block::destroy</span>(<span class="ident">block</span>, <span class="ident">offset</span>);
             } <span class="kw">else</span> {
                 <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="ident">offset</span>..<span class="ident">new_offset</span> {
@@ -3648,7 +3648,7 @@
     <span class="doccomment">/// assert_eq!(q.steal_batch_and_pop(&amp;w), Steal::Success(1));</span>
     <span class="doccomment">/// assert_eq!(w.pop(), Some(2));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">steal_batch_and_pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="ident">Worker</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Steal</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">steal_batch_and_pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="ident">Worker</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">Steal</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">head</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">block</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">offset</span>;
@@ -3662,7 +3662,7 @@
             <span class="ident">offset</span> <span class="op">=</span> (<span class="ident">head</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">SHIFT</span>) <span class="op">%</span> <span class="ident">LAP</span>;
 
             <span class="comment">// If we reached the end of the block, wait until the next one is installed.</span>
-            <span class="kw">if</span> <span class="ident">offset</span> <span class="op">=</span><span class="op">=</span> <span class="ident">BLOCK_CAP</span> {
+            <span class="kw">if</span> <span class="ident">offset</span> <span class="op">==</span> <span class="ident">BLOCK_CAP</span> {
                 <span class="ident">backoff</span>.<span class="ident">snooze</span>();
             } <span class="kw">else</span> {
                 <span class="kw">break</span>;
@@ -3672,12 +3672,12 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_head</span> <span class="op">=</span> <span class="ident">head</span>;
         <span class="kw">let</span> <span class="ident">advance</span>;
 
-        <span class="kw">if</span> <span class="ident">new_head</span> <span class="op">&amp;</span> <span class="ident">HAS_NEXT</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">new_head</span> <span class="op">&amp;</span> <span class="ident">HAS_NEXT</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="ident">atomic::fence</span>(<span class="ident">Ordering::SeqCst</span>);
             <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tail</span>.<span class="ident">index</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
 
             <span class="comment">// If the tail equals the head, that means the queue is empty.</span>
-            <span class="kw">if</span> <span class="ident">head</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">SHIFT</span> <span class="op">=</span><span class="op">=</span> <span class="ident">tail</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">SHIFT</span> {
+            <span class="kw">if</span> <span class="ident">head</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">SHIFT</span> <span class="op">==</span> <span class="ident">tail</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">SHIFT</span> {
                 <span class="kw">return</span> <span class="ident">Steal::Empty</span>;
             }
 
@@ -3719,7 +3719,7 @@
 
         <span class="kw">unsafe</span> {
             <span class="comment">// If we&#39;ve reached the end of the block, move to the next one.</span>
-            <span class="kw">if</span> <span class="ident">new_offset</span> <span class="op">=</span><span class="op">=</span> <span class="ident">BLOCK_CAP</span> {
+            <span class="kw">if</span> <span class="ident">new_offset</span> <span class="op">==</span> <span class="ident">BLOCK_CAP</span> {
                 <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">block</span>).<span class="ident">wait_next</span>();
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">next_index</span> <span class="op">=</span> (<span class="ident">new_head</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident">HAS_NEXT</span>).<span class="ident">wrapping_add</span>(<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">SHIFT</span>);
                 <span class="kw">if</span> <span class="op">!</span>(<span class="kw-2">*</span><span class="ident">next</span>).<span class="ident">next</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>).<span class="ident">is_null</span>() {
@@ -3736,7 +3736,7 @@
             <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <span class="ident">slot</span>.<span class="ident">task</span>.<span class="ident">get</span>().<span class="ident">read</span>().<span class="ident">assume_init</span>();
 
             <span class="kw">match</span> <span class="ident">dest</span>.<span class="ident">flavor</span> {
-                <span class="ident">Flavor::Fifo</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Flavor::Fifo</span> =&gt; {
                     <span class="comment">// Copy values from the injector into the destination queue.</span>
                     <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">batch_size</span> {
                         <span class="comment">// Read the task.</span>
@@ -3749,7 +3749,7 @@
                     }
                 }
 
-                <span class="ident">Flavor::Lifo</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Flavor::Lifo</span> =&gt; {
                     <span class="comment">// Copy values from the injector into the destination queue.</span>
                     <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">batch_size</span> {
                         <span class="comment">// Read the task.</span>
@@ -3775,7 +3775,7 @@
 
             <span class="comment">// Destroy the block if we&#39;ve reached the end, or if another thread wanted to destroy</span>
             <span class="comment">// but couldn&#39;t because we were busy reading from the slot.</span>
-            <span class="kw">if</span> <span class="ident">new_offset</span> <span class="op">=</span><span class="op">=</span> <span class="ident">BLOCK_CAP</span> {
+            <span class="kw">if</span> <span class="ident">new_offset</span> <span class="op">==</span> <span class="ident">BLOCK_CAP</span> {
                 <span class="ident">Block::destroy</span>(<span class="ident">block</span>, <span class="ident">offset</span>);
             } <span class="kw">else</span> {
                 <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="ident">offset</span>..<span class="ident">new_offset</span> {
@@ -3805,10 +3805,10 @@
     <span class="doccomment">/// q.push(1);</span>
     <span class="doccomment">/// assert!(!q.is_empty());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="ident">head</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">head</span>.<span class="ident">index</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>);
         <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tail</span>.<span class="ident">index</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>);
-        <span class="ident">head</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">SHIFT</span> <span class="op">=</span><span class="op">=</span> <span class="ident">tail</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">SHIFT</span>
+        <span class="ident">head</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">SHIFT</span> <span class="op">==</span> <span class="ident">tail</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">SHIFT</span>
     }
 
     <span class="doccomment">/// Returns the number of tasks in the queue.</span>
@@ -3826,23 +3826,23 @@
     <span class="doccomment">/// q.push(1);</span>
     <span class="doccomment">/// assert_eq!(q.len(), 2);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="kw">loop</span> {
             <span class="comment">// Load the tail index, then load the head index.</span>
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tail</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tail</span>.<span class="ident">index</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>);
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">head</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">head</span>.<span class="ident">index</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>);
 
             <span class="comment">// If the tail index didn&#39;t change, we&#39;ve got consistent indices to work with.</span>
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">tail</span>.<span class="ident">index</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">tail</span> {
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">tail</span>.<span class="ident">index</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>) <span class="op">==</span> <span class="ident">tail</span> {
                 <span class="comment">// Erase the lower bits.</span>
                 <span class="ident">tail</span> <span class="op">&amp;=</span> <span class="op">!</span>((<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">SHIFT</span>) <span class="op">-</span> <span class="number">1</span>);
                 <span class="ident">head</span> <span class="op">&amp;=</span> <span class="op">!</span>((<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">SHIFT</span>) <span class="op">-</span> <span class="number">1</span>);
 
                 <span class="comment">// Fix up indices if they fall onto block ends.</span>
-                <span class="kw">if</span> (<span class="ident">tail</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">SHIFT</span>) <span class="op">&amp;</span> (<span class="ident">LAP</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">LAP</span> <span class="op">-</span> <span class="number">1</span> {
+                <span class="kw">if</span> (<span class="ident">tail</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">SHIFT</span>) <span class="op">&amp;</span> (<span class="ident">LAP</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">==</span> <span class="ident">LAP</span> <span class="op">-</span> <span class="number">1</span> {
                     <span class="ident">tail</span> <span class="op">=</span> <span class="ident">tail</span>.<span class="ident">wrapping_add</span>(<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">SHIFT</span>);
                 }
-                <span class="kw">if</span> (<span class="ident">head</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">SHIFT</span>) <span class="op">&amp;</span> (<span class="ident">LAP</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">LAP</span> <span class="op">-</span> <span class="number">1</span> {
+                <span class="kw">if</span> (<span class="ident">head</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">SHIFT</span>) <span class="op">&amp;</span> (<span class="ident">LAP</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">==</span> <span class="ident">LAP</span> <span class="op">-</span> <span class="number">1</span> {
                     <span class="ident">head</span> <span class="op">=</span> <span class="ident">head</span>.<span class="ident">wrapping_add</span>(<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">SHIFT</span>);
                 }
 
@@ -3899,7 +3899,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Injector</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">pad</span>(<span class="string">&quot;Worker { .. }&quot;</span>)
     }
 }
@@ -3948,10 +3948,10 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(Empty::&lt;i32&gt;.is_empty());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Steal::Empty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident">Steal::Empty</span> =&gt; <span class="bool-val">true</span>,
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
 
@@ -3967,10 +3967,10 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(Success(7).is_success());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_success</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_success</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Steal::Success</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident">Steal::Success</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
 
@@ -3986,10 +3986,10 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(Retry::&lt;i32&gt;.is_retry());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_retry</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_retry</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Steal::Retry</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident">Steal::Retry</span> =&gt; <span class="bool-val">true</span>,
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
 
@@ -4005,10 +4005,10 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(Success(7).success(), Some(7));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">success</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">success</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Steal::Success</span>(<span class="ident">res</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">res</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">Steal::Success</span>(<span class="ident">res</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">res</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 
@@ -4033,14 +4033,14 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(Empty.or_else(|| Empty), Empty::&lt;i32&gt;);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">or_else</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Steal</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">or_else</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">Steal</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Steal</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+        <span class="ident">F</span>: <span class="ident">FnOnce</span>() -&gt; <span class="ident">Steal</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Steal::Empty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>(),
-            <span class="ident">Steal::Success</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>,
-            <span class="ident">Steal::Retry</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Steal::Empty</span> =&gt; <span class="ident">f</span>(),
+            <span class="ident">Steal::Success</span>(<span class="kw">_</span>) =&gt; <span class="self">self</span>,
+            <span class="ident">Steal::Retry</span> =&gt; {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Steal::Success</span>(<span class="ident">res</span>) <span class="op">=</span> <span class="ident">f</span>() {
                     <span class="ident">Steal::Success</span>(<span class="ident">res</span>)
                 } <span class="kw">else</span> {
@@ -4052,11 +4052,11 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Steal</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Steal::Empty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">pad</span>(<span class="string">&quot;Empty&quot;</span>),
-            <span class="ident">Steal::Success</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">pad</span>(<span class="string">&quot;Success(..)&quot;</span>),
-            <span class="ident">Steal::Retry</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">pad</span>(<span class="string">&quot;Retry&quot;</span>),
+            <span class="ident">Steal::Empty</span> =&gt; <span class="ident">f</span>.<span class="ident">pad</span>(<span class="string">&quot;Empty&quot;</span>),
+            <span class="ident">Steal::Success</span>(<span class="kw">_</span>) =&gt; <span class="ident">f</span>.<span class="ident">pad</span>(<span class="string">&quot;Success(..)&quot;</span>),
+            <span class="ident">Steal::Retry</span> =&gt; <span class="ident">f</span>.<span class="ident">pad</span>(<span class="string">&quot;Retry&quot;</span>),
         }
     }
 }
@@ -4066,16 +4066,16 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// If no `Success` was found, but there was at least one `Retry`, then returns `Retry`.</span>
     <span class="doccomment">/// Otherwise, `Empty` is returned.</span>
-    <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Steal</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">I</span>) -&gt; <span class="ident">Steal</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Steal</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">retry</span> <span class="op">=</span> <span class="bool-val">false</span>;
         <span class="kw">for</span> <span class="ident">s</span> <span class="kw">in</span> <span class="ident">iter</span> {
             <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">s</span> {
-                <span class="ident">Steal::Empty</span> <span class="op">=</span><span class="op">&gt;</span> {}
-                <span class="ident">Steal::Success</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">s</span>,
-                <span class="ident">Steal::Retry</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">retry</span> <span class="op">=</span> <span class="bool-val">true</span>,
+                <span class="ident">Steal::Empty</span> =&gt; {}
+                <span class="ident">Steal::Success</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="ident">s</span>,
+                <span class="ident">Steal::Retry</span> =&gt; <span class="ident">retry</span> <span class="op">=</span> <span class="bool-val">true</span>,
             }
         }
 

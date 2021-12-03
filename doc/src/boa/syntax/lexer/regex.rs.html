@@ -282,7 +282,7 @@
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">RegexLiteral</span>;
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">Tokenizer</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">RegexLiteral</span> {
-    <span class="kw">fn</span> <span class="ident">lex</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">start_pos</span>: <span class="ident">Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Token</span>, <span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">lex</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">start_pos</span>: <span class="ident">Position</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Token</span>, <span class="ident">Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">R</span>: <span class="ident">Read</span>,
     {
@@ -293,44 +293,44 @@
         <span class="comment">// Lex RegularExpressionBody.</span>
         <span class="kw">loop</span> {
             <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span> {
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">None</span> =&gt; {
                     <span class="comment">// Abrupt end.</span>
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::syntax</span>(
                         <span class="string">&quot;abrupt end on regular expression&quot;</span>,
                         <span class="ident">cursor</span>.<span class="ident">pos</span>(),
                     ));
                 }
-                <span class="prelude-val">Some</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">b</span>) =&gt; {
                     <span class="kw">match</span> <span class="ident">b</span> {
-                        <span class="string">b&#39;/&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>, <span class="comment">// RegularExpressionBody finished.</span>
-                        <span class="string">b&#39;\n&#39;</span> <span class="op">|</span> <span class="string">b&#39;\r&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="string">b&#39;/&#39;</span> =&gt; <span class="kw">break</span>, <span class="comment">// RegularExpressionBody finished.</span>
+                        <span class="string">b&#39;\n&#39;</span> <span class="op">|</span> <span class="string">b&#39;\r&#39;</span> =&gt; {
                             <span class="comment">// Not allowed in Regex literal.</span>
                             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::syntax</span>(
                                 <span class="string">&quot;new lines are not allowed in regular expressions&quot;</span>,
                                 <span class="ident">cursor</span>.<span class="ident">pos</span>(),
                             ));
                         }
-                        <span class="number">0xE2</span> <span class="kw">if</span> (<span class="ident">cursor</span>.<span class="ident">peek_n</span>(<span class="number">2</span>)<span class="question-mark">?</span> <span class="op">=</span><span class="op">=</span> <span class="number">0xA8_80</span> <span class="op">|</span><span class="op">|</span> <span class="ident">cursor</span>.<span class="ident">peek_n</span>(<span class="number">2</span>)<span class="question-mark">?</span> <span class="op">=</span><span class="op">=</span> <span class="number">0xA9_80</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="number">0xE2</span> <span class="kw">if</span> (<span class="ident">cursor</span>.<span class="ident">peek_n</span>(<span class="number">2</span>)<span class="question-mark">?</span> <span class="op">==</span> <span class="number">0xA8_80</span> <span class="op">|</span><span class="op">|</span> <span class="ident">cursor</span>.<span class="ident">peek_n</span>(<span class="number">2</span>)<span class="question-mark">?</span> <span class="op">==</span> <span class="number">0xA9_80</span>) =&gt; {
                             <span class="comment">// &#39;\u{2028}&#39; (e2 80 a8) and &#39;\u{2029}&#39; (e2 80 a9) are not allowed</span>
                             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::syntax</span>(
                                 <span class="string">&quot;new lines are not allowed in regular expressions&quot;</span>,
                                 <span class="ident">cursor</span>.<span class="ident">pos</span>(),
                             ));
                         }
-                        <span class="string">b&#39;\\&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="string">b&#39;\\&#39;</span> =&gt; {
                             <span class="comment">// Escape sequence</span>
                             <span class="ident">body</span>.<span class="ident">push</span>(<span class="string">b&#39;\\&#39;</span>);
                             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">sc</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span> {
                                 <span class="kw">match</span> <span class="ident">sc</span> {
-                                    <span class="string">b&#39;\n&#39;</span> <span class="op">|</span> <span class="string">b&#39;\r&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                                    <span class="string">b&#39;\n&#39;</span> <span class="op">|</span> <span class="string">b&#39;\r&#39;</span> =&gt; {
                                         <span class="comment">// Not allowed in Regex literal.</span>
                                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::syntax</span>(
                                             <span class="string">&quot;new lines are not allowed in regular expressions&quot;</span>,
                                             <span class="ident">cursor</span>.<span class="ident">pos</span>(),
                                         ));
                                     }
-                                    <span class="number">0xE2</span> <span class="kw">if</span> (<span class="ident">cursor</span>.<span class="ident">peek_n</span>(<span class="number">2</span>)<span class="question-mark">?</span> <span class="op">=</span><span class="op">=</span> <span class="number">0xA8_80</span>
-                                        <span class="op">|</span><span class="op">|</span> <span class="ident">cursor</span>.<span class="ident">peek_n</span>(<span class="number">2</span>)<span class="question-mark">?</span> <span class="op">=</span><span class="op">=</span> <span class="number">0xA9_80</span>) <span class="op">=</span><span class="op">&gt;</span>
+                                    <span class="number">0xE2</span> <span class="kw">if</span> (<span class="ident">cursor</span>.<span class="ident">peek_n</span>(<span class="number">2</span>)<span class="question-mark">?</span> <span class="op">==</span> <span class="number">0xA8_80</span>
+                                        <span class="op">|</span><span class="op">|</span> <span class="ident">cursor</span>.<span class="ident">peek_n</span>(<span class="number">2</span>)<span class="question-mark">?</span> <span class="op">==</span> <span class="number">0xA9_80</span>) =&gt;
                                     {
                                         <span class="comment">// &#39;\u{2028}&#39; (e2 80 a8) and &#39;\u{2029}&#39; (e2 80 a9) are not allowed</span>
                                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::syntax</span>(
@@ -338,7 +338,7 @@
                                             <span class="ident">cursor</span>.<span class="ident">pos</span>(),
                                         ));
                                     }
-                                    <span class="ident">b</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">body</span>.<span class="ident">push</span>(<span class="ident">b</span>),
+                                    <span class="ident">b</span> =&gt; <span class="ident">body</span>.<span class="ident">push</span>(<span class="ident">b</span>),
                                 }
                             } <span class="kw">else</span> {
                                 <span class="comment">// Abrupt end of regex.</span>
@@ -348,7 +348,7 @@
                                 ));
                             }
                         }
-                        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">body</span>.<span class="ident">push</span>(<span class="ident">b</span>),
+                        <span class="kw">_</span> =&gt; <span class="ident">body</span>.<span class="ident">push</span>(<span class="ident">b</span>),
                     }
                 }
             }
@@ -389,17 +389,17 @@
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse_regex_flags</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">start</span>: <span class="ident">Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RegExpFlags</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse_regex_flags</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">start</span>: <span class="ident">Position</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RegExpFlags</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">RegExpFlags::default</span>();
     <span class="kw">for</span> <span class="ident">c</span> <span class="kw">in</span> <span class="ident">s</span>.<span class="ident">bytes</span>() {
         <span class="kw">let</span> <span class="ident">new_flag</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">c</span> {
-            <span class="string">b&#39;g&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">RegExpFlags::GLOBAL</span>,
-            <span class="string">b&#39;i&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">RegExpFlags::IGNORE_CASE</span>,
-            <span class="string">b&#39;m&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">RegExpFlags::MULTILINE</span>,
-            <span class="string">b&#39;s&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">RegExpFlags::DOT_ALL</span>,
-            <span class="string">b&#39;u&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">RegExpFlags::UNICODE</span>,
-            <span class="string">b&#39;y&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">RegExpFlags::STICKY</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="string">b&#39;g&#39;</span> =&gt; <span class="ident">RegExpFlags::GLOBAL</span>,
+            <span class="string">b&#39;i&#39;</span> =&gt; <span class="ident">RegExpFlags::IGNORE_CASE</span>,
+            <span class="string">b&#39;m&#39;</span> =&gt; <span class="ident">RegExpFlags::MULTILINE</span>,
+            <span class="string">b&#39;s&#39;</span> =&gt; <span class="ident">RegExpFlags::DOT_ALL</span>,
+            <span class="string">b&#39;u&#39;</span> =&gt; <span class="ident">RegExpFlags::UNICODE</span>,
+            <span class="string">b&#39;y&#39;</span> =&gt; <span class="ident">RegExpFlags::STICKY</span>,
+            <span class="kw">_</span> =&gt; {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::syntax</span>(
                     <span class="macro">format!</span>(<span class="string">&quot;invalid regular expression flag {}&quot;</span>, <span class="ident">char::from</span>(<span class="ident">c</span>)),
                     <span class="ident">start</span>,
@@ -420,7 +420,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">RegExpFlags</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">use</span> <span class="ident">fmt::Write</span>;
 
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">contains</span>(<span class="ident"><span class="self">Self</span>::GLOBAL</span>) {
@@ -447,7 +447,7 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>)]</span>
 <span class="kw">impl</span> <span class="ident">Serialize</span> <span class="kw">for</span> <span class="ident">RegExpFlags</span> {
-    <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S::Ok</span>, <span class="ident">S::Error</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S::Ok</span>, <span class="ident">S::Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">S</span>: <span class="ident">Serializer</span>,
     {
@@ -457,7 +457,7 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>)]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">RegExpFlags</span> {
-    <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">D::Error</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">D::Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">D</span>: <span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
@@ -470,18 +470,18 @@
         <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">RegExpFlagsVisitor</span> {
             <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> <span class="ident">RegExpFlags</span>;
 
-            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
                 <span class="ident">formatter</span>.<span class="ident">write_str</span>(<span class="string">&quot;a string representing JavaScript regular expression flags&quot;</span>)
             }
 
-            <span class="kw">fn</span> <span class="ident">visit_str</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Value</span>, <span class="ident">E</span><span class="op">&gt;</span>
+            <span class="kw">fn</span> <span class="ident">visit_str</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Value</span>, <span class="ident">E</span><span class="op">&gt;</span>
             <span class="kw">where</span>
                 <span class="ident">E</span>: <span class="ident">de::Error</span>,
             {
                 <span class="ident">parse_regex_flags</span>(<span class="ident">value</span>, <span class="ident">Position::new</span>(<span class="number">0</span>, <span class="number">0</span>)).<span class="ident">map_err</span>(<span class="ident">E::custom</span>)
             }
 
-            <span class="kw">fn</span> <span class="ident">visit_string</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Value</span>, <span class="ident">E</span><span class="op">&gt;</span>
+            <span class="kw">fn</span> <span class="ident">visit_string</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="ident">String</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Value</span>, <span class="ident">E</span><span class="op">&gt;</span>
             <span class="kw">where</span>
                 <span class="ident">E</span>: <span class="ident">de::Error</span>,
             {

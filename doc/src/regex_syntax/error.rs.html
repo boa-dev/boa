@@ -352,13 +352,13 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ast::Error</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <span class="ident">ast::Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <span class="ident">ast::Error</span>) -&gt; <span class="ident">Error</span> {
         <span class="ident">Error::Parse</span>(<span class="ident">err</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">hir::Error</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <span class="ident">hir::Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <span class="ident">hir::Error</span>) -&gt; <span class="ident">Error</span> {
         <span class="ident">Error::Translate</span>(<span class="ident">err</span>)
     }
 }
@@ -366,21 +366,21 @@
 <span class="kw">impl</span> <span class="ident">error::Error</span> <span class="kw">for</span> <span class="ident">Error</span> {
     <span class="comment">// TODO: Remove this method entirely on the next breaking semver release.</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Error::Parse</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">description</span>(),
-            <span class="ident">Error::Translate</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">description</span>(),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+            <span class="ident">Error::Parse</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">description</span>(),
+            <span class="ident">Error::Translate</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">description</span>(),
+            <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Error::Parse</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
-            <span class="ident">Error::Translate</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+            <span class="ident">Error::Parse</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
+            <span class="ident">Error::Translate</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
+            <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
         }
     }
 }
@@ -404,7 +404,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;e</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;e</span> <span class="ident">ast::Error</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;e</span>, <span class="ident">ast::ErrorKind</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;e</span> <span class="ident">ast::Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;e</span> <span class="ident">ast::Error</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">Formatter</span> {
             <span class="ident">pattern</span>: <span class="ident">err</span>.<span class="ident">pattern</span>(),
             <span class="ident">err</span>: <span class="ident">err</span>.<span class="ident">kind</span>(),
@@ -415,7 +415,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;e</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;e</span> <span class="ident">hir::Error</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;e</span>, <span class="ident">hir::ErrorKind</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;e</span> <span class="ident">hir::Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;e</span> <span class="ident">hir::Error</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">Formatter</span> {
             <span class="ident">pattern</span>: <span class="ident">err</span>.<span class="ident">pattern</span>(),
             <span class="ident">err</span>: <span class="ident">err</span>.<span class="ident">kind</span>(),
@@ -426,7 +426,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;e</span>, <span class="ident">E</span>: <span class="ident">fmt::Display</span><span class="op">&gt;</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;e</span>, <span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">let</span> <span class="ident">spans</span> <span class="op">=</span> <span class="ident">Spans::from_formatter</span>(<span class="self">self</span>);
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">pattern</span>.<span class="ident">contains</span>(<span class="string">&#39;\n&#39;</span>) {
             <span class="kw">let</span> <span class="ident">divider</span> <span class="op">=</span> <span class="ident">repeat_char</span>(<span class="string">&#39;~&#39;</span>, <span class="number">79</span>);
@@ -494,7 +494,7 @@
     <span class="doccomment">/// Build a sequence of spans from a formatter.</span>
     <span class="kw">fn</span> <span class="ident">from_formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;e</span>, <span class="ident">E</span>: <span class="ident">fmt::Display</span><span class="op">&gt;</span>(
         <span class="ident">fmter</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;e</span>, <span class="ident">E</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Spans</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">Spans</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">line_count</span> <span class="op">=</span> <span class="ident">fmter</span>.<span class="ident">pattern</span>.<span class="ident">lines</span>().<span class="ident">count</span>();
         <span class="comment">// If the pattern ends with a `\n` literal, then our line count is</span>
         <span class="comment">// off by one, since a span can occur immediately after the last `\n`,</span>
@@ -533,7 +533,7 @@
 
     <span class="doccomment">/// Notate the pattern string with carents (`^`) pointing at each span</span>
     <span class="doccomment">/// location. This only applies to spans that occur within a single line.</span>
-    <span class="kw">fn</span> <span class="ident">notate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+    <span class="kw">fn</span> <span class="ident">notate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">String</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">notated</span> <span class="op">=</span> <span class="ident">String::new</span>();
         <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">line</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">pattern</span>.<span class="ident">lines</span>().<span class="ident">enumerate</span>() {
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">line_number_width</span> <span class="op">&gt;</span> <span class="number">0</span> {
@@ -556,7 +556,7 @@
     <span class="doccomment">/// spans for the given line, then `None` is returned. Otherwise, an</span>
     <span class="doccomment">/// appropriately space padded string with correctly positioned `^` is</span>
     <span class="doccomment">/// returned, accounting for line numbers.</span>
-    <span class="kw">fn</span> <span class="ident">notate_line</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">i</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">notate_line</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">i</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">spans</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">by_line</span>[<span class="ident">i</span>];
         <span class="kw">if</span> <span class="ident">spans</span>.<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
@@ -582,7 +582,7 @@
 
     <span class="doccomment">/// Left pad the given line number with spaces such that it is aligned with</span>
     <span class="doccomment">/// other line numbers.</span>
-    <span class="kw">fn</span> <span class="ident">left_pad_line_number</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+    <span class="kw">fn</span> <span class="ident">left_pad_line_number</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
         <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">n</span>.<span class="ident">to_string</span>();
         <span class="kw">let</span> <span class="ident">pad</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">line_number_width</span>.<span class="ident">checked_sub</span>(<span class="ident">n</span>.<span class="ident">len</span>()).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">repeat_char</span>(<span class="string">&#39; &#39;</span>, <span class="ident">pad</span>);
@@ -595,8 +595,8 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// If the pattern is only one line, then this returns a fixed padding</span>
     <span class="doccomment">/// for visual indentation.</span>
-    <span class="kw">fn</span> <span class="ident">line_number_padding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">line_number_width</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+    <span class="kw">fn</span> <span class="ident">line_number_padding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">line_number_width</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="number">4</span>
         } <span class="kw">else</span> {
             <span class="number">2</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">line_number_width</span>
@@ -604,7 +604,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">repeat_char</span>(<span class="ident">c</span>: <span class="ident">char</span>, <span class="ident">count</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+<span class="kw">fn</span> <span class="ident">repeat_char</span>(<span class="ident">c</span>: <span class="ident">char</span>, <span class="ident">count</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
     <span class="ident">::std::iter::repeat</span>(<span class="ident">c</span>).<span class="ident">take</span>(<span class="ident">count</span>).<span class="ident">collect</span>()
 }
 
@@ -612,13 +612,13 @@
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ast::parse::Parser</span>;
 
-    <span class="kw">fn</span> <span class="ident">assert_panic_message</span>(<span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">expected_msg</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> () {
+    <span class="kw">fn</span> <span class="ident">assert_panic_message</span>(<span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">expected_msg</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; () {
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Parser::new</span>().<span class="ident">parse</span>(<span class="ident">pattern</span>);
         <span class="kw">match</span> <span class="ident">result</span> {
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
                 <span class="macro">panic!</span>(<span class="string">&quot;regex should not have parsed&quot;</span>);
             }
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; {
                 <span class="macro">assert_eq!</span>(<span class="ident">err</span>.<span class="ident">to_string</span>(), <span class="ident">expected_msg</span>.<span class="ident">trim</span>());
             }
         }

@@ -174,12 +174,12 @@
             <span class="ident">dgst</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>,
             <span class="ident">subject</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl281</span>))]</span> <span class="ident">X509</span>,
             <span class="ident">issuer</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl281</span>))]</span> <span class="ident">X509</span>,
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OCSP_CERTID</span>;
+        ) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OCSP_CERTID</span>;
     }
 }
 
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_request_add0_id</span>(<span class="ident">r</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OCSP_REQUEST</span>, <span class="ident">id</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OCSP_CERTID</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OCSP_ONEREQ</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_request_add0_id</span>(<span class="ident">r</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OCSP_REQUEST</span>, <span class="ident">id</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OCSP_CERTID</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OCSP_ONEREQ</span>;
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_resp_find_status</span>(
         <span class="ident">bs</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OCSP_BASICRESP</span>,
@@ -189,28 +189,28 @@
         <span class="ident">revtime</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ASN1_GENERALIZEDTIME</span>,
         <span class="ident">thisupd</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ASN1_GENERALIZEDTIME</span>,
         <span class="ident">nextupd</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ASN1_GENERALIZEDTIME</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_check_validity</span>(
         <span class="ident">thisupd</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ASN1_GENERALIZEDTIME</span>,
         <span class="ident">nextupd</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ASN1_GENERALIZEDTIME</span>,
         <span class="ident">sec</span>: <span class="ident">c_long</span>,
         <span class="ident">maxsec</span>: <span class="ident">c_long</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_response_status</span>(<span class="ident">resp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OCSP_RESPONSE</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_response_get1_basic</span>(<span class="ident">resp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OCSP_RESPONSE</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OCSP_BASICRESP</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_response_status</span>(<span class="ident">resp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OCSP_RESPONSE</span>) -&gt; <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_response_get1_basic</span>(<span class="ident">resp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OCSP_RESPONSE</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OCSP_BASICRESP</span>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_response_create</span>(<span class="ident">status</span>: <span class="ident">c_int</span>, <span class="ident">bs</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OCSP_BASICRESP</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OCSP_RESPONSE</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_response_create</span>(<span class="ident">status</span>: <span class="ident">c_int</span>, <span class="ident">bs</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OCSP_BASICRESP</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OCSP_RESPONSE</span>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_BASICRESP_new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OCSP_BASICRESP</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_BASICRESP_new</span>() -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OCSP_BASICRESP</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_BASICRESP_free</span>(<span class="ident">r</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OCSP_BASICRESP</span>);
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_RESPONSE_new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OCSP_RESPONSE</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_RESPONSE_new</span>() -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OCSP_RESPONSE</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_RESPONSE_free</span>(<span class="ident">r</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OCSP_RESPONSE</span>);
 }
 
 <span class="macro">const_ptr_api!</span> {
     <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">i2d_OCSP_RESPONSE</span>(<span class="ident">a</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">OCSP_RESPONSE</span>, <span class="ident">pp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">i2d_OCSP_RESPONSE</span>(<span class="ident">a</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">OCSP_RESPONSE</span>, <span class="ident">pp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>) -&gt; <span class="ident">c_int</span>;
     }
 }
 
@@ -219,16 +219,16 @@
         <span class="ident">a</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OCSP_RESPONSE</span>,
         <span class="ident">pp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>,
         <span class="ident">length</span>: <span class="ident">c_long</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OCSP_RESPONSE</span>;
+    ) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OCSP_RESPONSE</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_ONEREQ_free</span>(<span class="ident">r</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OCSP_ONEREQ</span>);
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_CERTID_free</span>(<span class="ident">id</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OCSP_CERTID</span>);
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_REQUEST_new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OCSP_REQUEST</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_REQUEST_new</span>() -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OCSP_REQUEST</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_REQUEST_free</span>(<span class="ident">r</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OCSP_REQUEST</span>);
 }
 
 <span class="macro">const_ptr_api!</span> {
     <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">i2d_OCSP_REQUEST</span>(<span class="ident">a</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">OCSP_REQUEST</span>, <span class="ident">pp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">i2d_OCSP_REQUEST</span>(<span class="ident">a</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">OCSP_REQUEST</span>, <span class="ident">pp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>) -&gt; <span class="ident">c_int</span>;
     }
 }
 
@@ -237,14 +237,14 @@
         <span class="ident">a</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OCSP_REQUEST</span>,
         <span class="ident">pp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>,
         <span class="ident">length</span>: <span class="ident">c_long</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OCSP_REQUEST</span>;
+    ) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OCSP_REQUEST</span>;
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OCSP_basic_verify</span>(
         <span class="ident">bs</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OCSP_BASICRESP</span>,
         <span class="ident">certs</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">stack_st_X509</span>,
         <span class="ident">st</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_STORE</span>,
         <span class="ident">flags</span>: <span class="ident">c_ulong</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl_sys" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>

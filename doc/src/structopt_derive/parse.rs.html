@@ -317,7 +317,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">StructOptAttr</span> {
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">syn::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident"><span class="self">self</span>::StructOptAttr</span>::<span class="kw-2">*</span>;
 
         <span class="kw">let</span> <span class="ident">name</span>: <span class="ident">Ident</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
@@ -343,26 +343,26 @@
                 };
 
                 <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">name_str</span> {
-                    <span class="string">&quot;rename_all&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">RenameAll</span>(<span class="ident">name</span>, <span class="ident">lit</span>)),
-                    <span class="string">&quot;rename_all_env&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">RenameAllEnv</span>(<span class="ident">name</span>, <span class="ident">lit</span>)),
-                    <span class="string">&quot;default_value&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">DefaultValue</span>(<span class="ident">name</span>, <span class="prelude-val">Some</span>(<span class="ident">lit</span>))),
+                    <span class="string">&quot;rename_all&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">RenameAll</span>(<span class="ident">name</span>, <span class="ident">lit</span>)),
+                    <span class="string">&quot;rename_all_env&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">RenameAllEnv</span>(<span class="ident">name</span>, <span class="ident">lit</span>)),
+                    <span class="string">&quot;default_value&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">DefaultValue</span>(<span class="ident">name</span>, <span class="prelude-val">Some</span>(<span class="ident">lit</span>))),
 
-                    <span class="string">&quot;version&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="string">&quot;version&quot;</span> =&gt; {
                         <span class="ident">check_empty_lit</span>(<span class="string">&quot;version&quot;</span>);
                         <span class="prelude-val">Ok</span>(<span class="ident">Version</span>(<span class="ident">name</span>, <span class="ident">lit</span>))
                     }
 
-                    <span class="string">&quot;author&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="string">&quot;author&quot;</span> =&gt; {
                         <span class="ident">check_empty_lit</span>(<span class="string">&quot;author&quot;</span>);
                         <span class="prelude-val">Ok</span>(<span class="ident">Author</span>(<span class="ident">name</span>, <span class="prelude-val">Some</span>(<span class="ident">lit</span>)))
                     }
 
-                    <span class="string">&quot;about&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="string">&quot;about&quot;</span> =&gt; {
                         <span class="ident">check_empty_lit</span>(<span class="string">&quot;about&quot;</span>);
                         <span class="prelude-val">Ok</span>(<span class="ident">About</span>(<span class="ident">name</span>, <span class="prelude-val">Some</span>(<span class="ident">lit</span>)))
                     }
 
-                    <span class="string">&quot;skip&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="string">&quot;skip&quot;</span> =&gt; {
                         <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="ident">ExprLit</span> {
                             <span class="ident">attrs</span>: <span class="macro">vec!</span>[],
                             <span class="ident">lit</span>: <span class="ident">Lit::Str</span>(<span class="ident">lit</span>),
@@ -371,19 +371,19 @@
                         <span class="prelude-val">Ok</span>(<span class="ident">Skip</span>(<span class="ident">name</span>, <span class="prelude-val">Some</span>(<span class="ident">expr</span>)))
                     }
 
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">NameLitStr</span>(<span class="ident">name</span>, <span class="ident">lit</span>)),
+                    <span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">NameLitStr</span>(<span class="ident">name</span>, <span class="ident">lit</span>)),
                 }
             } <span class="kw">else</span> {
                 <span class="kw">match</span> <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">Expr</span><span class="op">&gt;</span>() {
-                    <span class="prelude-val">Ok</span>(<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="kw">if</span> <span class="ident">name_str</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;skip&quot;</span> {
+                    <span class="prelude-val">Ok</span>(<span class="ident">expr</span>) =&gt; {
+                        <span class="kw">if</span> <span class="ident">name_str</span> <span class="op">==</span> <span class="string">&quot;skip&quot;</span> {
                             <span class="prelude-val">Ok</span>(<span class="ident">Skip</span>(<span class="ident">name</span>, <span class="prelude-val">Some</span>(<span class="ident">expr</span>)))
                         } <span class="kw">else</span> {
                             <span class="prelude-val">Ok</span>(<span class="ident">NameExpr</span>(<span class="ident">name</span>, <span class="ident">expr</span>))
                         }
                     }
 
-                    <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">abort!</span> {
+                    <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">abort!</span> {
                         <span class="ident">assign_token</span>,
                         <span class="string">&quot;expected `string literal` or `expression` after `=`&quot;</span>
                     },
@@ -395,19 +395,19 @@
             <span class="macro">parenthesized!</span>(<span class="ident">nested</span> <span class="kw">in</span> <span class="ident">input</span>);
 
             <span class="kw">match</span> <span class="ident">name_str</span>.<span class="ident">as_ref</span>() {
-                <span class="string">&quot;parse&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="string">&quot;parse&quot;</span> =&gt; {
                     <span class="kw">let</span> <span class="ident">parser_specs</span>: <span class="ident">Punctuated</span><span class="op">&lt;</span><span class="ident">ParserSpec</span>, <span class="macro">Token!</span>[,]<span class="op">&gt;</span> <span class="op">=</span>
                         <span class="ident">nested</span>.<span class="ident">parse_terminated</span>(<span class="ident">ParserSpec::parse</span>)<span class="question-mark">?</span>;
 
-                    <span class="kw">if</span> <span class="ident">parser_specs</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+                    <span class="kw">if</span> <span class="ident">parser_specs</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
                         <span class="prelude-val">Ok</span>(<span class="ident">Parse</span>(<span class="ident">name</span>, <span class="ident">parser_specs</span>[<span class="number">0</span>].<span class="ident">clone</span>()))
                     } <span class="kw">else</span> {
                         <span class="macro">abort!</span>(<span class="ident">name</span>, <span class="string">&quot;`parse` must have exactly one argument&quot;</span>)
                     }
                 }
 
-                <span class="string">&quot;raw&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">nested</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">LitBool</span><span class="op">&gt;</span>() {
-                    <span class="prelude-val">Ok</span>(<span class="ident">bool_token</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="string">&quot;raw&quot;</span> =&gt; <span class="kw">match</span> <span class="ident">nested</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">LitBool</span><span class="op">&gt;</span>() {
+                    <span class="prelude-val">Ok</span>(<span class="ident">bool_token</span>) =&gt; {
                         <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="ident">ExprLit</span> {
                             <span class="ident">attrs</span>: <span class="macro">vec!</span>[],
                             <span class="ident">lit</span>: <span class="ident">Lit::Bool</span>(<span class="ident">bool_token</span>),
@@ -416,7 +416,7 @@
                         <span class="prelude-val">Ok</span>(<span class="ident">MethodCall</span>(<span class="ident">name</span>, <span class="macro">vec!</span>[<span class="ident">expr</span>]))
                     }
 
-                    <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
                         <span class="macro">abort!</span>(<span class="ident">name</span>,
                             <span class="string">&quot;`#[structopt(raw(...))` attributes are removed in structopt 0.3, \
                             they are replaced with raw methods&quot;</span>;
@@ -427,7 +427,7 @@
                     }
                 },
 
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">_</span> =&gt; {
                     <span class="kw">let</span> <span class="ident">method_args</span>: <span class="ident">Punctuated</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="macro">Token!</span>[,]<span class="op">&gt;</span> <span class="op">=</span>
                         <span class="ident">nested</span>.<span class="ident">parse_terminated</span>(<span class="ident">Expr::parse</span>)<span class="question-mark">?</span>;
                     <span class="prelude-val">Ok</span>(<span class="ident">MethodCall</span>(<span class="ident">name</span>, <span class="ident">Vec::from_iter</span>(<span class="ident">method_args</span>)))
@@ -436,29 +436,29 @@
         } <span class="kw">else</span> {
             <span class="comment">// Attributes represented with a sole identifier.</span>
             <span class="kw">match</span> <span class="ident">name_str</span>.<span class="ident">as_ref</span>() {
-                <span class="string">&quot;long&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Long</span>(<span class="ident">name</span>)),
-                <span class="string">&quot;short&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Short</span>(<span class="ident">name</span>)),
-                <span class="string">&quot;env&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Env</span>(<span class="ident">name</span>)),
-                <span class="string">&quot;flatten&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Flatten</span>(<span class="ident">name</span>)),
-                <span class="string">&quot;subcommand&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Subcommand</span>(<span class="ident">name</span>)),
-                <span class="string">&quot;external_subcommand&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">ExternalSubcommand</span>(<span class="ident">name</span>)),
-                <span class="string">&quot;no_version&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">NoVersion</span>(<span class="ident">name</span>)),
-                <span class="string">&quot;verbatim_doc_comment&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">VerbatimDocComment</span>(<span class="ident">name</span>)),
+                <span class="string">&quot;long&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Long</span>(<span class="ident">name</span>)),
+                <span class="string">&quot;short&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Short</span>(<span class="ident">name</span>)),
+                <span class="string">&quot;env&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Env</span>(<span class="ident">name</span>)),
+                <span class="string">&quot;flatten&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Flatten</span>(<span class="ident">name</span>)),
+                <span class="string">&quot;subcommand&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Subcommand</span>(<span class="ident">name</span>)),
+                <span class="string">&quot;external_subcommand&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">ExternalSubcommand</span>(<span class="ident">name</span>)),
+                <span class="string">&quot;no_version&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">NoVersion</span>(<span class="ident">name</span>)),
+                <span class="string">&quot;verbatim_doc_comment&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">VerbatimDocComment</span>(<span class="ident">name</span>)),
 
-                <span class="string">&quot;default_value&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">DefaultValue</span>(<span class="ident">name</span>, <span class="prelude-val">None</span>)),
-                <span class="string">&quot;about&quot;</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="prelude-val">Ok</span>(<span class="ident">About</span>(<span class="ident">name</span>, <span class="prelude-val">None</span>))),
-                <span class="string">&quot;author&quot;</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="prelude-val">Ok</span>(<span class="ident">Author</span>(<span class="ident">name</span>, <span class="prelude-val">None</span>))),
+                <span class="string">&quot;default_value&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">DefaultValue</span>(<span class="ident">name</span>, <span class="prelude-val">None</span>)),
+                <span class="string">&quot;about&quot;</span> =&gt; (<span class="prelude-val">Ok</span>(<span class="ident">About</span>(<span class="ident">name</span>, <span class="prelude-val">None</span>))),
+                <span class="string">&quot;author&quot;</span> =&gt; (<span class="prelude-val">Ok</span>(<span class="ident">Author</span>(<span class="ident">name</span>, <span class="prelude-val">None</span>))),
 
-                <span class="string">&quot;skip&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Skip</span>(<span class="ident">name</span>, <span class="prelude-val">None</span>)),
+                <span class="string">&quot;skip&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Skip</span>(<span class="ident">name</span>, <span class="prelude-val">None</span>)),
 
-                <span class="string">&quot;version&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">abort!</span>(
+                <span class="string">&quot;version&quot;</span> =&gt; <span class="macro">abort!</span>(
                     <span class="ident">name</span>,
                     <span class="string">&quot;#[structopt(version)] is invalid attribute, \
                      structopt 0.3 inherits version from Cargo.toml by default, \
                      no attribute needed&quot;</span>
                 ),
 
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">abort!</span>(<span class="ident">name</span>, <span class="string">&quot;unexpected attribute: {}&quot;</span>, <span class="ident">name_str</span>),
+                <span class="kw">_</span> =&gt; <span class="macro">abort!</span>(<span class="ident">name</span>, <span class="string">&quot;unexpected attribute: {}&quot;</span>, <span class="ident">name_str</span>),
             }
         }
     }
@@ -472,14 +472,14 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">ParserSpec</span> {
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">syn::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="ident">input</span>
             .<span class="ident">parse</span>()
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">error</span>(<span class="string">&quot;parser specification must start with identifier&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">eq_token</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">parse_func</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">eq_token</span> {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>),
+            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">None</span>,
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>),
         };
         <span class="prelude-val">Ok</span>(<span class="ident">ParserSpec</span> {
             <span class="ident">kind</span>,
@@ -489,8 +489,8 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">raw_method_suggestion</span>(<span class="ident">ts</span>: <span class="ident">ParseBuffer</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
-    <span class="kw">let</span> <span class="ident">do_parse</span> <span class="op">=</span> <span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">Ident</span>, <span class="ident">Punctuated</span><span class="op">&lt;</span><span class="ident">Expr</span>, <span class="macro">Token!</span>[,]<span class="op">&gt;</span>), <span class="ident">syn::Error</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">raw_method_suggestion</span>(<span class="ident">ts</span>: <span class="ident">ParseBuffer</span>) -&gt; <span class="ident">String</span> {
+    <span class="kw">let</span> <span class="ident">do_parse</span> <span class="op">=</span> <span class="kw">move</span> <span class="op">|</span><span class="op">|</span> -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">Ident</span>, <span class="ident">Punctuated</span><span class="op">&lt;</span><span class="ident">Expr</span>, <span class="macro">Token!</span>[,]<span class="op">&gt;</span>), <span class="ident">syn::Error</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">ts</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">_eq</span>: <span class="macro">Token!</span>[<span class="op">=</span>] <span class="op">=</span> <span class="ident">ts</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">val</span>: <span class="ident">LitStr</span> <span class="op">=</span> <span class="ident">ts</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
@@ -498,7 +498,7 @@
         <span class="prelude-val">Ok</span>((<span class="ident">name</span>, <span class="ident">exprs</span>))
     };
 
-    <span class="kw">fn</span> <span class="ident">to_string</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">ToTokens</span><span class="op">&gt;</span>(<span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+    <span class="kw">fn</span> <span class="ident">to_string</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">ToTokens</span><span class="op">&gt;</span>(<span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">String</span> {
         <span class="ident">val</span>.<span class="ident">to_token_stream</span>()
             .<span class="ident">to_string</span>()
             .<span class="ident">replace</span>(<span class="string">&quot; &quot;</span>, <span class="string">&quot;&quot;</span>)
@@ -506,7 +506,7 @@
     }
 
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>((<span class="ident">name</span>, <span class="ident">exprs</span>)) <span class="op">=</span> <span class="ident">do_parse</span>() {
-        <span class="kw">let</span> <span class="ident">suggestion</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">exprs</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+        <span class="kw">let</span> <span class="ident">suggestion</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">exprs</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
             <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">exprs</span>[<span class="number">0</span>]);
             <span class="macro">format!</span>(<span class="string">&quot; = {}&quot;</span>, <span class="ident">val</span>)
         } <span class="kw">else</span> {
@@ -532,7 +532,7 @@
     }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_structopt_attributes</span>(<span class="ident">all_attrs</span>: <span class="kw-2">&amp;</span>[<span class="ident">Attribute</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">StructOptAttr</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_structopt_attributes</span>(<span class="ident">all_attrs</span>: <span class="kw-2">&amp;</span>[<span class="ident">Attribute</span>]) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">StructOptAttr</span><span class="op">&gt;</span> {
     <span class="ident">all_attrs</span>
         .<span class="ident">iter</span>()
         .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">attr</span><span class="op">|</span> <span class="ident">attr</span>.<span class="ident">path</span>.<span class="ident">is_ident</span>(<span class="string">&quot;structopt&quot;</span>))

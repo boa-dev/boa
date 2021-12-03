@@ -274,7 +274,7 @@
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">must_use</span>]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;no-panic&quot;</span>, <span class="ident">no_panic</span>)]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">format64</span>(<span class="ident">f</span>: <span class="ident">f64</span>, <span class="ident">result</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">format64</span>(<span class="ident">f</span>: <span class="ident">f64</span>, <span class="ident">result</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>) -&gt; <span class="ident">usize</span> {
     <span class="kw">let</span> <span class="ident">bits</span> <span class="op">=</span> <span class="ident">mem::transmute</span>::<span class="op">&lt;</span><span class="ident">f64</span>, <span class="ident">u64</span><span class="op">&gt;</span>(<span class="ident">f</span>);
     <span class="kw">let</span> <span class="ident">sign</span> <span class="op">=</span> ((<span class="ident">bits</span> <span class="op">&gt;</span><span class="op">&gt;</span> (<span class="ident">DOUBLE_MANTISSA_BITS</span> <span class="op">+</span> <span class="ident">DOUBLE_EXPONENT_BITS</span>)) <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>;
     <span class="kw">let</span> <span class="ident">ieee_mantissa</span> <span class="op">=</span> <span class="ident">bits</span> <span class="op">&amp;</span> ((<span class="number">1u64</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">DOUBLE_MANTISSA_BITS</span>) <span class="op">-</span> <span class="number">1</span>);
@@ -287,7 +287,7 @@
         <span class="ident">index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
     }
 
-    <span class="kw">if</span> <span class="ident">ieee_exponent</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">ieee_mantissa</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+    <span class="kw">if</span> <span class="ident">ieee_exponent</span> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">ieee_mantissa</span> <span class="op">==</span> <span class="number">0</span> {
         <span class="ident">ptr::copy_nonoverlapping</span>(<span class="string">b&quot;0.0&quot;</span>.<span class="ident">as_ptr</span>(), <span class="ident">result</span>.<span class="ident">offset</span>(<span class="ident">index</span>), <span class="number">3</span>);
         <span class="kw">return</span> <span class="ident">sign</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">+</span> <span class="number">3</span>;
     }
@@ -324,7 +324,7 @@
         }
         <span class="ident">write_mantissa_long</span>(<span class="ident">v</span>.<span class="ident">mantissa</span>, <span class="ident">result</span>.<span class="ident">offset</span>(<span class="ident">index</span> <span class="op">+</span> <span class="ident">length</span> <span class="op">+</span> <span class="ident">offset</span>));
         <span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">+</span> <span class="ident">length</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">+</span> <span class="ident">offset</span> <span class="kw">as</span> <span class="ident">usize</span>
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">length</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">length</span> <span class="op">==</span> <span class="number">1</span> {
         <span class="comment">// 1e30</span>
         <span class="kw-2">*</span><span class="ident">result</span>.<span class="ident">offset</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="string">b&#39;0&#39;</span> <span class="op">+</span> <span class="ident">v</span>.<span class="ident">mantissa</span> <span class="kw">as</span> <span class="ident">u8</span>;
         <span class="kw-2">*</span><span class="ident">result</span>.<span class="ident">offset</span>(<span class="ident">index</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">=</span> <span class="string">b&#39;e&#39;</span>;
@@ -381,7 +381,7 @@
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">must_use</span>]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;no-panic&quot;</span>, <span class="ident">no_panic</span>)]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">format32</span>(<span class="ident">f</span>: <span class="ident">f32</span>, <span class="ident">result</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">format32</span>(<span class="ident">f</span>: <span class="ident">f32</span>, <span class="ident">result</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>) -&gt; <span class="ident">usize</span> {
     <span class="kw">let</span> <span class="ident">bits</span> <span class="op">=</span> <span class="ident">mem::transmute</span>::<span class="op">&lt;</span><span class="ident">f32</span>, <span class="ident">u32</span><span class="op">&gt;</span>(<span class="ident">f</span>);
     <span class="kw">let</span> <span class="ident">sign</span> <span class="op">=</span> ((<span class="ident">bits</span> <span class="op">&gt;</span><span class="op">&gt;</span> (<span class="ident">FLOAT_MANTISSA_BITS</span> <span class="op">+</span> <span class="ident">FLOAT_EXPONENT_BITS</span>)) <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>;
     <span class="kw">let</span> <span class="ident">ieee_mantissa</span> <span class="op">=</span> <span class="ident">bits</span> <span class="op">&amp;</span> ((<span class="number">1u32</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">FLOAT_MANTISSA_BITS</span>) <span class="op">-</span> <span class="number">1</span>);
@@ -394,7 +394,7 @@
         <span class="ident">index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
     }
 
-    <span class="kw">if</span> <span class="ident">ieee_exponent</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">ieee_mantissa</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+    <span class="kw">if</span> <span class="ident">ieee_exponent</span> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">ieee_mantissa</span> <span class="op">==</span> <span class="number">0</span> {
         <span class="ident">ptr::copy_nonoverlapping</span>(<span class="string">b&quot;0.0&quot;</span>.<span class="ident">as_ptr</span>(), <span class="ident">result</span>.<span class="ident">offset</span>(<span class="ident">index</span>), <span class="number">3</span>);
         <span class="kw">return</span> <span class="ident">sign</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">+</span> <span class="number">3</span>;
     }
@@ -431,7 +431,7 @@
         }
         <span class="ident">write_mantissa</span>(<span class="ident">v</span>.<span class="ident">mantissa</span>, <span class="ident">result</span>.<span class="ident">offset</span>(<span class="ident">index</span> <span class="op">+</span> <span class="ident">length</span> <span class="op">+</span> <span class="ident">offset</span>));
         <span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">+</span> <span class="ident">length</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">+</span> <span class="ident">offset</span> <span class="kw">as</span> <span class="ident">usize</span>
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">length</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">length</span> <span class="op">==</span> <span class="number">1</span> {
         <span class="comment">// 1e30</span>
         <span class="kw-2">*</span><span class="ident">result</span>.<span class="ident">offset</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="string">b&#39;0&#39;</span> <span class="op">+</span> <span class="ident">v</span>.<span class="ident">mantissa</span> <span class="kw">as</span> <span class="ident">u8</span>;
         <span class="kw-2">*</span><span class="ident">result</span>.<span class="ident">offset</span>(<span class="ident">index</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">=</span> <span class="string">b&#39;e&#39;</span>;

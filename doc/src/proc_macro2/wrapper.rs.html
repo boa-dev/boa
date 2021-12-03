@@ -996,26 +996,26 @@
 }
 
 <span class="kw">impl</span> <span class="ident">LexError</span> {
-    <span class="kw">fn</span> <span class="ident">call_site</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">call_site</span>() -&gt; <span class="self">Self</span> {
         <span class="ident">LexError::Fallback</span>(<span class="ident">fallback::LexError</span> {
             <span class="ident">span</span>: <span class="ident">fallback::Span::call_site</span>(),
         })
     }
 }
 
-<span class="kw">fn</span> <span class="ident">mismatch</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="op">!</span> {
+<span class="kw">fn</span> <span class="ident">mismatch</span>() -&gt; <span class="op">!</span> {
     <span class="macro">panic!</span>(<span class="string">&quot;stable/nightly mismatch&quot;</span>)
 }
 
 <span class="kw">impl</span> <span class="ident">DeferredTokenStream</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">stream</span>: <span class="ident">proc_macro::TokenStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">stream</span>: <span class="ident">proc_macro::TokenStream</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">DeferredTokenStream</span> {
             <span class="ident">stream</span>,
             <span class="ident">extra</span>: <span class="ident">Vec::new</span>(),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">extra</span>.<span class="ident">is_empty</span>()
     }
 
@@ -1028,14 +1028,14 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">into_token_stream</span>(<span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">proc_macro::TokenStream</span> {
+    <span class="kw">fn</span> <span class="ident">into_token_stream</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">proc_macro::TokenStream</span> {
         <span class="self">self</span>.<span class="ident">evaluate_now</span>();
         <span class="self">self</span>.<span class="ident">stream</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">TokenStream</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">TokenStream</span> {
         <span class="kw">if</span> <span class="ident">inside_proc_macro</span>() {
             <span class="ident">TokenStream::Compiler</span>(<span class="ident">DeferredTokenStream::new</span>(<span class="ident">proc_macro::TokenStream::new</span>()))
         } <span class="kw">else</span> {
@@ -1043,24 +1043,24 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TokenStream::Compiler</span>(<span class="ident">tts</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">tts</span>.<span class="ident">is_empty</span>(),
-            <span class="ident">TokenStream::Fallback</span>(<span class="ident">tts</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">tts</span>.<span class="ident">is_empty</span>(),
+            <span class="ident">TokenStream::Compiler</span>(<span class="ident">tts</span>) =&gt; <span class="ident">tts</span>.<span class="ident">is_empty</span>(),
+            <span class="ident">TokenStream::Fallback</span>(<span class="ident">tts</span>) =&gt; <span class="ident">tts</span>.<span class="ident">is_empty</span>(),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">unwrap_nightly</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">proc_macro::TokenStream</span> {
+    <span class="kw">fn</span> <span class="ident">unwrap_nightly</span>(<span class="self">self</span>) -&gt; <span class="ident">proc_macro::TokenStream</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TokenStream::Compiler</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>.<span class="ident">into_token_stream</span>(),
-            <span class="ident">TokenStream::Fallback</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mismatch</span>(),
+            <span class="ident">TokenStream::Compiler</span>(<span class="ident">s</span>) =&gt; <span class="ident">s</span>.<span class="ident">into_token_stream</span>(),
+            <span class="ident">TokenStream::Fallback</span>(<span class="kw">_</span>) =&gt; <span class="ident">mismatch</span>(),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">unwrap_stable</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fallback::TokenStream</span> {
+    <span class="kw">fn</span> <span class="ident">unwrap_stable</span>(<span class="self">self</span>) -&gt; <span class="ident">fallback::TokenStream</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TokenStream::Compiler</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mismatch</span>(),
-            <span class="ident">TokenStream::Fallback</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>,
+            <span class="ident">TokenStream::Compiler</span>(<span class="kw">_</span>) =&gt; <span class="ident">mismatch</span>(),
+            <span class="ident">TokenStream::Fallback</span>(<span class="ident">s</span>) =&gt; <span class="ident">s</span>,
         }
     }
 }
@@ -1068,7 +1068,7 @@
 <span class="kw">impl</span> <span class="ident">FromStr</span> <span class="kw">for</span> <span class="ident">TokenStream</span> {
     <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">LexError</span>;
 
-    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TokenStream</span>, <span class="ident">LexError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TokenStream</span>, <span class="ident">LexError</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">inside_proc_macro</span>() {
             <span class="prelude-val">Ok</span>(<span class="ident">TokenStream::Compiler</span>(<span class="ident">DeferredTokenStream::new</span>(
                 <span class="ident">proc_macro_parse</span>(<span class="ident">src</span>)<span class="question-mark">?</span>,
@@ -1080,61 +1080,61 @@
 }
 
 <span class="comment">// Work around https://github.com/rust-lang/rust/issues/58736.</span>
-<span class="kw">fn</span> <span class="ident">proc_macro_parse</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">proc_macro::TokenStream</span>, <span class="ident">LexError</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">proc_macro_parse</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">proc_macro::TokenStream</span>, <span class="ident">LexError</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">panic::catch_unwind</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">src</span>.<span class="ident">parse</span>().<span class="ident">map_err</span>(<span class="ident">LexError::Compiler</span>));
     <span class="ident">result</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="prelude-val">Err</span>(<span class="ident">LexError::call_site</span>()))
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">TokenStream</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TokenStream::Compiler</span>(<span class="ident">tts</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="kw-2">&amp;</span><span class="ident">tts</span>.<span class="ident">clone</span>().<span class="ident">into_token_stream</span>(), <span class="ident">f</span>),
-            <span class="ident">TokenStream::Fallback</span>(<span class="ident">tts</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">tts</span>, <span class="ident">f</span>),
+            <span class="ident">TokenStream::Compiler</span>(<span class="ident">tts</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="kw-2">&amp;</span><span class="ident">tts</span>.<span class="ident">clone</span>().<span class="ident">into_token_stream</span>(), <span class="ident">f</span>),
+            <span class="ident">TokenStream::Fallback</span>(<span class="ident">tts</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">tts</span>, <span class="ident">f</span>),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">proc_macro::TokenStream</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TokenStream</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">inner</span>: <span class="ident">proc_macro::TokenStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">inner</span>: <span class="ident">proc_macro::TokenStream</span>) -&gt; <span class="ident">TokenStream</span> {
         <span class="ident">TokenStream::Compiler</span>(<span class="ident">DeferredTokenStream::new</span>(<span class="ident">inner</span>))
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">TokenStream</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">proc_macro::TokenStream</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">inner</span>: <span class="ident">TokenStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">proc_macro::TokenStream</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">inner</span>: <span class="ident">TokenStream</span>) -&gt; <span class="ident">proc_macro::TokenStream</span> {
         <span class="kw">match</span> <span class="ident">inner</span> {
-            <span class="ident">TokenStream::Compiler</span>(<span class="ident">inner</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">inner</span>.<span class="ident">into_token_stream</span>(),
-            <span class="ident">TokenStream::Fallback</span>(<span class="ident">inner</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">inner</span>.<span class="ident">to_string</span>().<span class="ident">parse</span>().<span class="ident">unwrap</span>(),
+            <span class="ident">TokenStream::Compiler</span>(<span class="ident">inner</span>) =&gt; <span class="ident">inner</span>.<span class="ident">into_token_stream</span>(),
+            <span class="ident">TokenStream::Fallback</span>(<span class="ident">inner</span>) =&gt; <span class="ident">inner</span>.<span class="ident">to_string</span>().<span class="ident">parse</span>().<span class="ident">unwrap</span>(),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">fallback::TokenStream</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TokenStream</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">inner</span>: <span class="ident">fallback::TokenStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">inner</span>: <span class="ident">fallback::TokenStream</span>) -&gt; <span class="ident">TokenStream</span> {
         <span class="ident">TokenStream::Fallback</span>(<span class="ident">inner</span>)
     }
 }
 
 <span class="comment">// Assumes inside_proc_macro().</span>
-<span class="kw">fn</span> <span class="ident">into_compiler_token</span>(<span class="ident">token</span>: <span class="ident">TokenTree</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">proc_macro::TokenTree</span> {
+<span class="kw">fn</span> <span class="ident">into_compiler_token</span>(<span class="ident">token</span>: <span class="ident">TokenTree</span>) -&gt; <span class="ident">proc_macro::TokenTree</span> {
     <span class="kw">match</span> <span class="ident">token</span> {
-        <span class="ident">TokenTree::Group</span>(<span class="ident">tt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">tt</span>.<span class="ident">inner</span>.<span class="ident">unwrap_nightly</span>().<span class="ident">into</span>(),
-        <span class="ident">TokenTree::Punct</span>(<span class="ident">tt</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">TokenTree::Group</span>(<span class="ident">tt</span>) =&gt; <span class="ident">tt</span>.<span class="ident">inner</span>.<span class="ident">unwrap_nightly</span>().<span class="ident">into</span>(),
+        <span class="ident">TokenTree::Punct</span>(<span class="ident">tt</span>) =&gt; {
             <span class="kw">let</span> <span class="ident">spacing</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">tt</span>.<span class="ident">spacing</span>() {
-                <span class="ident">Spacing::Joint</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">proc_macro::Spacing::Joint</span>,
-                <span class="ident">Spacing::Alone</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">proc_macro::Spacing::Alone</span>,
+                <span class="ident">Spacing::Joint</span> =&gt; <span class="ident">proc_macro::Spacing::Joint</span>,
+                <span class="ident">Spacing::Alone</span> =&gt; <span class="ident">proc_macro::Spacing::Alone</span>,
             };
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">punct</span> <span class="op">=</span> <span class="ident">proc_macro::Punct::new</span>(<span class="ident">tt</span>.<span class="ident">as_char</span>(), <span class="ident">spacing</span>);
             <span class="ident">punct</span>.<span class="ident">set_span</span>(<span class="ident">tt</span>.<span class="ident">span</span>().<span class="ident">inner</span>.<span class="ident">unwrap_nightly</span>());
             <span class="ident">punct</span>.<span class="ident">into</span>()
         }
-        <span class="ident">TokenTree::Ident</span>(<span class="ident">tt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">tt</span>.<span class="ident">inner</span>.<span class="ident">unwrap_nightly</span>().<span class="ident">into</span>(),
-        <span class="ident">TokenTree::Literal</span>(<span class="ident">tt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">tt</span>.<span class="ident">inner</span>.<span class="ident">unwrap_nightly</span>().<span class="ident">into</span>(),
+        <span class="ident">TokenTree::Ident</span>(<span class="ident">tt</span>) =&gt; <span class="ident">tt</span>.<span class="ident">inner</span>.<span class="ident">unwrap_nightly</span>().<span class="ident">into</span>(),
+        <span class="ident">TokenTree::Literal</span>(<span class="ident">tt</span>) =&gt; <span class="ident">tt</span>.<span class="ident">inner</span>.<span class="ident">unwrap_nightly</span>().<span class="ident">into</span>(),
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">TokenTree</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TokenStream</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">token</span>: <span class="ident">TokenTree</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">token</span>: <span class="ident">TokenTree</span>) -&gt; <span class="ident">TokenStream</span> {
         <span class="kw">if</span> <span class="ident">inside_proc_macro</span>() {
             <span class="ident">TokenStream::Compiler</span>(<span class="ident">DeferredTokenStream::new</span>(<span class="ident">into_compiler_token</span>(<span class="ident">token</span>).<span class="ident">into</span>()))
         } <span class="kw">else</span> {
@@ -1144,7 +1144,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">FromIterator</span><span class="op">&lt;</span><span class="ident">TokenTree</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TokenStream</span> {
-    <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">TokenTree</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">trees</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">TokenTree</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">trees</span>: <span class="ident">I</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="ident">inside_proc_macro</span>() {
             <span class="ident">TokenStream::Compiler</span>(<span class="ident">DeferredTokenStream::new</span>(
                 <span class="ident">trees</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="ident">into_compiler_token</span>).<span class="ident">collect</span>(),
@@ -1156,25 +1156,25 @@
 }
 
 <span class="kw">impl</span> <span class="ident">FromIterator</span><span class="op">&lt;</span><span class="ident">TokenStream</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TokenStream</span> {
-    <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">TokenStream</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">streams</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">TokenStream</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">streams</span>: <span class="ident">I</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">streams</span> <span class="op">=</span> <span class="ident">streams</span>.<span class="ident">into_iter</span>();
         <span class="kw">match</span> <span class="ident">streams</span>.<span class="ident">next</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">TokenStream::Compiler</span>(<span class="kw-2">mut</span> <span class="ident">first</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">TokenStream::Compiler</span>(<span class="kw-2">mut</span> <span class="ident">first</span>)) =&gt; {
                 <span class="ident">first</span>.<span class="ident">evaluate_now</span>();
                 <span class="ident">first</span>.<span class="ident">stream</span>.<span class="ident">extend</span>(<span class="ident">streams</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">s</span> {
-                    <span class="ident">TokenStream::Compiler</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>.<span class="ident">into_token_stream</span>(),
-                    <span class="ident">TokenStream::Fallback</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mismatch</span>(),
+                    <span class="ident">TokenStream::Compiler</span>(<span class="ident">s</span>) =&gt; <span class="ident">s</span>.<span class="ident">into_token_stream</span>(),
+                    <span class="ident">TokenStream::Fallback</span>(<span class="kw">_</span>) =&gt; <span class="ident">mismatch</span>(),
                 }));
                 <span class="ident">TokenStream::Compiler</span>(<span class="ident">first</span>)
             }
-            <span class="prelude-val">Some</span>(<span class="ident">TokenStream::Fallback</span>(<span class="kw-2">mut</span> <span class="ident">first</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">TokenStream::Fallback</span>(<span class="kw-2">mut</span> <span class="ident">first</span>)) =&gt; {
                 <span class="ident">first</span>.<span class="ident">extend</span>(<span class="ident">streams</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">s</span> {
-                    <span class="ident">TokenStream::Fallback</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>,
-                    <span class="ident">TokenStream::Compiler</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mismatch</span>(),
+                    <span class="ident">TokenStream::Fallback</span>(<span class="ident">s</span>) =&gt; <span class="ident">s</span>,
+                    <span class="ident">TokenStream::Compiler</span>(<span class="kw">_</span>) =&gt; <span class="ident">mismatch</span>(),
                 }));
                 <span class="ident">TokenStream::Fallback</span>(<span class="ident">first</span>)
             }
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TokenStream::new</span>(),
+            <span class="prelude-val">None</span> =&gt; <span class="ident">TokenStream::new</span>(),
         }
     }
 }
@@ -1182,13 +1182,13 @@
 <span class="kw">impl</span> <span class="ident">Extend</span><span class="op">&lt;</span><span class="ident">TokenTree</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TokenStream</span> {
     <span class="kw">fn</span> <span class="ident">extend</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">TokenTree</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">stream</span>: <span class="ident">I</span>) {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TokenStream::Compiler</span>(<span class="ident">tts</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">TokenStream::Compiler</span>(<span class="ident">tts</span>) =&gt; {
                 <span class="comment">// Here is the reason for DeferredTokenStream.</span>
                 <span class="kw">for</span> <span class="ident">token</span> <span class="kw">in</span> <span class="ident">stream</span> {
                     <span class="ident">tts</span>.<span class="ident">extra</span>.<span class="ident">push</span>(<span class="ident">into_compiler_token</span>(<span class="ident">token</span>));
                 }
             }
-            <span class="ident">TokenStream::Fallback</span>(<span class="ident">tts</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">tts</span>.<span class="ident">extend</span>(<span class="ident">stream</span>),
+            <span class="ident">TokenStream::Fallback</span>(<span class="ident">tts</span>) =&gt; <span class="ident">tts</span>.<span class="ident">extend</span>(<span class="ident">stream</span>),
         }
     }
 }
@@ -1196,12 +1196,12 @@
 <span class="kw">impl</span> <span class="ident">Extend</span><span class="op">&lt;</span><span class="ident">TokenStream</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TokenStream</span> {
     <span class="kw">fn</span> <span class="ident">extend</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">TokenStream</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">streams</span>: <span class="ident">I</span>) {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TokenStream::Compiler</span>(<span class="ident">tts</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">TokenStream::Compiler</span>(<span class="ident">tts</span>) =&gt; {
                 <span class="ident">tts</span>.<span class="ident">evaluate_now</span>();
                 <span class="ident">tts</span>.<span class="ident">stream</span>
                     .<span class="ident">extend</span>(<span class="ident">streams</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="ident">TokenStream::unwrap_nightly</span>));
             }
-            <span class="ident">TokenStream::Fallback</span>(<span class="ident">tts</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">TokenStream::Fallback</span>(<span class="ident">tts</span>) =&gt; {
                 <span class="ident">tts</span>.<span class="ident">extend</span>(<span class="ident">streams</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="ident">TokenStream::unwrap_stable</span>));
             }
         }
@@ -1209,57 +1209,57 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">TokenStream</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TokenStream::Compiler</span>(<span class="ident">tts</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Debug::fmt</span>(<span class="kw-2">&amp;</span><span class="ident">tts</span>.<span class="ident">clone</span>().<span class="ident">into_token_stream</span>(), <span class="ident">f</span>),
-            <span class="ident">TokenStream::Fallback</span>(<span class="ident">tts</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Debug::fmt</span>(<span class="ident">tts</span>, <span class="ident">f</span>),
+            <span class="ident">TokenStream::Compiler</span>(<span class="ident">tts</span>) =&gt; <span class="ident">Debug::fmt</span>(<span class="kw-2">&amp;</span><span class="ident">tts</span>.<span class="ident">clone</span>().<span class="ident">into_token_stream</span>(), <span class="ident">f</span>),
+            <span class="ident">TokenStream::Fallback</span>(<span class="ident">tts</span>) =&gt; <span class="ident">Debug::fmt</span>(<span class="ident">tts</span>, <span class="ident">f</span>),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">LexError</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Span</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">LexError::Compiler</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Span::call_site</span>(),
-            <span class="ident">LexError::Fallback</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Span::Fallback</span>(<span class="ident">e</span>.<span class="ident">span</span>()),
+            <span class="ident">LexError::Compiler</span>(<span class="kw">_</span>) =&gt; <span class="ident">Span::call_site</span>(),
+            <span class="ident">LexError::Fallback</span>(<span class="ident">e</span>) =&gt; <span class="ident">Span::Fallback</span>(<span class="ident">e</span>.<span class="ident">span</span>()),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">proc_macro::LexError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">LexError</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">proc_macro::LexError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LexError</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">proc_macro::LexError</span>) -&gt; <span class="ident">LexError</span> {
         <span class="ident">LexError::Compiler</span>(<span class="ident">e</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">fallback::LexError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">LexError</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">fallback::LexError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LexError</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">fallback::LexError</span>) -&gt; <span class="ident">LexError</span> {
         <span class="ident">LexError::Fallback</span>(<span class="ident">e</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">LexError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">LexError::Compiler</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Debug::fmt</span>(<span class="ident">e</span>, <span class="ident">f</span>),
-            <span class="ident">LexError::Fallback</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Debug::fmt</span>(<span class="ident">e</span>, <span class="ident">f</span>),
+            <span class="ident">LexError::Compiler</span>(<span class="ident">e</span>) =&gt; <span class="ident">Debug::fmt</span>(<span class="ident">e</span>, <span class="ident">f</span>),
+            <span class="ident">LexError::Fallback</span>(<span class="ident">e</span>) =&gt; <span class="ident">Debug::fmt</span>(<span class="ident">e</span>, <span class="ident">f</span>),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">LexError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">lexerror_display</span>)]</span>
-            <span class="ident">LexError::Compiler</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">e</span>, <span class="ident">f</span>),
+            <span class="ident">LexError::Compiler</span>(<span class="ident">e</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">e</span>, <span class="ident">f</span>),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">lexerror_display</span>))]</span>
-            <span class="ident">LexError::Compiler</span>(<span class="ident">_e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(
+            <span class="ident">LexError::Compiler</span>(<span class="ident">_e</span>) =&gt; <span class="ident">Display::fmt</span>(
                 <span class="kw-2">&amp;</span><span class="ident">fallback::LexError</span> {
                     <span class="ident">span</span>: <span class="ident">fallback::Span::call_site</span>(),
                 },
                 <span class="ident">f</span>,
             ),
-            <span class="ident">LexError::Fallback</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">e</span>, <span class="ident">f</span>),
+            <span class="ident">LexError::Fallback</span>(<span class="ident">e</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">e</span>, <span class="ident">f</span>),
         }
     }
 }
@@ -1274,12 +1274,12 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">TokenTree</span>;
     <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">TokenTreeIter</span>;
 
-    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenTreeIter</span> {
+    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) -&gt; <span class="ident">TokenTreeIter</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TokenStream::Compiler</span>(<span class="ident">tts</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">TokenStream::Compiler</span>(<span class="ident">tts</span>) =&gt; {
                 <span class="ident">TokenTreeIter::Compiler</span>(<span class="ident">tts</span>.<span class="ident">into_token_stream</span>().<span class="ident">into_iter</span>())
             }
-            <span class="ident">TokenStream::Fallback</span>(<span class="ident">tts</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TokenTreeIter::Fallback</span>(<span class="ident">tts</span>.<span class="ident">into_iter</span>()),
+            <span class="ident">TokenStream::Fallback</span>(<span class="ident">tts</span>) =&gt; <span class="ident">TokenTreeIter::Fallback</span>(<span class="ident">tts</span>.<span class="ident">into_iter</span>()),
         }
     }
 }
@@ -1287,37 +1287,37 @@
 <span class="kw">impl</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">TokenTreeIter</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">TokenTree</span>;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TokenTree</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TokenTree</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TokenTreeIter::Compiler</span>(<span class="ident">iter</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">iter</span>.<span class="ident">next</span>()<span class="question-mark">?</span>,
-            <span class="ident">TokenTreeIter::Fallback</span>(<span class="ident">iter</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">iter</span>.<span class="ident">next</span>(),
+            <span class="ident">TokenTreeIter::Compiler</span>(<span class="ident">iter</span>) =&gt; <span class="ident">iter</span>.<span class="ident">next</span>()<span class="question-mark">?</span>,
+            <span class="ident">TokenTreeIter::Fallback</span>(<span class="ident">iter</span>) =&gt; <span class="kw">return</span> <span class="ident">iter</span>.<span class="ident">next</span>(),
         };
         <span class="prelude-val">Some</span>(<span class="kw">match</span> <span class="ident">token</span> {
-            <span class="ident">proc_macro::TokenTree::Group</span>(<span class="ident">tt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">crate</span>::Group::_new</span>(<span class="ident">Group::Compiler</span>(<span class="ident">tt</span>)).<span class="ident">into</span>(),
-            <span class="ident">proc_macro::TokenTree::Punct</span>(<span class="ident">tt</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">proc_macro::TokenTree::Group</span>(<span class="ident">tt</span>) =&gt; <span class="ident"><span class="kw">crate</span>::Group::_new</span>(<span class="ident">Group::Compiler</span>(<span class="ident">tt</span>)).<span class="ident">into</span>(),
+            <span class="ident">proc_macro::TokenTree::Punct</span>(<span class="ident">tt</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">spacing</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">tt</span>.<span class="ident">spacing</span>() {
-                    <span class="ident">proc_macro::Spacing::Joint</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Spacing::Joint</span>,
-                    <span class="ident">proc_macro::Spacing::Alone</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Spacing::Alone</span>,
+                    <span class="ident">proc_macro::Spacing::Joint</span> =&gt; <span class="ident">Spacing::Joint</span>,
+                    <span class="ident">proc_macro::Spacing::Alone</span> =&gt; <span class="ident">Spacing::Alone</span>,
                 };
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">Punct::new</span>(<span class="ident">tt</span>.<span class="ident">as_char</span>(), <span class="ident">spacing</span>);
                 <span class="ident">o</span>.<span class="ident">set_span</span>(<span class="ident"><span class="kw">crate</span>::Span::_new</span>(<span class="ident">Span::Compiler</span>(<span class="ident">tt</span>.<span class="ident">span</span>())));
                 <span class="ident">o</span>.<span class="ident">into</span>()
             }
-            <span class="ident">proc_macro::TokenTree::Ident</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">crate</span>::Ident::_new</span>(<span class="ident">Ident::Compiler</span>(<span class="ident">s</span>)).<span class="ident">into</span>(),
-            <span class="ident">proc_macro::TokenTree::Literal</span>(<span class="ident">l</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">crate</span>::Literal::_new</span>(<span class="ident">Literal::Compiler</span>(<span class="ident">l</span>)).<span class="ident">into</span>(),
+            <span class="ident">proc_macro::TokenTree::Ident</span>(<span class="ident">s</span>) =&gt; <span class="ident"><span class="kw">crate</span>::Ident::_new</span>(<span class="ident">Ident::Compiler</span>(<span class="ident">s</span>)).<span class="ident">into</span>(),
+            <span class="ident">proc_macro::TokenTree::Literal</span>(<span class="ident">l</span>) =&gt; <span class="ident"><span class="kw">crate</span>::Literal::_new</span>(<span class="ident">Literal::Compiler</span>(<span class="ident">l</span>)).<span class="ident">into</span>(),
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
+    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TokenTreeIter::Compiler</span>(<span class="ident">tts</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">tts</span>.<span class="ident">size_hint</span>(),
-            <span class="ident">TokenTreeIter::Fallback</span>(<span class="ident">tts</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">tts</span>.<span class="ident">size_hint</span>(),
+            <span class="ident">TokenTreeIter::Compiler</span>(<span class="ident">tts</span>) =&gt; <span class="ident">tts</span>.<span class="ident">size_hint</span>(),
+            <span class="ident">TokenTreeIter::Fallback</span>(<span class="ident">tts</span>) =&gt; <span class="ident">tts</span>.<span class="ident">size_hint</span>(),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">TokenTreeIter</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;TokenTreeIter&quot;</span>).<span class="ident">finish</span>()
     }
 }
@@ -1331,32 +1331,32 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">super_unstable</span>)]</span>
 <span class="kw">impl</span> <span class="ident">SourceFile</span> {
-    <span class="kw">fn</span> <span class="ident">nightly</span>(<span class="ident">sf</span>: <span class="ident">proc_macro::SourceFile</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">nightly</span>(<span class="ident">sf</span>: <span class="ident">proc_macro::SourceFile</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">SourceFile::Compiler</span>(<span class="ident">sf</span>)
     }
 
     <span class="doccomment">/// Get the path to this source file as a string.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">path</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PathBuf</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">path</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">PathBuf</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">SourceFile::Compiler</span>(<span class="ident">a</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span>.<span class="ident">path</span>(),
-            <span class="ident">SourceFile::Fallback</span>(<span class="ident">a</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span>.<span class="ident">path</span>(),
+            <span class="ident">SourceFile::Compiler</span>(<span class="ident">a</span>) =&gt; <span class="ident">a</span>.<span class="ident">path</span>(),
+            <span class="ident">SourceFile::Fallback</span>(<span class="ident">a</span>) =&gt; <span class="ident">a</span>.<span class="ident">path</span>(),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_real</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_real</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">SourceFile::Compiler</span>(<span class="ident">a</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span>.<span class="ident">is_real</span>(),
-            <span class="ident">SourceFile::Fallback</span>(<span class="ident">a</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span>.<span class="ident">is_real</span>(),
+            <span class="ident">SourceFile::Compiler</span>(<span class="ident">a</span>) =&gt; <span class="ident">a</span>.<span class="ident">is_real</span>(),
+            <span class="ident">SourceFile::Fallback</span>(<span class="ident">a</span>) =&gt; <span class="ident">a</span>.<span class="ident">is_real</span>(),
         }
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">super_unstable</span>)]</span>
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">SourceFile</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">SourceFile::Compiler</span>(<span class="ident">a</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Debug::fmt</span>(<span class="ident">a</span>, <span class="ident">f</span>),
-            <span class="ident">SourceFile::Fallback</span>(<span class="ident">a</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Debug::fmt</span>(<span class="ident">a</span>, <span class="ident">f</span>),
+            <span class="ident">SourceFile::Compiler</span>(<span class="ident">a</span>) =&gt; <span class="ident">Debug::fmt</span>(<span class="ident">a</span>, <span class="ident">f</span>),
+            <span class="ident">SourceFile::Fallback</span>(<span class="ident">a</span>) =&gt; <span class="ident">Debug::fmt</span>(<span class="ident">a</span>, <span class="ident">f</span>),
         }
     }
 }
@@ -1374,7 +1374,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Span</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call_site</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call_site</span>() -&gt; <span class="ident">Span</span> {
         <span class="kw">if</span> <span class="ident">inside_proc_macro</span>() {
             <span class="ident">Span::Compiler</span>(<span class="ident">proc_macro::Span::call_site</span>())
         } <span class="kw">else</span> {
@@ -1383,7 +1383,7 @@
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">hygiene</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mixed_site</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mixed_site</span>() -&gt; <span class="ident">Span</span> {
         <span class="kw">if</span> <span class="ident">inside_proc_macro</span>() {
             <span class="ident">Span::Compiler</span>(<span class="ident">proc_macro::Span::mixed_site</span>())
         } <span class="kw">else</span> {
@@ -1392,7 +1392,7 @@
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">super_unstable</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">def_site</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">def_site</span>() -&gt; <span class="ident">Span</span> {
         <span class="kw">if</span> <span class="ident">inside_proc_macro</span>() {
             <span class="ident">Span::Compiler</span>(<span class="ident">proc_macro::Span::def_site</span>())
         } <span class="kw">else</span> {
@@ -1400,60 +1400,60 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resolved_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="ident">Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resolved_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="ident">Span</span>) -&gt; <span class="ident">Span</span> {
         <span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">hygiene</span>)]</span>
-            (<span class="ident">Span::Compiler</span>(<span class="ident">a</span>), <span class="ident">Span::Compiler</span>(<span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Span::Compiler</span>(<span class="ident">a</span>.<span class="ident">resolved_at</span>(<span class="ident">b</span>)),
+            (<span class="ident">Span::Compiler</span>(<span class="ident">a</span>), <span class="ident">Span::Compiler</span>(<span class="ident">b</span>)) =&gt; <span class="ident">Span::Compiler</span>(<span class="ident">a</span>.<span class="ident">resolved_at</span>(<span class="ident">b</span>)),
 
             <span class="comment">// Name resolution affects semantics, but location is only cosmetic</span>
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">hygiene</span>))]</span>
-            (<span class="ident">Span::Compiler</span>(<span class="kw">_</span>), <span class="ident">Span::Compiler</span>(<span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">other</span>,
+            (<span class="ident">Span::Compiler</span>(<span class="kw">_</span>), <span class="ident">Span::Compiler</span>(<span class="kw">_</span>)) =&gt; <span class="ident">other</span>,
 
-            (<span class="ident">Span::Fallback</span>(<span class="ident">a</span>), <span class="ident">Span::Fallback</span>(<span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Span::Fallback</span>(<span class="ident">a</span>.<span class="ident">resolved_at</span>(<span class="ident">b</span>)),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mismatch</span>(),
+            (<span class="ident">Span::Fallback</span>(<span class="ident">a</span>), <span class="ident">Span::Fallback</span>(<span class="ident">b</span>)) =&gt; <span class="ident">Span::Fallback</span>(<span class="ident">a</span>.<span class="ident">resolved_at</span>(<span class="ident">b</span>)),
+            <span class="kw">_</span> =&gt; <span class="ident">mismatch</span>(),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">located_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="ident">Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">located_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="ident">Span</span>) -&gt; <span class="ident">Span</span> {
         <span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">hygiene</span>)]</span>
-            (<span class="ident">Span::Compiler</span>(<span class="ident">a</span>), <span class="ident">Span::Compiler</span>(<span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Span::Compiler</span>(<span class="ident">a</span>.<span class="ident">located_at</span>(<span class="ident">b</span>)),
+            (<span class="ident">Span::Compiler</span>(<span class="ident">a</span>), <span class="ident">Span::Compiler</span>(<span class="ident">b</span>)) =&gt; <span class="ident">Span::Compiler</span>(<span class="ident">a</span>.<span class="ident">located_at</span>(<span class="ident">b</span>)),
 
             <span class="comment">// Name resolution affects semantics, but location is only cosmetic</span>
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">hygiene</span>))]</span>
-            (<span class="ident">Span::Compiler</span>(<span class="kw">_</span>), <span class="ident">Span::Compiler</span>(<span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="self">self</span>,
+            (<span class="ident">Span::Compiler</span>(<span class="kw">_</span>), <span class="ident">Span::Compiler</span>(<span class="kw">_</span>)) =&gt; <span class="kw-2">*</span><span class="self">self</span>,
 
-            (<span class="ident">Span::Fallback</span>(<span class="ident">a</span>), <span class="ident">Span::Fallback</span>(<span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Span::Fallback</span>(<span class="ident">a</span>.<span class="ident">located_at</span>(<span class="ident">b</span>)),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mismatch</span>(),
+            (<span class="ident">Span::Fallback</span>(<span class="ident">a</span>), <span class="ident">Span::Fallback</span>(<span class="ident">b</span>)) =&gt; <span class="ident">Span::Fallback</span>(<span class="ident">a</span>.<span class="ident">located_at</span>(<span class="ident">b</span>)),
+            <span class="kw">_</span> =&gt; <span class="ident">mismatch</span>(),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unwrap</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">proc_macro::Span</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unwrap</span>(<span class="self">self</span>) -&gt; <span class="ident">proc_macro::Span</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Span::Compiler</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>,
-            <span class="ident">Span::Fallback</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;proc_macro::Span is only available in procedural macros&quot;</span>),
+            <span class="ident">Span::Compiler</span>(<span class="ident">s</span>) =&gt; <span class="ident">s</span>,
+            <span class="ident">Span::Fallback</span>(<span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;proc_macro::Span is only available in procedural macros&quot;</span>),
         }
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">super_unstable</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">source_file</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SourceFile</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">source_file</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">SourceFile</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Span::Compiler</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SourceFile::nightly</span>(<span class="ident">s</span>.<span class="ident">source_file</span>()),
-            <span class="ident">Span::Fallback</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SourceFile::Fallback</span>(<span class="ident">s</span>.<span class="ident">source_file</span>()),
+            <span class="ident">Span::Compiler</span>(<span class="ident">s</span>) =&gt; <span class="ident">SourceFile::nightly</span>(<span class="ident">s</span>.<span class="ident">source_file</span>()),
+            <span class="ident">Span::Fallback</span>(<span class="ident">s</span>) =&gt; <span class="ident">SourceFile::Fallback</span>(<span class="ident">s</span>.<span class="ident">source_file</span>()),
         }
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">super_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;span-locations&quot;</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LineColumn</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LineColumn</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">proc_macro_span</span>)]</span>
-            <span class="ident">Span::Compiler</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Span::Compiler</span>(<span class="ident">s</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">proc_macro::LineColumn</span> { <span class="ident">line</span>, <span class="ident">column</span> } <span class="op">=</span> <span class="ident">s</span>.<span class="ident">start</span>();
                 <span class="ident">LineColumn</span> { <span class="ident">line</span>, <span class="ident">column</span> }
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">proc_macro_span</span>))]</span>
-            <span class="ident">Span::Compiler</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LineColumn</span> { <span class="ident">line</span>: <span class="number">0</span>, <span class="ident">column</span>: <span class="number">0</span> },
-            <span class="ident">Span::Fallback</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Span::Compiler</span>(<span class="kw">_</span>) =&gt; <span class="ident">LineColumn</span> { <span class="ident">line</span>: <span class="number">0</span>, <span class="ident">column</span>: <span class="number">0</span> },
+            <span class="ident">Span::Fallback</span>(<span class="ident">s</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">fallback::LineColumn</span> { <span class="ident">line</span>, <span class="ident">column</span> } <span class="op">=</span> <span class="ident">s</span>.<span class="ident">start</span>();
                 <span class="ident">LineColumn</span> { <span class="ident">line</span>, <span class="ident">column</span> }
             }
@@ -1461,76 +1461,76 @@
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">super_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;span-locations&quot;</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">end</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LineColumn</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">end</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LineColumn</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">proc_macro_span</span>)]</span>
-            <span class="ident">Span::Compiler</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Span::Compiler</span>(<span class="ident">s</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">proc_macro::LineColumn</span> { <span class="ident">line</span>, <span class="ident">column</span> } <span class="op">=</span> <span class="ident">s</span>.<span class="ident">end</span>();
                 <span class="ident">LineColumn</span> { <span class="ident">line</span>, <span class="ident">column</span> }
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">proc_macro_span</span>))]</span>
-            <span class="ident">Span::Compiler</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LineColumn</span> { <span class="ident">line</span>: <span class="number">0</span>, <span class="ident">column</span>: <span class="number">0</span> },
-            <span class="ident">Span::Fallback</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Span::Compiler</span>(<span class="kw">_</span>) =&gt; <span class="ident">LineColumn</span> { <span class="ident">line</span>: <span class="number">0</span>, <span class="ident">column</span>: <span class="number">0</span> },
+            <span class="ident">Span::Fallback</span>(<span class="ident">s</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">fallback::LineColumn</span> { <span class="ident">line</span>, <span class="ident">column</span> } <span class="op">=</span> <span class="ident">s</span>.<span class="ident">end</span>();
                 <span class="ident">LineColumn</span> { <span class="ident">line</span>, <span class="ident">column</span> }
             }
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">join</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="ident">Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">join</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="ident">Span</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">proc_macro_span</span>)]</span>
-            (<span class="ident">Span::Compiler</span>(<span class="ident">a</span>), <span class="ident">Span::Compiler</span>(<span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Span::Compiler</span>(<span class="ident">a</span>.<span class="ident">join</span>(<span class="ident">b</span>)<span class="question-mark">?</span>),
-            (<span class="ident">Span::Fallback</span>(<span class="ident">a</span>), <span class="ident">Span::Fallback</span>(<span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Span::Fallback</span>(<span class="ident">a</span>.<span class="ident">join</span>(<span class="ident">b</span>)<span class="question-mark">?</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
+            (<span class="ident">Span::Compiler</span>(<span class="ident">a</span>), <span class="ident">Span::Compiler</span>(<span class="ident">b</span>)) =&gt; <span class="ident">Span::Compiler</span>(<span class="ident">a</span>.<span class="ident">join</span>(<span class="ident">b</span>)<span class="question-mark">?</span>),
+            (<span class="ident">Span::Fallback</span>(<span class="ident">a</span>), <span class="ident">Span::Fallback</span>(<span class="ident">b</span>)) =&gt; <span class="ident">Span::Fallback</span>(<span class="ident">a</span>.<span class="ident">join</span>(<span class="ident">b</span>)<span class="question-mark">?</span>),
+            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
         };
         <span class="prelude-val">Some</span>(<span class="ident">ret</span>)
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">super_unstable</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">Span</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
-            (<span class="ident">Span::Compiler</span>(<span class="ident">a</span>), <span class="ident">Span::Compiler</span>(<span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span>.<span class="ident">eq</span>(<span class="ident">b</span>),
-            (<span class="ident">Span::Fallback</span>(<span class="ident">a</span>), <span class="ident">Span::Fallback</span>(<span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span>.<span class="ident">eq</span>(<span class="ident">b</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            (<span class="ident">Span::Compiler</span>(<span class="ident">a</span>), <span class="ident">Span::Compiler</span>(<span class="ident">b</span>)) =&gt; <span class="ident">a</span>.<span class="ident">eq</span>(<span class="ident">b</span>),
+            (<span class="ident">Span::Fallback</span>(<span class="ident">a</span>), <span class="ident">Span::Fallback</span>(<span class="ident">b</span>)) =&gt; <span class="ident">a</span>.<span class="ident">eq</span>(<span class="ident">b</span>),
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">unwrap_nightly</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">proc_macro::Span</span> {
+    <span class="kw">fn</span> <span class="ident">unwrap_nightly</span>(<span class="self">self</span>) -&gt; <span class="ident">proc_macro::Span</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Span::Compiler</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>,
-            <span class="ident">Span::Fallback</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mismatch</span>(),
+            <span class="ident">Span::Compiler</span>(<span class="ident">s</span>) =&gt; <span class="ident">s</span>,
+            <span class="ident">Span::Fallback</span>(<span class="kw">_</span>) =&gt; <span class="ident">mismatch</span>(),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">proc_macro::Span</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident"><span class="kw">crate</span>::Span</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">proc_span</span>: <span class="ident">proc_macro::Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="kw">crate</span>::Span</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">proc_span</span>: <span class="ident">proc_macro::Span</span>) -&gt; <span class="ident"><span class="kw">crate</span>::Span</span> {
         <span class="ident"><span class="kw">crate</span>::Span::_new</span>(<span class="ident">Span::Compiler</span>(<span class="ident">proc_span</span>))
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">fallback::Span</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Span</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">inner</span>: <span class="ident">fallback::Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">inner</span>: <span class="ident">fallback::Span</span>) -&gt; <span class="ident">Span</span> {
         <span class="ident">Span::Fallback</span>(<span class="ident">inner</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Span</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Span::Compiler</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Debug::fmt</span>(<span class="ident">s</span>, <span class="ident">f</span>),
-            <span class="ident">Span::Fallback</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Debug::fmt</span>(<span class="ident">s</span>, <span class="ident">f</span>),
+            <span class="ident">Span::Compiler</span>(<span class="ident">s</span>) =&gt; <span class="ident">Debug::fmt</span>(<span class="ident">s</span>, <span class="ident">f</span>),
+            <span class="ident">Span::Fallback</span>(<span class="ident">s</span>) =&gt; <span class="ident">Debug::fmt</span>(<span class="ident">s</span>, <span class="ident">f</span>),
         }
     }
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">debug_span_field_if_nontrivial</span>(<span class="ident">debug</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::DebugStruct</span>, <span class="ident">span</span>: <span class="ident">Span</span>) {
     <span class="kw">match</span> <span class="ident">span</span> {
-        <span class="ident">Span::Compiler</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Span::Compiler</span>(<span class="ident">s</span>) =&gt; {
             <span class="ident">debug</span>.<span class="ident">field</span>(<span class="string">&quot;span&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">s</span>);
         }
-        <span class="ident">Span::Fallback</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">fallback::debug_span_field_if_nontrivial</span>(<span class="ident">debug</span>, <span class="ident">s</span>),
+        <span class="ident">Span::Fallback</span>(<span class="ident">s</span>) =&gt; <span class="ident">fallback::debug_span_field_if_nontrivial</span>(<span class="ident">debug</span>, <span class="ident">s</span>),
     }
 }
 
@@ -1541,105 +1541,105 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Group</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">delimiter</span>: <span class="ident">Delimiter</span>, <span class="ident">stream</span>: <span class="ident">TokenStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Group</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">delimiter</span>: <span class="ident">Delimiter</span>, <span class="ident">stream</span>: <span class="ident">TokenStream</span>) -&gt; <span class="ident">Group</span> {
         <span class="kw">match</span> <span class="ident">stream</span> {
-            <span class="ident">TokenStream::Compiler</span>(<span class="ident">tts</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">TokenStream::Compiler</span>(<span class="ident">tts</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">delimiter</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">delimiter</span> {
-                    <span class="ident">Delimiter::Parenthesis</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">proc_macro::Delimiter::Parenthesis</span>,
-                    <span class="ident">Delimiter::Bracket</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">proc_macro::Delimiter::Bracket</span>,
-                    <span class="ident">Delimiter::Brace</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">proc_macro::Delimiter::Brace</span>,
-                    <span class="ident">Delimiter::None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">proc_macro::Delimiter::None</span>,
+                    <span class="ident">Delimiter::Parenthesis</span> =&gt; <span class="ident">proc_macro::Delimiter::Parenthesis</span>,
+                    <span class="ident">Delimiter::Bracket</span> =&gt; <span class="ident">proc_macro::Delimiter::Bracket</span>,
+                    <span class="ident">Delimiter::Brace</span> =&gt; <span class="ident">proc_macro::Delimiter::Brace</span>,
+                    <span class="ident">Delimiter::None</span> =&gt; <span class="ident">proc_macro::Delimiter::None</span>,
                 };
                 <span class="ident">Group::Compiler</span>(<span class="ident">proc_macro::Group::new</span>(<span class="ident">delimiter</span>, <span class="ident">tts</span>.<span class="ident">into_token_stream</span>()))
             }
-            <span class="ident">TokenStream::Fallback</span>(<span class="ident">stream</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">TokenStream::Fallback</span>(<span class="ident">stream</span>) =&gt; {
                 <span class="ident">Group::Fallback</span>(<span class="ident">fallback::Group::new</span>(<span class="ident">delimiter</span>, <span class="ident">stream</span>))
             }
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">delimiter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Delimiter</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">delimiter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Delimiter</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Group::Compiler</span>(<span class="ident">g</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">g</span>.<span class="ident">delimiter</span>() {
-                <span class="ident">proc_macro::Delimiter::Parenthesis</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Delimiter::Parenthesis</span>,
-                <span class="ident">proc_macro::Delimiter::Bracket</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Delimiter::Bracket</span>,
-                <span class="ident">proc_macro::Delimiter::Brace</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Delimiter::Brace</span>,
-                <span class="ident">proc_macro::Delimiter::None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Delimiter::None</span>,
+            <span class="ident">Group::Compiler</span>(<span class="ident">g</span>) =&gt; <span class="kw">match</span> <span class="ident">g</span>.<span class="ident">delimiter</span>() {
+                <span class="ident">proc_macro::Delimiter::Parenthesis</span> =&gt; <span class="ident">Delimiter::Parenthesis</span>,
+                <span class="ident">proc_macro::Delimiter::Bracket</span> =&gt; <span class="ident">Delimiter::Bracket</span>,
+                <span class="ident">proc_macro::Delimiter::Brace</span> =&gt; <span class="ident">Delimiter::Brace</span>,
+                <span class="ident">proc_macro::Delimiter::None</span> =&gt; <span class="ident">Delimiter::None</span>,
             },
-            <span class="ident">Group::Fallback</span>(<span class="ident">g</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">g</span>.<span class="ident">delimiter</span>(),
+            <span class="ident">Group::Fallback</span>(<span class="ident">g</span>) =&gt; <span class="ident">g</span>.<span class="ident">delimiter</span>(),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stream</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stream</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">TokenStream</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Group::Compiler</span>(<span class="ident">g</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TokenStream::Compiler</span>(<span class="ident">DeferredTokenStream::new</span>(<span class="ident">g</span>.<span class="ident">stream</span>())),
-            <span class="ident">Group::Fallback</span>(<span class="ident">g</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TokenStream::Fallback</span>(<span class="ident">g</span>.<span class="ident">stream</span>()),
+            <span class="ident">Group::Compiler</span>(<span class="ident">g</span>) =&gt; <span class="ident">TokenStream::Compiler</span>(<span class="ident">DeferredTokenStream::new</span>(<span class="ident">g</span>.<span class="ident">stream</span>())),
+            <span class="ident">Group::Fallback</span>(<span class="ident">g</span>) =&gt; <span class="ident">TokenStream::Fallback</span>(<span class="ident">g</span>.<span class="ident">stream</span>()),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Span</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Group::Compiler</span>(<span class="ident">g</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Span::Compiler</span>(<span class="ident">g</span>.<span class="ident">span</span>()),
-            <span class="ident">Group::Fallback</span>(<span class="ident">g</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Span::Fallback</span>(<span class="ident">g</span>.<span class="ident">span</span>()),
+            <span class="ident">Group::Compiler</span>(<span class="ident">g</span>) =&gt; <span class="ident">Span::Compiler</span>(<span class="ident">g</span>.<span class="ident">span</span>()),
+            <span class="ident">Group::Fallback</span>(<span class="ident">g</span>) =&gt; <span class="ident">Span::Fallback</span>(<span class="ident">g</span>.<span class="ident">span</span>()),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span_open</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">proc_macro_span</span>)]</span>
-            <span class="ident">Group::Compiler</span>(<span class="ident">g</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Span::Compiler</span>(<span class="ident">g</span>.<span class="ident">span_open</span>()),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">proc_macro_span</span>))]</span>
-            <span class="ident">Group::Compiler</span>(<span class="ident">g</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Span::Compiler</span>(<span class="ident">g</span>.<span class="ident">span</span>()),
-            <span class="ident">Group::Fallback</span>(<span class="ident">g</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Span::Fallback</span>(<span class="ident">g</span>.<span class="ident">span_open</span>()),
-        }
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span_close</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span_open</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Span</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">proc_macro_span</span>)]</span>
-            <span class="ident">Group::Compiler</span>(<span class="ident">g</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Span::Compiler</span>(<span class="ident">g</span>.<span class="ident">span_close</span>()),
+            <span class="ident">Group::Compiler</span>(<span class="ident">g</span>) =&gt; <span class="ident">Span::Compiler</span>(<span class="ident">g</span>.<span class="ident">span_open</span>()),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">proc_macro_span</span>))]</span>
-            <span class="ident">Group::Compiler</span>(<span class="ident">g</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Span::Compiler</span>(<span class="ident">g</span>.<span class="ident">span</span>()),
-            <span class="ident">Group::Fallback</span>(<span class="ident">g</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Span::Fallback</span>(<span class="ident">g</span>.<span class="ident">span_close</span>()),
+            <span class="ident">Group::Compiler</span>(<span class="ident">g</span>) =&gt; <span class="ident">Span::Compiler</span>(<span class="ident">g</span>.<span class="ident">span</span>()),
+            <span class="ident">Group::Fallback</span>(<span class="ident">g</span>) =&gt; <span class="ident">Span::Fallback</span>(<span class="ident">g</span>.<span class="ident">span_open</span>()),
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span_close</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Span</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">proc_macro_span</span>)]</span>
+            <span class="ident">Group::Compiler</span>(<span class="ident">g</span>) =&gt; <span class="ident">Span::Compiler</span>(<span class="ident">g</span>.<span class="ident">span_close</span>()),
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">proc_macro_span</span>))]</span>
+            <span class="ident">Group::Compiler</span>(<span class="ident">g</span>) =&gt; <span class="ident">Span::Compiler</span>(<span class="ident">g</span>.<span class="ident">span</span>()),
+            <span class="ident">Group::Fallback</span>(<span class="ident">g</span>) =&gt; <span class="ident">Span::Fallback</span>(<span class="ident">g</span>.<span class="ident">span_close</span>()),
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_span</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">span</span>: <span class="ident">Span</span>) {
         <span class="kw">match</span> (<span class="self">self</span>, <span class="ident">span</span>) {
-            (<span class="ident">Group::Compiler</span>(<span class="ident">g</span>), <span class="ident">Span::Compiler</span>(<span class="ident">s</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">g</span>.<span class="ident">set_span</span>(<span class="ident">s</span>),
-            (<span class="ident">Group::Fallback</span>(<span class="ident">g</span>), <span class="ident">Span::Fallback</span>(<span class="ident">s</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">g</span>.<span class="ident">set_span</span>(<span class="ident">s</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mismatch</span>(),
+            (<span class="ident">Group::Compiler</span>(<span class="ident">g</span>), <span class="ident">Span::Compiler</span>(<span class="ident">s</span>)) =&gt; <span class="ident">g</span>.<span class="ident">set_span</span>(<span class="ident">s</span>),
+            (<span class="ident">Group::Fallback</span>(<span class="ident">g</span>), <span class="ident">Span::Fallback</span>(<span class="ident">s</span>)) =&gt; <span class="ident">g</span>.<span class="ident">set_span</span>(<span class="ident">s</span>),
+            <span class="kw">_</span> =&gt; <span class="ident">mismatch</span>(),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">unwrap_nightly</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">proc_macro::Group</span> {
+    <span class="kw">fn</span> <span class="ident">unwrap_nightly</span>(<span class="self">self</span>) -&gt; <span class="ident">proc_macro::Group</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Group::Compiler</span>(<span class="ident">g</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">g</span>,
-            <span class="ident">Group::Fallback</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mismatch</span>(),
+            <span class="ident">Group::Compiler</span>(<span class="ident">g</span>) =&gt; <span class="ident">g</span>,
+            <span class="ident">Group::Fallback</span>(<span class="kw">_</span>) =&gt; <span class="ident">mismatch</span>(),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">fallback::Group</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Group</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">g</span>: <span class="ident">fallback::Group</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">g</span>: <span class="ident">fallback::Group</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">Group::Fallback</span>(<span class="ident">g</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Group</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Group::Compiler</span>(<span class="ident">group</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">group</span>, <span class="ident">formatter</span>),
-            <span class="ident">Group::Fallback</span>(<span class="ident">group</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">group</span>, <span class="ident">formatter</span>),
+            <span class="ident">Group::Compiler</span>(<span class="ident">group</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">group</span>, <span class="ident">formatter</span>),
+            <span class="ident">Group::Fallback</span>(<span class="ident">group</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">group</span>, <span class="ident">formatter</span>),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Group</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Group::Compiler</span>(<span class="ident">group</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Debug::fmt</span>(<span class="ident">group</span>, <span class="ident">formatter</span>),
-            <span class="ident">Group::Fallback</span>(<span class="ident">group</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Debug::fmt</span>(<span class="ident">group</span>, <span class="ident">formatter</span>),
+            <span class="ident">Group::Compiler</span>(<span class="ident">group</span>) =&gt; <span class="ident">Debug::fmt</span>(<span class="ident">group</span>, <span class="ident">formatter</span>),
+            <span class="ident">Group::Fallback</span>(<span class="ident">group</span>) =&gt; <span class="ident">Debug::fmt</span>(<span class="ident">group</span>, <span class="ident">formatter</span>),
         }
     }
 }
@@ -1651,59 +1651,59 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Ident</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">span</span>: <span class="ident">Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ident</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">span</span>: <span class="ident">Span</span>) -&gt; <span class="ident">Ident</span> {
         <span class="kw">match</span> <span class="ident">span</span> {
-            <span class="ident">Span::Compiler</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Ident::Compiler</span>(<span class="ident">proc_macro::Ident::new</span>(<span class="ident">string</span>, <span class="ident">s</span>)),
-            <span class="ident">Span::Fallback</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Ident::Fallback</span>(<span class="ident">fallback::Ident::new</span>(<span class="ident">string</span>, <span class="ident">s</span>)),
+            <span class="ident">Span::Compiler</span>(<span class="ident">s</span>) =&gt; <span class="ident">Ident::Compiler</span>(<span class="ident">proc_macro::Ident::new</span>(<span class="ident">string</span>, <span class="ident">s</span>)),
+            <span class="ident">Span::Fallback</span>(<span class="ident">s</span>) =&gt; <span class="ident">Ident::Fallback</span>(<span class="ident">fallback::Ident::new</span>(<span class="ident">string</span>, <span class="ident">s</span>)),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_raw</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">span</span>: <span class="ident">Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ident</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_raw</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">span</span>: <span class="ident">Span</span>) -&gt; <span class="ident">Ident</span> {
         <span class="kw">match</span> <span class="ident">span</span> {
-            <span class="ident">Span::Compiler</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Span::Compiler</span>(<span class="ident">s</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">p</span>: <span class="ident">proc_macro::TokenStream</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>();
                 <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">p</span>.<span class="ident">into_iter</span>().<span class="ident">next</span>() {
-                    <span class="prelude-val">Some</span>(<span class="ident">proc_macro::TokenTree::Ident</span>(<span class="kw-2">mut</span> <span class="ident">i</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Some</span>(<span class="ident">proc_macro::TokenTree::Ident</span>(<span class="kw-2">mut</span> <span class="ident">i</span>)) =&gt; {
                         <span class="ident">i</span>.<span class="ident">set_span</span>(<span class="ident">s</span>);
                         <span class="ident">i</span>
                     }
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(),
+                    <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(),
                 };
                 <span class="ident">Ident::Compiler</span>(<span class="ident">ident</span>)
             }
-            <span class="ident">Span::Fallback</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Ident::Fallback</span>(<span class="ident">fallback::Ident::new_raw</span>(<span class="ident">string</span>, <span class="ident">s</span>)),
+            <span class="ident">Span::Fallback</span>(<span class="ident">s</span>) =&gt; <span class="ident">Ident::Fallback</span>(<span class="ident">fallback::Ident::new_raw</span>(<span class="ident">string</span>, <span class="ident">s</span>)),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Span</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Ident::Compiler</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Span::Compiler</span>(<span class="ident">t</span>.<span class="ident">span</span>()),
-            <span class="ident">Ident::Fallback</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Span::Fallback</span>(<span class="ident">t</span>.<span class="ident">span</span>()),
+            <span class="ident">Ident::Compiler</span>(<span class="ident">t</span>) =&gt; <span class="ident">Span::Compiler</span>(<span class="ident">t</span>.<span class="ident">span</span>()),
+            <span class="ident">Ident::Fallback</span>(<span class="ident">t</span>) =&gt; <span class="ident">Span::Fallback</span>(<span class="ident">t</span>.<span class="ident">span</span>()),
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_span</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">span</span>: <span class="ident">Span</span>) {
         <span class="kw">match</span> (<span class="self">self</span>, <span class="ident">span</span>) {
-            (<span class="ident">Ident::Compiler</span>(<span class="ident">t</span>), <span class="ident">Span::Compiler</span>(<span class="ident">s</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span>.<span class="ident">set_span</span>(<span class="ident">s</span>),
-            (<span class="ident">Ident::Fallback</span>(<span class="ident">t</span>), <span class="ident">Span::Fallback</span>(<span class="ident">s</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span>.<span class="ident">set_span</span>(<span class="ident">s</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mismatch</span>(),
+            (<span class="ident">Ident::Compiler</span>(<span class="ident">t</span>), <span class="ident">Span::Compiler</span>(<span class="ident">s</span>)) =&gt; <span class="ident">t</span>.<span class="ident">set_span</span>(<span class="ident">s</span>),
+            (<span class="ident">Ident::Fallback</span>(<span class="ident">t</span>), <span class="ident">Span::Fallback</span>(<span class="ident">s</span>)) =&gt; <span class="ident">t</span>.<span class="ident">set_span</span>(<span class="ident">s</span>),
+            <span class="kw">_</span> =&gt; <span class="ident">mismatch</span>(),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">unwrap_nightly</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">proc_macro::Ident</span> {
+    <span class="kw">fn</span> <span class="ident">unwrap_nightly</span>(<span class="self">self</span>) -&gt; <span class="ident">proc_macro::Ident</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Ident::Compiler</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>,
-            <span class="ident">Ident::Fallback</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mismatch</span>(),
+            <span class="ident">Ident::Compiler</span>(<span class="ident">s</span>) =&gt; <span class="ident">s</span>,
+            <span class="ident">Ident::Fallback</span>(<span class="kw">_</span>) =&gt; <span class="ident">mismatch</span>(),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">Ident</span> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">Ident</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">Ident</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
-            (<span class="ident">Ident::Compiler</span>(<span class="ident">t</span>), <span class="ident">Ident::Compiler</span>(<span class="ident">o</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span>.<span class="ident">to_string</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">o</span>.<span class="ident">to_string</span>(),
-            (<span class="ident">Ident::Fallback</span>(<span class="ident">t</span>), <span class="ident">Ident::Fallback</span>(<span class="ident">o</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span> <span class="op">=</span><span class="op">=</span> <span class="ident">o</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mismatch</span>(),
+            (<span class="ident">Ident::Compiler</span>(<span class="ident">t</span>), <span class="ident">Ident::Compiler</span>(<span class="ident">o</span>)) =&gt; <span class="ident">t</span>.<span class="ident">to_string</span>() <span class="op">==</span> <span class="ident">o</span>.<span class="ident">to_string</span>(),
+            (<span class="ident">Ident::Fallback</span>(<span class="ident">t</span>), <span class="ident">Ident::Fallback</span>(<span class="ident">o</span>)) =&gt; <span class="ident">t</span> <span class="op">==</span> <span class="ident">o</span>,
+            <span class="kw">_</span> =&gt; <span class="ident">mismatch</span>(),
         }
     }
 }
@@ -1712,29 +1712,29 @@
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
 {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="ident">other</span> <span class="op">=</span> <span class="ident">other</span>.<span class="ident">as_ref</span>();
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Ident::Compiler</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span>.<span class="ident">to_string</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>,
-            <span class="ident">Ident::Fallback</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>,
+            <span class="ident">Ident::Compiler</span>(<span class="ident">t</span>) =&gt; <span class="ident">t</span>.<span class="ident">to_string</span>() <span class="op">==</span> <span class="ident">other</span>,
+            <span class="ident">Ident::Fallback</span>(<span class="ident">t</span>) =&gt; <span class="ident">t</span> <span class="op">==</span> <span class="ident">other</span>,
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Ident</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Ident::Compiler</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">t</span>, <span class="ident">f</span>),
-            <span class="ident">Ident::Fallback</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">t</span>, <span class="ident">f</span>),
+            <span class="ident">Ident::Compiler</span>(<span class="ident">t</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">t</span>, <span class="ident">f</span>),
+            <span class="ident">Ident::Fallback</span>(<span class="ident">t</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">t</span>, <span class="ident">f</span>),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Ident</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Ident::Compiler</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Debug::fmt</span>(<span class="ident">t</span>, <span class="ident">f</span>),
-            <span class="ident">Ident::Fallback</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Debug::fmt</span>(<span class="ident">t</span>, <span class="ident">f</span>),
+            <span class="ident">Ident::Compiler</span>(<span class="ident">t</span>) =&gt; <span class="ident">Debug::fmt</span>(<span class="ident">t</span>, <span class="ident">f</span>),
+            <span class="ident">Ident::Fallback</span>(<span class="ident">t</span>) =&gt; <span class="ident">Debug::fmt</span>(<span class="ident">t</span>, <span class="ident">f</span>),
         }
     }
 }
@@ -1746,8 +1746,8 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">suffixed_numbers</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">kind</span>:<span class="ident">ident</span>,)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> ($(
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="ident">n</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">kind</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Literal</span> {
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">kind</span>:<span class="ident">ident</span>,)<span class="kw-2">*</span>) =&gt; ($(
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="ident">n</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">kind</span>) -&gt; <span class="ident">Literal</span> {
             <span class="kw">if</span> <span class="ident">inside_proc_macro</span>() {
                 <span class="ident">Literal::Compiler</span>(<span class="ident">proc_macro::Literal</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="ident">n</span>))
             } <span class="kw">else</span> {
@@ -1758,8 +1758,8 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">unsuffixed_integers</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">kind</span>:<span class="ident">ident</span>,)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> ($(
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="ident">n</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">kind</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Literal</span> {
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">kind</span>:<span class="ident">ident</span>,)<span class="kw-2">*</span>) =&gt; ($(
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="ident">n</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">kind</span>) -&gt; <span class="ident">Literal</span> {
             <span class="kw">if</span> <span class="ident">inside_proc_macro</span>() {
                 <span class="ident">Literal::Compiler</span>(<span class="ident">proc_macro::Literal</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="ident">n</span>))
             } <span class="kw">else</span> {
@@ -1771,39 +1771,39 @@
 
 <span class="kw">impl</span> <span class="ident">Literal</span> {
     <span class="macro">suffixed_numbers!</span> {
-        <span class="ident">u8_suffixed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">u8</span>,
-        <span class="ident">u16_suffixed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">u16</span>,
-        <span class="ident">u32_suffixed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">u32</span>,
-        <span class="ident">u64_suffixed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">u64</span>,
-        <span class="ident">u128_suffixed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">u128</span>,
-        <span class="ident">usize_suffixed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">usize</span>,
-        <span class="ident">i8_suffixed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i8</span>,
-        <span class="ident">i16_suffixed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i16</span>,
-        <span class="ident">i32_suffixed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i32</span>,
-        <span class="ident">i64_suffixed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i64</span>,
-        <span class="ident">i128_suffixed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i128</span>,
-        <span class="ident">isize_suffixed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">isize</span>,
+        <span class="ident">u8_suffixed</span> =&gt; <span class="ident">u8</span>,
+        <span class="ident">u16_suffixed</span> =&gt; <span class="ident">u16</span>,
+        <span class="ident">u32_suffixed</span> =&gt; <span class="ident">u32</span>,
+        <span class="ident">u64_suffixed</span> =&gt; <span class="ident">u64</span>,
+        <span class="ident">u128_suffixed</span> =&gt; <span class="ident">u128</span>,
+        <span class="ident">usize_suffixed</span> =&gt; <span class="ident">usize</span>,
+        <span class="ident">i8_suffixed</span> =&gt; <span class="ident">i8</span>,
+        <span class="ident">i16_suffixed</span> =&gt; <span class="ident">i16</span>,
+        <span class="ident">i32_suffixed</span> =&gt; <span class="ident">i32</span>,
+        <span class="ident">i64_suffixed</span> =&gt; <span class="ident">i64</span>,
+        <span class="ident">i128_suffixed</span> =&gt; <span class="ident">i128</span>,
+        <span class="ident">isize_suffixed</span> =&gt; <span class="ident">isize</span>,
 
-        <span class="ident">f32_suffixed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f32</span>,
-        <span class="ident">f64_suffixed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f64</span>,
+        <span class="ident">f32_suffixed</span> =&gt; <span class="ident">f32</span>,
+        <span class="ident">f64_suffixed</span> =&gt; <span class="ident">f64</span>,
     }
 
     <span class="macro">unsuffixed_integers!</span> {
-        <span class="ident">u8_unsuffixed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">u8</span>,
-        <span class="ident">u16_unsuffixed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">u16</span>,
-        <span class="ident">u32_unsuffixed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">u32</span>,
-        <span class="ident">u64_unsuffixed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">u64</span>,
-        <span class="ident">u128_unsuffixed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">u128</span>,
-        <span class="ident">usize_unsuffixed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">usize</span>,
-        <span class="ident">i8_unsuffixed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i8</span>,
-        <span class="ident">i16_unsuffixed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i16</span>,
-        <span class="ident">i32_unsuffixed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i32</span>,
-        <span class="ident">i64_unsuffixed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i64</span>,
-        <span class="ident">i128_unsuffixed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i128</span>,
-        <span class="ident">isize_unsuffixed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">isize</span>,
+        <span class="ident">u8_unsuffixed</span> =&gt; <span class="ident">u8</span>,
+        <span class="ident">u16_unsuffixed</span> =&gt; <span class="ident">u16</span>,
+        <span class="ident">u32_unsuffixed</span> =&gt; <span class="ident">u32</span>,
+        <span class="ident">u64_unsuffixed</span> =&gt; <span class="ident">u64</span>,
+        <span class="ident">u128_unsuffixed</span> =&gt; <span class="ident">u128</span>,
+        <span class="ident">usize_unsuffixed</span> =&gt; <span class="ident">usize</span>,
+        <span class="ident">i8_unsuffixed</span> =&gt; <span class="ident">i8</span>,
+        <span class="ident">i16_unsuffixed</span> =&gt; <span class="ident">i16</span>,
+        <span class="ident">i32_unsuffixed</span> =&gt; <span class="ident">i32</span>,
+        <span class="ident">i64_unsuffixed</span> =&gt; <span class="ident">i64</span>,
+        <span class="ident">i128_unsuffixed</span> =&gt; <span class="ident">i128</span>,
+        <span class="ident">isize_unsuffixed</span> =&gt; <span class="ident">isize</span>,
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">f32_unsuffixed</span>(<span class="ident">f</span>: <span class="ident">f32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Literal</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">f32_unsuffixed</span>(<span class="ident">f</span>: <span class="ident">f32</span>) -&gt; <span class="ident">Literal</span> {
         <span class="kw">if</span> <span class="ident">inside_proc_macro</span>() {
             <span class="ident">Literal::Compiler</span>(<span class="ident">proc_macro::Literal::f32_unsuffixed</span>(<span class="ident">f</span>))
         } <span class="kw">else</span> {
@@ -1811,7 +1811,7 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">f64_unsuffixed</span>(<span class="ident">f</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Literal</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">f64_unsuffixed</span>(<span class="ident">f</span>: <span class="ident">f64</span>) -&gt; <span class="ident">Literal</span> {
         <span class="kw">if</span> <span class="ident">inside_proc_macro</span>() {
             <span class="ident">Literal::Compiler</span>(<span class="ident">proc_macro::Literal::f64_unsuffixed</span>(<span class="ident">f</span>))
         } <span class="kw">else</span> {
@@ -1819,7 +1819,7 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">string</span>(<span class="ident">t</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Literal</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">string</span>(<span class="ident">t</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">Literal</span> {
         <span class="kw">if</span> <span class="ident">inside_proc_macro</span>() {
             <span class="ident">Literal::Compiler</span>(<span class="ident">proc_macro::Literal::string</span>(<span class="ident">t</span>))
         } <span class="kw">else</span> {
@@ -1827,7 +1827,7 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">character</span>(<span class="ident">t</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Literal</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">character</span>(<span class="ident">t</span>: <span class="ident">char</span>) -&gt; <span class="ident">Literal</span> {
         <span class="kw">if</span> <span class="ident">inside_proc_macro</span>() {
             <span class="ident">Literal::Compiler</span>(<span class="ident">proc_macro::Literal::character</span>(<span class="ident">t</span>))
         } <span class="kw">else</span> {
@@ -1835,7 +1835,7 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">byte_string</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Literal</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">byte_string</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">Literal</span> {
         <span class="kw">if</span> <span class="ident">inside_proc_macro</span>() {
             <span class="ident">Literal::Compiler</span>(<span class="ident">proc_macro::Literal::byte_string</span>(<span class="ident">bytes</span>))
         } <span class="kw">else</span> {
@@ -1843,41 +1843,41 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Span</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Literal::Compiler</span>(<span class="ident">lit</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Span::Compiler</span>(<span class="ident">lit</span>.<span class="ident">span</span>()),
-            <span class="ident">Literal::Fallback</span>(<span class="ident">lit</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Span::Fallback</span>(<span class="ident">lit</span>.<span class="ident">span</span>()),
+            <span class="ident">Literal::Compiler</span>(<span class="ident">lit</span>) =&gt; <span class="ident">Span::Compiler</span>(<span class="ident">lit</span>.<span class="ident">span</span>()),
+            <span class="ident">Literal::Fallback</span>(<span class="ident">lit</span>) =&gt; <span class="ident">Span::Fallback</span>(<span class="ident">lit</span>.<span class="ident">span</span>()),
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_span</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">span</span>: <span class="ident">Span</span>) {
         <span class="kw">match</span> (<span class="self">self</span>, <span class="ident">span</span>) {
-            (<span class="ident">Literal::Compiler</span>(<span class="ident">lit</span>), <span class="ident">Span::Compiler</span>(<span class="ident">s</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">lit</span>.<span class="ident">set_span</span>(<span class="ident">s</span>),
-            (<span class="ident">Literal::Fallback</span>(<span class="ident">lit</span>), <span class="ident">Span::Fallback</span>(<span class="ident">s</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">lit</span>.<span class="ident">set_span</span>(<span class="ident">s</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mismatch</span>(),
+            (<span class="ident">Literal::Compiler</span>(<span class="ident">lit</span>), <span class="ident">Span::Compiler</span>(<span class="ident">s</span>)) =&gt; <span class="ident">lit</span>.<span class="ident">set_span</span>(<span class="ident">s</span>),
+            (<span class="ident">Literal::Fallback</span>(<span class="ident">lit</span>), <span class="ident">Span::Fallback</span>(<span class="ident">s</span>)) =&gt; <span class="ident">lit</span>.<span class="ident">set_span</span>(<span class="ident">s</span>),
+            <span class="kw">_</span> =&gt; <span class="ident">mismatch</span>(),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">subspan</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">RangeBounds</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">range</span>: <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">subspan</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">RangeBounds</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">range</span>: <span class="ident">R</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">proc_macro_span</span>)]</span>
-            <span class="ident">Literal::Compiler</span>(<span class="ident">lit</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">lit</span>.<span class="ident">subspan</span>(<span class="ident">range</span>).<span class="ident">map</span>(<span class="ident">Span::Compiler</span>),
+            <span class="ident">Literal::Compiler</span>(<span class="ident">lit</span>) =&gt; <span class="ident">lit</span>.<span class="ident">subspan</span>(<span class="ident">range</span>).<span class="ident">map</span>(<span class="ident">Span::Compiler</span>),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">proc_macro_span</span>))]</span>
-            <span class="ident">Literal::Compiler</span>(<span class="ident">_lit</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="ident">Literal::Fallback</span>(<span class="ident">lit</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">lit</span>.<span class="ident">subspan</span>(<span class="ident">range</span>).<span class="ident">map</span>(<span class="ident">Span::Fallback</span>),
+            <span class="ident">Literal::Compiler</span>(<span class="ident">_lit</span>) =&gt; <span class="prelude-val">None</span>,
+            <span class="ident">Literal::Fallback</span>(<span class="ident">lit</span>) =&gt; <span class="ident">lit</span>.<span class="ident">subspan</span>(<span class="ident">range</span>).<span class="ident">map</span>(<span class="ident">Span::Fallback</span>),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">unwrap_nightly</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">proc_macro::Literal</span> {
+    <span class="kw">fn</span> <span class="ident">unwrap_nightly</span>(<span class="self">self</span>) -&gt; <span class="ident">proc_macro::Literal</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Literal::Compiler</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>,
-            <span class="ident">Literal::Fallback</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mismatch</span>(),
+            <span class="ident">Literal::Compiler</span>(<span class="ident">s</span>) =&gt; <span class="ident">s</span>,
+            <span class="ident">Literal::Fallback</span>(<span class="kw">_</span>) =&gt; <span class="ident">mismatch</span>(),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">fallback::Literal</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Literal</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">s</span>: <span class="ident">fallback::Literal</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Literal</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">s</span>: <span class="ident">fallback::Literal</span>) -&gt; <span class="ident">Literal</span> {
         <span class="ident">Literal::Fallback</span>(<span class="ident">s</span>)
     }
 }
@@ -1885,7 +1885,7 @@
 <span class="kw">impl</span> <span class="ident">FromStr</span> <span class="kw">for</span> <span class="ident">Literal</span> {
     <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">LexError</span>;
 
-    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">repr</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">repr</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">inside_proc_macro</span>() {
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">literal_from_str</span>)]</span>
             {
@@ -1900,7 +1900,7 @@
                 <span class="kw">if</span> <span class="kw">let</span> (<span class="prelude-val">Some</span>(<span class="ident">proc_macro::TokenTree::Literal</span>(<span class="ident">literal</span>)), <span class="prelude-val">None</span>) <span class="op">=</span>
                     (<span class="ident">iter</span>.<span class="ident">next</span>(), <span class="ident">iter</span>.<span class="ident">next</span>())
                 {
-                    <span class="kw">if</span> <span class="ident">literal</span>.<span class="ident">to_string</span>().<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">repr</span>.<span class="ident">len</span>() {
+                    <span class="kw">if</span> <span class="ident">literal</span>.<span class="ident">to_string</span>().<span class="ident">len</span>() <span class="op">==</span> <span class="ident">repr</span>.<span class="ident">len</span>() {
                         <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Literal::Compiler</span>(<span class="ident">literal</span>));
                     }
                 }
@@ -1914,19 +1914,19 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Literal</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Literal::Compiler</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">t</span>, <span class="ident">f</span>),
-            <span class="ident">Literal::Fallback</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">t</span>, <span class="ident">f</span>),
+            <span class="ident">Literal::Compiler</span>(<span class="ident">t</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">t</span>, <span class="ident">f</span>),
+            <span class="ident">Literal::Fallback</span>(<span class="ident">t</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">t</span>, <span class="ident">f</span>),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Literal</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Literal::Compiler</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Debug::fmt</span>(<span class="ident">t</span>, <span class="ident">f</span>),
-            <span class="ident">Literal::Fallback</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Debug::fmt</span>(<span class="ident">t</span>, <span class="ident">f</span>),
+            <span class="ident">Literal::Compiler</span>(<span class="ident">t</span>) =&gt; <span class="ident">Debug::fmt</span>(<span class="ident">t</span>, <span class="ident">f</span>),
+            <span class="ident">Literal::Fallback</span>(<span class="ident">t</span>) =&gt; <span class="ident">Debug::fmt</span>(<span class="ident">t</span>, <span class="ident">f</span>),
         }
     }
 }

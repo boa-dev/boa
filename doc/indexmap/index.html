@@ -2,7 +2,7 @@
 pairs is independent of the hash values of the keys.</p>
 <p><a href="set/struct.IndexSet.html"><code>IndexSet</code></a> is a corresponding hash set using the same implementation and
 with similar properties.</p>
-<h3 id="feature-highlights" class="section-header"><a href="#feature-highlights">Feature Highlights</a></h3>
+<h4 id="feature-highlights" class="section-header"><a href="#feature-highlights">Feature Highlights</a></h4>
 <p><a href="map/struct.IndexMap.html"><code>IndexMap</code></a> and <a href="set/struct.IndexSet.html"><code>IndexSet</code></a> are drop-in compatible with the std <code>HashMap</code>
 and <code>HashSet</code>, but they also have some features of note:</p>
 <ul>
@@ -13,7 +13,7 @@ between borrowed and owned versions of keys.</li>
 <li>The <a href="map/trait.MutableKeys.html" title="map::MutableKeys"><code>MutableKeys</code></a> trait, which gives opt-in mutable
 access to hash map keys.</li>
 </ul>
-<h3 id="alternate-hashers" class="section-header"><a href="#alternate-hashers">Alternate Hashers</a></h3>
+<h4 id="alternate-hashers" class="section-header"><a href="#alternate-hashers">Alternate Hashers</a></h4>
 <p><a href="map/struct.IndexMap.html"><code>IndexMap</code></a> and <a href="set/struct.IndexSet.html"><code>IndexSet</code></a> have a default hasher type <code>S = RandomState</code>,
 just like the standard <code>HashMap</code> and <code>HashSet</code>, which is resistant to
 HashDoS attacks but not the most performant. Type aliases can make it easier
@@ -34,12 +34,12 @@ to use alternate hashers:</p>
 <span class="kw">let</span> <span class="ident">fx</span>: <span class="ident">FxIndexSet</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> <span class="op">=</span> (<span class="number">0</span>..<span class="number">100</span>).<span class="ident">collect</span>();
 <span class="macro">assert_eq!</span>(<span class="ident">std</span>, <span class="ident">fnv</span>);
 <span class="macro">assert_eq!</span>(<span class="ident">std</span>, <span class="ident">fx</span>);</code></pre></div>
-<h3 id="rust-version" class="section-header"><a href="#rust-version">Rust Version</a></h3>
+<h4 id="rust-version" class="section-header"><a href="#rust-version">Rust Version</a></h4>
 <p>This version of indexmap requires Rust 1.49 or later.</p>
 <p>The indexmap 1.x release series will use a carefully considered version
 upgrade policy, where in a later 1.x version, we will raise the minimum
 required Rust version.</p>
-<h2 id="no-standard-library-targets" class="section-header"><a href="#no-standard-library-targets">No Standard Library Targets</a></h2>
+<h3 id="no-standard-library-targets" class="section-header"><a href="#no-standard-library-targets">No Standard Library Targets</a></h3>
 <p>This crate supports being built without <code>std</code>, requiring
 <code>alloc</code> instead. This is enabled automatically when it is detected that
 <code>std</code> is not available. There is no crate feature to enable/disable to
@@ -55,15 +55,15 @@ from the crate <code>twox-hash</code>.</li>
 <li>Macros <a href="macro.indexmap.html" title="indexmap!"><code>indexmap!</code></a> and <a href="macro.indexset.html" title="indexset!"><code>indexset!</code></a> are unavailable without <code>std</code>.</li>
 </ul>
 </div></details><h2 id="reexports" class="section-header"><a href="#reexports">Re-exports</a></h2>
-<div class="item-table"><div class="item-left import-item"><code>pub use crate::map::<a class="struct" href="map/struct.IndexMap.html" title="struct indexmap::map::IndexMap">IndexMap</a>;</code></div><div class="item-right docblock-short"></div><div class="item-left import-item"><code>pub use crate::set::<a class="struct" href="set/struct.IndexSet.html" title="struct indexmap::set::IndexSet">IndexSet</a>;</code></div><div class="item-right docblock-short"></div></div><h2 id="modules" class="section-header"><a href="#modules">Modules</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="mod" href="map/index.html" title="indexmap::map mod">map</a></div><div class="item-right docblock-short"><p><code>IndexMap</code> is a hash table where the iteration order of the key-value
+<div class="item-table"><div class="item-row"><div class="item-left import-item"><code>pub use crate::map::<a class="struct" href="map/struct.IndexMap.html" title="struct indexmap::map::IndexMap">IndexMap</a>;</code></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left import-item"><code>pub use crate::set::<a class="struct" href="set/struct.IndexSet.html" title="struct indexmap::set::IndexSet">IndexSet</a>;</code></div><div class="item-right docblock-short"></div></div></div><h2 id="modules" class="section-header"><a href="#modules">Modules</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="mod" href="map/index.html" title="indexmap::map mod">map</a></div><div class="item-right docblock-short"><p><code>IndexMap</code> is a hash table where the iteration order of the key-value
 pairs is independent of the hash values of the keys.</p>
-</div><div class="item-left module-item"><a class="mod" href="set/index.html" title="indexmap::set mod">set</a></div><div class="item-right docblock-short"><p>A hash set implemented using <code>IndexMap</code></p>
-</div></div><h2 id="macros" class="section-header"><a href="#macros">Macros</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="macro" href="macro.indexmap.html" title="indexmap::indexmap macro">indexmap</a></div><div class="item-right docblock-short"><p>Create an <code>IndexMap</code> from a list of key-value pairs</p>
-</div><div class="item-left module-item"><a class="macro" href="macro.indexset.html" title="indexmap::indexset macro">indexset</a></div><div class="item-right docblock-short"><p>Create an <code>IndexSet</code> from a list of values</p>
-</div></div><h2 id="traits" class="section-header"><a href="#traits">Traits</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="trait" href="trait.Equivalent.html" title="indexmap::Equivalent trait">Equivalent</a></div><div class="item-right docblock-short"><p>Key equivalence trait.</p>
-</div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="indexmap" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="set/index.html" title="indexmap::set mod">set</a></div><div class="item-right docblock-short"><p>A hash set implemented using <code>IndexMap</code></p>
+</div></div></div><h2 id="macros" class="section-header"><a href="#macros">Macros</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="macro" href="macro.indexmap.html" title="indexmap::indexmap macro">indexmap</a></div><div class="item-right docblock-short"><p>Create an <code>IndexMap</code> from a list of key-value pairs</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="macro" href="macro.indexset.html" title="indexmap::indexset macro">indexset</a></div><div class="item-right docblock-short"><p>Create an <code>IndexSet</code> from a list of values</p>
+</div></div></div><h2 id="traits" class="section-header"><a href="#traits">Traits</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.Equivalent.html" title="indexmap::Equivalent trait">Equivalent</a></div><div class="item-right docblock-short"><p>Key equivalence trait.</p>
+</div></div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="indexmap" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
     <script src="../main.js"></script>
 </body></html>

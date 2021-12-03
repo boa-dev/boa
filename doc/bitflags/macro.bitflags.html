@@ -3,12 +3,12 @@
  {
      $($(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">inner</span> : <span class="ident">ident</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span> : <span class="ident">tt</span>) <span class="kw-2">*</span>]</span>) <span class="op">*</span> <span class="kw">const</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">Flag</span> : <span class="ident">ident</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span> :
        <span class="ident">expr</span> ;) <span class="op">*</span>
- } $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> : <span class="ident">tt</span>) <span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> { ... };
-    () <span class="op">=</span><span class="op">&gt;</span> { ... };
+ } $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> : <span class="ident">tt</span>) <span class="kw-2">*</span>) =&gt; { ... };
+    () =&gt; { ... };
 }</code></pre></div>
 </div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>The macro used to generate the flag structures.</p>
 <p>See the <a href="../bitflags/index.html">crate level docs</a> for complete documentation.</p>
-<h1 id="example" class="section-header"><a href="#example">Example</a></h1>
+<h2 id="example" class="section-header"><a href="#example">Example</a></h2>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">bitflags::bitflags</span>;
 
 <span class="macro">bitflags!</span> {
@@ -50,7 +50,7 @@ implementations:</p>
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Flags</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;hi!&quot;</span>)
     }
 }

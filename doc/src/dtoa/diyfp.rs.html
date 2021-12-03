@@ -288,14 +288,14 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">DiyFp</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">f</span>: <span class="ident">F</span>, <span class="ident">e</span>: <span class="ident">E</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">f</span>: <span class="ident">F</span>, <span class="ident">e</span>: <span class="ident">E</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">DiyFp</span> { <span class="ident">f</span>: <span class="ident">f</span>, <span class="ident">e</span>: <span class="ident">e</span> }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">ops::Mul</span> <span class="kw">for</span> <span class="ident">DiyFp</span><span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">i32</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="self">Self</span>;
-    <span class="kw">fn</span> <span class="ident">mul</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">mul</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmp</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">f</span> <span class="kw">as</span> <span class="ident">u64</span> <span class="op">*</span> <span class="ident">rhs</span>.<span class="ident">f</span> <span class="kw">as</span> <span class="ident">u64</span>;
         <span class="ident">tmp</span> <span class="op">+</span><span class="op">=</span> <span class="number">1u64</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">31</span>; <span class="comment">// mult_round</span>
         <span class="ident">DiyFp</span> {
@@ -307,7 +307,7 @@
 
 <span class="kw">impl</span> <span class="ident">ops::Mul</span> <span class="kw">for</span> <span class="ident">DiyFp</span><span class="op">&lt;</span><span class="ident">u64</span>, <span class="ident">isize</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="self">Self</span>;
-    <span class="kw">fn</span> <span class="ident">mul</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">mul</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">m32</span> <span class="op">=</span> <span class="number">0xFFFFFFFFu64</span>;
         <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">f</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">32</span>;
         <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">f</span> <span class="op">&amp;</span> <span class="ident">m32</span>;
@@ -343,7 +343,7 @@
     <span class="ident">cached_powers_f</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cached_powers_f</span>:<span class="ident">expr</span>,
     <span class="ident">cached_powers_e</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cached_powers_e</span>:<span class="ident">expr</span>,
     <span class="ident">min_power</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">min_power</span>:<span class="ident">expr</span>,
-) <span class="op">=</span><span class="op">&gt;</span> {
+) =&gt; {
 
 <span class="kw">type</span> <span class="ident">DiyFp</span> <span class="op">=</span> <span class="ident">diyfp::DiyFp</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">sigty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expty</span><span class="op">&gt;</span>;
 
@@ -369,7 +369,7 @@
         }
     }
     */</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">d</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fty</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">d</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fty</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">u</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">mask_type</span> <span class="op">=</span> <span class="ident">mem::transmute</span>(<span class="ident">d</span>);
 
         <span class="kw">let</span> <span class="ident">biased_e</span> <span class="op">=</span> ((<span class="ident">u</span> <span class="op">&amp;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">exponent_mask</span>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">significand_size</span>) <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expty</span>;
@@ -398,9 +398,9 @@
         return res;
     }
     */</span>
-    <span class="kw">fn</span> <span class="ident">normalize</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DiyFp</span> {
+    <span class="kw">fn</span> <span class="ident">normalize</span>(<span class="self">self</span>) -&gt; <span class="ident">DiyFp</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="self">self</span>;
-        <span class="kw">while</span> (<span class="ident">res</span>.<span class="ident">f</span> <span class="op">&amp;</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">diy_significand_size</span> <span class="op">-</span> <span class="number">1</span>))) <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">while</span> (<span class="ident">res</span>.<span class="ident">f</span> <span class="op">&amp;</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">diy_significand_size</span> <span class="op">-</span> <span class="number">1</span>))) <span class="op">==</span> <span class="number">0</span> {
             <span class="ident">res</span>.<span class="ident">f</span> <span class="op">&lt;</span><span class="op">&lt;</span><span class="op">=</span> <span class="number">1</span>;
             <span class="ident">res</span>.<span class="ident">e</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
         }
@@ -423,9 +423,9 @@
         return res;
     }
     */</span>
-    <span class="kw">fn</span> <span class="ident">normalize_boundary</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DiyFp</span> {
+    <span class="kw">fn</span> <span class="ident">normalize_boundary</span>(<span class="self">self</span>) -&gt; <span class="ident">DiyFp</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="self">self</span>;
-        <span class="kw">while</span> (<span class="ident">res</span>.<span class="ident">f</span> <span class="op">&amp;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">hidden_bit</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">1</span>) <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">while</span> (<span class="ident">res</span>.<span class="ident">f</span> <span class="op">&amp;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">hidden_bit</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">1</span>) <span class="op">==</span> <span class="number">0</span> {
             <span class="ident">res</span>.<span class="ident">f</span> <span class="op">&lt;</span><span class="op">&lt;</span><span class="op">=</span> <span class="number">1</span>;
             <span class="ident">res</span>.<span class="ident">e</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
         }
@@ -452,9 +452,9 @@
         *minus = mi;
     }
     */</span>
-    <span class="kw">fn</span> <span class="ident">normalized_boundaries</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">DiyFp</span>, <span class="ident">DiyFp</span>) {
+    <span class="kw">fn</span> <span class="ident">normalized_boundaries</span>(<span class="self">self</span>) -&gt; (<span class="ident">DiyFp</span>, <span class="ident">DiyFp</span>) {
         <span class="kw">let</span> <span class="ident">pl</span> <span class="op">=</span> <span class="ident">DiyFp::new</span>((<span class="self">self</span>.<span class="ident">f</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">1</span>) <span class="op">+</span> <span class="number">1</span>, <span class="self">self</span>.<span class="ident">e</span> <span class="op">-</span> <span class="number">1</span>).<span class="ident">normalize_boundary</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mi</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">f</span> <span class="op">=</span><span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">hidden_bit</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mi</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">f</span> <span class="op">==</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">hidden_bit</span> {
             <span class="ident">DiyFp::new</span>((<span class="self">self</span>.<span class="ident">f</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">2</span>) <span class="op">-</span> <span class="number">1</span>, <span class="self">self</span>.<span class="ident">e</span> <span class="op">-</span> <span class="number">2</span>)
         } <span class="kw">else</span> {
             <span class="ident">DiyFp::new</span>((<span class="self">self</span>.<span class="ident">f</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">1</span>) <span class="op">-</span> <span class="number">1</span>, <span class="self">self</span>.<span class="ident">e</span> <span class="op">-</span> <span class="number">1</span>)
@@ -467,7 +467,7 @@
 
 <span class="kw">impl</span> <span class="ident">ops::Sub</span> <span class="kw">for</span> <span class="ident">DiyFp</span> {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="self">Self</span>;
-    <span class="kw">fn</span> <span class="ident">sub</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">sub</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">DiyFp</span> {
             <span class="ident">f</span>: <span class="self">self</span>.<span class="ident">f</span> <span class="op">-</span> <span class="ident">rhs</span>.<span class="ident">f</span>,
             <span class="ident">e</span>: <span class="self">self</span>.<span class="ident">e</span>,
@@ -490,7 +490,7 @@ inline DiyFp GetCachedPower(int e, int* K) {
 }
 */</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">get_cached_power</span>(<span class="ident">e</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expty</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">DiyFp</span>, <span class="ident">isize</span>) {
+<span class="kw">fn</span> <span class="ident">get_cached_power</span>(<span class="ident">e</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expty</span>) -&gt; (<span class="ident">DiyFp</span>, <span class="ident">isize</span>) {
     <span class="kw">let</span> <span class="ident">dk</span> <span class="op">=</span> (<span class="number">3</span> <span class="op">-</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">diy_significand_size</span> <span class="op">-</span> <span class="ident">e</span>) <span class="kw">as</span> <span class="ident">f64</span> <span class="op">*</span> <span class="number">0.30102999566398114f64</span> <span class="op">-</span> (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">min_power</span> <span class="op">+</span> <span class="number">1</span>) <span class="kw">as</span> <span class="ident">f64</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">k</span> <span class="op">=</span> <span class="ident">dk</span> <span class="kw">as</span> <span class="ident">isize</span>;
     <span class="kw">if</span> <span class="ident">dk</span> <span class="op">-</span> <span class="ident">k</span> <span class="kw">as</span> <span class="ident">f64</span> <span class="op">&gt;</span> <span class="number">0.0</span> {

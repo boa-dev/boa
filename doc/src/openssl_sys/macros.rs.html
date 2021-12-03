@@ -301,7 +301,7 @@
         <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">meta</span>:<span class="ident">meta</span>),<span class="kw-2">*</span>)]</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">it</span>:<span class="ident">item</span>)<span class="op">*</span> }
     ) <span class="kw">else</span> <span class="op">*</span> <span class="kw">else</span> {
         $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">it2</span>:<span class="ident">item</span>)<span class="op">*</span>
-    }) <span class="op">=</span><span class="op">&gt;</span> {
+    }) =&gt; {
         <span class="macro">cfg_if!</span> {
             @<span class="ident">__items</span>
             () ;
@@ -316,7 +316,7 @@
         $(
             <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e_met</span>:<span class="ident">meta</span>),<span class="kw-2">*</span>)]</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e_it</span>:<span class="ident">item</span>)<span class="op">*</span> }
         )<span class="op">*</span>
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro">cfg_if!</span> {
             @<span class="ident">__items</span>
             () ;
@@ -330,8 +330,8 @@
     <span class="comment">//</span>
     <span class="comment">// Collects all the negated cfgs in a list at the beginning and after the</span>
     <span class="comment">// semicolon is all the remaining items</span>
-    (@<span class="ident">__items</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">not</span>:<span class="ident">meta</span>,)<span class="kw-2">*</span>) ; ) <span class="op">=</span><span class="op">&gt;</span> {};
-    (@<span class="ident">__items</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">not</span>:<span class="ident">meta</span>,)<span class="kw-2">*</span>) ; ( ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>:<span class="ident">meta</span>),<span class="kw-2">*</span>) ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">it</span>:<span class="ident">item</span>)<span class="kw-2">*</span>) ), $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">__items</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">not</span>:<span class="ident">meta</span>,)<span class="kw-2">*</span>) ; ) =&gt; {};
+    (@<span class="ident">__items</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">not</span>:<span class="ident">meta</span>,)<span class="kw-2">*</span>) ; ( ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>:<span class="ident">meta</span>),<span class="kw-2">*</span>) ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">it</span>:<span class="ident">item</span>)<span class="kw-2">*</span>) ), $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="comment">// Emit all items within one block, applying an approprate #[cfg]. The</span>
         <span class="comment">// #[cfg] will require all `$m` matchers specified and must also negate</span>
         <span class="comment">// all previous matchers.</span>
@@ -344,13 +344,13 @@
     };
 
     <span class="comment">// Internal macro to Apply a cfg attribute to a list of items</span>
-    (@<span class="ident">__apply</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>:<span class="ident">meta</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">it</span>:<span class="ident">item</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">__apply</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>:<span class="ident">meta</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">it</span>:<span class="ident">item</span>)<span class="kw-2">*</span>) =&gt; {
         $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>]</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">it</span>)<span class="op">*</span>
     };
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">stack</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ident</span>) =&gt; {
         <span class="macro">cfg_if!</span> {
             <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span> {
                 <span class="kw">pub</span> <span class="kw">enum</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {}
@@ -366,18 +366,18 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">const_fn</span>)]</span>
 <span class="macro">macro_rules!</span> <span class="ident">const_fn</span> {
-    ($(<span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg</span>:<span class="ident">ident</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>),<span class="kw-2">*</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret</span>:<span class="ident">ty</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">b</span>:<span class="ident">block</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    ($(<span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg</span>:<span class="ident">ident</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>),<span class="kw-2">*</span>) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret</span>:<span class="ident">ty</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">b</span>:<span class="ident">block</span>)<span class="kw-2">*</span>) =&gt; {
         $(
-            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>),<span class="kw-2">*</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">b</span>
+            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>),<span class="kw-2">*</span>) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">b</span>
         )<span class="op">*</span>
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">const_fn</span>))]</span>
 <span class="macro">macro_rules!</span> <span class="ident">const_fn</span> {
-    ($(<span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg</span>:<span class="ident">ident</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>),<span class="kw-2">*</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret</span>:<span class="ident">ty</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">b</span>:<span class="ident">block</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    ($(<span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg</span>:<span class="ident">ident</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>),<span class="kw-2">*</span>) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret</span>:<span class="ident">ty</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">b</span>:<span class="ident">block</span>)<span class="kw-2">*</span>) =&gt; {
         $(
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>),<span class="kw-2">*</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">b</span>
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>),<span class="kw-2">*</span>) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">b</span>
         )<span class="op">*</span>
     }
 }
@@ -416,7 +416,7 @@
         [ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">part_arg</span>:<span class="ident">tt</span>)<span class="op">*</span> ]
         [ <span class="attribute">#[<span class="ident">const_ptr_if</span>( $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cfg</span>:<span class="ident">tt</span>)<span class="op">*</span> )]</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg_rem</span>:<span class="ident">tt</span>)<span class="op">*</span> ]
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret_packed</span>:<span class="ident">tt</span>
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro">const_ptr_api!</span>( (<span class="ident">partialarg</span>) { <span class="attribute">#[<span class="ident">cfg</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cfg</span>)<span class="kw-2">*</span>)]</span>      $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_attr</span>]</span>)<span class="op">*</span> <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span> } <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args_packed</span> [ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">part_arg</span>)<span class="op">*</span> <span class="kw-2">*</span><span class="kw">const</span> ] [ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg_rem</span>)<span class="op">*</span> ] <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret_packed</span> );
         <span class="macro">const_ptr_api!</span>( (<span class="ident">partialarg</span>) { <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cfg</span>)<span class="kw-2">*</span>))]</span> $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_attr</span>]</span>)<span class="op">*</span> <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span> } <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args_packed</span> [ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">part_arg</span>)<span class="op">*</span> <span class="kw-2">*</span><span class="kw-2">mut</span>   ] [ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg_rem</span>)<span class="op">*</span> ] <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret_packed</span> );
     };
@@ -427,7 +427,7 @@
         [ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">part_arg</span>:<span class="ident">tt</span>)<span class="op">*</span> ]
         [ <span class="kw-2">*</span><span class="kw-2">mut</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg_rem</span>:<span class="ident">tt</span>)<span class="op">*</span> ]
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret_packed</span>:<span class="ident">tt</span>
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro">const_ptr_api!</span>( (<span class="ident">partialarg</span>) <span class="macro-nonterminal">$</span><span class="macro-nonterminal">def_packed</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args_packed</span> [ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">part_arg</span>)<span class="op">*</span> <span class="kw-2">*</span><span class="kw-2">mut</span> ] [ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg_rem</span>)<span class="op">*</span> ] <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret_packed</span> );
     };
     <span class="comment">// continue partial argument with `*const` pointer (might need special const handling in inner type)</span>
@@ -437,7 +437,7 @@
         [ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">part_arg</span>:<span class="ident">tt</span>)<span class="op">*</span> ]
         [ <span class="kw-2">*</span><span class="kw">const</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg_rem</span>:<span class="ident">tt</span>)<span class="op">*</span> ]
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret_packed</span>:<span class="ident">tt</span>
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro">const_ptr_api!</span>( (<span class="ident">partialarg</span>) <span class="macro-nonterminal">$</span><span class="macro-nonterminal">def_packed</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args_packed</span> [ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">part_arg</span>)<span class="op">*</span> <span class="kw-2">*</span><span class="kw">const</span> ] [ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg_rem</span>)<span class="op">*</span> ] <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret_packed</span> );
     };
     <span class="comment">// finish partial argument with trailing comma</span>
@@ -447,7 +447,7 @@
         [ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">part_arg</span>:<span class="ident">tt</span>)<span class="op">*</span> ]
         [ <span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg_ty</span>:<span class="ident">ty</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg_rem</span>:<span class="ident">tt</span>)<span class="op">*</span> ]
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret_packed</span>:<span class="ident">tt</span>
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro">const_ptr_api!</span>( (<span class="ident">parseargs</span>) <span class="macro-nonterminal">$</span><span class="macro-nonterminal">def_packed</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args_tt</span>)<span class="op">*</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">part_arg</span>)<span class="op">*</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg_ty</span> } } [ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg_rem</span>)<span class="op">*</span> ] <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret_packed</span> );
     };
     <span class="comment">// finish final partial argument (no trailing comma)</span>
@@ -457,7 +457,7 @@
         [ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">part_arg</span>:<span class="ident">tt</span>)<span class="op">*</span> ]
         [ <span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg_ty</span>:<span class="ident">ty</span> ]
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret_packed</span>:<span class="ident">tt</span>
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro">const_ptr_api!</span>( (<span class="ident">parseargs</span>) <span class="macro-nonterminal">$</span><span class="macro-nonterminal">def_packed</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args_tt</span>)<span class="op">*</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">part_arg</span>)<span class="op">*</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg_ty</span> } } [ ] <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret_packed</span> );
     };
 
@@ -469,7 +469,7 @@
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args_packed</span>:<span class="ident">tt</span>
         [ <span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg_name</span>:<span class="ident">ident</span> : $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg_rem</span>:<span class="ident">tt</span>)<span class="op">*</span> ]
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret_packed</span>:<span class="ident">tt</span>
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro">const_ptr_api!</span>( (<span class="ident">partialarg</span>) <span class="macro-nonterminal">$</span><span class="macro-nonterminal">def_packed</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args_packed</span> [ <span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg_name</span>: ] [ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg_rem</span>)<span class="op">*</span> ] <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret_packed</span> );
     };
     <span class="comment">// end of arguments, there is a return type; start parsing it</span>
@@ -477,8 +477,8 @@
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">def_packed</span>:<span class="ident">tt</span>
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args_packed</span>:<span class="ident">tt</span>
         [ ]
-        [ <span class="op">-</span><span class="op">&gt;</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rem</span>:<span class="ident">tt</span>)<span class="op">*</span> ]
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+        [ -&gt; $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rem</span>:<span class="ident">tt</span>)<span class="op">*</span> ]
+    ) =&gt; {
         <span class="macro">const_ptr_api!</span>( (<span class="ident">partialret</span>) <span class="macro-nonterminal">$</span><span class="macro-nonterminal">def_packed</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args_packed</span> [] [ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rem</span>)<span class="op">*</span> ] );
     };
     <span class="comment">// end of arguments, no return type</span>
@@ -487,7 +487,7 @@
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args_packed</span>:<span class="ident">tt</span>
         [ ]
         [ ]
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro">const_ptr_api!</span>( (<span class="ident">generate</span>) <span class="macro-nonterminal">$</span><span class="macro-nonterminal">def_packed</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args_packed</span> { () } );
     };
 
@@ -499,7 +499,7 @@
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args_packed</span>:<span class="ident">tt</span>
         [ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">part_ret</span>:<span class="ident">tt</span>)<span class="op">*</span> ]
         [ <span class="attribute">#[<span class="ident">const_ptr_if</span>( $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cfg</span>:<span class="ident">tt</span>)<span class="op">*</span> )]</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rem</span>:<span class="ident">tt</span>)<span class="op">*</span> ]
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro">const_ptr_api!</span>( (<span class="ident">partialret</span>) { <span class="attribute">#[<span class="ident">cfg</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cfg</span>)<span class="kw-2">*</span>)]</span>      $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_attr</span>]</span>)<span class="op">*</span> <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span> } <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args_packed</span> [ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">part_ret</span>)<span class="op">*</span> <span class="kw-2">*</span><span class="kw">const</span> ] [ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rem</span>)<span class="op">*</span> ] );
         <span class="macro">const_ptr_api!</span>( (<span class="ident">partialret</span>) { <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cfg</span>)<span class="kw-2">*</span>))]</span> $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_attr</span>]</span>)<span class="op">*</span> <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span> } <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args_packed</span> [ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">part_ret</span>)<span class="op">*</span> <span class="kw-2">*</span><span class="kw-2">mut</span>   ] [ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rem</span>)<span class="op">*</span> ] );
     };
@@ -509,7 +509,7 @@
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args_packed</span>:<span class="ident">tt</span>
         [ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">part_ret</span>:<span class="ident">tt</span>)<span class="op">*</span> ]
         [ <span class="kw-2">*</span><span class="kw-2">mut</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rem</span>:<span class="ident">tt</span>)<span class="op">*</span> ]
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro">const_ptr_api!</span>( (<span class="ident">partialret</span>) <span class="macro-nonterminal">$</span><span class="macro-nonterminal">def_packed</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args_packed</span> [ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">part_ret</span>)<span class="op">*</span> <span class="kw-2">*</span><span class="kw-2">mut</span> ] [ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rem</span>)<span class="op">*</span> ] );
     };
     <span class="comment">// `* const` part in return type; continue parsing to find inner conditional const ptr</span>
@@ -518,7 +518,7 @@
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args_packed</span>:<span class="ident">tt</span>
         [ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">part_ret</span>:<span class="ident">tt</span>)<span class="op">*</span> ]
         [ <span class="kw-2">*</span><span class="kw">const</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rem</span>:<span class="ident">tt</span>)<span class="op">*</span> ]
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro">const_ptr_api!</span>( (<span class="ident">partialret</span>) <span class="macro-nonterminal">$</span><span class="macro-nonterminal">def_packed</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args_packed</span> [ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">part_ret</span>)<span class="op">*</span> <span class="kw-2">*</span><span class="kw">const</span> ] [ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rem</span>)<span class="op">*</span> ] );
     };
     <span class="comment">// final part of return type</span>
@@ -527,7 +527,7 @@
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args_packed</span>:<span class="ident">tt</span>
         [ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">part_ret</span>:<span class="ident">tt</span>)<span class="op">*</span> ]
         [ <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret_ty</span>:<span class="ident">ty</span> ]
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro">const_ptr_api!</span>( (<span class="ident">generate</span>) <span class="macro-nonterminal">$</span><span class="macro-nonterminal">def_packed</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args_packed</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">part_ret</span>)<span class="op">*</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret_ty</span> } );
     };
 
@@ -537,12 +537,12 @@
         { $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_attr</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span> <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span>:<span class="ident">ident</span> }
         { $({ <span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg_name</span>:<span class="ident">ident</span>: $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg_ty</span>:<span class="ident">tt</span>)<span class="op">*</span> })<span class="op">*</span> }
         { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret_ty</span>:<span class="ident">ty</span> }
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
             $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_attr</span>]</span>)<span class="op">*</span>
             <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span>( $(
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg_name</span>: $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg_ty</span>)<span class="op">*</span>
-            ),<span class="op">*</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret_ty</span>;
+            ),<span class="op">*</span> ) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret_ty</span>;
         }
     };
 
@@ -554,7 +554,7 @@
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg_tts_packed</span>:<span class="ident">tt</span>
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret_packed</span>:<span class="ident">tt</span>
         [ ; $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rem</span>:<span class="ident">tt</span>)<span class="op">*</span> ]
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro">const_ptr_api!</span>( (<span class="ident">parseargs</span>) <span class="macro-nonterminal">$</span><span class="macro-nonterminal">def_packed</span> {} <span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg_tts_packed</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret_packed</span> );
         <span class="macro">const_ptr_api!</span>( (<span class="kw">extern</span>) [ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rem</span>)<span class="op">*</span> ] );
     };
@@ -566,7 +566,7 @@
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg_tts_packed</span>:<span class="ident">tt</span>
         [ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret_tt</span>:<span class="ident">tt</span>)<span class="op">*</span> ]
         [ <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>:<span class="ident">tt</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rem</span>:<span class="ident">tt</span>)<span class="op">*</span> ]
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro">const_ptr_api!</span>( (<span class="kw">fn</span>) <span class="macro-nonterminal">$</span><span class="macro-nonterminal">def_packed</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg_tts_packed</span> [ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret_tt</span>)<span class="op">*</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span> ] [ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rem</span>)<span class="op">*</span> ] );
     };
 
@@ -576,17 +576,17 @@
     ( (<span class="kw">extern</span>) [
         $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_attr</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span>
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span>:<span class="ident">ident</span>( $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg_rem</span>:<span class="ident">tt</span>)<span class="op">*</span> ) $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rem</span>:<span class="ident">tt</span>)<span class="op">*</span>
-    ] ) <span class="op">=</span><span class="op">&gt;</span> {
+    ] ) =&gt; {
         <span class="macro">const_ptr_api!</span>( (<span class="kw">fn</span>)
             { $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_attr</span>]</span>)<span class="op">*</span> <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span> } [ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg_rem</span>)<span class="op">*</span> ] [] [ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rem</span>)<span class="op">*</span> ]
         );
     };
     <span class="comment">// end of extern block</span>
-    ( (<span class="kw">extern</span>) [] ) <span class="op">=</span><span class="op">&gt;</span> {};
+    ( (<span class="kw">extern</span>) [] ) =&gt; {};
 
     <span class="comment">// ----------------------------------------------------------------</span>
     <span class="comment">// macro start; find extern block</span>
-    ( <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rem</span>:<span class="ident">tt</span>)<span class="op">*</span> } ) <span class="op">=</span><span class="op">&gt;</span> {
+    ( <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rem</span>:<span class="ident">tt</span>)<span class="op">*</span> } ) =&gt; {
         <span class="macro">const_ptr_api!</span>( (<span class="kw">extern</span>) [ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rem</span>)<span class="op">*</span> ] );
     };
 }

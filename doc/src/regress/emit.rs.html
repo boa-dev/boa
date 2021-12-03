@@ -304,17 +304,17 @@
 <span class="kw">use</span> <span class="ident">std::convert::TryInto</span>;
 
 <span class="doccomment">/// \return an anchor instruction for a given IR anchor.</span>
-<span class="kw">fn</span> <span class="ident">make_anchor</span>(<span class="ident">anchor_type</span>: <span class="ident">ir::AnchorType</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Insn</span> {
+<span class="kw">fn</span> <span class="ident">make_anchor</span>(<span class="ident">anchor_type</span>: <span class="ident">ir::AnchorType</span>) -&gt; <span class="ident">Insn</span> {
     <span class="kw">match</span> <span class="ident">anchor_type</span> {
-        <span class="ident">ir::AnchorType::StartOfLine</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Insn::StartOfLine</span>,
-        <span class="ident">ir::AnchorType::EndOfLine</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Insn::EndOfLine</span>,
+        <span class="ident">ir::AnchorType::StartOfLine</span> =&gt; <span class="ident">Insn::StartOfLine</span>,
+        <span class="ident">ir::AnchorType::EndOfLine</span> =&gt; <span class="ident">Insn::EndOfLine</span>,
     }
 }
 
 <span class="doccomment">/// Weirdly placed optimization.</span>
 <span class="doccomment">/// If the given bracket can be represented as ASCII contents, return the</span>
 <span class="doccomment">/// bitmap. Otherwise nothing.</span>
-<span class="kw">fn</span> <span class="ident">bracket_as_ascii</span>(<span class="ident">bc</span>: <span class="kw-2">&amp;</span><span class="ident">BracketContents</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AsciiBitmap</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">bracket_as_ascii</span>(<span class="ident">bc</span>: <span class="kw-2">&amp;</span><span class="ident">BracketContents</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AsciiBitmap</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">AsciiBitmap::default</span>();
     <span class="comment">// We just assume that inverted brackets contain non-ASCII characters.</span>
     <span class="kw">if</span> <span class="ident">bc</span>.<span class="ident">invert</span> {
@@ -343,14 +343,14 @@
 <span class="kw">impl</span> <span class="ident">Emitter</span> {
     <span class="doccomment">/// Emit a ByteSet instruction.</span>
     <span class="doccomment">/// We awkwardly optimize it like so.</span>
-    <span class="kw">fn</span> <span class="ident">make_byte_set_insn</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Insn</span> {
+    <span class="kw">fn</span> <span class="ident">make_byte_set_insn</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">Insn</span> {
         <span class="kw">match</span> <span class="ident">bytes</span>.<span class="ident">len</span>() {
-            <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Insn::JustFail</span>,
-            <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Insn::ByteSeq1</span>(<span class="ident">bytes</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
-            <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Insn::ByteSet2</span>(<span class="ident">ByteArraySet</span>(<span class="ident">bytes</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>())),
-            <span class="number">3</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Insn::ByteSet3</span>(<span class="ident">ByteArraySet</span>(<span class="ident">bytes</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>())),
-            <span class="number">4</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Insn::ByteSet4</span>(<span class="ident">ByteArraySet</span>(<span class="ident">bytes</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>())),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;Byte set is too long&quot;</span>),
+            <span class="number">0</span> =&gt; <span class="ident">Insn::JustFail</span>,
+            <span class="number">1</span> =&gt; <span class="ident">Insn::ByteSeq1</span>(<span class="ident">bytes</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
+            <span class="number">2</span> =&gt; <span class="ident">Insn::ByteSet2</span>(<span class="ident">ByteArraySet</span>(<span class="ident">bytes</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>())),
+            <span class="number">3</span> =&gt; <span class="ident">Insn::ByteSet3</span>(<span class="ident">ByteArraySet</span>(<span class="ident">bytes</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>())),
+            <span class="number">4</span> =&gt; <span class="ident">Insn::ByteSet4</span>(<span class="ident">ByteArraySet</span>(<span class="ident">bytes</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>())),
+            <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Byte set is too long&quot;</span>),
         }
     }
 
@@ -361,16 +361,16 @@
     }
 
     <span class="doccomment">/// Get an instruction at a given index.</span>
-    <span class="kw">fn</span> <span class="ident">get_insn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">idx</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Insn</span> {
+    <span class="kw">fn</span> <span class="ident">get_insn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">idx</span>: <span class="ident">u32</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Insn</span> {
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">result</span>.<span class="ident">insns</span>[<span class="ident">idx</span> <span class="kw">as</span> <span class="ident">usize</span>]
     }
 
     <span class="doccomment">/// \return the offset of the next instruction emitted.</span>
-    <span class="kw">fn</span> <span class="ident">next_offset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">next_offset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span> {
         <span class="self">self</span>.<span class="ident">result</span>.<span class="ident">insns</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">emit_insn_offset</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">insn</span>: <span class="ident">Insn</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">emit_insn_offset</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">insn</span>: <span class="ident">Insn</span>) -&gt; <span class="ident">u32</span> {
         <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_offset</span>();
         <span class="self">self</span>.<span class="ident">emit_insn</span>(<span class="ident">insn</span>);
         <span class="ident">ret</span>
@@ -380,23 +380,23 @@
     <span class="doccomment">/// TODO: make this non-recursive to avoid stack overflow.</span>
     <span class="kw">fn</span> <span class="ident">emit_node</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="ident">Node</span>) {
         <span class="kw">match</span> <span class="ident">node</span> {
-            <span class="ident">Node::Empty</span> <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="ident">Node::Goal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">emit_insn</span>(<span class="ident">Insn::Goal</span>),
-            <span class="ident">Node::Char</span> { <span class="ident">c</span>, <span class="ident">icase</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Node::Empty</span> =&gt; {}
+            <span class="ident">Node::Goal</span> =&gt; <span class="self">self</span>.<span class="ident">emit_insn</span>(<span class="ident">Insn::Goal</span>),
+            <span class="ident">Node::Char</span> { <span class="ident">c</span>, <span class="ident">icase</span> } =&gt; {
                 <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">c</span>;
                 <span class="kw">if</span> <span class="op">!</span><span class="kw-2">*</span><span class="ident">icase</span> {
                     <span class="self">self</span>.<span class="ident">emit_insn</span>(<span class="ident">Insn::Char</span>(<span class="ident">c</span>))
                 } <span class="kw">else</span> {
-                    <span class="macro">std::debug_assert!</span>(<span class="ident">unicode::fold</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">c</span>, <span class="string">&quot;Char should be folded&quot;</span>);
+                    <span class="macro">std::debug_assert!</span>(<span class="ident">unicode::fold</span>(<span class="ident">c</span>) <span class="op">==</span> <span class="ident">c</span>, <span class="string">&quot;Char should be folded&quot;</span>);
                     <span class="self">self</span>.<span class="ident">emit_insn</span>(<span class="ident">Insn::CharICase</span>(<span class="ident">c</span>))
                 }
             }
-            <span class="ident">Node::Cat</span>(<span class="ident">children</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Node::Cat</span>(<span class="ident">children</span>) =&gt; {
                 <span class="kw">for</span> <span class="ident">nn</span> <span class="kw">in</span> <span class="ident">children</span> {
                     <span class="self">self</span>.<span class="ident">emit_node</span>(<span class="ident">nn</span>)
                 }
             }
-            <span class="ident">Node::Alt</span>(<span class="ident">left</span>, <span class="ident">right</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Node::Alt</span>(<span class="ident">left</span>, <span class="ident">right</span>) =&gt; {
                 <span class="comment">// Alternation is followed by the primary branch and has a jump to secondary</span>
                 <span class="comment">// branch. After primary branch, jump to the continuation.</span>
                 <span class="kw">let</span> <span class="ident">alt_insn</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">emit_insn_offset</span>(<span class="ident">Insn::Alt</span> { <span class="ident">secondary</span>: <span class="number">0</span> });
@@ -408,31 +408,31 @@
 
                 <span class="comment">// Fix up our jump targets.</span>
                 <span class="kw">match</span> <span class="self">self</span>.<span class="ident">get_insn</span>(<span class="ident">alt_insn</span>) {
-                    <span class="ident">Insn::Alt</span> { <span class="ident">secondary</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">secondary</span> <span class="op">=</span> <span class="ident">right_branch</span>,
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;Should be an Alt instruction&quot;</span>),
+                    <span class="ident">Insn::Alt</span> { <span class="ident">secondary</span> } =&gt; <span class="kw-2">*</span><span class="ident">secondary</span> <span class="op">=</span> <span class="ident">right_branch</span>,
+                    <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Should be an Alt instruction&quot;</span>),
                 }
                 <span class="kw">match</span> <span class="self">self</span>.<span class="ident">get_insn</span>(<span class="ident">jump_insn</span>) {
-                    <span class="ident">Insn::Jump</span> { <span class="ident">target</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">target</span> <span class="op">=</span> <span class="ident">exit</span>,
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;Should be a Jump instruction&quot;</span>),
+                    <span class="ident">Insn::Jump</span> { <span class="ident">target</span> } =&gt; <span class="kw-2">*</span><span class="ident">target</span> <span class="op">=</span> <span class="ident">exit</span>,
+                    <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Should be a Jump instruction&quot;</span>),
                 }
             }
-            <span class="ident">Node::Bracket</span>(<span class="ident">contents</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Node::Bracket</span>(<span class="ident">contents</span>) =&gt; {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ascii_contents</span>) <span class="op">=</span> <span class="ident">bracket_as_ascii</span>(<span class="ident">contents</span>) {
                     <span class="self">self</span>.<span class="ident">emit_insn</span>(<span class="ident">Insn::AsciiBracket</span>(<span class="ident">ascii_contents</span>))
                 } <span class="kw">else</span> {
                     <span class="self">self</span>.<span class="ident">emit_insn</span>(<span class="ident">Insn::Bracket</span>(<span class="ident">contents</span>.<span class="ident">clone</span>()))
                 }
             }
-            <span class="ident">Node::MatchAny</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">emit_insn</span>(<span class="ident">Insn::MatchAny</span>),
-            <span class="ident">Node::MatchAnyExceptLineTerminator</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Node::MatchAny</span> =&gt; <span class="self">self</span>.<span class="ident">emit_insn</span>(<span class="ident">Insn::MatchAny</span>),
+            <span class="ident">Node::MatchAnyExceptLineTerminator</span> =&gt; {
                 <span class="self">self</span>.<span class="ident">emit_insn</span>(<span class="ident">Insn::MatchAnyExceptLineTerminator</span>)
             }
-            <span class="ident">Node::Anchor</span>(<span class="ident">anchor_type</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">emit_insn</span>(<span class="ident">make_anchor</span>(<span class="kw-2">*</span><span class="ident">anchor_type</span>)),
+            <span class="ident">Node::Anchor</span>(<span class="ident">anchor_type</span>) =&gt; <span class="self">self</span>.<span class="ident">emit_insn</span>(<span class="ident">make_anchor</span>(<span class="kw-2">*</span><span class="ident">anchor_type</span>)),
             <span class="ident">Node::Loop</span> {
                 <span class="ident">loopee</span>,
                 <span class="ident">quant</span>,
                 <span class="ident">enclosed_groups</span>,
-            } <span class="op">=</span><span class="op">&gt;</span> {
+            } =&gt; {
                 <span class="kw">let</span> <span class="ident">loop_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_loop_id</span>;
                 <span class="self">self</span>.<span class="ident">next_loop_id</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 <span class="kw">let</span> <span class="ident">loop_insn</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">emit_insn_offset</span>(<span class="ident">Insn::EnterLoop</span>(<span class="ident">LoopFields</span> {
@@ -452,11 +452,11 @@
                 <span class="comment">// Fix up our loop exit.</span>
                 <span class="kw">let</span> <span class="ident">exit</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_offset</span>();
                 <span class="kw">match</span> <span class="self">self</span>.<span class="ident">get_insn</span>(<span class="ident">loop_insn</span>) {
-                    <span class="ident">Insn::EnterLoop</span>(<span class="ident">fields</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">fields</span>.<span class="ident">exit</span> <span class="op">=</span> <span class="ident">exit</span>,
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;Should be an EnterLoop instruction&quot;</span>),
+                    <span class="ident">Insn::EnterLoop</span>(<span class="ident">fields</span>) =&gt; <span class="ident">fields</span>.<span class="ident">exit</span> <span class="op">=</span> <span class="ident">exit</span>,
+                    <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Should be an EnterLoop instruction&quot;</span>),
                 }
             }
-            <span class="ident">Node::Loop1CharBody</span> { <span class="ident">loopee</span>, <span class="ident">quant</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Node::Loop1CharBody</span> { <span class="ident">loopee</span>, <span class="ident">quant</span> } =&gt; {
                 <span class="self">self</span>.<span class="ident">emit_insn</span>(<span class="ident">Insn::Loop1CharBody</span> {
                     <span class="ident">min_iters</span>: <span class="ident">quant</span>.<span class="ident">min</span>,
                     <span class="ident">max_iters</span>: <span class="ident">quant</span>.<span class="ident">max</span>,
@@ -464,14 +464,14 @@
                 });
                 <span class="self">self</span>.<span class="ident">emit_node</span>(<span class="ident">loopee</span>);
             }
-            <span class="ident">Node::CaptureGroup</span>(<span class="ident">contents</span>, <span class="ident">group</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Node::CaptureGroup</span>(<span class="ident">contents</span>, <span class="ident">group</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">group</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">group</span> <span class="kw">as</span> <span class="ident">CaptureGroupID</span>;
                 <span class="self">self</span>.<span class="ident">result</span>.<span class="ident">groups</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 <span class="self">self</span>.<span class="ident">emit_insn</span>(<span class="ident">Insn::BeginCaptureGroup</span>(<span class="ident">group</span>));
                 <span class="self">self</span>.<span class="ident">emit_node</span>(<span class="ident">contents</span>);
                 <span class="self">self</span>.<span class="ident">emit_insn</span>(<span class="ident">Insn::EndCaptureGroup</span>(<span class="ident">group</span>));
             }
-            <span class="ident">Node::NamedCaptureGroup</span>(<span class="ident">contents</span>, <span class="ident">group</span>, <span class="ident">name</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Node::NamedCaptureGroup</span>(<span class="ident">contents</span>, <span class="ident">group</span>, <span class="ident">name</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">group</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">group</span> <span class="kw">as</span> <span class="ident">CaptureGroupID</span>;
                 <span class="self">self</span>.<span class="ident">result</span>.<span class="ident">groups</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 <span class="self">self</span>.<span class="ident">result</span>.<span class="ident">named_group_indices</span>.<span class="ident">insert</span>(<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">group</span>);
@@ -485,7 +485,7 @@
                 <span class="ident">start_group</span>,
                 <span class="ident">end_group</span>,
                 <span class="ident">contents</span>,
-            } <span class="op">=</span><span class="op">&gt;</span> {
+            } =&gt; {
                 <span class="kw">let</span> <span class="ident">lookaround</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">backwards</span> {
                     <span class="self">self</span>.<span class="ident">emit_insn_offset</span>(<span class="ident">Insn::LookbehindInsn</span> {
                         <span class="ident">negate</span>: <span class="kw-2">*</span><span class="ident">negate</span>,
@@ -511,24 +511,24 @@
                     <span class="ident">Insn::LookbehindInsn</span> {
                         <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">continuation</span>,
                         ..
-                    } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">continuation</span> <span class="op">=</span> <span class="ident">next_insn</span>,
+                    } =&gt; <span class="kw-2">*</span><span class="ident">continuation</span> <span class="op">=</span> <span class="ident">next_insn</span>,
                     <span class="ident">Insn::LookaheadInsn</span> {
                         <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">continuation</span>,
                         ..
-                    } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">continuation</span> <span class="op">=</span> <span class="ident">next_insn</span>,
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;Should be a Lookaround instruction&quot;</span>),
+                    } =&gt; <span class="kw-2">*</span><span class="ident">continuation</span> <span class="op">=</span> <span class="ident">next_insn</span>,
+                    <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Should be a Lookaround instruction&quot;</span>),
                 }
             }
-            <span class="ident">Node::WordBoundary</span> { <span class="ident">invert</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">emit_insn</span>(<span class="ident">Insn::WordBoundary</span> { <span class="ident">invert</span>: <span class="kw-2">*</span><span class="ident">invert</span> }),
-            <span class="kw-2">&amp;</span><span class="ident">Node::BackRef</span>(<span class="ident">group</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Node::WordBoundary</span> { <span class="ident">invert</span> } =&gt; <span class="self">self</span>.<span class="ident">emit_insn</span>(<span class="ident">Insn::WordBoundary</span> { <span class="ident">invert</span>: <span class="kw-2">*</span><span class="ident">invert</span> }),
+            <span class="kw-2">&amp;</span><span class="ident">Node::BackRef</span>(<span class="ident">group</span>) =&gt; {
                 <span class="macro">debug_assert!</span>(<span class="ident">group</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">1</span>, <span class="string">&quot;Group should not be zero&quot;</span>);
                 <span class="comment">// -1 because \1 matches the first capture group, which has index 0.</span>
                 <span class="self">self</span>.<span class="ident">emit_insn</span>(<span class="ident">Insn::BackRef</span>(<span class="ident">group</span> <span class="op">-</span> <span class="number">1</span>))
             }
 
-            <span class="ident">Node::ByteSet</span>(<span class="ident">bytes</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">emit_insn</span>(<span class="self">self</span>.<span class="ident">make_byte_set_insn</span>(<span class="ident">bytes</span>)),
+            <span class="ident">Node::ByteSet</span>(<span class="ident">bytes</span>) =&gt; <span class="self">self</span>.<span class="ident">emit_insn</span>(<span class="self">self</span>.<span class="ident">make_byte_set_insn</span>(<span class="ident">bytes</span>)),
 
-            <span class="ident">Node::CharSet</span>(<span class="ident">chars</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Node::CharSet</span>(<span class="ident">chars</span>) =&gt; {
                 <span class="macro">debug_assert!</span>(<span class="op">!</span><span class="ident">chars</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="ident">chars</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">MAX_CHAR_SET_LENGTH</span>);
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">arr</span> <span class="op">=</span> [<span class="ident">chars</span>[<span class="number">0</span>]; <span class="ident">MAX_CHAR_SET_LENGTH</span>];
                 <span class="ident">arr</span>[..<span class="ident">chars</span>.<span class="ident">len</span>()].<span class="ident">copy_from_slice</span>(<span class="ident">chars</span>.<span class="ident">as_slice</span>());
@@ -536,30 +536,30 @@
             }
 
             <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::assertions_on_constants</span>)]</span>
-            <span class="ident">Node::ByteSequence</span>(<span class="ident">bytes</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Node::ByteSequence</span>(<span class="ident">bytes</span>) =&gt; {
                 <span class="macro">assert!</span>(
-                    <span class="ident">MAX_BYTE_SEQ_LENGTH</span> <span class="op">=</span><span class="op">=</span> <span class="number">16</span>,
+                    <span class="ident">MAX_BYTE_SEQ_LENGTH</span> <span class="op">==</span> <span class="number">16</span>,
                     <span class="string">&quot;Need to update our emitting logic&quot;</span>
                 );
                 <span class="kw">for</span> <span class="ident">chunk</span> <span class="kw">in</span> <span class="ident">bytes</span>.<span class="ident">as_slice</span>().<span class="ident">chunks</span>(<span class="ident">MAX_BYTE_SEQ_LENGTH</span>) {
                     <span class="kw">let</span> <span class="ident">insn</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">chunk</span>.<span class="ident">len</span>() {
-                        <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Insn::ByteSeq1</span>(<span class="ident">chunk</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
-                        <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Insn::ByteSeq2</span>(<span class="ident">chunk</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
-                        <span class="number">3</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Insn::ByteSeq3</span>(<span class="ident">chunk</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
-                        <span class="number">4</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Insn::ByteSeq4</span>(<span class="ident">chunk</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
-                        <span class="number">5</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Insn::ByteSeq5</span>(<span class="ident">chunk</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
-                        <span class="number">6</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Insn::ByteSeq6</span>(<span class="ident">chunk</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
-                        <span class="number">7</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Insn::ByteSeq7</span>(<span class="ident">chunk</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
-                        <span class="number">8</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Insn::ByteSeq8</span>(<span class="ident">chunk</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
-                        <span class="number">9</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Insn::ByteSeq9</span>(<span class="ident">chunk</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
-                        <span class="number">10</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Insn::ByteSeq10</span>(<span class="ident">chunk</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
-                        <span class="number">11</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Insn::ByteSeq11</span>(<span class="ident">chunk</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
-                        <span class="number">12</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Insn::ByteSeq12</span>(<span class="ident">chunk</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
-                        <span class="number">13</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Insn::ByteSeq13</span>(<span class="ident">chunk</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
-                        <span class="number">14</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Insn::ByteSeq14</span>(<span class="ident">chunk</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
-                        <span class="number">15</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Insn::ByteSeq15</span>(<span class="ident">chunk</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
-                        <span class="number">16</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Insn::ByteSeq16</span>(<span class="ident">chunk</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
-                        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;Unexpected chunk size&quot;</span>),
+                        <span class="number">1</span> =&gt; <span class="ident">Insn::ByteSeq1</span>(<span class="ident">chunk</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
+                        <span class="number">2</span> =&gt; <span class="ident">Insn::ByteSeq2</span>(<span class="ident">chunk</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
+                        <span class="number">3</span> =&gt; <span class="ident">Insn::ByteSeq3</span>(<span class="ident">chunk</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
+                        <span class="number">4</span> =&gt; <span class="ident">Insn::ByteSeq4</span>(<span class="ident">chunk</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
+                        <span class="number">5</span> =&gt; <span class="ident">Insn::ByteSeq5</span>(<span class="ident">chunk</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
+                        <span class="number">6</span> =&gt; <span class="ident">Insn::ByteSeq6</span>(<span class="ident">chunk</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
+                        <span class="number">7</span> =&gt; <span class="ident">Insn::ByteSeq7</span>(<span class="ident">chunk</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
+                        <span class="number">8</span> =&gt; <span class="ident">Insn::ByteSeq8</span>(<span class="ident">chunk</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
+                        <span class="number">9</span> =&gt; <span class="ident">Insn::ByteSeq9</span>(<span class="ident">chunk</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
+                        <span class="number">10</span> =&gt; <span class="ident">Insn::ByteSeq10</span>(<span class="ident">chunk</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
+                        <span class="number">11</span> =&gt; <span class="ident">Insn::ByteSeq11</span>(<span class="ident">chunk</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
+                        <span class="number">12</span> =&gt; <span class="ident">Insn::ByteSeq12</span>(<span class="ident">chunk</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
+                        <span class="number">13</span> =&gt; <span class="ident">Insn::ByteSeq13</span>(<span class="ident">chunk</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
+                        <span class="number">14</span> =&gt; <span class="ident">Insn::ByteSeq14</span>(<span class="ident">chunk</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
+                        <span class="number">15</span> =&gt; <span class="ident">Insn::ByteSeq15</span>(<span class="ident">chunk</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
+                        <span class="number">16</span> =&gt; <span class="ident">Insn::ByteSeq16</span>(<span class="ident">chunk</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
+                        <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected chunk size&quot;</span>),
                     };
                     <span class="self">self</span>.<span class="ident">emit_insn</span>(<span class="ident">insn</span>)
                 }
@@ -569,7 +569,7 @@
 }
 
 <span class="doccomment">/// Compile the given IR to a CompiledRegex.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">emit</span>(<span class="ident">n</span>: <span class="kw-2">&amp;</span><span class="ident">ir::Regex</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CompiledRegex</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">emit</span>(<span class="ident">n</span>: <span class="kw-2">&amp;</span><span class="ident">ir::Regex</span>) -&gt; <span class="ident">CompiledRegex</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">emitter</span> <span class="op">=</span> <span class="ident">Emitter</span> {
         <span class="ident">next_loop_id</span>: <span class="number">0</span>,
         <span class="ident">result</span>: <span class="ident">CompiledRegex</span> {

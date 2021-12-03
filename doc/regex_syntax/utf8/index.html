@@ -4,7 +4,7 @@ to embed UTF-8 decoding. The most common use of this module is in conjunction
 with the <a href="../hir/struct.ClassUnicodeRange.html"><code>hir::ClassUnicodeRange</code></a> type.</p>
 <p>See the documentation on the <code>Utf8Sequences</code> iterator for more details and
 an example.</p>
-<h1 id="wait-what-is-this" class="section-header"><a href="#wait-what-is-this">Wait, what is this?</a></h1>
+<h2 id="wait-what-is-this" class="section-header"><a href="#wait-what-is-this">Wait, what is this?</a></h2>
 <p>This is simplest to explain with an example. Let’s say you wanted to test
 whether a particular byte sequence was a Cyrillic character. One possible
 scalar value range is <code>[0400-04FF]</code>. The set of allowed bytes for this
@@ -45,7 +45,7 @@ UTF-8, including encodings of surrogate codepoints.</p>
 [F4][80-8F][80-BF][80-BF]</code></pre></div>
 <p>This module automates the process of creating these byte ranges from ranges of
 Unicode scalar values.</p>
-<h1 id="lineage" class="section-header"><a href="#lineage">Lineage</a></h1>
+<h2 id="lineage" class="section-header"><a href="#lineage">Lineage</a></h2>
 <p>I got the idea and general implementation strategy from Russ Cox in his
 <a href="https://web.archive.org/web/20160404141123/https://swtch.com/%7Ersc/regexp/regexp3.html">article on regexps</a> and RE2.
 Russ Cox got it from Ken Thompson’s <code>grep</code> (no source, folk lore?).
@@ -53,10 +53,10 @@ I also got the idea from
 <a href="https://github.com/apache/lucene-solr/blob/ae93f4e7ac6a3908046391de35d4f50a0d3c59ca/lucene/core/src/java/org/apache/lucene/util/automaton/UTF32ToUTF8.java">Lucene</a>,
 which uses it for executing automata on their term index.</p>
 </div></details><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="struct" href="struct.Utf8Range.html" title="regex_syntax::utf8::Utf8Range struct">Utf8Range</a></div><div class="item-right docblock-short"><p>A single inclusive range of UTF-8 bytes.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.Utf8Sequences.html" title="regex_syntax::utf8::Utf8Sequences struct">Utf8Sequences</a></div><div class="item-right docblock-short"><p>An iterator over ranges of matching UTF-8 byte sequences.</p>
-</div></div><h2 id="enums" class="section-header"><a href="#enums">Enums</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="enum" href="enum.Utf8Sequence.html" title="regex_syntax::utf8::Utf8Sequence enum">Utf8Sequence</a></div><div class="item-right docblock-short"><p>Utf8Sequence represents a sequence of byte ranges.</p>
-</div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="regex_syntax" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Utf8Range.html" title="regex_syntax::utf8::Utf8Range struct">Utf8Range</a></div><div class="item-right docblock-short"><p>A single inclusive range of UTF-8 bytes.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Utf8Sequences.html" title="regex_syntax::utf8::Utf8Sequences struct">Utf8Sequences</a></div><div class="item-right docblock-short"><p>An iterator over ranges of matching UTF-8 byte sequences.</p>
+</div></div></div><h2 id="enums" class="section-header"><a href="#enums">Enums</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.Utf8Sequence.html" title="regex_syntax::utf8::Utf8Sequence enum">Utf8Sequence</a></div><div class="item-right docblock-short"><p>Utf8Sequence represents a sequence of byte ranges.</p>
+</div></div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="regex_syntax" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script>
 </body></html>

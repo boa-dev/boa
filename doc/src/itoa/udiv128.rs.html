@@ -45,7 +45,7 @@
 <span id="45">45</span>
 </pre><pre class="rust"><code><span class="doccomment">/// Multiply unsigned 128 bit integers, return upper 128 bits of the result</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">u128_mulhi</span>(<span class="ident">x</span>: <span class="ident">u128</span>, <span class="ident">y</span>: <span class="ident">u128</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u128</span> {
+<span class="kw">fn</span> <span class="ident">u128_mulhi</span>(<span class="ident">x</span>: <span class="ident">u128</span>, <span class="ident">y</span>: <span class="ident">u128</span>) -&gt; <span class="ident">u128</span> {
     <span class="kw">let</span> <span class="ident">x_lo</span> <span class="op">=</span> <span class="ident">x</span> <span class="kw">as</span> <span class="ident">u64</span>;
     <span class="kw">let</span> <span class="ident">x_hi</span> <span class="op">=</span> (<span class="ident">x</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">64</span>) <span class="kw">as</span> <span class="ident">u64</span>;
     <span class="kw">let</span> <span class="ident">y_lo</span> <span class="op">=</span> <span class="ident">y</span> <span class="kw">as</span> <span class="ident">u64</span>;
@@ -71,7 +71,7 @@
 <span class="doccomment">///   Implementation, 1994, pp. 61–72</span>
 <span class="doccomment">///</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">udivmod_1e19</span>(<span class="ident">n</span>: <span class="ident">u128</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">u128</span>, <span class="ident">u64</span>) {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">udivmod_1e19</span>(<span class="ident">n</span>: <span class="ident">u128</span>) -&gt; (<span class="ident">u128</span>, <span class="ident">u64</span>) {
     <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> <span class="number">10_000_000_000_000_000_000_u64</span>; <span class="comment">// 10^19</span>
 
     <span class="kw">let</span> <span class="ident">quot</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">n</span> <span class="op">&lt;</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">83</span> {

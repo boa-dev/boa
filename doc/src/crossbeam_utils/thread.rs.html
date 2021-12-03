@@ -730,9 +730,9 @@
 <span class="doccomment">///     });</span>
 <span class="doccomment">/// }).unwrap();</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">scope</span><span class="op">&lt;</span><span class="lifetime">&#39;env</span>, <span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">thread::Result</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">scope</span><span class="op">&lt;</span><span class="lifetime">&#39;env</span>, <span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">thread::Result</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">Scope</span><span class="op">&lt;</span><span class="lifetime">&#39;env</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>,
+    <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">Scope</span><span class="op">&lt;</span><span class="lifetime">&#39;env</span><span class="op">&gt;</span>) -&gt; <span class="ident">R</span>,
 {
     <span class="kw">let</span> <span class="ident">wg</span> <span class="op">=</span> <span class="ident">WaitGroup::new</span>();
     <span class="kw">let</span> <span class="ident">scope</span> <span class="op">=</span> <span class="ident">Scope</span>::<span class="op">&lt;</span><span class="lifetime">&#39;env</span><span class="op">&gt;</span> {
@@ -763,8 +763,8 @@
     <span class="comment">// If any of the child threads have panicked, return the panic errors.</span>
     <span class="comment">// Otherwise, everything is OK and return the result of `f`.</span>
     <span class="kw">match</span> <span class="ident">result</span> {
-        <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">panic::resume_unwind</span>(<span class="ident">err</span>),
-        <span class="prelude-val">Ok</span>(<span class="ident">res</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="ident">panic::resume_unwind</span>(<span class="ident">err</span>),
+        <span class="prelude-val">Ok</span>(<span class="ident">res</span>) =&gt; {
             <span class="kw">if</span> <span class="ident">panics</span>.<span class="ident">is_empty</span>() {
                 <span class="prelude-val">Ok</span>(<span class="ident">res</span>)
             } <span class="kw">else</span> {
@@ -827,9 +827,9 @@
     <span class="doccomment">///     assert_eq!(res, 42);</span>
     <span class="doccomment">/// }).unwrap();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">spawn</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span>, <span class="ident">F</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;scope</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ScopedJoinHandle</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span>, <span class="ident">T</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">spawn</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span>, <span class="ident">F</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;scope</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">ScopedJoinHandle</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span>, <span class="ident">T</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">Scope</span><span class="op">&lt;</span><span class="lifetime">&#39;env</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>,
+        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">Scope</span><span class="op">&lt;</span><span class="lifetime">&#39;env</span><span class="op">&gt;</span>) -&gt; <span class="ident">T</span>,
         <span class="ident">F</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;env</span>,
         <span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;env</span>,
     {
@@ -851,7 +851,7 @@
     <span class="doccomment">///         .unwrap();</span>
     <span class="doccomment">/// }).unwrap();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">builder</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;scope</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ScopedThreadBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span>, <span class="lifetime">&#39;env</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">builder</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;scope</span> <span class="self">self</span>) -&gt; <span class="ident">ScopedThreadBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span>, <span class="lifetime">&#39;env</span><span class="op">&gt;</span> {
         <span class="ident">ScopedThreadBuilder</span> {
             <span class="ident">scope</span>: <span class="self">self</span>,
             <span class="ident">builder</span>: <span class="ident">thread::Builder::new</span>(),
@@ -860,7 +860,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Scope</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">pad</span>(<span class="string">&quot;Scope { .. }&quot;</span>)
     }
 }
@@ -925,7 +925,7 @@
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [naming-threads]: std::thread#naming-threads</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">name</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ScopedThreadBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span>, <span class="lifetime">&#39;env</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">name</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="ident">String</span>) -&gt; <span class="ident">ScopedThreadBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span>, <span class="lifetime">&#39;env</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">builder</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">name</span>(<span class="ident">name</span>);
         <span class="self">self</span>
     }
@@ -950,7 +950,7 @@
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [stack-size]: std::thread#stack-size</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stack_size</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">size</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ScopedThreadBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span>, <span class="lifetime">&#39;env</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stack_size</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">size</span>: <span class="ident">usize</span>) -&gt; <span class="ident">ScopedThreadBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span>, <span class="lifetime">&#39;env</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">builder</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">stack_size</span>(<span class="ident">size</span>);
         <span class="self">self</span>
     }
@@ -992,9 +992,9 @@
     <span class="doccomment">///     assert_eq!(res, 42);</span>
     <span class="doccomment">/// }).unwrap();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">spawn</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">ScopedJoinHandle</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">spawn</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">ScopedJoinHandle</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">Scope</span><span class="op">&lt;</span><span class="lifetime">&#39;env</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>,
+        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">Scope</span><span class="op">&lt;</span><span class="lifetime">&#39;env</span><span class="op">&gt;</span>) -&gt; <span class="ident">T</span>,
         <span class="ident">F</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;env</span>,
         <span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;env</span>,
     {
@@ -1100,7 +1100,7 @@
     <span class="doccomment">///     assert!(res.is_err());</span>
     <span class="doccomment">/// }).unwrap();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">join</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">thread::Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">join</span>(<span class="self">self</span>) -&gt; <span class="ident">thread::Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="comment">// Take out the handle. The handle will surely be available because the root scope waits</span>
         <span class="comment">// for nested scopes before joining remaining threads.</span>
         <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">handle</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">take</span>().<span class="ident">unwrap</span>();
@@ -1123,7 +1123,7 @@
     <span class="doccomment">///     println!(&quot;The child thread ID: {:?}&quot;, handle.thread().id());</span>
     <span class="doccomment">/// }).unwrap();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thread</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">thread::Thread</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thread</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">thread::Thread</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">thread</span>
     }
 }
@@ -1133,13 +1133,13 @@
         <span class="kw">use</span> <span class="ident">std::os::unix::thread</span>::{<span class="ident">JoinHandleExt</span>, <span class="ident">RawPthread</span>};
 
         <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">JoinHandleExt</span> <span class="kw">for</span> <span class="ident">ScopedJoinHandle</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-            <span class="kw">fn</span> <span class="ident">as_pthread_t</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RawPthread</span> {
+            <span class="kw">fn</span> <span class="ident">as_pthread_t</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">RawPthread</span> {
                 <span class="comment">// Borrow the handle. The handle will surely be available because the root scope waits</span>
                 <span class="comment">// for nested scopes before joining remaining threads.</span>
                 <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">handle</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
                 <span class="ident">handle</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">as_pthread_t</span>()
             }
-            <span class="kw">fn</span> <span class="ident">into_pthread_t</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RawPthread</span> {
+            <span class="kw">fn</span> <span class="ident">into_pthread_t</span>(<span class="self">self</span>) -&gt; <span class="ident">RawPthread</span> {
                 <span class="self">self</span>.<span class="ident">as_pthread_t</span>()
             }
         }
@@ -1147,7 +1147,7 @@
         <span class="kw">use</span> <span class="ident">std::os::windows::io</span>::{<span class="ident">AsRawHandle</span>, <span class="ident">IntoRawHandle</span>, <span class="ident">RawHandle</span>};
 
         <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">AsRawHandle</span> <span class="kw">for</span> <span class="ident">ScopedJoinHandle</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-            <span class="kw">fn</span> <span class="ident">as_raw_handle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RawHandle</span> {
+            <span class="kw">fn</span> <span class="ident">as_raw_handle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">RawHandle</span> {
                 <span class="comment">// Borrow the handle. The handle will surely be available because the root scope waits</span>
                 <span class="comment">// for nested scopes before joining remaining threads.</span>
                 <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">handle</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
@@ -1156,7 +1156,7 @@
         }
 
         <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">IntoRawHandle</span> <span class="kw">for</span> <span class="ident">ScopedJoinHandle</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-            <span class="kw">fn</span> <span class="ident">into_raw_handle</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RawHandle</span> {
+            <span class="kw">fn</span> <span class="ident">into_raw_handle</span>(<span class="self">self</span>) -&gt; <span class="ident">RawHandle</span> {
                 <span class="self">self</span>.<span class="ident">as_raw_handle</span>()
             }
         }
@@ -1164,7 +1164,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">ScopedJoinHandle</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">pad</span>(<span class="string">&quot;ScopedJoinHandle { .. }&quot;</span>)
     }
 }

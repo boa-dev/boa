@@ -264,23 +264,23 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">et_run_indices</span> <span class="op">=</span> <span class="ident">Vec::new</span>(); <span class="comment">// for W5</span>
 
     <span class="comment">// Like sequence.runs.iter().flat_map(Clone::clone), but make indices itself clonable.</span>
-    <span class="kw">fn</span> <span class="ident">id</span>(<span class="ident">x</span>: <span class="ident">LevelRun</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LevelRun</span> {
+    <span class="kw">fn</span> <span class="ident">id</span>(<span class="ident">x</span>: <span class="ident">LevelRun</span>) -&gt; <span class="ident">LevelRun</span> {
         <span class="ident">x</span>
     }
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">indices</span> <span class="op">=</span> <span class="ident">sequence</span>.<span class="ident">runs</span>.<span class="ident">iter</span>().<span class="ident">cloned</span>().<span class="ident">flat_map</span>(
-        <span class="ident">id</span> <span class="kw">as</span> <span class="kw">fn</span>(<span class="ident">LevelRun</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LevelRun</span>,
+        <span class="ident">id</span> <span class="kw">as</span> <span class="kw">fn</span>(<span class="ident">LevelRun</span>) -&gt; <span class="ident">LevelRun</span>,
     );
 
     <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">i</span>) <span class="op">=</span> <span class="ident">indices</span>.<span class="ident">next</span>() {
         <span class="kw">match</span> <span class="ident">processing_classes</span>[<span class="ident">i</span>] {
             <span class="comment">// &lt;http://www.unicode.org/reports/tr9/#W1&gt;</span>
-            <span class="ident">NSM</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">NSM</span> =&gt; {
                 <span class="ident">processing_classes</span>[<span class="ident">i</span>] <span class="op">=</span> <span class="kw">match</span> <span class="ident">prev_class</span> {
-                    <span class="ident">RLI</span> <span class="op">|</span> <span class="ident">LRI</span> <span class="op">|</span> <span class="ident">FSI</span> <span class="op">|</span> <span class="ident">PDI</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ON</span>,
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">prev_class</span>,
+                    <span class="ident">RLI</span> <span class="op">|</span> <span class="ident">LRI</span> <span class="op">|</span> <span class="ident">FSI</span> <span class="op">|</span> <span class="ident">PDI</span> =&gt; <span class="ident">ON</span>,
+                    <span class="kw">_</span> =&gt; <span class="ident">prev_class</span>,
                 };
             }
-            <span class="ident">EN</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">EN</span> =&gt; {
                 <span class="kw">if</span> <span class="ident">last_strong_is_al</span> {
                     <span class="comment">// W2. If previous strong char was AL, change EN to AN.</span>
                     <span class="ident">processing_classes</span>[<span class="ident">i</span>] <span class="op">=</span> <span class="ident">AN</span>;
@@ -293,29 +293,29 @@
                 }
             }
             <span class="comment">// &lt;http://www.unicode.org/reports/tr9/#W3&gt;</span>
-            <span class="ident">AL</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">processing_classes</span>[<span class="ident">i</span>] <span class="op">=</span> <span class="ident">R</span>,
+            <span class="ident">AL</span> =&gt; <span class="ident">processing_classes</span>[<span class="ident">i</span>] <span class="op">=</span> <span class="ident">R</span>,
 
             <span class="comment">// &lt;http://www.unicode.org/reports/tr9/#W4&gt;</span>
-            <span class="ident">ES</span> <span class="op">|</span> <span class="ident">CS</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ES</span> <span class="op">|</span> <span class="ident">CS</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">next_class</span> <span class="op">=</span> <span class="ident">indices</span>
                     .<span class="ident">clone</span>()
                     .<span class="ident">map</span>(<span class="op">|</span><span class="ident">j</span><span class="op">|</span> <span class="ident">processing_classes</span>[<span class="ident">j</span>])
                     .<span class="ident">find</span>(<span class="ident">not_removed_by_x9</span>)
                     .<span class="ident">unwrap_or</span>(<span class="ident">sequence</span>.<span class="ident">eos</span>);
                 <span class="ident">processing_classes</span>[<span class="ident">i</span>] <span class="op">=</span> <span class="kw">match</span> (<span class="ident">prev_class</span>, <span class="ident">processing_classes</span>[<span class="ident">i</span>], <span class="ident">next_class</span>) {
-                    (<span class="ident">EN</span>, <span class="ident">ES</span>, <span class="ident">EN</span>) <span class="op">|</span> (<span class="ident">EN</span>, <span class="ident">CS</span>, <span class="ident">EN</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">EN</span>,
-                    (<span class="ident">AN</span>, <span class="ident">CS</span>, <span class="ident">AN</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">AN</span>,
-                    (<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ON</span>,
+                    (<span class="ident">EN</span>, <span class="ident">ES</span>, <span class="ident">EN</span>) <span class="op">|</span> (<span class="ident">EN</span>, <span class="ident">CS</span>, <span class="ident">EN</span>) =&gt; <span class="ident">EN</span>,
+                    (<span class="ident">AN</span>, <span class="ident">CS</span>, <span class="ident">AN</span>) =&gt; <span class="ident">AN</span>,
+                    (<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="ident">ON</span>,
                 }
             }
             <span class="comment">// &lt;http://www.unicode.org/reports/tr9/#W5&gt;</span>
-            <span class="ident">ET</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ET</span> =&gt; {
                 <span class="kw">match</span> <span class="ident">prev_class</span> {
-                    <span class="ident">EN</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">processing_classes</span>[<span class="ident">i</span>] <span class="op">=</span> <span class="ident">EN</span>,
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">et_run_indices</span>.<span class="ident">push</span>(<span class="ident">i</span>), <span class="comment">// In case this is followed by an EN.</span>
+                    <span class="ident">EN</span> =&gt; <span class="ident">processing_classes</span>[<span class="ident">i</span>] <span class="op">=</span> <span class="ident">EN</span>,
+                    <span class="kw">_</span> =&gt; <span class="ident">et_run_indices</span>.<span class="ident">push</span>(<span class="ident">i</span>), <span class="comment">// In case this is followed by an EN.</span>
                 }
             }
-            <span class="ident">class</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">class</span> =&gt; {
                 <span class="kw">if</span> <span class="ident">removed_by_x9</span>(<span class="ident">class</span>) {
                     <span class="kw">continue</span>;
                 }
@@ -324,13 +324,13 @@
 
         <span class="ident">prev_class</span> <span class="op">=</span> <span class="ident">processing_classes</span>[<span class="ident">i</span>];
         <span class="kw">match</span> <span class="ident">prev_class</span> {
-            <span class="ident">L</span> <span class="op">|</span> <span class="ident">R</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">L</span> <span class="op">|</span> <span class="ident">R</span> =&gt; {
                 <span class="ident">last_strong_is_al</span> <span class="op">=</span> <span class="bool-val">false</span>;
             }
-            <span class="ident">AL</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">AL</span> =&gt; {
                 <span class="ident">last_strong_is_al</span> <span class="op">=</span> <span class="bool-val">true</span>;
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="kw">_</span> =&gt; {}
         }
         <span class="kw">if</span> <span class="ident">prev_class</span> <span class="op">!</span><span class="op">=</span> <span class="ident">ET</span> {
             <span class="comment">// W6. If we didn&#39;t find an adjacent EN, turn any ETs into ON instead.</span>
@@ -342,20 +342,20 @@
     }
 
     <span class="comment">// W7. If the previous strong char was L, change EN to L.</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_strong_is_l</span> <span class="op">=</span> <span class="ident">sequence</span>.<span class="ident">sos</span> <span class="op">=</span><span class="op">=</span> <span class="ident">L</span>;
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_strong_is_l</span> <span class="op">=</span> <span class="ident">sequence</span>.<span class="ident">sos</span> <span class="op">==</span> <span class="ident">L</span>;
     <span class="kw">for</span> <span class="ident">run</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">sequence</span>.<span class="ident">runs</span> {
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="ident">run</span>.<span class="ident">clone</span>() {
             <span class="kw">match</span> <span class="ident">processing_classes</span>[<span class="ident">i</span>] {
-                <span class="ident">EN</span> <span class="kw">if</span> <span class="ident">last_strong_is_l</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">EN</span> <span class="kw">if</span> <span class="ident">last_strong_is_l</span> =&gt; {
                     <span class="ident">processing_classes</span>[<span class="ident">i</span>] <span class="op">=</span> <span class="ident">L</span>;
                 }
-                <span class="ident">L</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">L</span> =&gt; {
                     <span class="ident">last_strong_is_l</span> <span class="op">=</span> <span class="bool-val">true</span>;
                 }
-                <span class="ident">R</span> <span class="op">|</span> <span class="ident">AL</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">R</span> <span class="op">|</span> <span class="ident">AL</span> =&gt; {
                     <span class="ident">last_strong_is_l</span> <span class="op">=</span> <span class="bool-val">false</span>;
                 }
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+                <span class="kw">_</span> =&gt; {}
             }
         }
     }
@@ -386,7 +386,7 @@
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">next_class</span>;
             <span class="kw">loop</span> {
                 <span class="kw">match</span> <span class="ident">indices</span>.<span class="ident">next</span>() {
-                    <span class="prelude-val">Some</span>(<span class="ident">j</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Some</span>(<span class="ident">j</span>) =&gt; {
                         <span class="ident">i</span> <span class="op">=</span> <span class="ident">j</span>;
                         <span class="kw">if</span> <span class="ident">removed_by_x9</span>(<span class="ident">processing_classes</span>[<span class="ident">i</span>]) {
                             <span class="kw">continue</span>;
@@ -398,7 +398,7 @@
                             <span class="kw">break</span>;
                         }
                     }
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">None</span> =&gt; {
                         <span class="ident">next_class</span> <span class="op">=</span> <span class="ident">sequence</span>.<span class="ident">eos</span>;
                         <span class="kw">break</span>;
                     }
@@ -410,10 +410,10 @@
             <span class="comment">// &lt;http://www.unicode.org/reports/tr9/#N1&gt;</span>
             <span class="comment">// &lt;http://www.unicode.org/reports/tr9/#N2&gt;</span>
             <span class="kw">let</span> <span class="ident">new_class</span> <span class="op">=</span> <span class="kw">match</span> (<span class="ident">prev_class</span>, <span class="ident">next_class</span>) {
-                (<span class="ident">L</span>, <span class="ident">L</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">L</span>,
+                (<span class="ident">L</span>, <span class="ident">L</span>) =&gt; <span class="ident">L</span>,
                 (<span class="ident">R</span>, <span class="ident">R</span>) <span class="op">|</span> (<span class="ident">R</span>, <span class="ident">AN</span>) <span class="op">|</span> (<span class="ident">R</span>, <span class="ident">EN</span>) <span class="op">|</span> (<span class="ident">AN</span>, <span class="ident">R</span>) <span class="op">|</span> (<span class="ident">AN</span>, <span class="ident">AN</span>) <span class="op">|</span> (<span class="ident">AN</span>, <span class="ident">EN</span>) <span class="op">|</span> (<span class="ident">EN</span>, <span class="ident">R</span>) <span class="op">|</span>
-                (<span class="ident">EN</span>, <span class="ident">AN</span>) <span class="op">|</span> (<span class="ident">EN</span>, <span class="ident">EN</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">R</span>,
-                (<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">e</span>,
+                (<span class="ident">EN</span>, <span class="ident">AN</span>) <span class="op">|</span> (<span class="ident">EN</span>, <span class="ident">EN</span>) =&gt; <span class="ident">R</span>,
+                (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="ident">e</span>,
             };
             <span class="kw">for</span> <span class="ident">j</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">ni_run</span> {
                 <span class="ident">processing_classes</span>[<span class="kw-2">*</span><span class="ident">j</span>] <span class="op">=</span> <span class="ident">new_class</span>;
@@ -430,17 +430,17 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// &lt;http://www.unicode.org/reports/tr9/#Resolving_Implicit_Levels&gt;</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;flame_it&quot;</span>, <span class="ident">flamer::flame</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resolve_levels</span>(<span class="ident">original_classes</span>: <span class="kw-2">&amp;</span>[<span class="ident">BidiClass</span>], <span class="ident">levels</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">Level</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Level</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resolve_levels</span>(<span class="ident">original_classes</span>: <span class="kw-2">&amp;</span>[<span class="ident">BidiClass</span>], <span class="ident">levels</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">Level</span>]) -&gt; <span class="ident">Level</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">max_level</span> <span class="op">=</span> <span class="ident">Level::ltr</span>();
 
     <span class="macro">assert_eq!</span>(<span class="ident">original_classes</span>.<span class="ident">len</span>(), <span class="ident">levels</span>.<span class="ident">len</span>());
     <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">levels</span>.<span class="ident">len</span>() {
         <span class="kw">match</span> (<span class="ident">levels</span>[<span class="ident">i</span>].<span class="ident">is_rtl</span>(), <span class="ident">original_classes</span>[<span class="ident">i</span>]) {
-            (<span class="bool-val">false</span>, <span class="ident">AN</span>) <span class="op">|</span> (<span class="bool-val">false</span>, <span class="ident">EN</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">levels</span>[<span class="ident">i</span>].<span class="ident">raise</span>(<span class="number">2</span>).<span class="ident">expect</span>(<span class="string">&quot;Level number error&quot;</span>),
-            (<span class="bool-val">false</span>, <span class="ident">R</span>) <span class="op">|</span> (<span class="bool-val">true</span>, <span class="ident">L</span>) <span class="op">|</span> (<span class="bool-val">true</span>, <span class="ident">EN</span>) <span class="op">|</span> (<span class="bool-val">true</span>, <span class="ident">AN</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            (<span class="bool-val">false</span>, <span class="ident">AN</span>) <span class="op">|</span> (<span class="bool-val">false</span>, <span class="ident">EN</span>) =&gt; <span class="ident">levels</span>[<span class="ident">i</span>].<span class="ident">raise</span>(<span class="number">2</span>).<span class="ident">expect</span>(<span class="string">&quot;Level number error&quot;</span>),
+            (<span class="bool-val">false</span>, <span class="ident">R</span>) <span class="op">|</span> (<span class="bool-val">true</span>, <span class="ident">L</span>) <span class="op">|</span> (<span class="bool-val">true</span>, <span class="ident">EN</span>) <span class="op">|</span> (<span class="bool-val">true</span>, <span class="ident">AN</span>) =&gt; {
                 <span class="ident">levels</span>[<span class="ident">i</span>].<span class="ident">raise</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;Level number error&quot;</span>)
             }
-            (<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
+            (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {}
         }
         <span class="ident">max_level</span> <span class="op">=</span> <span class="ident">max</span>(<span class="ident">max_level</span>, <span class="ident">levels</span>[<span class="ident">i</span>]);
     }
@@ -452,10 +452,10 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// &lt;http://www.unicode.org/reports/tr9/#NI&gt;</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_snake_case</span>)]</span>
-<span class="kw">fn</span> <span class="ident">is_NI</span>(<span class="ident">class</span>: <span class="ident">BidiClass</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">fn</span> <span class="ident">is_NI</span>(<span class="ident">class</span>: <span class="ident">BidiClass</span>) -&gt; <span class="ident">bool</span> {
     <span class="kw">match</span> <span class="ident">class</span> {
-        <span class="ident">B</span> <span class="op">|</span> <span class="ident">S</span> <span class="op">|</span> <span class="ident">WS</span> <span class="op">|</span> <span class="ident">ON</span> <span class="op">|</span> <span class="ident">FSI</span> <span class="op">|</span> <span class="ident">LRI</span> <span class="op">|</span> <span class="ident">RLI</span> <span class="op">|</span> <span class="ident">PDI</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+        <span class="ident">B</span> <span class="op">|</span> <span class="ident">S</span> <span class="op">|</span> <span class="ident">WS</span> <span class="op">|</span> <span class="ident">ON</span> <span class="op">|</span> <span class="ident">FSI</span> <span class="op">|</span> <span class="ident">LRI</span> <span class="op">|</span> <span class="ident">RLI</span> <span class="op">|</span> <span class="ident">PDI</span> =&gt; <span class="bool-val">true</span>,
+        <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
     }
 }
 </code></pre></div>

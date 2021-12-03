@@ -4033,7 +4033,7 @@
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// [`Arg::takes_value(true)`]: ./struct.Arg.html#method.takes_value</span>
     <span class="doccomment">/// [`Arg`]: ./struct.Arg.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_name</span>(<span class="ident">n</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_name</span>(<span class="ident">n</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">Arg</span> {
             <span class="ident">b</span>: <span class="ident">Base::new</span>(<span class="ident">n</span>),
             ..<span class="ident">Default::default</span>()
@@ -4055,7 +4055,7 @@
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// [`Arg`]: ./struct.Arg.html</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;yaml&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_yaml</span>(<span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">Yaml</span>, <span class="ident">Yaml</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Arg</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_yaml</span>(<span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">Yaml</span>, <span class="ident">Yaml</span><span class="op">&gt;</span>) -&gt; <span class="ident">Arg</span> {
         <span class="comment">// We WANT this to panic on error...so expect() is good.</span>
         <span class="kw">let</span> <span class="ident">name_yml</span> <span class="op">=</span> <span class="ident">y</span>.<span class="ident">keys</span>().<span class="ident">nth</span>(<span class="number">0</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">name_str</span> <span class="op">=</span> <span class="ident">name_yml</span>.<span class="ident">as_str</span>().<span class="ident">unwrap</span>();
@@ -4064,53 +4064,53 @@
 
         <span class="kw">for</span> (<span class="ident">k</span>, <span class="ident">v</span>) <span class="kw">in</span> <span class="ident">arg_settings</span>.<span class="ident">iter</span>() {
             <span class="ident">a</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">k</span>.<span class="ident">as_str</span>().<span class="ident">unwrap</span>() {
-                <span class="string">&quot;short&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_to_str!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">short</span>),
-                <span class="string">&quot;long&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_to_str!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">long</span>),
-                <span class="string">&quot;aliases&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_vec_or_str!</span>(<span class="ident">v</span>, <span class="ident">a</span>, <span class="ident">alias</span>),
-                <span class="string">&quot;help&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_to_str!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">help</span>),
-                <span class="string">&quot;long_help&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_to_str!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">long_help</span>),
-                <span class="string">&quot;required&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_to_bool!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">required</span>),
-                <span class="string">&quot;required_if&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_tuple2!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">required_if</span>),
-                <span class="string">&quot;required_ifs&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_tuple2!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">required_if</span>),
-                <span class="string">&quot;takes_value&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_to_bool!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">takes_value</span>),
-                <span class="string">&quot;index&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_to_u64!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">index</span>),
-                <span class="string">&quot;global&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_to_bool!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">global</span>),
-                <span class="string">&quot;multiple&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_to_bool!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">multiple</span>),
-                <span class="string">&quot;hidden&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_to_bool!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">hidden</span>),
-                <span class="string">&quot;next_line_help&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_to_bool!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">next_line_help</span>),
-                <span class="string">&quot;empty_values&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_to_bool!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">empty_values</span>),
-                <span class="string">&quot;group&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_to_str!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">group</span>),
-                <span class="string">&quot;number_of_values&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_to_u64!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">number_of_values</span>),
-                <span class="string">&quot;max_values&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_to_u64!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">max_values</span>),
-                <span class="string">&quot;min_values&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_to_u64!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">min_values</span>),
-                <span class="string">&quot;value_name&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_to_str!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">value_name</span>),
-                <span class="string">&quot;use_delimiter&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_to_bool!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">use_delimiter</span>),
-                <span class="string">&quot;allow_hyphen_values&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_to_bool!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">allow_hyphen_values</span>),
-                <span class="string">&quot;last&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_to_bool!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">last</span>),
-                <span class="string">&quot;require_delimiter&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_to_bool!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">require_delimiter</span>),
-                <span class="string">&quot;value_delimiter&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_to_str!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">value_delimiter</span>),
-                <span class="string">&quot;required_unless&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_to_str!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">required_unless</span>),
-                <span class="string">&quot;display_order&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_to_usize!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">display_order</span>),
-                <span class="string">&quot;default_value&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_to_str!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">default_value</span>),
-                <span class="string">&quot;default_value_if&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_tuple3!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">default_value_if</span>),
-                <span class="string">&quot;default_value_ifs&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_tuple3!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">default_value_if</span>),
-                <span class="string">&quot;env&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_to_str!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">env</span>),
-                <span class="string">&quot;value_names&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_vec_or_str!</span>(<span class="ident">v</span>, <span class="ident">a</span>, <span class="ident">value_name</span>),
-                <span class="string">&quot;groups&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_vec_or_str!</span>(<span class="ident">v</span>, <span class="ident">a</span>, <span class="ident">group</span>),
-                <span class="string">&quot;requires&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_vec_or_str!</span>(<span class="ident">v</span>, <span class="ident">a</span>, <span class="ident">requires</span>),
-                <span class="string">&quot;requires_if&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_tuple2!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">requires_if</span>),
-                <span class="string">&quot;requires_ifs&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_tuple2!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">requires_if</span>),
-                <span class="string">&quot;conflicts_with&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_vec_or_str!</span>(<span class="ident">v</span>, <span class="ident">a</span>, <span class="ident">conflicts_with</span>),
-                <span class="string">&quot;overrides_with&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_vec_or_str!</span>(<span class="ident">v</span>, <span class="ident">a</span>, <span class="ident">overrides_with</span>),
-                <span class="string">&quot;possible_values&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_vec_or_str!</span>(<span class="ident">v</span>, <span class="ident">a</span>, <span class="ident">possible_value</span>),
-                <span class="string">&quot;case_insensitive&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_to_bool!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">case_insensitive</span>),
-                <span class="string">&quot;required_unless_one&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_vec_or_str!</span>(<span class="ident">v</span>, <span class="ident">a</span>, <span class="ident">required_unless</span>),
-                <span class="string">&quot;required_unless_all&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="string">&quot;short&quot;</span> =&gt; <span class="macro">yaml_to_str!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">short</span>),
+                <span class="string">&quot;long&quot;</span> =&gt; <span class="macro">yaml_to_str!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">long</span>),
+                <span class="string">&quot;aliases&quot;</span> =&gt; <span class="macro">yaml_vec_or_str!</span>(<span class="ident">v</span>, <span class="ident">a</span>, <span class="ident">alias</span>),
+                <span class="string">&quot;help&quot;</span> =&gt; <span class="macro">yaml_to_str!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">help</span>),
+                <span class="string">&quot;long_help&quot;</span> =&gt; <span class="macro">yaml_to_str!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">long_help</span>),
+                <span class="string">&quot;required&quot;</span> =&gt; <span class="macro">yaml_to_bool!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">required</span>),
+                <span class="string">&quot;required_if&quot;</span> =&gt; <span class="macro">yaml_tuple2!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">required_if</span>),
+                <span class="string">&quot;required_ifs&quot;</span> =&gt; <span class="macro">yaml_tuple2!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">required_if</span>),
+                <span class="string">&quot;takes_value&quot;</span> =&gt; <span class="macro">yaml_to_bool!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">takes_value</span>),
+                <span class="string">&quot;index&quot;</span> =&gt; <span class="macro">yaml_to_u64!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">index</span>),
+                <span class="string">&quot;global&quot;</span> =&gt; <span class="macro">yaml_to_bool!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">global</span>),
+                <span class="string">&quot;multiple&quot;</span> =&gt; <span class="macro">yaml_to_bool!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">multiple</span>),
+                <span class="string">&quot;hidden&quot;</span> =&gt; <span class="macro">yaml_to_bool!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">hidden</span>),
+                <span class="string">&quot;next_line_help&quot;</span> =&gt; <span class="macro">yaml_to_bool!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">next_line_help</span>),
+                <span class="string">&quot;empty_values&quot;</span> =&gt; <span class="macro">yaml_to_bool!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">empty_values</span>),
+                <span class="string">&quot;group&quot;</span> =&gt; <span class="macro">yaml_to_str!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">group</span>),
+                <span class="string">&quot;number_of_values&quot;</span> =&gt; <span class="macro">yaml_to_u64!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">number_of_values</span>),
+                <span class="string">&quot;max_values&quot;</span> =&gt; <span class="macro">yaml_to_u64!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">max_values</span>),
+                <span class="string">&quot;min_values&quot;</span> =&gt; <span class="macro">yaml_to_u64!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">min_values</span>),
+                <span class="string">&quot;value_name&quot;</span> =&gt; <span class="macro">yaml_to_str!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">value_name</span>),
+                <span class="string">&quot;use_delimiter&quot;</span> =&gt; <span class="macro">yaml_to_bool!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">use_delimiter</span>),
+                <span class="string">&quot;allow_hyphen_values&quot;</span> =&gt; <span class="macro">yaml_to_bool!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">allow_hyphen_values</span>),
+                <span class="string">&quot;last&quot;</span> =&gt; <span class="macro">yaml_to_bool!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">last</span>),
+                <span class="string">&quot;require_delimiter&quot;</span> =&gt; <span class="macro">yaml_to_bool!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">require_delimiter</span>),
+                <span class="string">&quot;value_delimiter&quot;</span> =&gt; <span class="macro">yaml_to_str!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">value_delimiter</span>),
+                <span class="string">&quot;required_unless&quot;</span> =&gt; <span class="macro">yaml_to_str!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">required_unless</span>),
+                <span class="string">&quot;display_order&quot;</span> =&gt; <span class="macro">yaml_to_usize!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">display_order</span>),
+                <span class="string">&quot;default_value&quot;</span> =&gt; <span class="macro">yaml_to_str!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">default_value</span>),
+                <span class="string">&quot;default_value_if&quot;</span> =&gt; <span class="macro">yaml_tuple3!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">default_value_if</span>),
+                <span class="string">&quot;default_value_ifs&quot;</span> =&gt; <span class="macro">yaml_tuple3!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">default_value_if</span>),
+                <span class="string">&quot;env&quot;</span> =&gt; <span class="macro">yaml_to_str!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">env</span>),
+                <span class="string">&quot;value_names&quot;</span> =&gt; <span class="macro">yaml_vec_or_str!</span>(<span class="ident">v</span>, <span class="ident">a</span>, <span class="ident">value_name</span>),
+                <span class="string">&quot;groups&quot;</span> =&gt; <span class="macro">yaml_vec_or_str!</span>(<span class="ident">v</span>, <span class="ident">a</span>, <span class="ident">group</span>),
+                <span class="string">&quot;requires&quot;</span> =&gt; <span class="macro">yaml_vec_or_str!</span>(<span class="ident">v</span>, <span class="ident">a</span>, <span class="ident">requires</span>),
+                <span class="string">&quot;requires_if&quot;</span> =&gt; <span class="macro">yaml_tuple2!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">requires_if</span>),
+                <span class="string">&quot;requires_ifs&quot;</span> =&gt; <span class="macro">yaml_tuple2!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">requires_if</span>),
+                <span class="string">&quot;conflicts_with&quot;</span> =&gt; <span class="macro">yaml_vec_or_str!</span>(<span class="ident">v</span>, <span class="ident">a</span>, <span class="ident">conflicts_with</span>),
+                <span class="string">&quot;overrides_with&quot;</span> =&gt; <span class="macro">yaml_vec_or_str!</span>(<span class="ident">v</span>, <span class="ident">a</span>, <span class="ident">overrides_with</span>),
+                <span class="string">&quot;possible_values&quot;</span> =&gt; <span class="macro">yaml_vec_or_str!</span>(<span class="ident">v</span>, <span class="ident">a</span>, <span class="ident">possible_value</span>),
+                <span class="string">&quot;case_insensitive&quot;</span> =&gt; <span class="macro">yaml_to_bool!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">case_insensitive</span>),
+                <span class="string">&quot;required_unless_one&quot;</span> =&gt; <span class="macro">yaml_vec_or_str!</span>(<span class="ident">v</span>, <span class="ident">a</span>, <span class="ident">required_unless</span>),
+                <span class="string">&quot;required_unless_all&quot;</span> =&gt; {
                     <span class="ident">a</span> <span class="op">=</span> <span class="macro">yaml_vec_or_str!</span>(<span class="ident">v</span>, <span class="ident">a</span>, <span class="ident">required_unless</span>);
                     <span class="ident">a</span>.<span class="ident">setb</span>(<span class="ident">ArgSettings::RequiredUnlessAll</span>);
                     <span class="ident">a</span>
                 }
-                <span class="ident">s</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(
+                <span class="ident">s</span> =&gt; <span class="macro">panic!</span>(
                     <span class="string">&quot;Unknown Arg setting &#39;{}&#39; in YAML file for arg &#39;{}&#39;&quot;</span>,
                     <span class="ident">s</span>, <span class="ident">name_str</span>
                 ),
@@ -4251,7 +4251,7 @@
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// [`Arg`]: ./struct.Arg.html</span>
     <span class="doccomment">/// [`Arg::from_usage`]: ./struct.Arg.html#method.from_usage</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_usage</span>(<span class="ident">u</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_usage</span>(<span class="ident">u</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">parser</span> <span class="op">=</span> <span class="ident">UsageParser::from_usage</span>(<span class="ident">u</span>);
         <span class="ident">parser</span>.<span class="ident">parse</span>()
     }
@@ -4292,8 +4292,8 @@
     <span class="doccomment">/// assert!(m.is_present(&quot;config&quot;));</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// [`short`]: ./struct.Arg.html#method.short</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">short</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">s</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">s</span>.<span class="ident">short</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">as_ref</span>().<span class="ident">trim_left_matches</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;-&#39;</span>).<span class="ident">chars</span>().<span class="ident">nth</span>(<span class="number">0</span>);
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">short</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">s</span>: <span class="ident">S</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">self</span>.<span class="ident">s</span>.<span class="ident">short</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">as_ref</span>().<span class="ident">trim_left_matches</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;-&#39;</span>).<span class="ident">chars</span>().<span class="ident">nth</span>(<span class="number">0</span>);
         <span class="self">self</span>
     }
 
@@ -4332,8 +4332,8 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(m.is_present(&quot;cfg&quot;));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">long</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">l</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">s</span>.<span class="ident">long</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">l</span>.<span class="ident">trim_left_matches</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;-&#39;</span>));
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">long</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">l</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">self</span>.<span class="ident">s</span>.<span class="ident">long</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">l</span>.<span class="ident">trim_left_matches</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;-&#39;</span>));
         <span class="self">self</span>
     }
 
@@ -4358,7 +4358,7 @@
     <span class="doccomment">/// assert_eq!(m.value_of(&quot;test&quot;), Some(&quot;cool&quot;));</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// [`Arg`]: ./struct.Arg.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">alias</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">alias</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="ident">S</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">als</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">s</span>.<span class="ident">aliases</span> {
             <span class="ident">als</span>.<span class="ident">push</span>((<span class="ident">name</span>.<span class="ident">into</span>(), <span class="bool-val">false</span>));
         } <span class="kw">else</span> {
@@ -4388,7 +4388,7 @@
     <span class="doccomment">/// assert!(m.is_present(&quot;test&quot;));</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// [`Arg`]: ./struct.Arg.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aliases</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">names</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aliases</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">names</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>]) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">als</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">s</span>.<span class="ident">aliases</span> {
             <span class="kw">for</span> <span class="ident">n</span> <span class="kw">in</span> <span class="ident">names</span> {
                 <span class="ident">als</span>.<span class="ident">push</span>((<span class="ident">n</span>, <span class="bool-val">false</span>));
@@ -4419,7 +4419,7 @@
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// [`Arg`]: ./struct.Arg.html</span>
     <span class="doccomment">/// [`App::alias`]: ./struct.Arg.html#method.alias</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visible_alias</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visible_alias</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="ident">S</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">als</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">s</span>.<span class="ident">aliases</span> {
             <span class="ident">als</span>.<span class="ident">push</span>((<span class="ident">name</span>.<span class="ident">into</span>(), <span class="bool-val">true</span>));
         } <span class="kw">else</span> {
@@ -4446,7 +4446,7 @@
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// [`Arg`]: ./struct.Arg.html</span>
     <span class="doccomment">/// [`App::aliases`]: ./struct.Arg.html#method.aliases</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visible_aliases</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">names</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visible_aliases</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">names</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>]) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">als</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">s</span>.<span class="ident">aliases</span> {
             <span class="kw">for</span> <span class="ident">n</span> <span class="kw">in</span> <span class="ident">names</span> {
                 <span class="ident">als</span>.<span class="ident">push</span>((<span class="ident">n</span>, <span class="bool-val">true</span>));
@@ -4507,7 +4507,7 @@
     <span class="doccomment">/// -V, --version    Prints version information</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// [`Arg::long_help`]: ./struct.Arg.html#method.long_help</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">help</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">h</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">help</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">h</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">b</span>.<span class="ident">help</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">h</span>);
         <span class="self">self</span>
     }
@@ -4578,7 +4578,7 @@
     <span class="doccomment">///         Prints version information</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// [`Arg::help`]: ./struct.Arg.html#method.help</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">long_help</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">h</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">long_help</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">h</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">b</span>.<span class="ident">long_help</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">h</span>);
         <span class="self">self</span>
     }
@@ -4655,7 +4655,7 @@
     <span class="doccomment">/// [`AppSettings::SubcommandsNegateReqs`]: ./enum.AppSettings.html#variant.SubcommandsNegateReqs</span>
     <span class="doccomment">/// [`.required(true)`]: ./struct.Arg.html#method.required</span>
     <span class="doccomment">/// [`UnknownArgument`]: ./enum.ErrorKind.html#variant.UnknownArgument</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">last</span>(<span class="self">self</span>, <span class="ident">l</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">last</span>(<span class="self">self</span>, <span class="ident">l</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="ident">l</span> {
             <span class="self">self</span>.<span class="ident">set</span>(<span class="ident">ArgSettings::Last</span>)
         } <span class="kw">else</span> {
@@ -4714,7 +4714,7 @@
     <span class="doccomment">/// assert_eq!(res.unwrap_err().kind, ErrorKind::MissingRequiredArgument);</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// [`Arg::required(true)`]: ./struct.Arg.html#method.required</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">required</span>(<span class="self">self</span>, <span class="ident">r</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">required</span>(<span class="self">self</span>, <span class="ident">r</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="ident">r</span> {
             <span class="self">self</span>.<span class="ident">set</span>(<span class="ident">ArgSettings::Required</span>)
         } <span class="kw">else</span> {
@@ -4776,7 +4776,7 @@
     <span class="doccomment">/// [`Arg::require_equals(true)`]: ./struct.Arg.html#method.require_equals</span>
     <span class="doccomment">/// [`Arg::empty_values(true)`]: ./struct.Arg.html#method.empty_values</span>
     <span class="doccomment">/// [`Arg::empty_values(false)`]: ./struct.Arg.html#method.empty_values</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">require_equals</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">r</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">require_equals</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">r</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="ident">r</span> {
             <span class="self">self</span>.<span class="ident">unsetb</span>(<span class="ident">ArgSettings::EmptyValues</span>);
             <span class="self">self</span>.<span class="ident">set</span>(<span class="ident">ArgSettings::RequireEquals</span>)
@@ -4841,7 +4841,7 @@
     <span class="doccomment">/// [`Arg::allow_hyphen_values(true)`]: ./struct.Arg.html#method.allow_hyphen_values</span>
     <span class="doccomment">/// [`Arg::multiple(true)`]: ./struct.Arg.html#method.multiple</span>
     <span class="doccomment">/// [`Arg::number_of_values(1)`]: ./struct.Arg.html#method.number_of_values</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">allow_hyphen_values</span>(<span class="self">self</span>, <span class="ident">a</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">allow_hyphen_values</span>(<span class="self">self</span>, <span class="ident">a</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="ident">a</span> {
             <span class="self">self</span>.<span class="ident">set</span>(<span class="ident">ArgSettings::AllowLeadingHyphen</span>)
         } <span class="kw">else</span> {
@@ -4904,7 +4904,7 @@
     <span class="doccomment">/// [`Arg::required_unless`]: ./struct.Arg.html#method.required_unless</span>
     <span class="doccomment">/// [`Arg::required`]: ./struct.Arg.html#method.required</span>
     <span class="doccomment">/// [`Arg::required_unless(name)`]: ./struct.Arg.html#method.required_unless</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">required_unless</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">required_unless</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">vec</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">b</span>.<span class="ident">r_unless</span> {
             <span class="ident">vec</span>.<span class="ident">push</span>(<span class="ident">name</span>);
         } <span class="kw">else</span> {
@@ -4976,7 +4976,7 @@
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// [`Arg::required_unless_one`]: ./struct.Arg.html#method.required_unless_one</span>
     <span class="doccomment">/// [`Arg::required_unless_all(names)`]: ./struct.Arg.html#method.required_unless_all</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">required_unless_all</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">names</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">required_unless_all</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">names</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>]) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">vec</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">b</span>.<span class="ident">r_unless</span> {
             <span class="kw">for</span> <span class="ident">s</span> <span class="kw">in</span> <span class="ident">names</span> {
                 <span class="ident">vec</span>.<span class="ident">push</span>(<span class="ident">s</span>);
@@ -5052,7 +5052,7 @@
     <span class="doccomment">/// [required]: ./struct.Arg.html#method.required</span>
     <span class="doccomment">/// [`Arg::required_unless_one(names)`]: ./struct.Arg.html#method.required_unless_one</span>
     <span class="doccomment">/// [`Arg::required_unless_all`]: ./struct.Arg.html#method.required_unless_all</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">required_unless_one</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">names</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">required_unless_one</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">names</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>]) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">vec</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">b</span>.<span class="ident">r_unless</span> {
             <span class="kw">for</span> <span class="ident">s</span> <span class="kw">in</span> <span class="ident">names</span> {
                 <span class="ident">vec</span>.<span class="ident">push</span>(<span class="ident">s</span>);
@@ -5100,7 +5100,7 @@
     <span class="doccomment">/// assert!(res.is_err());</span>
     <span class="doccomment">/// assert_eq!(res.unwrap_err().kind, ErrorKind::ArgumentConflict);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">conflicts_with</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">conflicts_with</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">vec</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">b</span>.<span class="ident">blacklist</span> {
             <span class="ident">vec</span>.<span class="ident">push</span>(<span class="ident">name</span>);
         } <span class="kw">else</span> {
@@ -5150,7 +5150,7 @@
     <span class="doccomment">/// assert_eq!(res.unwrap_err().kind, ErrorKind::ArgumentConflict);</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// [`Arg::conflicts_with`]: ./struct.Arg.html#method.conflicts_with</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">conflicts_with_all</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">names</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">conflicts_with_all</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">names</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>]) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">vec</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">b</span>.<span class="ident">blacklist</span> {
             <span class="kw">for</span> <span class="ident">s</span> <span class="kw">in</span> <span class="ident">names</span> {
                 <span class="ident">vec</span>.<span class="ident">push</span>(<span class="ident">s</span>);
@@ -5259,7 +5259,7 @@
     <span class="doccomment">/// assert_eq!(m.occurrences_of(&quot;opt&quot;), 1);</span>
     <span class="doccomment">/// assert_eq!(m.values_of(&quot;opt&quot;).unwrap().collect::&lt;Vec&lt;_&gt;&gt;(), &amp;[&quot;one,two&quot;]);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">overrides_with</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">overrides_with</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">vec</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">b</span>.<span class="ident">overrides</span> {
             <span class="ident">vec</span>.<span class="ident">push</span>(<span class="ident">name</span>);
         } <span class="kw">else</span> {
@@ -5295,7 +5295,7 @@
     <span class="doccomment">/// assert!(!m.is_present(&quot;debug&quot;));</span>
     <span class="doccomment">/// assert!(!m.is_present(&quot;flag&quot;));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">overrides_with_all</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">names</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">overrides_with_all</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">names</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>]) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">vec</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">b</span>.<span class="ident">overrides</span> {
             <span class="kw">for</span> <span class="ident">s</span> <span class="kw">in</span> <span class="ident">names</span> {
                 <span class="ident">vec</span>.<span class="ident">push</span>(<span class="ident">s</span>);
@@ -5361,7 +5361,7 @@
     <span class="doccomment">/// [`Arg::requires(name)`]: ./struct.Arg.html#method.requires</span>
     <span class="doccomment">/// [Conflicting]: ./struct.Arg.html#method.conflicts_with</span>
     <span class="doccomment">/// [override]: ./struct.Arg.html#method.overrides_with</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">requires</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">requires</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">vec</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">b</span>.<span class="ident">requires</span> {
             <span class="ident">vec</span>.<span class="ident">push</span>((<span class="prelude-val">None</span>, <span class="ident">name</span>));
         } <span class="kw">else</span> {
@@ -5431,7 +5431,7 @@
     <span class="doccomment">/// [`Arg::requires(name)`]: ./struct.Arg.html#method.requires</span>
     <span class="doccomment">/// [Conflicting]: ./struct.Arg.html#method.conflicts_with</span>
     <span class="doccomment">/// [override]: ./struct.Arg.html#method.overrides_with</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">requires_if</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">requires_if</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">vec</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">b</span>.<span class="ident">requires</span> {
             <span class="ident">vec</span>.<span class="ident">push</span>((<span class="prelude-val">Some</span>(<span class="ident">val</span>), <span class="ident">arg</span>));
         } <span class="kw">else</span> {
@@ -5491,7 +5491,7 @@
     <span class="doccomment">/// [`Arg::requires(name)`]: ./struct.Arg.html#method.requires</span>
     <span class="doccomment">/// [Conflicting]: ./struct.Arg.html#method.conflicts_with</span>
     <span class="doccomment">/// [override]: ./struct.Arg.html#method.overrides_with</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">requires_ifs</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ifs</span>: <span class="kw-2">&amp;</span>[(<span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>)]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">requires_ifs</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ifs</span>: <span class="kw-2">&amp;</span>[(<span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>)]) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">vec</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">b</span>.<span class="ident">requires</span> {
             <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">val</span>, <span class="ident">arg</span>) <span class="kw">in</span> <span class="ident">ifs</span> {
                 <span class="ident">vec</span>.<span class="ident">push</span>((<span class="prelude-val">Some</span>(<span class="ident">val</span>), <span class="ident">arg</span>));
@@ -5569,7 +5569,7 @@
     <span class="doccomment">/// [`Arg::requires(name)`]: ./struct.Arg.html#method.requires</span>
     <span class="doccomment">/// [Conflicting]: ./struct.Arg.html#method.conflicts_with</span>
     <span class="doccomment">/// [required]: ./struct.Arg.html#method.required</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">required_if</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>, <span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">required_if</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>, <span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">vec</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">r_ifs</span> {
             <span class="ident">vec</span>.<span class="ident">push</span>((<span class="ident">arg</span>, <span class="ident">val</span>));
         } <span class="kw">else</span> {
@@ -5658,7 +5658,7 @@
     <span class="doccomment">/// [`Arg::requires(name)`]: ./struct.Arg.html#method.requires</span>
     <span class="doccomment">/// [Conflicting]: ./struct.Arg.html#method.conflicts_with</span>
     <span class="doccomment">/// [required]: ./struct.Arg.html#method.required</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">required_ifs</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ifs</span>: <span class="kw-2">&amp;</span>[(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>)]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">required_ifs</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ifs</span>: <span class="kw-2">&amp;</span>[(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>)]) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">vec</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">r_ifs</span> {
             <span class="kw">for</span> <span class="ident">r_if</span> <span class="kw">in</span> <span class="ident">ifs</span> {
                 <span class="ident">vec</span>.<span class="ident">push</span>((<span class="ident">r_if</span>.<span class="number">0</span>, <span class="ident">r_if</span>.<span class="number">1</span>));
@@ -5735,7 +5735,7 @@
     <span class="doccomment">/// [Conflicting]: ./struct.Arg.html#method.conflicts_with</span>
     <span class="doccomment">/// [override]: ./struct.Arg.html#method.overrides_with</span>
     <span class="doccomment">/// [`Arg::requires_all(&amp;[arg, arg2])`]: ./struct.Arg.html#method.requires_all</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">requires_all</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">names</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">requires_all</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">names</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>]) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">vec</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">b</span>.<span class="ident">requires</span> {
             <span class="kw">for</span> <span class="ident">s</span> <span class="kw">in</span> <span class="ident">names</span> {
                 <span class="ident">vec</span>.<span class="ident">push</span>((<span class="prelude-val">None</span>, <span class="ident">s</span>));
@@ -5788,7 +5788,7 @@
     <span class="doccomment">/// [`Arg::value_delimiter(char)`]: ./struct.Arg.html#method.value_delimiter</span>
     <span class="doccomment">/// [`Arg::use_delimiter(false)`]: ./struct.Arg.html#method.use_delimiter</span>
     <span class="doccomment">/// [multiple values]: ./struct.Arg.html#method.multiple</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">takes_value</span>(<span class="self">self</span>, <span class="ident">tv</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">takes_value</span>(<span class="self">self</span>, <span class="ident">tv</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="ident">tv</span> {
             <span class="self">self</span>.<span class="ident">set</span>(<span class="ident">ArgSettings::TakesValue</span>)
         } <span class="kw">else</span> {
@@ -5824,7 +5824,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// If we were to run the above program with `--help` the `[values: fast, slow]` portion of</span>
     <span class="doccomment">/// the help text would be omitted.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hide_possible_values</span>(<span class="self">self</span>, <span class="ident">hide</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hide_possible_values</span>(<span class="self">self</span>, <span class="ident">hide</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="ident">hide</span> {
             <span class="self">self</span>.<span class="ident">set</span>(<span class="ident">ArgSettings::HidePossibleValues</span>)
         } <span class="kw">else</span> {
@@ -5858,7 +5858,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// If we were to run the above program with `--help` the `[default: localhost]` portion of</span>
     <span class="doccomment">/// the help text would be omitted.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hide_default_value</span>(<span class="self">self</span>, <span class="ident">hide</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hide_default_value</span>(<span class="self">self</span>, <span class="ident">hide</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="ident">hide</span> {
             <span class="self">self</span>.<span class="ident">set</span>(<span class="ident">ArgSettings::HideDefaultValue</span>)
         } <span class="kw">else</span> {
@@ -5913,7 +5913,7 @@
     <span class="doccomment">/// [`Arg::multiple(true)`]: ./struct.Arg.html#method.multiple</span>
     <span class="doccomment">/// [`App`]: ./struct.App.html</span>
     <span class="doccomment">/// [`panic!`]: https://doc.rust-lang.org/std/macro.panic!.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">index</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">idx</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">index</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">idx</span>: <span class="ident">u64</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">index</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">idx</span>);
         <span class="self">self</span>
     }
@@ -6109,7 +6109,7 @@
     <span class="doccomment">/// [positionals]: ./struct.Arg.html#method.index</span>
     <span class="doccomment">/// [`Arg::number_of_values(1)`]: ./struct.Arg.html#method.number_of_values</span>
     <span class="doccomment">/// [`Arg::multiple(true)`]: ./struct.Arg.html#method.multiple</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">multiple</span>(<span class="self">self</span>, <span class="ident">multi</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">multiple</span>(<span class="self">self</span>, <span class="ident">multi</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="ident">multi</span> {
             <span class="self">self</span>.<span class="ident">set</span>(<span class="ident">ArgSettings::Multiple</span>)
         } <span class="kw">else</span> {
@@ -6162,7 +6162,7 @@
     <span class="doccomment">/// [`min_values`]: ./struct.Arg.html#method.min_values</span>
     <span class="doccomment">/// [`number_of_values`]: ./struct.Arg.html#method.number_of_values</span>
     <span class="doccomment">/// [`max_values`]: ./struct.Arg.html#method.max_values</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value_terminator</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">term</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value_terminator</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">term</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">setb</span>(<span class="ident">ArgSettings::TakesValue</span>);
         <span class="self">self</span>.<span class="ident">v</span>.<span class="ident">terminator</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">term</span>);
         <span class="self">self</span>
@@ -6211,7 +6211,7 @@
     <span class="doccomment">/// [`ArgMatches`]: ./struct.ArgMatches.html</span>
     <span class="doccomment">/// [`ArgMatches::is_present(&quot;flag&quot;)`]: ./struct.ArgMatches.html#method.is_present</span>
     <span class="doccomment">/// [`Arg`]: ./struct.Arg.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">global</span>(<span class="self">self</span>, <span class="ident">g</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">global</span>(<span class="self">self</span>, <span class="ident">g</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="ident">g</span> {
             <span class="self">self</span>.<span class="ident">set</span>(<span class="ident">ArgSettings::Global</span>)
         } <span class="kw">else</span> {
@@ -6253,7 +6253,7 @@
     <span class="doccomment">/// assert_eq!(res.unwrap_err().kind, ErrorKind::EmptyValue);</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// [`Arg::takes_value(true)`]: ./struct.Arg.html#method.takes_value</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">empty_values</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ev</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">empty_values</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ev</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="ident">ev</span> {
             <span class="self">self</span>.<span class="ident">set</span>(<span class="ident">ArgSettings::EmptyValues</span>)
         } <span class="kw">else</span> {
@@ -6305,7 +6305,7 @@
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// [`Arg::hidden_short_help(true)`]: ./struct.Arg.html#method.hidden_short_help</span>
     <span class="doccomment">/// [`Arg::hidden_long_help(true)`]: ./struct.Arg.html#method.hidden_long_help</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hidden</span>(<span class="self">self</span>, <span class="ident">h</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hidden</span>(<span class="self">self</span>, <span class="ident">h</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="ident">h</span> {
             <span class="self">self</span>.<span class="ident">set</span>(<span class="ident">ArgSettings::Hidden</span>)
         } <span class="kw">else</span> {
@@ -6360,7 +6360,7 @@
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// [options]: ./struct.Arg.html#method.takes_value</span>
     <span class="doccomment">/// [positional arguments]: ./struct.Arg.html#method.index</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">possible_values</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">names</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">possible_values</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">names</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>]) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">vec</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">v</span>.<span class="ident">possible_vals</span> {
             <span class="kw">for</span> <span class="ident">s</span> <span class="kw">in</span> <span class="ident">names</span> {
                 <span class="ident">vec</span>.<span class="ident">push</span>(<span class="ident">s</span>);
@@ -6424,7 +6424,7 @@
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// [options]: ./struct.Arg.html#method.takes_value</span>
     <span class="doccomment">/// [positional arguments]: ./struct.Arg.html#method.index</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">possible_value</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">possible_value</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">vec</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">v</span>.<span class="ident">possible_vals</span> {
             <span class="ident">vec</span>.<span class="ident">push</span>(<span class="ident">name</span>);
         } <span class="kw">else</span> {
@@ -6478,7 +6478,7 @@
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// [`Arg::case_insensitive(true)`]: ./struct.Arg.html#method.possible_values</span>
     <span class="doccomment">/// [`arg_enum!`]: ./macro.arg_enum.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">case_insensitive</span>(<span class="self">self</span>, <span class="ident">ci</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">case_insensitive</span>(<span class="self">self</span>, <span class="ident">ci</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="ident">ci</span> {
             <span class="self">self</span>.<span class="ident">set</span>(<span class="ident">ArgSettings::CaseInsensitive</span>)
         } <span class="kw">else</span> {
@@ -6516,7 +6516,7 @@
     <span class="doccomment">/// assert!(m.is_present(&quot;mode&quot;));</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// [`ArgGroup`]: ./struct.ArgGroup.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">group</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">group</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">vec</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">b</span>.<span class="ident">groups</span> {
             <span class="ident">vec</span>.<span class="ident">push</span>(<span class="ident">name</span>);
         } <span class="kw">else</span> {
@@ -6556,7 +6556,7 @@
     <span class="doccomment">/// assert!(m.is_present(&quot;verbosity&quot;));</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// [`ArgGroup`]: ./struct.ArgGroup.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">groups</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">names</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">groups</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">names</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>]) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">vec</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">b</span>.<span class="ident">groups</span> {
             <span class="kw">for</span> <span class="ident">s</span> <span class="kw">in</span> <span class="ident">names</span> {
                 <span class="ident">vec</span>.<span class="ident">push</span>(<span class="ident">s</span>);
@@ -6603,7 +6603,7 @@
     <span class="doccomment">/// assert_eq!(res.unwrap_err().kind, ErrorKind::WrongNumberOfValues);</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// [`Arg::multiple(true)`]: ./struct.Arg.html#method.multiple</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">number_of_values</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">qty</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">number_of_values</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">qty</span>: <span class="ident">u64</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">setb</span>(<span class="ident">ArgSettings::TakesValue</span>);
         <span class="self">self</span>.<span class="ident">v</span>.<span class="ident">num_vals</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">qty</span>);
         <span class="self">self</span>
@@ -6645,9 +6645,9 @@
     <span class="doccomment">/// [`Result`]: https://doc.rust-lang.org/std/result/enum.Result.html</span>
     <span class="doccomment">/// [`Err(String)`]: https://doc.rust-lang.org/std/result/enum.Result.html#variant.Err</span>
     <span class="doccomment">/// [`Rc`]: https://doc.rust-lang.org/std/rc/struct.Rc.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">validator</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">validator</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">String</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+        <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">String</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">String</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     {
         <span class="self">self</span>.<span class="ident">v</span>.<span class="ident">validator</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Rc::new</span>(<span class="ident">f</span>));
         <span class="self">self</span>
@@ -6683,9 +6683,9 @@
     <span class="doccomment">/// [`Result`]: https://doc.rust-lang.org/std/result/enum.Result.html</span>
     <span class="doccomment">/// [`Err(String)`]: https://doc.rust-lang.org/std/result/enum.Result.html#variant.Err</span>
     <span class="doccomment">/// [`Rc`]: https://doc.rust-lang.org/std/rc/struct.Rc.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">validator_os</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">validator_os</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">OsStr</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">OsString</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+        <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">OsStr</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">OsString</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     {
         <span class="self">self</span>.<span class="ident">v</span>.<span class="ident">validator_os</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Rc::new</span>(<span class="ident">f</span>));
         <span class="self">self</span>
@@ -6747,7 +6747,7 @@
     <span class="doccomment">/// assert_eq!(res.unwrap_err().kind, ErrorKind::TooManyValues);</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// [`Arg::multiple(true)`]: ./struct.Arg.html#method.multiple</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_values</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">qty</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_values</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">qty</span>: <span class="ident">u64</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">setb</span>(<span class="ident">ArgSettings::TakesValue</span>);
         <span class="self">self</span>.<span class="ident">v</span>.<span class="ident">max_vals</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">qty</span>);
         <span class="self">self</span>
@@ -6810,7 +6810,7 @@
     <span class="doccomment">/// assert_eq!(res.unwrap_err().kind, ErrorKind::TooFewValues);</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// [`Arg::multiple(true)`]: ./struct.Arg.html#method.multiple</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">min_values</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">qty</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">min_values</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">qty</span>: <span class="ident">u64</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">v</span>.<span class="ident">min_vals</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">qty</span>);
         <span class="self">self</span>.<span class="ident">set</span>(<span class="ident">ArgSettings::TakesValue</span>)
     }
@@ -6861,7 +6861,7 @@
     <span class="doccomment">/// assert_eq!(nodelims.value_of(&quot;option&quot;).unwrap(), &quot;val1,val2,val3&quot;);</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// [`Arg::value_delimiter`]: ./struct.Arg.html#method.value_delimiter</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">use_delimiter</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">d</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">use_delimiter</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">d</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="ident">d</span> {
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">v</span>.<span class="ident">val_delim</span>.<span class="ident">is_none</span>() {
                 <span class="self">self</span>.<span class="ident">v</span>.<span class="ident">val_delim</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="string">&#39;,&#39;</span>);
@@ -6948,7 +6948,7 @@
     <span class="doccomment">/// assert_eq!(delims.values_of(&quot;opt&quot;).unwrap().collect::&lt;Vec&lt;_&gt;&gt;(), [&quot;val1&quot;, &quot;val2&quot;, &quot;val3&quot;]);</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// [`Arg::use_delimiter(true)`]: ./struct.Arg.html#method.use_delimiter</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">require_delimiter</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">d</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">require_delimiter</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">d</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="ident">d</span> {
             <span class="self">self</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">use_delimiter</span>(<span class="bool-val">true</span>);
             <span class="self">self</span>.<span class="ident">unsetb</span>(<span class="ident">ArgSettings::ValueDelimiterNotSet</span>);
@@ -6984,7 +6984,7 @@
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// [`Arg::use_delimiter(true)`]: ./struct.Arg.html#method.use_delimiter</span>
     <span class="doccomment">/// [`Arg::takes_value(true)`]: ./struct.Arg.html#method.takes_value</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value_delimiter</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">d</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value_delimiter</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">d</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">unsetb</span>(<span class="ident">ArgSettings::ValueDelimiterNotSet</span>);
         <span class="self">self</span>.<span class="ident">setb</span>(<span class="ident">ArgSettings::TakesValue</span>);
         <span class="self">self</span>.<span class="ident">setb</span>(<span class="ident">ArgSettings::UseValueDelimiter</span>);
@@ -7055,7 +7055,7 @@
     <span class="doccomment">/// [`Arg::number_of_values`]: ./struct.Arg.html#method.number_of_values</span>
     <span class="doccomment">/// [`Arg::takes_value(true)`]: ./struct.Arg.html#method.takes_value</span>
     <span class="doccomment">/// [`Arg::multiple(true)`]: ./struct.Arg.html#method.multiple</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value_names</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">names</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value_names</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">names</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>]) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">setb</span>(<span class="ident">ArgSettings::TakesValue</span>);
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::ValueDelimiterNotSet</span>) {
             <span class="self">self</span>.<span class="ident">unsetb</span>(<span class="ident">ArgSettings::ValueDelimiterNotSet</span>);
@@ -7123,7 +7123,7 @@
     <span class="doccomment">/// [option]: ./struct.Arg.html#method.takes_value</span>
     <span class="doccomment">/// [positional]: ./struct.Arg.html#method.index</span>
     <span class="doccomment">/// [`Arg::takes_value(true)`]: ./struct.Arg.html#method.takes_value</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value_name</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value_name</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">setb</span>(<span class="ident">ArgSettings::TakesValue</span>);
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">vals</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">v</span>.<span class="ident">val_names</span> {
             <span class="kw">let</span> <span class="ident">l</span> <span class="op">=</span> <span class="ident">vals</span>.<span class="ident">len</span>();
@@ -7199,7 +7199,7 @@
     <span class="doccomment">/// [`Arg::takes_value(true)`]: ./struct.Arg.html#method.takes_value</span>
     <span class="doccomment">/// [`ArgMatches::is_present`]: ./struct.ArgMatches.html#method.is_present</span>
     <span class="doccomment">/// [`Arg::default_value_if`]: ./struct.Arg.html#method.default_value_if</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default_value</span>(<span class="self">self</span>, <span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default_value</span>(<span class="self">self</span>, <span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">default_value_os</span>(<span class="ident">OsStr::from_bytes</span>(<span class="ident">val</span>.<span class="ident">as_bytes</span>()))
     }
 
@@ -7207,7 +7207,7 @@
     <span class="doccomment">/// only using [`OsStr`]s instead.</span>
     <span class="doccomment">/// [`Arg::default_value`]: ./struct.Arg.html#method.default_value</span>
     <span class="doccomment">/// [`OsStr`]: https://doc.rust-lang.org/std/ffi/struct.OsStr.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default_value_os</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">OsStr</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default_value_os</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">OsStr</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">setb</span>(<span class="ident">ArgSettings::TakesValue</span>);
         <span class="self">self</span>.<span class="ident">v</span>.<span class="ident">default_val</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">val</span>);
         <span class="self">self</span>
@@ -7309,7 +7309,7 @@
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// [`Arg::takes_value(true)`]: ./struct.Arg.html#method.takes_value</span>
     <span class="doccomment">/// [`Arg::default_value`]: ./struct.Arg.html#method.default_value</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default_value_if</span>(<span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>, <span class="ident">val</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">default</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default_value_if</span>(<span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>, <span class="ident">val</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">default</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">default_value_if_os</span>(
             <span class="ident">arg</span>,
             <span class="ident">val</span>.<span class="ident">map</span>(<span class="ident">str::as_bytes</span>).<span class="ident">map</span>(<span class="ident">OsStr::from_bytes</span>),
@@ -7326,7 +7326,7 @@
         <span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>,
         <span class="ident">val</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">OsStr</span><span class="op">&gt;</span>,
         <span class="ident">default</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">OsStr</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    ) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">setb</span>(<span class="ident">ArgSettings::TakesValue</span>);
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">vm</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">v</span>.<span class="ident">default_vals_ifs</span> {
             <span class="kw">let</span> <span class="ident">l</span> <span class="op">=</span> <span class="ident">vm</span>.<span class="ident">len</span>();
@@ -7423,7 +7423,7 @@
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// [`Arg::takes_value(true)`]: ./struct.Arg.html#method.takes_value</span>
     <span class="doccomment">/// [`Arg::default_value`]: ./struct.Arg.html#method.default_value</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default_value_ifs</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ifs</span>: <span class="kw-2">&amp;</span>[(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>)]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default_value_ifs</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ifs</span>: <span class="kw-2">&amp;</span>[(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>)]) -&gt; <span class="self">Self</span> {
         <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">arg</span>, <span class="ident">val</span>, <span class="ident">default</span>) <span class="kw">in</span> <span class="ident">ifs</span> {
             <span class="self">self</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">default_value_if_os</span>(
                 <span class="ident">arg</span>,
@@ -7439,7 +7439,7 @@
     <span class="doccomment">/// [`Arg::default_value_ifs`]: ./struct.Arg.html#method.default_value_ifs</span>
     <span class="doccomment">/// [`OsStr`]: https://doc.rust-lang.org/std/ffi/struct.OsStr.html</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;lints&quot;</span>, <span class="ident">allow</span>(<span class="ident">explicit_counter_loop</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default_value_ifs_os</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ifs</span>: <span class="kw-2">&amp;</span>[(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">OsStr</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">OsStr</span>)]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default_value_ifs_os</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ifs</span>: <span class="kw-2">&amp;</span>[(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">OsStr</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">OsStr</span>)]) -&gt; <span class="self">Self</span> {
         <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">arg</span>, <span class="ident">val</span>, <span class="ident">default</span>) <span class="kw">in</span> <span class="ident">ifs</span> {
             <span class="self">self</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">default_value_if_os</span>(<span class="ident">arg</span>, <span class="ident">val</span>, <span class="ident">default</span>);
         }
@@ -7551,14 +7551,14 @@
     <span class="doccomment">/// [`Arg::takes_value(true)`]: ./struct.Arg.html#method.takes_value</span>
     <span class="doccomment">/// [`Arg::multiple(true)`]: ./struct.Arg.html#method.multiple</span>
     <span class="doccomment">/// [`Arg::use_delimiter(true)`]: ./struct.Arg.html#method.use_delimiter</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">env</span>(<span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">env</span>(<span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">env_os</span>(<span class="ident">OsStr::new</span>(<span class="ident">name</span>))
     }
 
     <span class="doccomment">/// Specifies that if the value is not passed in as an argument, that it should be retrieved</span>
     <span class="doccomment">/// from the environment if available in the exact same manner as [`Arg::env`] only using</span>
     <span class="doccomment">/// [`OsStr`]s instead.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">env_os</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">OsStr</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">env_os</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">OsStr</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">setb</span>(<span class="ident">ArgSettings::TakesValue</span>);
 
         <span class="self">self</span>.<span class="ident">v</span>.<span class="ident">env</span> <span class="op">=</span> <span class="prelude-val">Some</span>((<span class="ident">name</span>, <span class="ident">env::var_os</span>(<span class="ident">name</span>)));
@@ -7566,7 +7566,7 @@
     }
 
     <span class="doccomment">/// @TODO @p2 @docs @release: write docs</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hide_env_values</span>(<span class="self">self</span>, <span class="ident">hide</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hide_env_values</span>(<span class="self">self</span>, <span class="ident">hide</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="ident">hide</span> {
             <span class="self">self</span>.<span class="ident">set</span>(<span class="ident">ArgSettings::HideEnvValues</span>)
         } <span class="kw">else</span> {
@@ -7619,7 +7619,7 @@
     <span class="doccomment">///         on a line after the option</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// [`AppSettings::NextLineHelp`]: ./enum.AppSettings.html#variant.NextLineHelp</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next_line_help</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">nlh</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next_line_help</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">nlh</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="ident">nlh</span> {
             <span class="self">self</span>.<span class="ident">setb</span>(<span class="ident">ArgSettings::NextLineHelp</span>);
         } <span class="kw">else</span> {
@@ -7683,7 +7683,7 @@
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// [positional arguments]: ./struct.Arg.html#method.index</span>
     <span class="doccomment">/// [index]: ./struct.Arg.html#method.index</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">display_order</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ord</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">display_order</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ord</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">s</span>.<span class="ident">disp_ord</span> <span class="op">=</span> <span class="ident">ord</span>;
         <span class="self">self</span>
     }
@@ -7707,7 +7707,7 @@
     <span class="doccomment">/// [`Arg::allow_hyphen_values(true)`]: ./struct.Arg.html#method.allow_hyphen_values</span>
     <span class="doccomment">/// [`Arg::last(true)`]: ./struct.Arg.html#method.last</span>
     <span class="doccomment">/// [`AppSettings::TrailingVarArg`]: ./enum.AppSettings.html#variant.TrailingVarArg</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">raw</span>(<span class="self">self</span>, <span class="ident">raw</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">raw</span>(<span class="self">self</span>, <span class="ident">raw</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">multiple</span>(<span class="ident">raw</span>).<span class="ident">allow_hyphen_values</span>(<span class="ident">raw</span>).<span class="ident">last</span>(<span class="ident">raw</span>)
     }
 
@@ -7780,7 +7780,7 @@
     <span class="doccomment">/// -h, --help       Prints help information</span>
     <span class="doccomment">/// -V, --version    Prints version information</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hidden_short_help</span>(<span class="self">self</span>, <span class="ident">hide</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hidden_short_help</span>(<span class="self">self</span>, <span class="ident">hide</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="ident">hide</span> {
             <span class="self">self</span>.<span class="ident">set</span>(<span class="ident">ArgSettings::HiddenShortHelp</span>)
         } <span class="kw">else</span> {
@@ -7857,7 +7857,7 @@
     <span class="doccomment">/// -h, --help       Prints help information</span>
     <span class="doccomment">/// -V, --version    Prints version information</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hidden_long_help</span>(<span class="self">self</span>, <span class="ident">hide</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hidden_long_help</span>(<span class="self">self</span>, <span class="ident">hide</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="ident">hide</span> {
             <span class="self">self</span>.<span class="ident">set</span>(<span class="ident">ArgSettings::HiddenLongHelp</span>)
         } <span class="kw">else</span> {
@@ -7868,14 +7868,14 @@
     <span class="doccomment">/// Checks if one of the [`ArgSettings`] settings is set for the argument.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`ArgSettings`]: ./enum.ArgSettings.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_set</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="ident">ArgSettings</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_set</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="ident">ArgSettings</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">b</span>.<span class="ident">is_set</span>(<span class="ident">s</span>)
     }
 
     <span class="doccomment">/// Sets one of the [`ArgSettings`] settings for the argument.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`ArgSettings`]: ./enum.ArgSettings.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">s</span>: <span class="ident">ArgSettings</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">s</span>: <span class="ident">ArgSettings</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">setb</span>(<span class="ident">s</span>);
         <span class="self">self</span>
     }
@@ -7883,7 +7883,7 @@
     <span class="doccomment">/// Unsets one of the [`ArgSettings`] settings for the argument.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`ArgSettings`]: ./enum.ArgSettings.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unset</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">s</span>: <span class="ident">ArgSettings</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unset</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">s</span>: <span class="ident">ArgSettings</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">unsetb</span>(<span class="ident">s</span>);
         <span class="self">self</span>
     }
@@ -7900,7 +7900,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;z</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;z</span> <span class="ident">Arg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Arg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;z</span> <span class="ident">Arg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;z</span> <span class="ident">Arg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">Arg</span> {
             <span class="ident">b</span>: <span class="ident">a</span>.<span class="ident">b</span>.<span class="ident">clone</span>(),
             <span class="ident">v</span>: <span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">clone</span>(),
@@ -7912,8 +7912,8 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span>, <span class="lifetime">&#39;e</span><span class="op">&gt;</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">Arg</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span>, <span class="lifetime">&#39;e</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">Arg</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span>, <span class="lifetime">&#39;e</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">b</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">b</span>
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">Arg</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span>, <span class="lifetime">&#39;e</span><span class="op">&gt;</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">b</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">b</span>
     }
 }
 </code></pre></div>

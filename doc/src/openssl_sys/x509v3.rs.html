@@ -268,19 +268,19 @@
             <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509V3_CTX</span>,
             <span class="ident">ext_nid</span>: <span class="ident">c_int</span>,
             <span class="ident">value</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <span class="ident">c_char</span>,
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_EXTENSION</span>;
+        ) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_EXTENSION</span>;
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509V3_EXT_nconf</span>(
             <span class="ident">conf</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">CONF</span>,
             <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509V3_CTX</span>,
             <span class="ident">name</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <span class="ident">c_char</span>,
             <span class="ident">value</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <span class="ident">c_char</span>,
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_EXTENSION</span>;
+        ) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_EXTENSION</span>;
     }
 }
 
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_check_issued</span>(<span class="ident">issuer</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509</span>, <span class="ident">subject</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_verify</span>(<span class="ident">req</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509</span>, <span class="ident">pkey</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_check_issued</span>(<span class="ident">issuer</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509</span>, <span class="ident">subject</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509</span>) -&gt; <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_verify</span>(<span class="ident">req</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509</span>, <span class="ident">pkey</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>) -&gt; <span class="ident">c_int</span>;
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509V3_set_nconf</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509V3_CTX</span>, <span class="ident">conf</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">CONF</span>);
 
@@ -293,7 +293,7 @@
         <span class="ident">flags</span>: <span class="ident">c_int</span>,
     );
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_get1_ocsp</span>(<span class="ident">x</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">stack_st_OPENSSL_STRING</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_get1_ocsp</span>(<span class="ident">x</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">stack_st_OPENSSL_STRING</span>;
 }
 
 <span class="macro">const_ptr_api!</span> {
@@ -303,8 +303,8 @@
             <span class="ident">nid</span>: <span class="ident">c_int</span>,
             <span class="ident">crit</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_int</span>,
             <span class="ident">idx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_int</span>,
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509V3_extensions_print</span>(<span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>, <span class="ident">title</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <span class="ident">c_char</span>, <span class="ident">exts</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <span class="ident">stack_st_X509_EXTENSION</span>, <span class="ident">flag</span>: <span class="ident">c_ulong</span>, <span class="ident">indent</span>: <span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+        ) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>;
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509V3_extensions_print</span>(<span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>, <span class="ident">title</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <span class="ident">c_char</span>, <span class="ident">exts</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <span class="ident">stack_st_X509_EXTENSION</span>, <span class="ident">flag</span>: <span class="ident">c_ulong</span>, <span class="ident">indent</span>: <span class="ident">c_int</span>) -&gt; <span class="ident">c_int</span>;
     }
 }
 
@@ -371,28 +371,28 @@ cfg_if! {
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">XKU_ANYEKU</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0x100</span>;
 
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509V3_EXT_d2i</span>(<span class="ident">ext</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_EXTENSION</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509V3_EXT_i2d</span>(<span class="ident">ext_nid</span>: <span class="ident">c_int</span>, <span class="ident">crit</span>: <span class="ident">c_int</span>, <span class="ident">ext</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_EXTENSION</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509V3_EXT_d2i</span>(<span class="ident">ext</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_EXTENSION</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509V3_EXT_i2d</span>(<span class="ident">ext_nid</span>: <span class="ident">c_int</span>, <span class="ident">crit</span>: <span class="ident">c_int</span>, <span class="ident">ext</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_EXTENSION</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509V3_add1_i2d</span>(
         <span class="ident">x</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">stack_st_X509_EXTENSION</span>,
         <span class="ident">nid</span>: <span class="ident">c_int</span>,
         <span class="ident">value</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
         <span class="ident">crit</span>: <span class="ident">c_int</span>,
         <span class="ident">flags</span>: <span class="ident">c_ulong</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509V3_EXT_print</span>(
         <span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>,
         <span class="ident">ext</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_EXTENSION</span>,
         <span class="ident">flag</span>: <span class="ident">c_ulong</span>,
         <span class="ident">indent</span>: <span class="ident">c_int</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_get_extension_flags</span>(<span class="ident">x</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_get_extension_flags</span>(<span class="ident">x</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509</span>) -&gt; <span class="ident">u32</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_get_key_usage</span>(<span class="ident">x</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_get_key_usage</span>(<span class="ident">x</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509</span>) -&gt; <span class="ident">u32</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_get_extended_key_usage</span>(<span class="ident">x</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_get_extended_key_usage</span>(<span class="ident">x</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509</span>) -&gt; <span class="ident">u32</span>;
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl_sys" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>

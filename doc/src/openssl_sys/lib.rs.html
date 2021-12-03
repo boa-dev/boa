@@ -282,7 +282,7 @@
     <span class="ident">size</span>: <span class="ident">c_int</span>,
     <span class="ident">rwflag</span>: <span class="ident">c_int</span>,
     <span class="ident">user_data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+) -&gt; <span class="ident">c_int</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>() {
@@ -338,7 +338,7 @@
     <span class="macro">cfg_if!</span> {
         <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span> {
             <span class="kw">fn</span> <span class="ident">set_id_callback</span>() {
-                <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">thread_id</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_ulong</span> {
+                <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">thread_id</span>() -&gt; <span class="ident">c_ulong</span> {
                     <span class="ident">::libc::pthread_self</span>() <span class="kw">as</span> <span class="ident">c_ulong</span>
                 }
 

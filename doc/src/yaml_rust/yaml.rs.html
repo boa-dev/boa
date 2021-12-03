@@ -796,12 +796,12 @@
 
 <span class="comment">// parse f64 as Core schema</span>
 <span class="comment">// See: https://github.com/chyh1990/yaml-rust/issues/51</span>
-<span class="kw">fn</span> <span class="ident">parse_f64</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">parse_f64</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> {
     <span class="kw">match</span> <span class="ident">v</span> {
-        <span class="string">&quot;.inf&quot;</span> <span class="op">|</span> <span class="string">&quot;.Inf&quot;</span> <span class="op">|</span> <span class="string">&quot;.INF&quot;</span> <span class="op">|</span> <span class="string">&quot;+.inf&quot;</span> <span class="op">|</span> <span class="string">&quot;+.Inf&quot;</span> <span class="op">|</span> <span class="string">&quot;+.INF&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">f64::INFINITY</span>),
-        <span class="string">&quot;-.inf&quot;</span> <span class="op">|</span> <span class="string">&quot;-.Inf&quot;</span> <span class="op">|</span> <span class="string">&quot;-.INF&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">f64::NEG_INFINITY</span>),
-        <span class="string">&quot;.nan&quot;</span> <span class="op">|</span> <span class="string">&quot;NaN&quot;</span> <span class="op">|</span> <span class="string">&quot;.NAN&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">f64::NAN</span>),
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>().<span class="ident">ok</span>(),
+        <span class="string">&quot;.inf&quot;</span> <span class="op">|</span> <span class="string">&quot;.Inf&quot;</span> <span class="op">|</span> <span class="string">&quot;.INF&quot;</span> <span class="op">|</span> <span class="string">&quot;+.inf&quot;</span> <span class="op">|</span> <span class="string">&quot;+.Inf&quot;</span> <span class="op">|</span> <span class="string">&quot;+.INF&quot;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">f64::INFINITY</span>),
+        <span class="string">&quot;-.inf&quot;</span> <span class="op">|</span> <span class="string">&quot;-.Inf&quot;</span> <span class="op">|</span> <span class="string">&quot;-.INF&quot;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">f64::NEG_INFINITY</span>),
+        <span class="string">&quot;.nan&quot;</span> <span class="op">|</span> <span class="string">&quot;NaN&quot;</span> <span class="op">|</span> <span class="string">&quot;.NAN&quot;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">f64::NAN</span>),
+        <span class="kw">_</span> =&gt; <span class="ident">v</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>().<span class="ident">ok</span>(),
     }
 }
 
@@ -818,60 +818,60 @@
     <span class="kw">fn</span> <span class="ident">on_event</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ev</span>: <span class="ident">Event</span>, <span class="kw">_</span>: <span class="ident">Marker</span>) {
         <span class="comment">// println!(&quot;EV {:?}&quot;, ev);</span>
         <span class="kw">match</span> <span class="ident">ev</span> {
-            <span class="ident">Event::DocumentStart</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Event::DocumentStart</span> =&gt; {
                 <span class="comment">// do nothing</span>
             }
-            <span class="ident">Event::DocumentEnd</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Event::DocumentEnd</span> =&gt; {
                 <span class="kw">match</span> <span class="self">self</span>.<span class="ident">doc_stack</span>.<span class="ident">len</span>() {
                     <span class="comment">// empty document</span>
-                    <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">docs</span>.<span class="ident">push</span>(<span class="ident">Yaml::BadValue</span>),
-                    <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">docs</span>.<span class="ident">push</span>(<span class="self">self</span>.<span class="ident">doc_stack</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>().<span class="number">0</span>),
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+                    <span class="number">0</span> =&gt; <span class="self">self</span>.<span class="ident">docs</span>.<span class="ident">push</span>(<span class="ident">Yaml::BadValue</span>),
+                    <span class="number">1</span> =&gt; <span class="self">self</span>.<span class="ident">docs</span>.<span class="ident">push</span>(<span class="self">self</span>.<span class="ident">doc_stack</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>().<span class="number">0</span>),
+                    <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
                 }
             }
-            <span class="ident">Event::SequenceStart</span>(<span class="ident">aid</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Event::SequenceStart</span>(<span class="ident">aid</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">doc_stack</span>.<span class="ident">push</span>((<span class="ident">Yaml::Array</span>(<span class="ident">Vec::new</span>()), <span class="ident">aid</span>));
             }
-            <span class="ident">Event::SequenceEnd</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Event::SequenceEnd</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">doc_stack</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>();
                 <span class="self">self</span>.<span class="ident">insert_new_node</span>(<span class="ident">node</span>);
             }
-            <span class="ident">Event::MappingStart</span>(<span class="ident">aid</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Event::MappingStart</span>(<span class="ident">aid</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">doc_stack</span>.<span class="ident">push</span>((<span class="ident">Yaml::Hash</span>(<span class="ident">Hash::new</span>()), <span class="ident">aid</span>));
                 <span class="self">self</span>.<span class="ident">key_stack</span>.<span class="ident">push</span>(<span class="ident">Yaml::BadValue</span>);
             }
-            <span class="ident">Event::MappingEnd</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Event::MappingEnd</span> =&gt; {
                 <span class="self">self</span>.<span class="ident">key_stack</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>();
                 <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">doc_stack</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>();
                 <span class="self">self</span>.<span class="ident">insert_new_node</span>(<span class="ident">node</span>);
             }
-            <span class="ident">Event::Scalar</span>(<span class="ident">v</span>, <span class="ident">style</span>, <span class="ident">aid</span>, <span class="ident">tag</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Event::Scalar</span>(<span class="ident">v</span>, <span class="ident">style</span>, <span class="ident">aid</span>, <span class="ident">tag</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">style</span> <span class="op">!</span><span class="op">=</span> <span class="ident">TScalarStyle::Plain</span> {
                     <span class="ident">Yaml::String</span>(<span class="ident">v</span>)
                 } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">TokenType::Tag</span>(<span class="kw-2">ref</span> <span class="ident">handle</span>, <span class="kw-2">ref</span> <span class="ident">suffix</span>)) <span class="op">=</span> <span class="ident">tag</span> {
                     <span class="comment">// XXX tag:yaml.org,2002:</span>
-                    <span class="kw">if</span> <span class="ident">handle</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;!!&quot;</span> {
+                    <span class="kw">if</span> <span class="ident">handle</span> <span class="op">==</span> <span class="string">&quot;!!&quot;</span> {
                         <span class="kw">match</span> <span class="ident">suffix</span>.<span class="ident">as_ref</span>() {
-                            <span class="string">&quot;bool&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="string">&quot;bool&quot;</span> =&gt; {
                                 <span class="comment">// &quot;true&quot; or &quot;false&quot;</span>
                                 <span class="kw">match</span> <span class="ident">v</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>() {
-                                    <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Yaml::BadValue</span>,
-                                    <span class="prelude-val">Ok</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Yaml::Boolean</span>(<span class="ident">v</span>),
+                                    <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="ident">Yaml::BadValue</span>,
+                                    <span class="prelude-val">Ok</span>(<span class="ident">v</span>) =&gt; <span class="ident">Yaml::Boolean</span>(<span class="ident">v</span>),
                                 }
                             }
-                            <span class="string">&quot;int&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">v</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span>() {
-                                <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Yaml::BadValue</span>,
-                                <span class="prelude-val">Ok</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Yaml::Integer</span>(<span class="ident">v</span>),
+                            <span class="string">&quot;int&quot;</span> =&gt; <span class="kw">match</span> <span class="ident">v</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span>() {
+                                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="ident">Yaml::BadValue</span>,
+                                <span class="prelude-val">Ok</span>(<span class="ident">v</span>) =&gt; <span class="ident">Yaml::Integer</span>(<span class="ident">v</span>),
                             },
-                            <span class="string">&quot;float&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">parse_f64</span>(<span class="kw-2">&amp;</span><span class="ident">v</span>) {
-                                <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Yaml::Real</span>(<span class="ident">v</span>),
-                                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Yaml::BadValue</span>,
+                            <span class="string">&quot;float&quot;</span> =&gt; <span class="kw">match</span> <span class="ident">parse_f64</span>(<span class="kw-2">&amp;</span><span class="ident">v</span>) {
+                                <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="ident">Yaml::Real</span>(<span class="ident">v</span>),
+                                <span class="prelude-val">None</span> =&gt; <span class="ident">Yaml::BadValue</span>,
                             },
-                            <span class="string">&quot;null&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">v</span>.<span class="ident">as_ref</span>() {
-                                <span class="string">&quot;~&quot;</span> <span class="op">|</span> <span class="string">&quot;null&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Yaml::Null</span>,
-                                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Yaml::BadValue</span>,
+                            <span class="string">&quot;null&quot;</span> =&gt; <span class="kw">match</span> <span class="ident">v</span>.<span class="ident">as_ref</span>() {
+                                <span class="string">&quot;~&quot;</span> <span class="op">|</span> <span class="string">&quot;null&quot;</span> =&gt; <span class="ident">Yaml::Null</span>,
+                                <span class="kw">_</span> =&gt; <span class="ident">Yaml::BadValue</span>,
                             },
-                            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Yaml::String</span>(<span class="ident">v</span>),
+                            <span class="kw">_</span> =&gt; <span class="ident">Yaml::String</span>(<span class="ident">v</span>),
                         }
                     } <span class="kw">else</span> {
                         <span class="ident">Yaml::String</span>(<span class="ident">v</span>)
@@ -883,14 +883,14 @@
 
                 <span class="self">self</span>.<span class="ident">insert_new_node</span>((<span class="ident">node</span>, <span class="ident">aid</span>));
             }
-            <span class="ident">Event::Alias</span>(<span class="ident">id</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Event::Alias</span>(<span class="ident">id</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">anchor_map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>) {
-                    <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>.<span class="ident">clone</span>(),
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Yaml::BadValue</span>,
+                    <span class="prelude-val">Some</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span>.<span class="ident">clone</span>(),
+                    <span class="prelude-val">None</span> =&gt; <span class="ident">Yaml::BadValue</span>,
                 };
                 <span class="self">self</span>.<span class="ident">insert_new_node</span>((<span class="ident">n</span>, <span class="number">0</span>));
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="comment">/* ignore */</span> }
+            <span class="kw">_</span> =&gt; { <span class="comment">/* ignore */</span> }
         }
         <span class="comment">// println!(&quot;DOC {:?}&quot;, self.doc_stack);</span>
     }
@@ -907,8 +907,8 @@
         } <span class="kw">else</span> {
             <span class="kw">let</span> <span class="ident">parent</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">doc_stack</span>.<span class="ident">last_mut</span>().<span class="ident">unwrap</span>();
             <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">parent</span> {
-                (<span class="ident">Yaml::Array</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">v</span>), <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>.<span class="ident">push</span>(<span class="ident">node</span>.<span class="number">0</span>),
-                (<span class="ident">Yaml::Hash</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">h</span>), <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                (<span class="ident">Yaml::Array</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">v</span>), <span class="kw">_</span>) =&gt; <span class="ident">v</span>.<span class="ident">push</span>(<span class="ident">node</span>.<span class="number">0</span>),
+                (<span class="ident">Yaml::Hash</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">h</span>), <span class="kw">_</span>) =&gt; {
                     <span class="kw">let</span> <span class="ident">cur_key</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">key_stack</span>.<span class="ident">last_mut</span>().<span class="ident">unwrap</span>();
                     <span class="comment">// current node is a key</span>
                     <span class="kw">if</span> <span class="ident">cur_key</span>.<span class="ident">is_badvalue</span>() {
@@ -920,12 +920,12 @@
                         <span class="ident">h</span>.<span class="ident">insert</span>(<span class="ident">newkey</span>, <span class="ident">node</span>.<span class="number">0</span>);
                     }
                 }
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+                <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
             }
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">load_from_str</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Yaml</span><span class="op">&gt;</span>, <span class="ident">ScanError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">load_from_str</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Yaml</span><span class="op">&gt;</span>, <span class="ident">ScanError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">loader</span> <span class="op">=</span> <span class="ident">YamlLoader</span> {
             <span class="ident">docs</span>: <span class="ident">Vec::new</span>(),
             <span class="ident">doc_stack</span>: <span class="ident">Vec::new</span>(),
@@ -939,33 +939,33 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">define_as</span> (
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">yt</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> (
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">yt</span>:<span class="ident">ident</span>) =&gt; (
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span> {
     <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-        <span class="ident">Yaml</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">yt</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>),
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>
+        <span class="ident">Yaml</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">yt</span>(<span class="ident">v</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">v</span>),
+        <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>
     }
 }
     );
 );
 
 <span class="macro">macro_rules!</span> <span class="ident">define_as_ref</span> (
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">yt</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> (
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">yt</span>:<span class="ident">ident</span>) =&gt; (
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span> {
     <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-        <span class="ident">Yaml</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">yt</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>),
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>
+        <span class="ident">Yaml</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">yt</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">v</span>),
+        <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>
     }
 }
     );
 );
 
 <span class="macro">macro_rules!</span> <span class="ident">define_into</span> (
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">yt</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> (
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">yt</span>:<span class="ident">ident</span>) =&gt; (
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span> {
     <span class="kw">match</span> <span class="self">self</span> {
-        <span class="ident">Yaml</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">yt</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>),
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>
+        <span class="ident">Yaml</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">yt</span>(<span class="ident">v</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">v</span>),
+        <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>
     }
 }
     );
@@ -985,38 +985,38 @@
     <span class="macro">define_into!</span>(<span class="ident">into_hash</span>, <span class="ident">Hash</span>, <span class="ident">Hash</span>);
     <span class="macro">define_into!</span>(<span class="ident">into_vec</span>, <span class="ident">Array</span>, <span class="ident">Array</span>);
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_null</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_null</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Yaml::Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident">Yaml::Null</span> =&gt; <span class="bool-val">true</span>,
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_badvalue</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_badvalue</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Yaml::BadValue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident">Yaml::BadValue</span> =&gt; <span class="bool-val">true</span>,
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_array</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_array</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Yaml::Array</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident">Yaml::Array</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_f64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_f64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Yaml::Real</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_f64</span>(<span class="ident">v</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">Yaml::Real</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; <span class="ident">parse_f64</span>(<span class="ident">v</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_f64</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_f64</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Yaml::Real</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_f64</span>(<span class="ident">v</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">Yaml::Real</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; <span class="ident">parse_f64</span>(<span class="ident">v</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 }
@@ -1025,7 +1025,7 @@
 <span class="kw">impl</span> <span class="ident">Yaml</span> {
     <span class="comment">// Not implementing FromStr because there is no possibility of Error.</span>
     <span class="comment">// This function falls back to Yaml::String if nothing else matches.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Yaml</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">Yaml</span> {
         <span class="kw">if</span> <span class="ident">v</span>.<span class="ident">starts_with</span>(<span class="string">&quot;0x&quot;</span>) {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">i</span>) <span class="op">=</span> <span class="ident">i64::from_str_radix</span>(<span class="kw-2">&amp;</span><span class="ident">v</span>[<span class="number">2</span>..], <span class="number">16</span>) {
                 <span class="kw">return</span> <span class="ident">Yaml::Integer</span>(<span class="ident">i</span>);
@@ -1042,13 +1042,13 @@
             }
         }
         <span class="kw">match</span> <span class="ident">v</span> {
-            <span class="string">&quot;~&quot;</span> <span class="op">|</span> <span class="string">&quot;null&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Yaml::Null</span>,
-            <span class="string">&quot;true&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Yaml::Boolean</span>(<span class="bool-val">true</span>),
-            <span class="string">&quot;false&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Yaml::Boolean</span>(<span class="bool-val">false</span>),
-            <span class="kw">_</span> <span class="kw">if</span> <span class="ident">v</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span>().<span class="ident">is_ok</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Yaml::Integer</span>(<span class="ident">v</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>()),
+            <span class="string">&quot;~&quot;</span> <span class="op">|</span> <span class="string">&quot;null&quot;</span> =&gt; <span class="ident">Yaml::Null</span>,
+            <span class="string">&quot;true&quot;</span> =&gt; <span class="ident">Yaml::Boolean</span>(<span class="bool-val">true</span>),
+            <span class="string">&quot;false&quot;</span> =&gt; <span class="ident">Yaml::Boolean</span>(<span class="bool-val">false</span>),
+            <span class="kw">_</span> <span class="kw">if</span> <span class="ident">v</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span>().<span class="ident">is_ok</span>() =&gt; <span class="ident">Yaml::Integer</span>(<span class="ident">v</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>()),
             <span class="comment">// try parsing as f64</span>
-            <span class="kw">_</span> <span class="kw">if</span> <span class="ident">parse_f64</span>(<span class="ident">v</span>).<span class="ident">is_some</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Yaml::Real</span>(<span class="ident">v</span>.<span class="ident">to_owned</span>()),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Yaml::String</span>(<span class="ident">v</span>.<span class="ident">to_owned</span>()),
+            <span class="kw">_</span> <span class="kw">if</span> <span class="ident">parse_f64</span>(<span class="ident">v</span>).<span class="ident">is_some</span>() =&gt; <span class="ident">Yaml::Real</span>(<span class="ident">v</span>.<span class="ident">to_owned</span>()),
+            <span class="kw">_</span> =&gt; <span class="ident">Yaml::String</span>(<span class="ident">v</span>.<span class="ident">to_owned</span>()),
         }
     }
 }
@@ -1057,11 +1057,11 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Index</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Yaml</span> {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Yaml</span>;
 
-    <span class="kw">fn</span> <span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">idx</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Yaml</span> {
+    <span class="kw">fn</span> <span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">idx</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Yaml</span> {
         <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">Yaml::String</span>(<span class="ident">idx</span>.<span class="ident">to_owned</span>());
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">as_hash</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">h</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">h</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>).<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="ident">BAD_VALUE</span>),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">BAD_VALUE</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">h</span>) =&gt; <span class="ident">h</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>).<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="ident">BAD_VALUE</span>),
+            <span class="prelude-val">None</span> =&gt; <span class="kw-2">&amp;</span><span class="ident">BAD_VALUE</span>,
         }
     }
 }
@@ -1069,7 +1069,7 @@
 <span class="kw">impl</span> <span class="ident">Index</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Yaml</span> {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Yaml</span>;
 
-    <span class="kw">fn</span> <span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">idx</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Yaml</span> {
+    <span class="kw">fn</span> <span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">idx</span>: <span class="ident">usize</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Yaml</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">as_vec</span>() {
             <span class="ident">v</span>.<span class="ident">get</span>(<span class="ident">idx</span>).<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="ident">BAD_VALUE</span>)
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">as_hash</span>() {
@@ -1085,7 +1085,7 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">Yaml</span>;
     <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">YamlIter</span>;
 
-    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::IntoIter</span> {
+    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::IntoIter</span> {
         <span class="ident">YamlIter</span> {
             <span class="ident">yaml</span>: <span class="self">self</span>.<span class="ident">into_vec</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">Vec::new</span>).<span class="ident">into_iter</span>(),
         }
@@ -1099,7 +1099,7 @@
 <span class="kw">impl</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">YamlIter</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">Yaml</span>;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Yaml</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Yaml</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">yaml</span>.<span class="ident">next</span>()
     }
 }

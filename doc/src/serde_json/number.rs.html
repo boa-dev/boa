@@ -813,12 +813,12 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">N</span> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
-            (<span class="ident">N::PosInt</span>(<span class="ident">a</span>), <span class="ident">N::PosInt</span>(<span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b</span>,
-            (<span class="ident">N::NegInt</span>(<span class="ident">a</span>), <span class="ident">N::NegInt</span>(<span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b</span>,
-            (<span class="ident">N::Float</span>(<span class="ident">a</span>), <span class="ident">N::Float</span>(<span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            (<span class="ident">N::PosInt</span>(<span class="ident">a</span>), <span class="ident">N::PosInt</span>(<span class="ident">b</span>)) =&gt; <span class="ident">a</span> <span class="op">==</span> <span class="ident">b</span>,
+            (<span class="ident">N::NegInt</span>(<span class="ident">a</span>), <span class="ident">N::NegInt</span>(<span class="ident">b</span>)) =&gt; <span class="ident">a</span> <span class="op">==</span> <span class="ident">b</span>,
+            (<span class="ident">N::Float</span>(<span class="ident">a</span>), <span class="ident">N::Float</span>(<span class="ident">b</span>)) =&gt; <span class="ident">a</span> <span class="op">==</span> <span class="ident">b</span>,
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
 }
@@ -831,10 +831,10 @@
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">N</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="ident">Hasher</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">h</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>) {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">N::PosInt</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i</span>.<span class="ident">hash</span>(<span class="ident">h</span>),
-            <span class="ident">N::NegInt</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i</span>.<span class="ident">hash</span>(<span class="ident">h</span>),
-            <span class="ident">N::Float</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <span class="ident">f</span> <span class="op">=</span><span class="op">=</span> <span class="number">0.0f64</span> {
+            <span class="ident">N::PosInt</span>(<span class="ident">i</span>) =&gt; <span class="ident">i</span>.<span class="ident">hash</span>(<span class="ident">h</span>),
+            <span class="ident">N::NegInt</span>(<span class="ident">i</span>) =&gt; <span class="ident">i</span>.<span class="ident">hash</span>(<span class="ident">h</span>),
+            <span class="ident">N::Float</span>(<span class="ident">f</span>) =&gt; {
+                <span class="kw">if</span> <span class="ident">f</span> <span class="op">==</span> <span class="number">0.0f64</span> {
                     <span class="comment">// There are 2 zero representations, +0 and -0, which</span>
                     <span class="comment">// compare equal but have different bits. We use the +0 hash</span>
                     <span class="comment">// for both so that hash(+0) == hash(-0).</span>
@@ -872,12 +872,12 @@
     <span class="doccomment">/// assert!(!v[&quot;c&quot;].is_i64());</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_i64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_i64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>))]</span>
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">n</span> {
-            <span class="ident">N::PosInt</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">i64::max_value</span>() <span class="kw">as</span> <span class="ident">u64</span>,
-            <span class="ident">N::NegInt</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="ident">N::Float</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident">N::PosInt</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">i64::max_value</span>() <span class="kw">as</span> <span class="ident">u64</span>,
+            <span class="ident">N::NegInt</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+            <span class="ident">N::Float</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
         }
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>)]</span>
         <span class="self">self</span>.<span class="ident">as_i64</span>().<span class="ident">is_some</span>()
@@ -902,11 +902,11 @@
     <span class="doccomment">/// assert!(!v[&quot;c&quot;].is_u64());</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_u64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_u64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>))]</span>
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">n</span> {
-            <span class="ident">N::PosInt</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="ident">N::NegInt</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">N::Float</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident">N::PosInt</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+            <span class="ident">N::NegInt</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">N::Float</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
         }
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>)]</span>
         <span class="self">self</span>.<span class="ident">as_u64</span>().<span class="ident">is_some</span>()
@@ -932,16 +932,16 @@
     <span class="doccomment">/// assert!(!v[&quot;c&quot;].is_f64());</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_f64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_f64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>))]</span>
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">n</span> {
-            <span class="ident">N::Float</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="ident">N::PosInt</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">N::NegInt</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident">N::Float</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+            <span class="ident">N::PosInt</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">N::NegInt</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
         }
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>)]</span>
         {
             <span class="kw">for</span> <span class="ident">c</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">n</span>.<span class="ident">chars</span>() {
-                <span class="kw">if</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;.&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;e&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;E&#39;</span> {
+                <span class="kw">if</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;.&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;e&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;E&#39;</span> {
                     <span class="kw">return</span> <span class="self">self</span>.<span class="ident">n</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>().<span class="ident">ok</span>().<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="ident">f64::is_finite</span>);
                 }
             }
@@ -963,18 +963,18 @@
     <span class="doccomment">/// assert_eq!(v[&quot;c&quot;].as_i64(), None);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_i64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_i64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>))]</span>
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">n</span> {
-            <span class="ident">N::PosInt</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">N::PosInt</span>(<span class="ident">n</span>) =&gt; {
                 <span class="kw">if</span> <span class="ident">n</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">i64::max_value</span>() <span class="kw">as</span> <span class="ident">u64</span> {
                     <span class="prelude-val">Some</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">i64</span>)
                 } <span class="kw">else</span> {
                     <span class="prelude-val">None</span>
                 }
             }
-            <span class="ident">N::NegInt</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">n</span>),
-            <span class="ident">N::Float</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">N::NegInt</span>(<span class="ident">n</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">n</span>),
+            <span class="ident">N::Float</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
         }
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>)]</span>
         <span class="self">self</span>.<span class="ident">n</span>.<span class="ident">parse</span>().<span class="ident">ok</span>()
@@ -993,11 +993,11 @@
     <span class="doccomment">/// assert_eq!(v[&quot;c&quot;].as_u64(), None);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_u64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_u64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>))]</span>
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">n</span> {
-            <span class="ident">N::PosInt</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">n</span>),
-            <span class="ident">N::NegInt</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">N::Float</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">N::PosInt</span>(<span class="ident">n</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">n</span>),
+            <span class="ident">N::NegInt</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">N::Float</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
         }
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>)]</span>
         <span class="self">self</span>.<span class="ident">n</span>.<span class="ident">parse</span>().<span class="ident">ok</span>()
@@ -1015,12 +1015,12 @@
     <span class="doccomment">/// assert_eq!(v[&quot;c&quot;].as_f64(), Some(-64.0));</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_f64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_f64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>))]</span>
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">n</span> {
-            <span class="ident">N::PosInt</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">f64</span>),
-            <span class="ident">N::NegInt</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">f64</span>),
-            <span class="ident">N::Float</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">n</span>),
+            <span class="ident">N::PosInt</span>(<span class="ident">n</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">f64</span>),
+            <span class="ident">N::NegInt</span>(<span class="ident">n</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">f64</span>),
+            <span class="ident">N::Float</span>(<span class="ident">n</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">n</span>),
         }
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>)]</span>
         <span class="self">self</span>.<span class="ident">n</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>().<span class="ident">ok</span>().<span class="ident">filter</span>(<span class="op">|</span><span class="ident">float</span><span class="op">|</span> <span class="ident">float</span>.<span class="ident">is_finite</span>())
@@ -1039,7 +1039,7 @@
     <span class="doccomment">/// assert!(Number::from_f64(f64::NAN).is_none());</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_f64</span>(<span class="ident">f</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Number</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_f64</span>(<span class="ident">f</span>: <span class="ident">f64</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Number</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">is_finite</span>() {
             <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> {
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>))]</span>
@@ -1061,39 +1061,39 @@
     <span class="doccomment">/// Not public API. Only tests use this.</span>
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_string_unchecked</span>(<span class="ident">n</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_string_unchecked</span>(<span class="ident">n</span>: <span class="ident">String</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">Number</span> { <span class="ident">n</span> }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Number</span> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">n</span> {
-            <span class="ident">N::PosInt</span>(<span class="ident">u</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="kw-2">&amp;</span><span class="ident">u</span>, <span class="ident">formatter</span>),
-            <span class="ident">N::NegInt</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>, <span class="ident">formatter</span>),
-            <span class="ident">N::Float</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="kw-2">&amp;</span><span class="ident">f</span>, <span class="ident">formatter</span>),
+            <span class="ident">N::PosInt</span>(<span class="ident">u</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="kw-2">&amp;</span><span class="ident">u</span>, <span class="ident">formatter</span>),
+            <span class="ident">N::NegInt</span>(<span class="ident">i</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>, <span class="ident">formatter</span>),
+            <span class="ident">N::Float</span>(<span class="ident">f</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="kw-2">&amp;</span><span class="ident">f</span>, <span class="ident">formatter</span>),
         }
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="ident">Display::fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">n</span>, <span class="ident">formatter</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Number</span> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">debug</span> <span class="op">=</span> <span class="ident">formatter</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Number&quot;</span>);
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">n</span> {
-            <span class="ident">N::PosInt</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">N::PosInt</span>(<span class="ident">i</span>) =&gt; {
                 <span class="ident">debug</span>.<span class="ident">field</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>);
             }
-            <span class="ident">N::NegInt</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">N::NegInt</span>(<span class="ident">i</span>) =&gt; {
                 <span class="ident">debug</span>.<span class="ident">field</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>);
             }
-            <span class="ident">N::Float</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">N::Float</span>(<span class="ident">f</span>) =&gt; {
                 <span class="ident">debug</span>.<span class="ident">field</span>(<span class="kw-2">&amp;</span><span class="ident">f</span>);
             }
         }
@@ -1101,7 +1101,7 @@
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="ident">formatter</span>
             .<span class="ident">debug_tuple</span>(<span class="string">&quot;Number&quot;</span>)
             .<span class="ident">field</span>(<span class="kw-2">&amp;</span><span class="macro">format_args!</span>(<span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">n</span>))
@@ -1112,20 +1112,20 @@
 <span class="kw">impl</span> <span class="ident">Serialize</span> <span class="kw">for</span> <span class="ident">Number</span> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>))]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S::Ok</span>, <span class="ident">S::Error</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S::Ok</span>, <span class="ident">S::Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">S</span>: <span class="ident">Serializer</span>,
     {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">n</span> {
-            <span class="ident">N::PosInt</span>(<span class="ident">u</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">serializer</span>.<span class="ident">serialize_u64</span>(<span class="ident">u</span>),
-            <span class="ident">N::NegInt</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">serializer</span>.<span class="ident">serialize_i64</span>(<span class="ident">i</span>),
-            <span class="ident">N::Float</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">serializer</span>.<span class="ident">serialize_f64</span>(<span class="ident">f</span>),
+            <span class="ident">N::PosInt</span>(<span class="ident">u</span>) =&gt; <span class="ident">serializer</span>.<span class="ident">serialize_u64</span>(<span class="ident">u</span>),
+            <span class="ident">N::NegInt</span>(<span class="ident">i</span>) =&gt; <span class="ident">serializer</span>.<span class="ident">serialize_i64</span>(<span class="ident">i</span>),
+            <span class="ident">N::Float</span>(<span class="ident">f</span>) =&gt; <span class="ident">serializer</span>.<span class="ident">serialize_f64</span>(<span class="ident">f</span>),
         }
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S::Ok</span>, <span class="ident">S::Error</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S::Ok</span>, <span class="ident">S::Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">S</span>: <span class="ident">Serializer</span>,
     {
@@ -1139,7 +1139,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Number</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Number</span>, <span class="ident">D::Error</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Number</span>, <span class="ident">D::Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">D</span>: <span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
@@ -1148,22 +1148,22 @@
         <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">NumberVisitor</span> {
             <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> <span class="ident">Number</span>;
 
-            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
                 <span class="ident">formatter</span>.<span class="ident">write_str</span>(<span class="string">&quot;a JSON number&quot;</span>)
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">visit_i64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="ident">i64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Number</span>, <span class="ident">E</span><span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="ident">visit_i64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="ident">i64</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Number</span>, <span class="ident">E</span><span class="op">&gt;</span> {
                 <span class="prelude-val">Ok</span>(<span class="ident">value</span>.<span class="ident">into</span>())
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">visit_u64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Number</span>, <span class="ident">E</span><span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="ident">visit_u64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="ident">u64</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Number</span>, <span class="ident">E</span><span class="op">&gt;</span> {
                 <span class="prelude-val">Ok</span>(<span class="ident">value</span>.<span class="ident">into</span>())
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">visit_f64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Number</span>, <span class="ident">E</span><span class="op">&gt;</span>
+            <span class="kw">fn</span> <span class="ident">visit_f64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="ident">f64</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Number</span>, <span class="ident">E</span><span class="op">&gt;</span>
             <span class="kw">where</span>
                 <span class="ident">E</span>: <span class="ident">de::Error</span>,
             {
@@ -1172,7 +1172,7 @@
 
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>)]</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">visit_map</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">visitor</span>: <span class="ident">V</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Number</span>, <span class="ident">V::Error</span><span class="op">&gt;</span>
+            <span class="kw">fn</span> <span class="ident">visit_map</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Number</span>, <span class="ident">V::Error</span><span class="op">&gt;</span>
             <span class="kw">where</span>
                 <span class="ident">V</span>: <span class="ident">de::MapAccess</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
             {
@@ -1194,7 +1194,7 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>)]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">de::Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">NumberKey</span> {
-    <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NumberKey</span>, <span class="ident">D::Error</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NumberKey</span>, <span class="ident">D::Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">D</span>: <span class="ident">de::Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
@@ -1203,15 +1203,15 @@
         <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FieldVisitor</span> {
             <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> ();
 
-            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
                 <span class="ident">formatter</span>.<span class="ident">write_str</span>(<span class="string">&quot;a valid number field&quot;</span>)
             }
 
-            <span class="kw">fn</span> <span class="ident">visit_str</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">E</span><span class="op">&gt;</span>
+            <span class="kw">fn</span> <span class="ident">visit_str</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">E</span><span class="op">&gt;</span>
             <span class="kw">where</span>
                 <span class="ident">E</span>: <span class="ident">de::Error</span>,
             {
-                <span class="kw">if</span> <span class="ident">s</span> <span class="op">=</span><span class="op">=</span> <span class="ident">TOKEN</span> {
+                <span class="kw">if</span> <span class="ident">s</span> <span class="op">==</span> <span class="ident">TOKEN</span> {
                     <span class="prelude-val">Ok</span>(())
                 } <span class="kw">else</span> {
                     <span class="prelude-val">Err</span>(<span class="ident">de::Error::custom</span>(<span class="string">&quot;expected field with custom name&quot;</span>))
@@ -1231,7 +1231,7 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>)]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">de::Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">NumberFromString</span> {
-    <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NumberFromString</span>, <span class="ident">D::Error</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NumberFromString</span>, <span class="ident">D::Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">D</span>: <span class="ident">de::Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
@@ -1240,11 +1240,11 @@
         <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Visitor</span> {
             <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> <span class="ident">NumberFromString</span>;
 
-            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
                 <span class="ident">formatter</span>.<span class="ident">write_str</span>(<span class="string">&quot;string containing a number&quot;</span>)
             }
 
-            <span class="kw">fn</span> <span class="ident">visit_str</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NumberFromString</span>, <span class="ident">E</span><span class="op">&gt;</span>
+            <span class="kw">fn</span> <span class="ident">visit_str</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NumberFromString</span>, <span class="ident">E</span><span class="op">&gt;</span>
             <span class="kw">where</span>
                 <span class="ident">E</span>: <span class="ident">de::Error</span>,
             {
@@ -1258,28 +1258,28 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>)]</span>
-<span class="kw">fn</span> <span class="ident">invalid_number</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
+<span class="kw">fn</span> <span class="ident">invalid_number</span>() -&gt; <span class="ident">Error</span> {
     <span class="ident">Error::syntax</span>(<span class="ident">ErrorCode::InvalidNumber</span>, <span class="number">0</span>, <span class="number">0</span>)
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">deserialize_any</span> {
-    (@<span class="ident">expand</span> [$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">num_string</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>]) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">expand</span> [$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">num_string</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>]) =&gt; {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>))]</span>
         <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">fn</span> <span class="ident">deserialize_any</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span>, <span class="ident">Error</span><span class="op">&gt;</span>
+        <span class="kw">fn</span> <span class="ident">deserialize_any</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span>, <span class="ident">Error</span><span class="op">&gt;</span>
         <span class="kw">where</span>
             <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
         {
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">n</span> {
-                <span class="ident">N::PosInt</span>(<span class="ident">u</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visitor</span>.<span class="ident">visit_u64</span>(<span class="ident">u</span>),
-                <span class="ident">N::NegInt</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visitor</span>.<span class="ident">visit_i64</span>(<span class="ident">i</span>),
-                <span class="ident">N::Float</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visitor</span>.<span class="ident">visit_f64</span>(<span class="ident">f</span>),
+                <span class="ident">N::PosInt</span>(<span class="ident">u</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_u64</span>(<span class="ident">u</span>),
+                <span class="ident">N::NegInt</span>(<span class="ident">i</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_i64</span>(<span class="ident">i</span>),
+                <span class="ident">N::Float</span>(<span class="ident">f</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_f64</span>(<span class="ident">f</span>),
             }
         }
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>)]</span>
         <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">fn</span> <span class="ident">deserialize_any</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span>, <span class="ident">Error</span><span class="op">&gt;</span>
+        <span class="kw">fn</span> <span class="ident">deserialize_any</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span>, <span class="ident">Error</span><span class="op">&gt;</span>
             <span class="kw">where</span> <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>
         {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">u</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">as_u64</span>() {
@@ -1287,7 +1287,7 @@
             } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">i</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">as_i64</span>() {
                 <span class="kw">return</span> <span class="ident">visitor</span>.<span class="ident">visit_i64</span>(<span class="ident">i</span>);
             } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">f</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">as_f64</span>() {
-                <span class="kw">if</span> <span class="ident">ryu::Buffer::new</span>().<span class="ident">format_finite</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">n</span> <span class="op">|</span><span class="op">|</span> <span class="ident">f</span>.<span class="ident">to_string</span>() <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">n</span> {
+                <span class="kw">if</span> <span class="ident">ryu::Buffer::new</span>().<span class="ident">format_finite</span>(<span class="ident">f</span>) <span class="op">==</span> <span class="self">self</span>.<span class="ident">n</span> <span class="op">|</span><span class="op">|</span> <span class="ident">f</span>.<span class="ident">to_string</span>() <span class="op">==</span> <span class="self">self</span>.<span class="ident">n</span> {
                     <span class="kw">return</span> <span class="ident">visitor</span>.<span class="ident">visit_f64</span>(<span class="ident">f</span>);
                 }
             }
@@ -1298,19 +1298,19 @@
         }
     };
 
-    (<span class="ident">owned</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="ident">owned</span>) =&gt; {
         <span class="macro">deserialize_any!</span>(@<span class="ident">expand</span> [<span class="ident">n</span>]);
     };
 
-    (<span class="kw-2">ref</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="kw-2">ref</span>) =&gt; {
         <span class="macro">deserialize_any!</span>(@<span class="ident">expand</span> [<span class="ident">n</span>.<span class="ident">clone</span>()]);
     };
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">deserialize_number</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">deserialize</span>:<span class="ident">ident</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visit</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">deserialize</span>:<span class="ident">ident</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visit</span>:<span class="ident">ident</span>) =&gt; {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>))]</span>
-        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">deserialize</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span>, <span class="ident">Error</span><span class="op">&gt;</span>
+        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">deserialize</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span>, <span class="ident">Error</span><span class="op">&gt;</span>
         <span class="kw">where</span>
             <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
         {
@@ -1318,7 +1318,7 @@
         }
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>)]</span>
-        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">deserialize</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span>, <span class="ident">Error</span><span class="op">&gt;</span>
+        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">deserialize</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span>, <span class="ident">Error</span><span class="op">&gt;</span>
         <span class="kw">where</span>
             <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
         {
@@ -1332,20 +1332,20 @@
 
     <span class="macro">deserialize_any!</span>(<span class="ident">owned</span>);
 
-    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_i8</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visit_i8</span>);
-    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_i16</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visit_i16</span>);
-    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_i32</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visit_i32</span>);
-    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_i64</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visit_i64</span>);
-    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_u8</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visit_u8</span>);
-    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_u16</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visit_u16</span>);
-    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_u32</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visit_u32</span>);
-    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_u64</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visit_u64</span>);
-    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_f32</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visit_f32</span>);
-    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_f64</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visit_f64</span>);
+    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_i8</span> =&gt; <span class="ident">visit_i8</span>);
+    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_i16</span> =&gt; <span class="ident">visit_i16</span>);
+    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_i32</span> =&gt; <span class="ident">visit_i32</span>);
+    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_i64</span> =&gt; <span class="ident">visit_i64</span>);
+    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_u8</span> =&gt; <span class="ident">visit_u8</span>);
+    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_u16</span> =&gt; <span class="ident">visit_u16</span>);
+    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_u32</span> =&gt; <span class="ident">visit_u32</span>);
+    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_u64</span> =&gt; <span class="ident">visit_u64</span>);
+    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_f32</span> =&gt; <span class="ident">visit_f32</span>);
+    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_f64</span> =&gt; <span class="ident">visit_f64</span>);
 
     <span class="macro">serde_if_integer128!</span> {
-        <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_i128</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visit_i128</span>);
-        <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_u128</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visit_u128</span>);
+        <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_i128</span> =&gt; <span class="ident">visit_i128</span>);
+        <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_u128</span> =&gt; <span class="ident">visit_u128</span>);
     }
 
     <span class="macro">forward_to_deserialize_any!</span> {
@@ -1360,20 +1360,20 @@
 
     <span class="macro">deserialize_any!</span>(<span class="kw-2">ref</span>);
 
-    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_i8</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visit_i8</span>);
-    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_i16</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visit_i16</span>);
-    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_i32</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visit_i32</span>);
-    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_i64</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visit_i64</span>);
-    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_u8</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visit_u8</span>);
-    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_u16</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visit_u16</span>);
-    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_u32</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visit_u32</span>);
-    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_u64</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visit_u64</span>);
-    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_f32</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visit_f32</span>);
-    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_f64</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visit_f64</span>);
+    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_i8</span> =&gt; <span class="ident">visit_i8</span>);
+    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_i16</span> =&gt; <span class="ident">visit_i16</span>);
+    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_i32</span> =&gt; <span class="ident">visit_i32</span>);
+    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_i64</span> =&gt; <span class="ident">visit_i64</span>);
+    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_u8</span> =&gt; <span class="ident">visit_u8</span>);
+    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_u16</span> =&gt; <span class="ident">visit_u16</span>);
+    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_u32</span> =&gt; <span class="ident">visit_u32</span>);
+    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_u64</span> =&gt; <span class="ident">visit_u64</span>);
+    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_f32</span> =&gt; <span class="ident">visit_f32</span>);
+    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_f64</span> =&gt; <span class="ident">visit_f64</span>);
 
     <span class="macro">serde_if_integer128!</span> {
-        <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_i128</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visit_i128</span>);
-        <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_u128</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visit_u128</span>);
+        <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_i128</span> =&gt; <span class="ident">visit_i128</span>);
+        <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_u128</span> =&gt; <span class="ident">visit_u128</span>);
     }
 
     <span class="macro">forward_to_deserialize_any!</span> {
@@ -1392,7 +1392,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">MapAccess</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">NumberDeserializer</span> {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
 
-    <span class="kw">fn</span> <span class="ident">next_key_seed</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">seed</span>: <span class="ident">K</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">K::Value</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">next_key_seed</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">seed</span>: <span class="ident">K</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">K::Value</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">K</span>: <span class="ident">de::DeserializeSeed</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
@@ -1402,7 +1402,7 @@
         <span class="ident">seed</span>.<span class="ident">deserialize</span>(<span class="ident">NumberFieldDeserializer</span>).<span class="ident">map</span>(<span class="prelude-val">Some</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">next_value_seed</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">seed</span>: <span class="ident">V</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span>, <span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">next_value_seed</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">seed</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span>, <span class="ident">Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">de::DeserializeSeed</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
@@ -1417,7 +1417,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">NumberFieldDeserializer</span> {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
 
-    <span class="kw">fn</span> <span class="ident">deserialize_any</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span>, <span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">deserialize_any</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span>, <span class="ident">Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
@@ -1432,9 +1432,9 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ParserNumber</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Number</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">ParserNumber</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">ParserNumber</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">value</span> {
-            <span class="ident">ParserNumber::F64</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ParserNumber::F64</span>(<span class="ident">f</span>) =&gt; {
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>))]</span>
                 {
                     <span class="ident">N::Float</span>(<span class="ident">f</span>)
@@ -1444,7 +1444,7 @@
                     <span class="ident">f</span>.<span class="ident">to_string</span>()
                 }
             }
-            <span class="ident">ParserNumber::U64</span>(<span class="ident">u</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ParserNumber::U64</span>(<span class="ident">u</span>) =&gt; {
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>))]</span>
                 {
                     <span class="ident">N::PosInt</span>(<span class="ident">u</span>)
@@ -1454,7 +1454,7 @@
                     <span class="ident">u</span>.<span class="ident">to_string</span>()
                 }
             }
-            <span class="ident">ParserNumber::I64</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ParserNumber::I64</span>(<span class="ident">i</span>) =&gt; {
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>))]</span>
                 {
                     <span class="ident">N::NegInt</span>(<span class="ident">i</span>)
@@ -1465,7 +1465,7 @@
                 }
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>)]</span>
-            <span class="ident">ParserNumber::String</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>,
+            <span class="ident">ParserNumber::String</span>(<span class="ident">s</span>) =&gt; <span class="ident">s</span>,
         };
         <span class="ident">Number</span> { <span class="ident">n</span> }
     }
@@ -1474,11 +1474,11 @@
 <span class="macro">macro_rules!</span> <span class="ident">impl_from_unsigned</span> {
     (
         $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ty</span>),<span class="op">*</span>
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         $(
             <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Number</span> {
                 <span class="attribute">#[<span class="ident">inline</span>]</span>
-                <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">u</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+                <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">u</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>) -&gt; <span class="self">Self</span> {
                     <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> {
                         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>))]</span>
                         { <span class="ident">N::PosInt</span>(<span class="ident">u</span> <span class="kw">as</span> <span class="ident">u64</span>) }
@@ -1497,11 +1497,11 @@
 <span class="macro">macro_rules!</span> <span class="ident">impl_from_signed</span> {
     (
         $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ty</span>),<span class="op">*</span>
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         $(
             <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Number</span> {
                 <span class="attribute">#[<span class="ident">inline</span>]</span>
-                <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">i</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+                <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">i</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>) -&gt; <span class="self">Self</span> {
                     <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> {
                         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>))]</span>
                         {
@@ -1529,13 +1529,13 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>)]</span>
 <span class="macro">serde_if_integer128!</span> {
     <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">i128</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Number</span> {
-        <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">i</span>: <span class="ident">i128</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">i</span>: <span class="ident">i128</span>) -&gt; <span class="self">Self</span> {
             <span class="ident">Number</span> { <span class="ident">n</span>: <span class="ident">i</span>.<span class="ident">to_string</span>() }
         }
     }
 
     <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Number</span> {
-        <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">u</span>: <span class="ident">u128</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">u</span>: <span class="ident">u128</span>) -&gt; <span class="self">Self</span> {
             <span class="ident">Number</span> { <span class="ident">n</span>: <span class="ident">u</span>.<span class="ident">to_string</span>() }
         }
     }
@@ -1544,17 +1544,17 @@
 <span class="kw">impl</span> <span class="ident">Number</span> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>))]</span>
     <span class="attribute">#[<span class="ident">cold</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">unexpected</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Unexpected</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">unexpected</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Unexpected</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">n</span> {
-            <span class="ident">N::PosInt</span>(<span class="ident">u</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Unexpected::Unsigned</span>(<span class="ident">u</span>),
-            <span class="ident">N::NegInt</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Unexpected::Signed</span>(<span class="ident">i</span>),
-            <span class="ident">N::Float</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Unexpected::Float</span>(<span class="ident">f</span>),
+            <span class="ident">N::PosInt</span>(<span class="ident">u</span>) =&gt; <span class="ident">Unexpected::Unsigned</span>(<span class="ident">u</span>),
+            <span class="ident">N::NegInt</span>(<span class="ident">i</span>) =&gt; <span class="ident">Unexpected::Signed</span>(<span class="ident">i</span>),
+            <span class="ident">N::Float</span>(<span class="ident">f</span>) =&gt; <span class="ident">Unexpected::Float</span>(<span class="ident">f</span>),
         }
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">cold</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">unexpected</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Unexpected</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">unexpected</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Unexpected</span> {
         <span class="ident">Unexpected::Other</span>(<span class="string">&quot;number&quot;</span>)
     }
 }

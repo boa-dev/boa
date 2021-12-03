@@ -392,21 +392,21 @@
 
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_LOOKUP_free</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_LOOKUP</span>);
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_LOOKUP_hash_dir</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_LOOKUP_METHOD</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_LOOKUP_hash_dir</span>() -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_LOOKUP_METHOD</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_LOOKUP_ctrl</span>(
         <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_LOOKUP</span>,
         <span class="ident">cmd</span>: <span class="ident">c_int</span>,
         <span class="ident">argc</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
         <span class="ident">argl</span>: <span class="ident">c_long</span>,
         <span class="ident">ret</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_char</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
 }
 
 <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">X509_LOOKUP_add_dir</span>(
     <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_LOOKUP</span>,
     <span class="ident">name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
     <span class="ident">_type</span>: <span class="ident">c_int</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span> {
+) -&gt; <span class="ident">c_int</span> {
     <span class="kw">const</span> <span class="ident">X509_L_ADD_DIR</span>: <span class="ident">c_int</span> <span class="op">=</span> <span class="number">2</span>;
     <span class="ident">X509_LOOKUP_ctrl</span>(
         <span class="ident">ctx</span>,
@@ -418,10 +418,10 @@
 }
 
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_STORE_new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_STORE</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_STORE_new</span>() -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_STORE</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_STORE_free</span>(<span class="ident">store</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_STORE</span>);
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_STORE_CTX_new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_STORE_CTX</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_STORE_CTX_new</span>() -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_STORE_CTX</span>;
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_STORE_CTX_free</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_STORE_CTX</span>);
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_STORE_CTX_init</span>(
@@ -429,26 +429,26 @@
         <span class="ident">store</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_STORE</span>,
         <span class="ident">x509</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509</span>,
         <span class="ident">chain</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">stack_st_X509</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_STORE_CTX_cleanup</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_STORE_CTX</span>);
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_STORE_add_cert</span>(<span class="ident">store</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_STORE</span>, <span class="ident">x</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_STORE_add_cert</span>(<span class="ident">store</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_STORE</span>, <span class="ident">x</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509</span>) -&gt; <span class="ident">c_int</span>;
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_STORE_add_lookup</span>(
         <span class="ident">store</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_STORE</span>,
         <span class="ident">meth</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_LOOKUP_METHOD</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_LOOKUP</span>;
+    ) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_LOOKUP</span>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_STORE_set_default_paths</span>(<span class="ident">store</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_STORE</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_STORE_set_flags</span>(<span class="ident">store</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_STORE</span>, <span class="ident">flags</span>: <span class="ident">c_ulong</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_STORE_set_default_paths</span>(<span class="ident">store</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_STORE</span>) -&gt; <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_STORE_set_flags</span>(<span class="ident">store</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_STORE</span>, <span class="ident">flags</span>: <span class="ident">c_ulong</span>) -&gt; <span class="ident">c_int</span>;
 }
 
 <span class="macro">const_ptr_api!</span> {
     <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_STORE_CTX_get_ex_data</span>(<span class="ident">ctx</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">X509_STORE_CTX</span>, <span class="ident">idx</span>: <span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_STORE_CTX_get_error</span>(<span class="ident">ctx</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">X509_STORE_CTX</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_STORE_CTX_get_error_depth</span>(<span class="ident">ctx</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">X509_STORE_CTX</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_STORE_CTX_get_current_cert</span>(<span class="ident">ctx</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">X509_STORE_CTX</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509</span>;
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_STORE_CTX_get_ex_data</span>(<span class="ident">ctx</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">X509_STORE_CTX</span>, <span class="ident">idx</span>: <span class="ident">c_int</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>;
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_STORE_CTX_get_error</span>(<span class="ident">ctx</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">X509_STORE_CTX</span>) -&gt; <span class="ident">c_int</span>;
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_STORE_CTX_get_error_depth</span>(<span class="ident">ctx</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">X509_STORE_CTX</span>) -&gt; <span class="ident">c_int</span>;
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_STORE_CTX_get_current_cert</span>(<span class="ident">ctx</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">X509_STORE_CTX</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509</span>;
     }
 }
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
@@ -458,12 +458,12 @@
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span> {
         <span class="macro">const_ptr_api!</span> {
             <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-                <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_STORE_CTX_get0_chain</span>(<span class="ident">ctx</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">X509_STORE_CTX</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">stack_st_X509</span>;
+                <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_STORE_CTX_get0_chain</span>(<span class="ident">ctx</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">X509_STORE_CTX</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">stack_st_X509</span>;
             }
         }
     } <span class="kw">else</span> {
         <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_STORE_CTX_get_chain</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_STORE_CTX</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">stack_st_X509</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_STORE_CTX_get_chain</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_STORE_CTX</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">stack_st_X509</span>;
         }
     }
 }
@@ -473,14 +473,14 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_VERIFY_PARAM_free</span>(<span class="ident">param</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_VERIFY_PARAM</span>);
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl102</span>, <span class="ident">libressl261</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_VERIFY_PARAM_set_flags</span>(<span class="ident">param</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_VERIFY_PARAM</span>, <span class="ident">flags</span>: <span class="ident">c_ulong</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_VERIFY_PARAM_set_flags</span>(<span class="ident">param</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_VERIFY_PARAM</span>, <span class="ident">flags</span>: <span class="ident">c_ulong</span>) -&gt; <span class="ident">c_int</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl102</span>, <span class="ident">libressl261</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_VERIFY_PARAM_clear_flags</span>(<span class="ident">param</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_VERIFY_PARAM</span>, <span class="ident">flags</span>: <span class="ident">c_ulong</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_VERIFY_PARAM_clear_flags</span>(<span class="ident">param</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_VERIFY_PARAM</span>, <span class="ident">flags</span>: <span class="ident">c_ulong</span>) -&gt; <span class="ident">c_int</span>;
 }
 <span class="macro">const_ptr_api!</span> {
     <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl102</span>, <span class="ident">libressl261</span>))]</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_VERIFY_PARAM_get_flags</span>(<span class="ident">param</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">X509_VERIFY_PARAM</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_ulong</span>;
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_VERIFY_PARAM_get_flags</span>(<span class="ident">param</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">X509_VERIFY_PARAM</span>) -&gt; <span class="ident">c_ulong</span>;
     }
 }
 
@@ -490,7 +490,7 @@
         <span class="ident">param</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_VERIFY_PARAM</span>,
         <span class="ident">name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
         <span class="ident">namelen</span>: <span class="ident">size_t</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl102</span>, <span class="ident">libressl261</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_VERIFY_PARAM_set_hostflags</span>(<span class="ident">param</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_VERIFY_PARAM</span>, <span class="ident">flags</span>: <span class="ident">c_uint</span>);
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl102</span>, <span class="ident">libressl261</span>))]</span>
@@ -498,7 +498,7 @@
         <span class="ident">param</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_VERIFY_PARAM</span>,
         <span class="ident">ip</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>,
         <span class="ident">iplen</span>: <span class="ident">size_t</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl_sys" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>

@@ -48,7 +48,7 @@
     <span class="ident">Deserialize</span>,
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ungroup</span>(<span class="kw-2">mut</span> <span class="ident">ty</span>: <span class="kw-2">&amp;</span><span class="ident">Type</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Type</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ungroup</span>(<span class="kw-2">mut</span> <span class="ident">ty</span>: <span class="kw-2">&amp;</span><span class="ident">Type</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Type</span> {
     <span class="kw">while</span> <span class="kw">let</span> <span class="ident">Type::Group</span>(<span class="ident">group</span>) <span class="op">=</span> <span class="ident">ty</span> {
         <span class="ident">ty</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">group</span>.<span class="ident">elem</span>;
     }

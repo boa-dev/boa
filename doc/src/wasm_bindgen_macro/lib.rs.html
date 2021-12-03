@@ -38,28 +38,28 @@
 <span class="kw">use</span> <span class="ident">quote::quote</span>;
 
 <span class="attribute">#[<span class="ident">proc_macro_attribute</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wasm_bindgen</span>(<span class="ident">attr</span>: <span class="ident">TokenStream</span>, <span class="ident">input</span>: <span class="ident">TokenStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wasm_bindgen</span>(<span class="ident">attr</span>: <span class="ident">TokenStream</span>, <span class="ident">input</span>: <span class="ident">TokenStream</span>) -&gt; <span class="ident">TokenStream</span> {
     <span class="kw">match</span> <span class="ident">wasm_bindgen_macro_support::expand</span>(<span class="ident">attr</span>.<span class="ident">into</span>(), <span class="ident">input</span>.<span class="ident">into</span>()) {
-        <span class="prelude-val">Ok</span>(<span class="ident">tokens</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="ident">tokens</span>) =&gt; {
             <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;xxx_debug_only_print_generated_code&quot;</span>) {
                 <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">tokens</span>);
             }
             <span class="ident">tokens</span>.<span class="ident">into</span>()
         }
-        <span class="prelude-val">Err</span>(<span class="ident">diagnostic</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="macro">quote!</span> { #<span class="ident">diagnostic</span> }).<span class="ident">into</span>(),
+        <span class="prelude-val">Err</span>(<span class="ident">diagnostic</span>) =&gt; (<span class="macro">quote!</span> { #<span class="ident">diagnostic</span> }).<span class="ident">into</span>(),
     }
 }
 
 <span class="attribute">#[<span class="ident">proc_macro_attribute</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">__wasm_bindgen_class_marker</span>(<span class="ident">attr</span>: <span class="ident">TokenStream</span>, <span class="ident">input</span>: <span class="ident">TokenStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">__wasm_bindgen_class_marker</span>(<span class="ident">attr</span>: <span class="ident">TokenStream</span>, <span class="ident">input</span>: <span class="ident">TokenStream</span>) -&gt; <span class="ident">TokenStream</span> {
     <span class="kw">match</span> <span class="ident">wasm_bindgen_macro_support::expand_class_marker</span>(<span class="ident">attr</span>.<span class="ident">into</span>(), <span class="ident">input</span>.<span class="ident">into</span>()) {
-        <span class="prelude-val">Ok</span>(<span class="ident">tokens</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="ident">tokens</span>) =&gt; {
             <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;xxx_debug_only_print_generated_code&quot;</span>) {
                 <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">tokens</span>);
             }
             <span class="ident">tokens</span>.<span class="ident">into</span>()
         }
-        <span class="prelude-val">Err</span>(<span class="ident">diagnostic</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="macro">quote!</span> { #<span class="ident">diagnostic</span> }).<span class="ident">into</span>(),
+        <span class="prelude-val">Err</span>(<span class="ident">diagnostic</span>) =&gt; (<span class="macro">quote!</span> { #<span class="ident">diagnostic</span> }).<span class="ident">into</span>(),
     }
 }
 </code></pre></div>

@@ -427,7 +427,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">OnceCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OnceCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">OnceCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="ident">OnceCell</span> {
             <span class="ident">state_and_queue</span>: <span class="ident">AtomicUsize::new</span>(<span class="ident">INCOMPLETE</span>),
             <span class="ident">_marker</span>: <span class="ident">PhantomData</span>,
@@ -437,21 +437,21 @@
 
     <span class="doccomment">/// Safety: synchronizes with store to value via Release/(Acquire|SeqCst).</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_initialized</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_initialized</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="comment">// An `Acquire` load is enough because that makes all the initialization</span>
         <span class="comment">// operations visible to us, and, this being a fast path, weaker</span>
         <span class="comment">// ordering helps with performance. This `Acquire` synchronizes with</span>
         <span class="comment">// `SeqCst` operations on the slow path.</span>
-        <span class="self">self</span>.<span class="ident">state_and_queue</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">COMPLETE</span>
+        <span class="self">self</span>.<span class="ident">state_and_queue</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>) <span class="op">==</span> <span class="ident">COMPLETE</span>
     }
 
     <span class="doccomment">/// Safety: synchronizes with store to value via SeqCst read from state,</span>
     <span class="doccomment">/// writes value only once because we never get to INCOMPLETE state after a</span>
     <span class="doccomment">/// successful write.</span>
     <span class="attribute">#[<span class="ident">cold</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">initialize</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">E</span><span class="op">&gt;</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">initialize</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">E</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span>,
+        <span class="ident">F</span>: <span class="ident">FnOnce</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span>,
     {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">f</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">f</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">E</span><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">Ok</span>(());
@@ -459,11 +459,11 @@
         <span class="ident">initialize_inner</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">state_and_queue</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="op">|</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">take_unchecked</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">f</span>) };
             <span class="kw">match</span> <span class="ident">f</span>() {
-                <span class="prelude-val">Ok</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Ok</span>(<span class="ident">value</span>) =&gt; {
                     <span class="kw">unsafe</span> { <span class="kw-2">*</span><span class="ident">slot</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) };
                     <span class="bool-val">true</span>
                 }
-                <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; {
                     <span class="ident">res</span> <span class="op">=</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>);
                     <span class="bool-val">false</span>
                 }
@@ -479,13 +479,13 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Caller must ensure that the cell is in initialized state, and that</span>
     <span class="doccomment">/// the contents are acquired by (synchronized to) this thread.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_unchecked</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">T</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_unchecked</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
         <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">is_initialized</span>());
         <span class="kw">let</span> <span class="ident">slot</span>: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">value</span>.<span class="ident">get</span>();
         <span class="kw">match</span> <span class="ident">slot</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; <span class="ident">value</span>,
             <span class="comment">// This unsafe does improve performance, see `examples/bench`.</span>
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">None</span> =&gt; {
                 <span class="macro">debug_assert!</span>(<span class="bool-val">false</span>);
                 <span class="ident">unreachable_unchecked</span>()
             }
@@ -494,7 +494,7 @@
 
     <span class="doccomment">/// Gets the mutable reference to the underlying value.</span>
     <span class="doccomment">/// Returns `None` if the cell is empty.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span><span class="op">&gt;</span> {
         <span class="comment">// Safe b/c we have a unique access.</span>
         <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">value</span>.<span class="ident">get</span>() }.<span class="ident">as_mut</span>()
     }
@@ -502,7 +502,7 @@
     <span class="doccomment">/// Consumes this `OnceCell`, returning the wrapped value.</span>
     <span class="doccomment">/// Returns `None` if the cell was empty.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="comment">// Because `into_inner` takes `self` by value, the compiler statically</span>
         <span class="comment">// verifies that it is not currently borrowed.</span>
         <span class="comment">// So, it is safe to move out `Option&lt;T&gt;`.</span>
@@ -513,13 +513,13 @@
 <span class="comment">// Corresponds to `std::sync::Once::call_inner`</span>
 <span class="comment">// Note: this is intentionally monomorphic</span>
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span>
-<span class="kw">fn</span> <span class="ident">initialize_inner</span>(<span class="ident">my_state_and_queue</span>: <span class="kw-2">&amp;</span><span class="ident">AtomicUsize</span>, <span class="ident">init</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">dyn</span> <span class="ident">FnMut</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">fn</span> <span class="ident">initialize_inner</span>(<span class="ident">my_state_and_queue</span>: <span class="kw-2">&amp;</span><span class="ident">AtomicUsize</span>, <span class="ident">init</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">dyn</span> <span class="ident">FnMut</span>() -&gt; <span class="ident">bool</span>) -&gt; <span class="ident">bool</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state_and_queue</span> <span class="op">=</span> <span class="ident">my_state_and_queue</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
 
     <span class="kw">loop</span> {
         <span class="kw">match</span> <span class="ident">state_and_queue</span> {
-            <span class="ident">COMPLETE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="bool-val">true</span>,
-            <span class="ident">INCOMPLETE</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">COMPLETE</span> =&gt; <span class="kw">return</span> <span class="bool-val">true</span>,
+            <span class="ident">INCOMPLETE</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">exchange</span> <span class="op">=</span> <span class="ident">my_state_and_queue</span>.<span class="ident">compare_exchange</span>(
                     <span class="ident">state_and_queue</span>,
                     <span class="ident">RUNNING</span>,
@@ -540,8 +540,8 @@
                 <span class="ident">waiter_queue</span>.<span class="ident">set_state_on_drop_to</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">success</span> { <span class="ident">COMPLETE</span> } <span class="kw">else</span> { <span class="ident">INCOMPLETE</span> };
                 <span class="kw">return</span> <span class="ident">success</span>;
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">assert!</span>(<span class="ident">state_and_queue</span> <span class="op">&amp;</span> <span class="ident">STATE_MASK</span> <span class="op">=</span><span class="op">=</span> <span class="ident">RUNNING</span>);
+            <span class="kw">_</span> =&gt; {
+                <span class="macro">assert!</span>(<span class="ident">state_and_queue</span> <span class="op">&amp;</span> <span class="ident">STATE_MASK</span> <span class="op">==</span> <span class="ident">RUNNING</span>);
                 <span class="ident">wait</span>(<span class="kw-2">&amp;</span><span class="ident">my_state_and_queue</span>, <span class="ident">state_and_queue</span>);
                 <span class="ident">state_and_queue</span> <span class="op">=</span> <span class="ident">my_state_and_queue</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
             }
@@ -611,7 +611,7 @@
     <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::OnceCell</span>;
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">OnceCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">init</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>) {
+        <span class="kw">fn</span> <span class="ident">init</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>() -&gt; <span class="ident">T</span>) {
             <span class="kw">enum</span> <span class="ident">Void</span> {}
             <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">initialize</span>(<span class="op">|</span><span class="op">|</span> <span class="prelude-val">Ok</span>::<span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Void</span><span class="op">&gt;</span>(<span class="ident">f</span>()));
         }

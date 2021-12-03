@@ -908,13 +908,13 @@
 <span class="comment">// We only use our own error type; no need for From conversions provided by the</span>
 <span class="comment">// standard library&#39;s try! macro. This reduces lines of LLVM IR by 4%.</span>
 <span class="macro">macro_rules!</span> <span class="ident">tri</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>:<span class="ident">expr</span>) =&gt; {
         <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span> {
-            <span class="ident"><span class="kw">crate</span>::lib::Result::Ok</span>(<span class="ident">val</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">val</span>,
-            <span class="ident"><span class="kw">crate</span>::lib::Result::Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident"><span class="kw">crate</span>::lib::Result::Err</span>(<span class="ident">err</span>),
+            <span class="ident"><span class="kw">crate</span>::lib::Result::Ok</span>(<span class="ident">val</span>) =&gt; <span class="ident">val</span>,
+            <span class="ident"><span class="kw">crate</span>::lib::Result::Err</span>(<span class="ident">err</span>) =&gt; <span class="kw">return</span> <span class="ident"><span class="kw">crate</span>::lib::Result::Err</span>(<span class="ident">err</span>),
         }
     };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>:<span class="ident">expr</span>,) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>:<span class="ident">expr</span>,) =&gt; {
         <span class="macro">tri!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>)
     };
 }

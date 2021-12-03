@@ -232,14 +232,14 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::throw_str</span>;
 
 <span class="macro">macro_rules!</span> <span class="ident">stack_closures</span> {
-    ($( (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cnt</span>:<span class="ident">tt</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">invoke</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">invoke_mut</span>:<span class="ident">ident</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>:<span class="ident">ident</span>)<span class="kw-2">*</span>) )<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> ($(
-        <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>,)<span class="op">*</span> <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">IntoWasmAbi</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> (<span class="kw">dyn</span> <span class="ident">Fn</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>),<span class="kw-2">*</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> <span class="op">+</span> <span class="lifetime">&#39;b</span>)
+    ($( (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cnt</span>:<span class="ident">tt</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">invoke</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">invoke_mut</span>:<span class="ident">ident</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>:<span class="ident">ident</span>)<span class="kw-2">*</span>) )<span class="kw-2">*</span>) =&gt; ($(
+        <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>,)<span class="op">*</span> <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">IntoWasmAbi</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> (<span class="kw">dyn</span> <span class="ident">Fn</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>),<span class="kw-2">*</span>) -&gt; <span class="ident">R</span> <span class="op">+</span> <span class="lifetime">&#39;b</span>)
             <span class="kw">where</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>: <span class="ident">FromWasmAbi</span>,)<span class="op">*</span>
                   <span class="ident">R</span>: <span class="ident">ReturnWasmAbi</span>
         {
             <span class="kw">type</span> <span class="ident">Abi</span> <span class="op">=</span> <span class="ident">WasmSlice</span>;
 
-            <span class="kw">fn</span> <span class="ident">into_abi</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">WasmSlice</span> {
+            <span class="kw">fn</span> <span class="ident">into_abi</span>(<span class="self">self</span>) -&gt; <span class="ident">WasmSlice</span> {
                 <span class="kw">unsafe</span> {
                     <span class="kw">let</span> (<span class="ident">a</span>, <span class="ident">b</span>): (<span class="ident">usize</span>, <span class="ident">usize</span>) <span class="op">=</span> <span class="ident">mem::transmute</span>(<span class="self">self</span>);
                     <span class="ident">WasmSlice</span> { <span class="ident">ptr</span>: <span class="ident">a</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">len</span>: <span class="ident">b</span> <span class="kw">as</span> <span class="ident">u32</span> }
@@ -252,14 +252,14 @@
             <span class="ident">a</span>: <span class="ident">usize</span>,
             <span class="ident">b</span>: <span class="ident">usize</span>,
             $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>: <span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span> <span class="kw">as</span> <span class="ident">FromWasmAbi</span><span class="op">&gt;</span><span class="ident">::Abi</span>),<span class="op">*</span>
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="op">&lt;</span><span class="ident">R</span> <span class="kw">as</span> <span class="ident">ReturnWasmAbi</span><span class="op">&gt;</span><span class="ident">::Abi</span> {
-            <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        ) -&gt; <span class="op">&lt;</span><span class="ident">R</span> <span class="kw">as</span> <span class="ident">ReturnWasmAbi</span><span class="op">&gt;</span><span class="ident">::Abi</span> {
+            <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="number">0</span> {
                 <span class="ident">throw_str</span>(<span class="string">&quot;closure invoked recursively or destroyed already&quot;</span>);
             }
             <span class="comment">// Scope all local variables before we call `return_abi` to</span>
             <span class="comment">// ensure they&#39;re all destroyed as `return_abi` may throw</span>
             <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> {
-                <span class="kw">let</span> <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Fn</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>),<span class="kw-2">*</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> <span class="op">=</span> <span class="ident">mem::transmute</span>((<span class="ident">a</span>, <span class="ident">b</span>));
+                <span class="kw">let</span> <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Fn</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>),<span class="kw-2">*</span>) -&gt; <span class="ident">R</span> <span class="op">=</span> <span class="ident">mem::transmute</span>((<span class="ident">a</span>, <span class="ident">b</span>));
                 $(
                     <span class="kw">let</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span> <span class="op">=</span> <span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span> <span class="kw">as</span> <span class="ident">FromWasmAbi</span><span class="op">&gt;</span><span class="ident">::from_abi</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>);
                 )<span class="op">*</span>
@@ -268,7 +268,7 @@
             <span class="ident">ret</span>.<span class="ident">return_abi</span>()
         }
 
-        <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>,)<span class="op">*</span> <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">WasmDescribe</span> <span class="kw">for</span> <span class="kw">dyn</span> <span class="ident">Fn</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>),<span class="kw-2">*</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> <span class="op">+</span> <span class="lifetime">&#39;a</span>
+        <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>,)<span class="op">*</span> <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">WasmDescribe</span> <span class="kw">for</span> <span class="kw">dyn</span> <span class="ident">Fn</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>),<span class="kw-2">*</span>) -&gt; <span class="ident">R</span> <span class="op">+</span> <span class="lifetime">&#39;a</span>
             <span class="kw">where</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>: <span class="ident">FromWasmAbi</span>,)<span class="op">*</span>
                   <span class="ident">R</span>: <span class="ident">ReturnWasmAbi</span>
         {
@@ -282,13 +282,13 @@
             }
         }
 
-        <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>,)<span class="op">*</span> <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">IntoWasmAbi</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> (<span class="kw">dyn</span> <span class="ident">FnMut</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>),<span class="kw-2">*</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> <span class="op">+</span> <span class="lifetime">&#39;b</span>)
+        <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>,)<span class="op">*</span> <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">IntoWasmAbi</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> (<span class="kw">dyn</span> <span class="ident">FnMut</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>),<span class="kw-2">*</span>) -&gt; <span class="ident">R</span> <span class="op">+</span> <span class="lifetime">&#39;b</span>)
             <span class="kw">where</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>: <span class="ident">FromWasmAbi</span>,)<span class="op">*</span>
                   <span class="ident">R</span>: <span class="ident">ReturnWasmAbi</span>
         {
             <span class="kw">type</span> <span class="ident">Abi</span> <span class="op">=</span> <span class="ident">WasmSlice</span>;
 
-            <span class="kw">fn</span> <span class="ident">into_abi</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">WasmSlice</span> {
+            <span class="kw">fn</span> <span class="ident">into_abi</span>(<span class="self">self</span>) -&gt; <span class="ident">WasmSlice</span> {
                 <span class="kw">unsafe</span> {
                     <span class="kw">let</span> (<span class="ident">a</span>, <span class="ident">b</span>): (<span class="ident">usize</span>, <span class="ident">usize</span>) <span class="op">=</span> <span class="ident">mem::transmute</span>(<span class="self">self</span>);
                     <span class="ident">WasmSlice</span> { <span class="ident">ptr</span>: <span class="ident">a</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">len</span>: <span class="ident">b</span> <span class="kw">as</span> <span class="ident">u32</span> }
@@ -301,14 +301,14 @@
             <span class="ident">a</span>: <span class="ident">usize</span>,
             <span class="ident">b</span>: <span class="ident">usize</span>,
             $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>: <span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span> <span class="kw">as</span> <span class="ident">FromWasmAbi</span><span class="op">&gt;</span><span class="ident">::Abi</span>),<span class="op">*</span>
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="op">&lt;</span><span class="ident">R</span> <span class="kw">as</span> <span class="ident">ReturnWasmAbi</span><span class="op">&gt;</span><span class="ident">::Abi</span> {
-            <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        ) -&gt; <span class="op">&lt;</span><span class="ident">R</span> <span class="kw">as</span> <span class="ident">ReturnWasmAbi</span><span class="op">&gt;</span><span class="ident">::Abi</span> {
+            <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="number">0</span> {
                 <span class="ident">throw_str</span>(<span class="string">&quot;closure invoked recursively or destroyed already&quot;</span>);
             }
             <span class="comment">// Scope all local variables before we call `return_abi` to</span>
             <span class="comment">// ensure they&#39;re all destroyed as `return_abi` may throw</span>
             <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> {
-                <span class="kw">let</span> <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">dyn</span> <span class="ident">FnMut</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>),<span class="kw-2">*</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> <span class="op">=</span> <span class="ident">mem::transmute</span>((<span class="ident">a</span>, <span class="ident">b</span>));
+                <span class="kw">let</span> <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">dyn</span> <span class="ident">FnMut</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>),<span class="kw-2">*</span>) -&gt; <span class="ident">R</span> <span class="op">=</span> <span class="ident">mem::transmute</span>((<span class="ident">a</span>, <span class="ident">b</span>));
                 $(
                     <span class="kw">let</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span> <span class="op">=</span> <span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span> <span class="kw">as</span> <span class="ident">FromWasmAbi</span><span class="op">&gt;</span><span class="ident">::from_abi</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>);
                 )<span class="op">*</span>
@@ -317,7 +317,7 @@
             <span class="ident">ret</span>.<span class="ident">return_abi</span>()
         }
 
-        <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>,)<span class="op">*</span> <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">WasmDescribe</span> <span class="kw">for</span> <span class="kw">dyn</span> <span class="ident">FnMut</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>),<span class="kw-2">*</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> <span class="op">+</span> <span class="lifetime">&#39;a</span>
+        <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>,)<span class="op">*</span> <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">WasmDescribe</span> <span class="kw">for</span> <span class="kw">dyn</span> <span class="ident">FnMut</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>),<span class="kw-2">*</span>) -&gt; <span class="ident">R</span> <span class="op">+</span> <span class="lifetime">&#39;a</span>
             <span class="kw">where</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>: <span class="ident">FromWasmAbi</span>,)<span class="op">*</span>
                   <span class="ident">R</span>: <span class="ident">ReturnWasmAbi</span>
         {
@@ -345,14 +345,14 @@
     (<span class="number">8</span> <span class="ident">invoke8</span> <span class="ident">invoke8_mut</span> <span class="ident">A</span> <span class="ident">B</span> <span class="ident">C</span> <span class="ident">D</span> <span class="ident">E</span> <span class="ident">F</span> <span class="ident">G</span> <span class="ident">H</span>)
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">A</span>, <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">IntoWasmAbi</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> (<span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">A</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> <span class="op">+</span> <span class="lifetime">&#39;b</span>)
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">A</span>, <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">IntoWasmAbi</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> (<span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">A</span>) -&gt; <span class="ident">R</span> <span class="op">+</span> <span class="lifetime">&#39;b</span>)
 <span class="kw">where</span>
     <span class="ident">A</span>: <span class="ident">RefFromWasmAbi</span>,
     <span class="ident">R</span>: <span class="ident">ReturnWasmAbi</span>,
 {
     <span class="kw">type</span> <span class="ident">Abi</span> <span class="op">=</span> <span class="ident">WasmSlice</span>;
 
-    <span class="kw">fn</span> <span class="ident">into_abi</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">WasmSlice</span> {
+    <span class="kw">fn</span> <span class="ident">into_abi</span>(<span class="self">self</span>) -&gt; <span class="ident">WasmSlice</span> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> (<span class="ident">a</span>, <span class="ident">b</span>): (<span class="ident">usize</span>, <span class="ident">usize</span>) <span class="op">=</span> <span class="ident">mem::transmute</span>(<span class="self">self</span>);
             <span class="ident">WasmSlice</span> {
@@ -368,21 +368,21 @@
     <span class="ident">a</span>: <span class="ident">usize</span>,
     <span class="ident">b</span>: <span class="ident">usize</span>,
     <span class="ident">arg</span>: <span class="op">&lt;</span><span class="ident">A</span> <span class="kw">as</span> <span class="ident">RefFromWasmAbi</span><span class="op">&gt;</span><span class="ident">::Abi</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="op">&lt;</span><span class="ident">R</span> <span class="kw">as</span> <span class="ident">ReturnWasmAbi</span><span class="op">&gt;</span><span class="ident">::Abi</span> {
-    <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+) -&gt; <span class="op">&lt;</span><span class="ident">R</span> <span class="kw">as</span> <span class="ident">ReturnWasmAbi</span><span class="op">&gt;</span><span class="ident">::Abi</span> {
+    <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="number">0</span> {
         <span class="ident">throw_str</span>(<span class="string">&quot;closure invoked recursively or destroyed already&quot;</span>);
     }
     <span class="comment">// Scope all local variables before we call `return_abi` to</span>
     <span class="comment">// ensure they&#39;re all destroyed as `return_abi` may throw</span>
     <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> {
-        <span class="kw">let</span> <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">A</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> <span class="op">=</span> <span class="ident">mem::transmute</span>((<span class="ident">a</span>, <span class="ident">b</span>));
+        <span class="kw">let</span> <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">A</span>) -&gt; <span class="ident">R</span> <span class="op">=</span> <span class="ident">mem::transmute</span>((<span class="ident">a</span>, <span class="ident">b</span>));
         <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">A</span> <span class="kw">as</span> <span class="ident">RefFromWasmAbi</span><span class="op">&gt;</span><span class="ident">::ref_from_abi</span>(<span class="ident">arg</span>);
         <span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">arg</span>)
     };
     <span class="ident">ret</span>.<span class="ident">return_abi</span>()
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A</span>, <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">WasmDescribe</span> <span class="kw">for</span> <span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">A</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> <span class="op">+</span> <span class="lifetime">&#39;a</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A</span>, <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">WasmDescribe</span> <span class="kw">for</span> <span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">A</span>) -&gt; <span class="ident">R</span> <span class="op">+</span> <span class="lifetime">&#39;a</span>
 <span class="kw">where</span>
     <span class="ident">A</span>: <span class="ident">RefFromWasmAbi</span>,
     <span class="ident">R</span>: <span class="ident">ReturnWasmAbi</span>,
@@ -397,14 +397,14 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">A</span>, <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">IntoWasmAbi</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> (<span class="kw">dyn</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">A</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> <span class="op">+</span> <span class="lifetime">&#39;b</span>)
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">A</span>, <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">IntoWasmAbi</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> (<span class="kw">dyn</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">A</span>) -&gt; <span class="ident">R</span> <span class="op">+</span> <span class="lifetime">&#39;b</span>)
 <span class="kw">where</span>
     <span class="ident">A</span>: <span class="ident">RefFromWasmAbi</span>,
     <span class="ident">R</span>: <span class="ident">ReturnWasmAbi</span>,
 {
     <span class="kw">type</span> <span class="ident">Abi</span> <span class="op">=</span> <span class="ident">WasmSlice</span>;
 
-    <span class="kw">fn</span> <span class="ident">into_abi</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">WasmSlice</span> {
+    <span class="kw">fn</span> <span class="ident">into_abi</span>(<span class="self">self</span>) -&gt; <span class="ident">WasmSlice</span> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> (<span class="ident">a</span>, <span class="ident">b</span>): (<span class="ident">usize</span>, <span class="ident">usize</span>) <span class="op">=</span> <span class="ident">mem::transmute</span>(<span class="self">self</span>);
             <span class="ident">WasmSlice</span> {
@@ -420,21 +420,21 @@
     <span class="ident">a</span>: <span class="ident">usize</span>,
     <span class="ident">b</span>: <span class="ident">usize</span>,
     <span class="ident">arg</span>: <span class="op">&lt;</span><span class="ident">A</span> <span class="kw">as</span> <span class="ident">RefFromWasmAbi</span><span class="op">&gt;</span><span class="ident">::Abi</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="op">&lt;</span><span class="ident">R</span> <span class="kw">as</span> <span class="ident">ReturnWasmAbi</span><span class="op">&gt;</span><span class="ident">::Abi</span> {
-    <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+) -&gt; <span class="op">&lt;</span><span class="ident">R</span> <span class="kw">as</span> <span class="ident">ReturnWasmAbi</span><span class="op">&gt;</span><span class="ident">::Abi</span> {
+    <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="number">0</span> {
         <span class="ident">throw_str</span>(<span class="string">&quot;closure invoked recursively or destroyed already&quot;</span>);
     }
     <span class="comment">// Scope all local variables before we call `return_abi` to</span>
     <span class="comment">// ensure they&#39;re all destroyed as `return_abi` may throw</span>
     <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> {
-        <span class="kw">let</span> <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">dyn</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">A</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> <span class="op">=</span> <span class="ident">mem::transmute</span>((<span class="ident">a</span>, <span class="ident">b</span>));
+        <span class="kw">let</span> <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">dyn</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">A</span>) -&gt; <span class="ident">R</span> <span class="op">=</span> <span class="ident">mem::transmute</span>((<span class="ident">a</span>, <span class="ident">b</span>));
         <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">A</span> <span class="kw">as</span> <span class="ident">RefFromWasmAbi</span><span class="op">&gt;</span><span class="ident">::ref_from_abi</span>(<span class="ident">arg</span>);
         <span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">arg</span>)
     };
     <span class="ident">ret</span>.<span class="ident">return_abi</span>()
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A</span>, <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">WasmDescribe</span> <span class="kw">for</span> <span class="kw">dyn</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">A</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> <span class="op">+</span> <span class="lifetime">&#39;a</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A</span>, <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">WasmDescribe</span> <span class="kw">for</span> <span class="kw">dyn</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">A</span>) -&gt; <span class="ident">R</span> <span class="op">+</span> <span class="lifetime">&#39;a</span>
 <span class="kw">where</span>
     <span class="ident">A</span>: <span class="ident">RefFromWasmAbi</span>,
     <span class="ident">R</span>: <span class="ident">ReturnWasmAbi</span>,

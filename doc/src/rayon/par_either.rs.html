@@ -84,17 +84,17 @@
 {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">L::Item</span>;
 
-    <span class="kw">fn</span> <span class="ident">drive_unindexed</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">C::Result</span>
+    <span class="kw">fn</span> <span class="ident">drive_unindexed</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) -&gt; <span class="ident">C::Result</span>
     <span class="kw">where</span>
         <span class="ident">C</span>: <span class="ident">UnindexedConsumer</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Left</span>(<span class="ident">iter</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">iter</span>.<span class="ident">drive_unindexed</span>(<span class="ident">consumer</span>),
-            <span class="ident">Right</span>(<span class="ident">iter</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">iter</span>.<span class="ident">drive_unindexed</span>(<span class="ident">consumer</span>),
+            <span class="ident">Left</span>(<span class="ident">iter</span>) =&gt; <span class="ident">iter</span>.<span class="ident">drive_unindexed</span>(<span class="ident">consumer</span>),
+            <span class="ident">Right</span>(<span class="ident">iter</span>) =&gt; <span class="ident">iter</span>.<span class="ident">drive_unindexed</span>(<span class="ident">consumer</span>),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">opt_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">opt_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">as_ref</span>().<span class="ident">either</span>(<span class="ident">L::opt_len</span>, <span class="ident">R::opt_len</span>)
     }
 }
@@ -104,27 +104,27 @@
     <span class="ident">L</span>: <span class="ident">IndexedParallelIterator</span>,
     <span class="ident">R</span>: <span class="ident">IndexedParallelIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">L::Item</span><span class="op">&gt;</span>,
 {
-    <span class="kw">fn</span> <span class="ident">drive</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">C::Result</span>
+    <span class="kw">fn</span> <span class="ident">drive</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) -&gt; <span class="ident">C::Result</span>
     <span class="kw">where</span>
         <span class="ident">C</span>: <span class="ident">Consumer</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Left</span>(<span class="ident">iter</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">iter</span>.<span class="ident">drive</span>(<span class="ident">consumer</span>),
-            <span class="ident">Right</span>(<span class="ident">iter</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">iter</span>.<span class="ident">drive</span>(<span class="ident">consumer</span>),
+            <span class="ident">Left</span>(<span class="ident">iter</span>) =&gt; <span class="ident">iter</span>.<span class="ident">drive</span>(<span class="ident">consumer</span>),
+            <span class="ident">Right</span>(<span class="ident">iter</span>) =&gt; <span class="ident">iter</span>.<span class="ident">drive</span>(<span class="ident">consumer</span>),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="ident">as_ref</span>().<span class="ident">either</span>(<span class="ident">L::len</span>, <span class="ident">R::len</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">with_producer</span><span class="op">&lt;</span><span class="ident">CB</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">callback</span>: <span class="ident">CB</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CB::Output</span>
+    <span class="kw">fn</span> <span class="ident">with_producer</span><span class="op">&lt;</span><span class="ident">CB</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">callback</span>: <span class="ident">CB</span>) -&gt; <span class="ident">CB::Output</span>
     <span class="kw">where</span>
         <span class="ident">CB</span>: <span class="ident">ProducerCallback</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Left</span>(<span class="ident">iter</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">iter</span>.<span class="ident">with_producer</span>(<span class="ident">callback</span>),
-            <span class="ident">Right</span>(<span class="ident">iter</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">iter</span>.<span class="ident">with_producer</span>(<span class="ident">callback</span>),
+            <span class="ident">Left</span>(<span class="ident">iter</span>) =&gt; <span class="ident">iter</span>.<span class="ident">with_producer</span>(<span class="ident">callback</span>),
+            <span class="ident">Right</span>(<span class="ident">iter</span>) =&gt; <span class="ident">iter</span>.<span class="ident">with_producer</span>(<span class="ident">callback</span>),
         }
     }
 }
@@ -141,8 +141,8 @@
         <span class="ident">I</span>: <span class="ident">IntoParallelIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>,
     {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">as_mut</span>() {
-            <span class="ident">Left</span>(<span class="ident">collection</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">collection</span>.<span class="ident">par_extend</span>(<span class="ident">par_iter</span>),
-            <span class="ident">Right</span>(<span class="ident">collection</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">collection</span>.<span class="ident">par_extend</span>(<span class="ident">par_iter</span>),
+            <span class="ident">Left</span>(<span class="ident">collection</span>) =&gt; <span class="ident">collection</span>.<span class="ident">par_extend</span>(<span class="ident">par_iter</span>),
+            <span class="ident">Right</span>(<span class="ident">collection</span>) =&gt; <span class="ident">collection</span>.<span class="ident">par_extend</span>(<span class="ident">par_iter</span>),
         }
     }
 }

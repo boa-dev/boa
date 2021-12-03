@@ -244,9 +244,9 @@
 ];
 
 <span class="kw">impl</span> <span class="ident">RenameRule</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">rename_all_str</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">rename_all_str</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
         <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">rule</span>) <span class="kw">in</span> <span class="ident">RENAME_RULES</span> {
-            <span class="kw">if</span> <span class="ident">rename_all_str</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">*</span><span class="ident">name</span> {
+            <span class="kw">if</span> <span class="ident">rename_all_str</span> <span class="op">==</span> <span class="kw-2">*</span><span class="ident">name</span> {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="kw-2">*</span><span class="ident">rule</span>);
             }
         }
@@ -256,13 +256,13 @@
     }
 
     <span class="doccomment">/// Apply a renaming rule to an enum variant, returning the version expected in the source.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">apply_to_variant</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">variant</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">apply_to_variant</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">variant</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">String</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="prelude-val">None</span> <span class="op">|</span> <span class="ident">PascalCase</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">variant</span>.<span class="ident">to_owned</span>(),
-            <span class="ident">LowerCase</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">variant</span>.<span class="ident">to_ascii_lowercase</span>(),
-            <span class="ident">UpperCase</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">variant</span>.<span class="ident">to_ascii_uppercase</span>(),
-            <span class="ident">CamelCase</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">variant</span>[..<span class="number">1</span>].<span class="ident">to_ascii_lowercase</span>() <span class="op">+</span> <span class="kw-2">&amp;</span><span class="ident">variant</span>[<span class="number">1</span>..],
-            <span class="ident">SnakeCase</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">None</span> <span class="op">|</span> <span class="ident">PascalCase</span> =&gt; <span class="ident">variant</span>.<span class="ident">to_owned</span>(),
+            <span class="ident">LowerCase</span> =&gt; <span class="ident">variant</span>.<span class="ident">to_ascii_lowercase</span>(),
+            <span class="ident">UpperCase</span> =&gt; <span class="ident">variant</span>.<span class="ident">to_ascii_uppercase</span>(),
+            <span class="ident">CamelCase</span> =&gt; <span class="ident">variant</span>[..<span class="number">1</span>].<span class="ident">to_ascii_lowercase</span>() <span class="op">+</span> <span class="kw-2">&amp;</span><span class="ident">variant</span>[<span class="number">1</span>..],
+            <span class="ident">SnakeCase</span> =&gt; {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">snake</span> <span class="op">=</span> <span class="ident">String::new</span>();
                 <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">ch</span>) <span class="kw">in</span> <span class="ident">variant</span>.<span class="ident">char_indices</span>() {
                     <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">ch</span>.<span class="ident">is_uppercase</span>() {
@@ -272,24 +272,24 @@
                 }
                 <span class="ident">snake</span>
             }
-            <span class="ident">ScreamingSnakeCase</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SnakeCase</span>.<span class="ident">apply_to_variant</span>(<span class="ident">variant</span>).<span class="ident">to_ascii_uppercase</span>(),
-            <span class="ident">KebabCase</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SnakeCase</span>.<span class="ident">apply_to_variant</span>(<span class="ident">variant</span>).<span class="ident">replace</span>(<span class="string">&#39;_&#39;</span>, <span class="string">&quot;-&quot;</span>),
-            <span class="ident">ScreamingKebabCase</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ScreamingSnakeCase</span>
+            <span class="ident">ScreamingSnakeCase</span> =&gt; <span class="ident">SnakeCase</span>.<span class="ident">apply_to_variant</span>(<span class="ident">variant</span>).<span class="ident">to_ascii_uppercase</span>(),
+            <span class="ident">KebabCase</span> =&gt; <span class="ident">SnakeCase</span>.<span class="ident">apply_to_variant</span>(<span class="ident">variant</span>).<span class="ident">replace</span>(<span class="string">&#39;_&#39;</span>, <span class="string">&quot;-&quot;</span>),
+            <span class="ident">ScreamingKebabCase</span> =&gt; <span class="ident">ScreamingSnakeCase</span>
                 .<span class="ident">apply_to_variant</span>(<span class="ident">variant</span>)
                 .<span class="ident">replace</span>(<span class="string">&#39;_&#39;</span>, <span class="string">&quot;-&quot;</span>),
         }
     }
 
     <span class="doccomment">/// Apply a renaming rule to a struct field, returning the version expected in the source.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">apply_to_field</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">apply_to_field</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">String</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="prelude-val">None</span> <span class="op">|</span> <span class="ident">LowerCase</span> <span class="op">|</span> <span class="ident">SnakeCase</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">field</span>.<span class="ident">to_owned</span>(),
-            <span class="ident">UpperCase</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">field</span>.<span class="ident">to_ascii_uppercase</span>(),
-            <span class="ident">PascalCase</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">None</span> <span class="op">|</span> <span class="ident">LowerCase</span> <span class="op">|</span> <span class="ident">SnakeCase</span> =&gt; <span class="ident">field</span>.<span class="ident">to_owned</span>(),
+            <span class="ident">UpperCase</span> =&gt; <span class="ident">field</span>.<span class="ident">to_ascii_uppercase</span>(),
+            <span class="ident">PascalCase</span> =&gt; {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pascal</span> <span class="op">=</span> <span class="ident">String::new</span>();
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">capitalize</span> <span class="op">=</span> <span class="bool-val">true</span>;
                 <span class="kw">for</span> <span class="ident">ch</span> <span class="kw">in</span> <span class="ident">field</span>.<span class="ident">chars</span>() {
-                    <span class="kw">if</span> <span class="ident">ch</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;_&#39;</span> {
+                    <span class="kw">if</span> <span class="ident">ch</span> <span class="op">==</span> <span class="string">&#39;_&#39;</span> {
                         <span class="ident">capitalize</span> <span class="op">=</span> <span class="bool-val">true</span>;
                     } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">capitalize</span> {
                         <span class="ident">pascal</span>.<span class="ident">push</span>(<span class="ident">ch</span>.<span class="ident">to_ascii_uppercase</span>());
@@ -300,13 +300,13 @@
                 }
                 <span class="ident">pascal</span>
             }
-            <span class="ident">CamelCase</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">CamelCase</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">pascal</span> <span class="op">=</span> <span class="ident">PascalCase</span>.<span class="ident">apply_to_field</span>(<span class="ident">field</span>);
                 <span class="ident">pascal</span>[..<span class="number">1</span>].<span class="ident">to_ascii_lowercase</span>() <span class="op">+</span> <span class="kw-2">&amp;</span><span class="ident">pascal</span>[<span class="number">1</span>..]
             }
-            <span class="ident">ScreamingSnakeCase</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">field</span>.<span class="ident">to_ascii_uppercase</span>(),
-            <span class="ident">KebabCase</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">field</span>.<span class="ident">replace</span>(<span class="string">&#39;_&#39;</span>, <span class="string">&quot;-&quot;</span>),
-            <span class="ident">ScreamingKebabCase</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ScreamingSnakeCase</span>.<span class="ident">apply_to_field</span>(<span class="ident">field</span>).<span class="ident">replace</span>(<span class="string">&#39;_&#39;</span>, <span class="string">&quot;-&quot;</span>),
+            <span class="ident">ScreamingSnakeCase</span> =&gt; <span class="ident">field</span>.<span class="ident">to_ascii_uppercase</span>(),
+            <span class="ident">KebabCase</span> =&gt; <span class="ident">field</span>.<span class="ident">replace</span>(<span class="string">&#39;_&#39;</span>, <span class="string">&quot;-&quot;</span>),
+            <span class="ident">ScreamingKebabCase</span> =&gt; <span class="ident">ScreamingSnakeCase</span>.<span class="ident">apply_to_field</span>(<span class="ident">field</span>).<span class="ident">replace</span>(<span class="string">&#39;_&#39;</span>, <span class="string">&quot;-&quot;</span>),
         }
     }
 }
@@ -316,7 +316,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">ParseError</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;unknown rename rule `rename_all = &quot;</span>)<span class="question-mark">?</span>;
         <span class="ident">Debug::fmt</span>(<span class="self">self</span>.<span class="ident">unknown</span>, <span class="ident">f</span>)<span class="question-mark">?</span>;
         <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;`, expected one of &quot;</span>)<span class="question-mark">?</span>;

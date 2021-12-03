@@ -1249,13 +1249,13 @@
 
 <span class="kw">impl</span> <span class="ident">BitOr</span> <span class="kw">for</span> <span class="ident">AppFlags</span> {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="self">Self</span>;
-    <span class="kw">fn</span> <span class="ident">bitor</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">bitor</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">AppFlags</span>(<span class="self">self</span>.<span class="number">0</span> <span class="op">|</span> <span class="ident">rhs</span>.<span class="number">0</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">AppFlags</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="ident">AppFlags</span>(
             <span class="ident">Flags::NEEDS_LONG_VERSION</span>
                 <span class="op">|</span> <span class="ident">Flags::NEEDS_LONG_HELP</span>
@@ -1268,56 +1268,56 @@
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
 <span class="kw">impl</span> <span class="ident">AppFlags</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
         <span class="ident">AppFlags::default</span>()
     }
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">zeroed</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">zeroed</span>() -&gt; <span class="self">Self</span> {
         <span class="ident">AppFlags</span>(<span class="ident">Flags::empty</span>())
     }
 
     <span class="macro">impl_settings!</span> { <span class="ident">AppSettings</span>,
-        <span class="ident">ArgRequiredElseHelp</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::A_REQUIRED_ELSE_HELP</span>,
-        <span class="ident">ArgsNegateSubcommands</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::ARGS_NEGATE_SCS</span>,
-        <span class="ident">AllArgsOverrideSelf</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::ARGS_OVERRIDE_SELF</span>,
-        <span class="ident">AllowExternalSubcommands</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::ALLOW_UNK_SC</span>,
-        <span class="ident">AllowInvalidUtf8</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::UTF8_NONE</span>,
-        <span class="ident">AllowLeadingHyphen</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::LEADING_HYPHEN</span>,
-        <span class="ident">AllowNegativeNumbers</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::ALLOW_NEG_NUMS</span>,
-        <span class="ident">AllowMissingPositional</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::ALLOW_MISSING_POS</span>,
-        <span class="ident">ColoredHelp</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::COLORED_HELP</span>,
-        <span class="ident">ColorAlways</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::COLOR_ALWAYS</span>,
-        <span class="ident">ColorAuto</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::COLOR_AUTO</span>,
-        <span class="ident">ColorNever</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::COLOR_NEVER</span>,
-        <span class="ident">DontDelimitTrailingValues</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::DONT_DELIM_TRAIL</span>,
-        <span class="ident">DontCollapseArgsInUsage</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::DONT_COLLAPSE_ARGS</span>,
-        <span class="ident">DeriveDisplayOrder</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::DERIVE_DISP_ORDER</span>,
-        <span class="ident">DisableHelpFlags</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::DISABLE_HELP_FLAGS</span>,
-        <span class="ident">DisableHelpSubcommand</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::DISABLE_HELP_SC</span>,
-        <span class="ident">DisableVersion</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::DISABLE_VERSION</span>,
-        <span class="ident">GlobalVersion</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::GLOBAL_VERSION</span>,
-        <span class="ident">HidePossibleValuesInHelp</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::NO_POS_VALUES</span>,
-        <span class="ident">Hidden</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::HIDDEN</span>,
-        <span class="ident">LowIndexMultiplePositional</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::LOW_INDEX_MUL_POS</span>,
-        <span class="ident">NeedsLongHelp</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::NEEDS_LONG_HELP</span>,
-        <span class="ident">NeedsLongVersion</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::NEEDS_LONG_VERSION</span>,
-        <span class="ident">NeedsSubcommandHelp</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::NEEDS_SC_HELP</span>,
-        <span class="ident">NoBinaryName</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::NO_BIN_NAME</span>,
-        <span class="ident">PropagateGlobalValuesDown</span><span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::PROPAGATE_VALS_DOWN</span>,
-        <span class="ident">StrictUtf8</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::UTF8_STRICT</span>,
-        <span class="ident">SubcommandsNegateReqs</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::SC_NEGATE_REQS</span>,
-        <span class="ident">SubcommandRequired</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::SC_REQUIRED</span>,
-        <span class="ident">SubcommandRequiredElseHelp</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::SC_REQUIRED_ELSE_HELP</span>,
-        <span class="ident">TrailingVarArg</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::TRAILING_VARARG</span>,
-        <span class="ident">UnifiedHelpMessage</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::UNIFIED_HELP</span>,
-        <span class="ident">NextLineHelp</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::NEXT_LINE_HELP</span>,
-        <span class="ident">VersionlessSubcommands</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::VERSIONLESS_SC</span>,
-        <span class="ident">WaitOnError</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::WAIT_ON_ERROR</span>,
-        <span class="ident">TrailingValues</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::TRAILING_VALUES</span>,
-        <span class="ident">ValidNegNumFound</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::VALID_NEG_NUM_FOUND</span>,
-        <span class="ident">Propagated</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::PROPAGATED</span>,
-        <span class="ident">ValidArgFound</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::VALID_ARG_FOUND</span>,
-        <span class="ident">InferSubcommands</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::INFER_SUBCOMMANDS</span>,
-        <span class="ident">ContainsLast</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Flags::CONTAINS_LAST</span>
+        <span class="ident">ArgRequiredElseHelp</span> =&gt; <span class="ident">Flags::A_REQUIRED_ELSE_HELP</span>,
+        <span class="ident">ArgsNegateSubcommands</span> =&gt; <span class="ident">Flags::ARGS_NEGATE_SCS</span>,
+        <span class="ident">AllArgsOverrideSelf</span> =&gt; <span class="ident">Flags::ARGS_OVERRIDE_SELF</span>,
+        <span class="ident">AllowExternalSubcommands</span> =&gt; <span class="ident">Flags::ALLOW_UNK_SC</span>,
+        <span class="ident">AllowInvalidUtf8</span> =&gt; <span class="ident">Flags::UTF8_NONE</span>,
+        <span class="ident">AllowLeadingHyphen</span> =&gt; <span class="ident">Flags::LEADING_HYPHEN</span>,
+        <span class="ident">AllowNegativeNumbers</span> =&gt; <span class="ident">Flags::ALLOW_NEG_NUMS</span>,
+        <span class="ident">AllowMissingPositional</span> =&gt; <span class="ident">Flags::ALLOW_MISSING_POS</span>,
+        <span class="ident">ColoredHelp</span> =&gt; <span class="ident">Flags::COLORED_HELP</span>,
+        <span class="ident">ColorAlways</span> =&gt; <span class="ident">Flags::COLOR_ALWAYS</span>,
+        <span class="ident">ColorAuto</span> =&gt; <span class="ident">Flags::COLOR_AUTO</span>,
+        <span class="ident">ColorNever</span> =&gt; <span class="ident">Flags::COLOR_NEVER</span>,
+        <span class="ident">DontDelimitTrailingValues</span> =&gt; <span class="ident">Flags::DONT_DELIM_TRAIL</span>,
+        <span class="ident">DontCollapseArgsInUsage</span> =&gt; <span class="ident">Flags::DONT_COLLAPSE_ARGS</span>,
+        <span class="ident">DeriveDisplayOrder</span> =&gt; <span class="ident">Flags::DERIVE_DISP_ORDER</span>,
+        <span class="ident">DisableHelpFlags</span> =&gt; <span class="ident">Flags::DISABLE_HELP_FLAGS</span>,
+        <span class="ident">DisableHelpSubcommand</span> =&gt; <span class="ident">Flags::DISABLE_HELP_SC</span>,
+        <span class="ident">DisableVersion</span> =&gt; <span class="ident">Flags::DISABLE_VERSION</span>,
+        <span class="ident">GlobalVersion</span> =&gt; <span class="ident">Flags::GLOBAL_VERSION</span>,
+        <span class="ident">HidePossibleValuesInHelp</span> =&gt; <span class="ident">Flags::NO_POS_VALUES</span>,
+        <span class="ident">Hidden</span> =&gt; <span class="ident">Flags::HIDDEN</span>,
+        <span class="ident">LowIndexMultiplePositional</span> =&gt; <span class="ident">Flags::LOW_INDEX_MUL_POS</span>,
+        <span class="ident">NeedsLongHelp</span> =&gt; <span class="ident">Flags::NEEDS_LONG_HELP</span>,
+        <span class="ident">NeedsLongVersion</span> =&gt; <span class="ident">Flags::NEEDS_LONG_VERSION</span>,
+        <span class="ident">NeedsSubcommandHelp</span> =&gt; <span class="ident">Flags::NEEDS_SC_HELP</span>,
+        <span class="ident">NoBinaryName</span> =&gt; <span class="ident">Flags::NO_BIN_NAME</span>,
+        <span class="ident">PropagateGlobalValuesDown</span>=&gt; <span class="ident">Flags::PROPAGATE_VALS_DOWN</span>,
+        <span class="ident">StrictUtf8</span> =&gt; <span class="ident">Flags::UTF8_STRICT</span>,
+        <span class="ident">SubcommandsNegateReqs</span> =&gt; <span class="ident">Flags::SC_NEGATE_REQS</span>,
+        <span class="ident">SubcommandRequired</span> =&gt; <span class="ident">Flags::SC_REQUIRED</span>,
+        <span class="ident">SubcommandRequiredElseHelp</span> =&gt; <span class="ident">Flags::SC_REQUIRED_ELSE_HELP</span>,
+        <span class="ident">TrailingVarArg</span> =&gt; <span class="ident">Flags::TRAILING_VARARG</span>,
+        <span class="ident">UnifiedHelpMessage</span> =&gt; <span class="ident">Flags::UNIFIED_HELP</span>,
+        <span class="ident">NextLineHelp</span> =&gt; <span class="ident">Flags::NEXT_LINE_HELP</span>,
+        <span class="ident">VersionlessSubcommands</span> =&gt; <span class="ident">Flags::VERSIONLESS_SC</span>,
+        <span class="ident">WaitOnError</span> =&gt; <span class="ident">Flags::WAIT_ON_ERROR</span>,
+        <span class="ident">TrailingValues</span> =&gt; <span class="ident">Flags::TRAILING_VALUES</span>,
+        <span class="ident">ValidNegNumFound</span> =&gt; <span class="ident">Flags::VALID_NEG_NUM_FOUND</span>,
+        <span class="ident">Propagated</span> =&gt; <span class="ident">Flags::PROPAGATED</span>,
+        <span class="ident">ValidArgFound</span> =&gt; <span class="ident">Flags::VALID_ARG_FOUND</span>,
+        <span class="ident">InferSubcommands</span> =&gt; <span class="ident">Flags::INFER_SUBCOMMANDS</span>,
+        <span class="ident">ContainsLast</span> =&gt; <span class="ident">Flags::CONTAINS_LAST</span>
     }
 }
 
@@ -2191,44 +2191,44 @@
 
 <span class="kw">impl</span> <span class="ident">FromStr</span> <span class="kw">for</span> <span class="ident">AppSettings</span> {
     <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">String</span>;
-    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">FromStr</span><span class="op">&gt;</span><span class="ident">::Err</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">FromStr</span><span class="op">&gt;</span><span class="ident">::Err</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">s</span>.<span class="ident">to_ascii_lowercase</span>() {
-            <span class="string">&quot;disablehelpflags&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::DisableHelpFlags</span>),
-            <span class="string">&quot;argrequiredelsehelp&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::ArgRequiredElseHelp</span>),
-            <span class="string">&quot;argsnegatesubcommands&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::ArgsNegateSubcommands</span>),
-            <span class="string">&quot;allowinvalidutf8&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::AllowInvalidUtf8</span>),
-            <span class="string">&quot;allowleadinghyphen&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::AllowLeadingHyphen</span>),
-            <span class="string">&quot;allowexternalsubcommands&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::AllowExternalSubcommands</span>),
-            <span class="string">&quot;allownegativenumbers&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::AllowNegativeNumbers</span>),
-            <span class="string">&quot;colorauto&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::ColorAuto</span>),
-            <span class="string">&quot;coloralways&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::ColorAlways</span>),
-            <span class="string">&quot;colornever&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::ColorNever</span>),
-            <span class="string">&quot;coloredhelp&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::ColoredHelp</span>),
-            <span class="string">&quot;derivedisplayorder&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::DeriveDisplayOrder</span>),
-            <span class="string">&quot;dontcollapseargsinusage&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::DontCollapseArgsInUsage</span>),
-            <span class="string">&quot;dontdelimittrailingvalues&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::DontDelimitTrailingValues</span>),
-            <span class="string">&quot;disablehelpsubcommand&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::DisableHelpSubcommand</span>),
-            <span class="string">&quot;disableversion&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::DisableVersion</span>),
-            <span class="string">&quot;globalversion&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::GlobalVersion</span>),
-            <span class="string">&quot;hidden&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::Hidden</span>),
-            <span class="string">&quot;hidepossiblevaluesinhelp&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::HidePossibleValuesInHelp</span>),
-            <span class="string">&quot;infersubcommands&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::InferSubcommands</span>),
-            <span class="string">&quot;lowindexmultiplepositional&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::LowIndexMultiplePositional</span>),
-            <span class="string">&quot;nobinaryname&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::NoBinaryName</span>),
-            <span class="string">&quot;nextlinehelp&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::NextLineHelp</span>),
-            <span class="string">&quot;strictutf8&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::StrictUtf8</span>),
-            <span class="string">&quot;subcommandsnegatereqs&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::SubcommandsNegateReqs</span>),
-            <span class="string">&quot;subcommandrequired&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::SubcommandRequired</span>),
-            <span class="string">&quot;subcommandrequiredelsehelp&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::SubcommandRequiredElseHelp</span>),
-            <span class="string">&quot;trailingvararg&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::TrailingVarArg</span>),
-            <span class="string">&quot;unifiedhelpmessage&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::UnifiedHelpMessage</span>),
-            <span class="string">&quot;versionlesssubcommands&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::VersionlessSubcommands</span>),
-            <span class="string">&quot;waitonerror&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::WaitOnError</span>),
-            <span class="string">&quot;validnegnumfound&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::ValidNegNumFound</span>),
-            <span class="string">&quot;validargfound&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::ValidArgFound</span>),
-            <span class="string">&quot;propagated&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::Propagated</span>),
-            <span class="string">&quot;trailingvalues&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::TrailingValues</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="string">&quot;unknown AppSetting, cannot convert from str&quot;</span>.<span class="ident">to_owned</span>()),
+            <span class="string">&quot;disablehelpflags&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::DisableHelpFlags</span>),
+            <span class="string">&quot;argrequiredelsehelp&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::ArgRequiredElseHelp</span>),
+            <span class="string">&quot;argsnegatesubcommands&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::ArgsNegateSubcommands</span>),
+            <span class="string">&quot;allowinvalidutf8&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::AllowInvalidUtf8</span>),
+            <span class="string">&quot;allowleadinghyphen&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::AllowLeadingHyphen</span>),
+            <span class="string">&quot;allowexternalsubcommands&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::AllowExternalSubcommands</span>),
+            <span class="string">&quot;allownegativenumbers&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::AllowNegativeNumbers</span>),
+            <span class="string">&quot;colorauto&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::ColorAuto</span>),
+            <span class="string">&quot;coloralways&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::ColorAlways</span>),
+            <span class="string">&quot;colornever&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::ColorNever</span>),
+            <span class="string">&quot;coloredhelp&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::ColoredHelp</span>),
+            <span class="string">&quot;derivedisplayorder&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::DeriveDisplayOrder</span>),
+            <span class="string">&quot;dontcollapseargsinusage&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::DontCollapseArgsInUsage</span>),
+            <span class="string">&quot;dontdelimittrailingvalues&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::DontDelimitTrailingValues</span>),
+            <span class="string">&quot;disablehelpsubcommand&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::DisableHelpSubcommand</span>),
+            <span class="string">&quot;disableversion&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::DisableVersion</span>),
+            <span class="string">&quot;globalversion&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::GlobalVersion</span>),
+            <span class="string">&quot;hidden&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::Hidden</span>),
+            <span class="string">&quot;hidepossiblevaluesinhelp&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::HidePossibleValuesInHelp</span>),
+            <span class="string">&quot;infersubcommands&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::InferSubcommands</span>),
+            <span class="string">&quot;lowindexmultiplepositional&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::LowIndexMultiplePositional</span>),
+            <span class="string">&quot;nobinaryname&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::NoBinaryName</span>),
+            <span class="string">&quot;nextlinehelp&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::NextLineHelp</span>),
+            <span class="string">&quot;strictutf8&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::StrictUtf8</span>),
+            <span class="string">&quot;subcommandsnegatereqs&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::SubcommandsNegateReqs</span>),
+            <span class="string">&quot;subcommandrequired&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::SubcommandRequired</span>),
+            <span class="string">&quot;subcommandrequiredelsehelp&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::SubcommandRequiredElseHelp</span>),
+            <span class="string">&quot;trailingvararg&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::TrailingVarArg</span>),
+            <span class="string">&quot;unifiedhelpmessage&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::UnifiedHelpMessage</span>),
+            <span class="string">&quot;versionlesssubcommands&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::VersionlessSubcommands</span>),
+            <span class="string">&quot;waitonerror&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::WaitOnError</span>),
+            <span class="string">&quot;validnegnumfound&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::ValidNegNumFound</span>),
+            <span class="string">&quot;validargfound&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::ValidArgFound</span>),
+            <span class="string">&quot;propagated&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::Propagated</span>),
+            <span class="string">&quot;trailingvalues&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AppSettings::TrailingValues</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="string">&quot;unknown AppSetting, cannot convert from str&quot;</span>.<span class="ident">to_owned</span>()),
         }
     }
 }

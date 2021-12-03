@@ -159,7 +159,7 @@
         <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(
             <span class="ident">ninfo</span>: <span class="kw-2">&amp;</span><span class="ident">NeedleInfo</span>,
             <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Forward</span><span class="op">&gt;</span> {
+        ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Forward</span><span class="op">&gt;</span> {
             <span class="kw">if</span> <span class="op">!</span><span class="macro">cfg!</span>(<span class="ident">memchr_runtime_avx</span>) <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="macro">is_x86_feature_detected!</span>(<span class="string">&quot;avx2&quot;</span>) {
                 <span class="kw">return</span> <span class="prelude-val">None</span>;
             }
@@ -170,7 +170,7 @@
         <span class="doccomment">/// searcher to work. Passing a haystack with a length smaller than</span>
         <span class="doccomment">/// this will cause `find` to panic.</span>
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">min_haystack_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">min_haystack_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
             <span class="self">self</span>.<span class="number">0</span>.<span class="ident">min_haystack_len</span>::<span class="op">&lt;</span><span class="ident">__m128i</span><span class="op">&gt;</span>()
         }
 
@@ -179,7 +179,7 @@
             <span class="kw-2">&amp;</span><span class="self">self</span>,
             <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
             <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+        ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
             <span class="comment">// SAFETY: The only way a Forward value can exist is if the avx2</span>
             <span class="comment">// target feature is enabled. This is the only safety requirement</span>
             <span class="comment">// for calling the genericsimd searcher.</span>
@@ -198,7 +198,7 @@
             <span class="kw-2">&amp;</span><span class="self">self</span>,
             <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
             <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+        ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
             <span class="kw">if</span> <span class="ident">haystack</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">min_haystack_len</span>::<span class="op">&lt;</span><span class="ident">__m256i</span><span class="op">&gt;</span>() {
                 <span class="ident">genericsimd::fwd_find</span>::<span class="op">&lt;</span><span class="ident">__m128i</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>, <span class="ident">haystack</span>, <span class="ident">needle</span>)
             } <span class="kw">else</span> {
@@ -221,11 +221,11 @@
         <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(
             <span class="ident">ninfo</span>: <span class="kw-2">&amp;</span><span class="ident">NeedleInfo</span>,
             <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Forward</span><span class="op">&gt;</span> {
+        ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Forward</span><span class="op">&gt;</span> {
             <span class="prelude-val">None</span>
         }
 
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">min_haystack_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">min_haystack_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
             <span class="macro">unreachable!</span>()
         }
 
@@ -233,7 +233,7 @@
             <span class="kw-2">&amp;</span><span class="self">self</span>,
             <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
             <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+        ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
             <span class="macro">unreachable!</span>()
         }
     }
@@ -248,7 +248,7 @@
         <span class="ident">ninfo</span>: <span class="kw-2">&amp;</span><span class="ident">NeedleInfo</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="ident"><span class="kw">super</span>::Forward::new</span>(<span class="ident">ninfo</span>, <span class="ident">needle</span>).<span class="ident">unwrap</span>().<span class="ident">find</span>(<span class="ident">haystack</span>, <span class="ident">needle</span>)
     }
 
@@ -268,8 +268,8 @@
                 <span class="comment">// to succeed. (And also remove tests with a haystack that is</span>
                 <span class="comment">// too small.)</span>
                 <span class="kw">let</span> <span class="ident">fwd</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident"><span class="kw">super</span>::Forward::new</span>(<span class="kw-2">&amp;</span><span class="ident">t</span>.<span class="ident">ninfo</span>, <span class="kw-2">&amp;</span><span class="ident">t</span>.<span class="ident">needle</span>) {
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="bool-val">false</span>,
-                    <span class="prelude-val">Some</span>(<span class="ident">fwd</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">fwd</span>,
+                    <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="bool-val">false</span>,
+                    <span class="prelude-val">Some</span>(<span class="ident">fwd</span>) =&gt; <span class="ident">fwd</span>,
                 };
                 <span class="ident">t</span>.<span class="ident">haystack</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">fwd</span>.<span class="ident">min_haystack_len</span>()
             })

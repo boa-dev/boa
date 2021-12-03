@@ -276,7 +276,7 @@
 <span class="doccomment">/// invocations in case you&#39;ll emit any errors.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// See [guide](../index.html#guide).</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_dummy</span>(<span class="ident">dummy</span>: <span class="ident">TokenStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TokenStream</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_dummy</span>(<span class="ident">dummy</span>: <span class="ident">TokenStream</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TokenStream</span><span class="op">&gt;</span> {
     <span class="ident">check_correctness</span>();
     <span class="ident">DUMMY_IMPL</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">old_dummy</span><span class="op">|</span> <span class="ident">old_dummy</span>.<span class="ident">replace</span>(<span class="prelude-val">Some</span>(<span class="ident">dummy</span>)))
 }
@@ -295,7 +295,7 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">cleanup</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TokenStream</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">cleanup</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TokenStream</span><span class="op">&gt;</span> {
     <span class="ident">DUMMY_IMPL</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">old_dummy</span><span class="op">|</span> <span class="ident">old_dummy</span>.<span class="ident">replace</span>(<span class="prelude-val">None</span>))
 }
 </code></pre></div>

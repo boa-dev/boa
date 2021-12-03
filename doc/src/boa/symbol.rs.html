@@ -413,7 +413,7 @@
 
 <span class="kw">impl</span> <span class="ident">WellKnownSymbols</span> {
     <span class="doccomment">/// Create the well known symbols.</span>
-    <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">count</span> <span class="op">=</span> <span class="number">0</span>;
 
         <span class="kw">let</span> <span class="ident">async_iterator</span> <span class="op">=</span> <span class="ident">JsSymbol::with_hash</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.asyncIterator&quot;</span>.<span class="ident">into</span>()));
@@ -465,7 +465,7 @@
     <span class="doccomment">/// A method that returns the default AsyncIterator for an object.</span>
     <span class="doccomment">/// Called by the semantics of the `for-await-of` statement.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">async_iterator</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsSymbol</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">async_iterator</span>() -&gt; <span class="ident">JsSymbol</span> {
         <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">async_iterator</span>.<span class="ident">clone</span>())
     }
 
@@ -475,7 +475,7 @@
     <span class="doccomment">/// recognizes an object as one of the `constructor`&#39;s instances.</span>
     <span class="doccomment">/// Called by the semantics of the instanceof operator.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_instance</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsSymbol</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_instance</span>() -&gt; <span class="ident">JsSymbol</span> {
         <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">has_instance</span>.<span class="ident">clone</span>())
     }
 
@@ -485,7 +485,7 @@
     <span class="doccomment">/// an object should be flattened to its array elements</span>
     <span class="doccomment">/// by `Array.prototype.concat`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_concat_spreadable</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsSymbol</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_concat_spreadable</span>() -&gt; <span class="ident">JsSymbol</span> {
         <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">is_concat_spreadable</span>.<span class="ident">clone</span>())
     }
 
@@ -494,7 +494,7 @@
     <span class="doccomment">/// A method that returns the default Iterator for an object.</span>
     <span class="doccomment">/// Called by the semantics of the `for-of` statement.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iterator</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsSymbol</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iterator</span>() -&gt; <span class="ident">JsSymbol</span> {
         <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">iterator</span>.<span class="ident">clone</span>())
     }
 
@@ -503,7 +503,7 @@
     <span class="doccomment">/// A regular expression method that matches the regular expression</span>
     <span class="doccomment">/// against a string. Called by the `String.prototype.match` method.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">r#match</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsSymbol</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">r#match</span>() -&gt; <span class="ident">JsSymbol</span> {
         <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">r#match</span>.<span class="ident">clone</span>())
     }
 
@@ -513,7 +513,7 @@
     <span class="doccomment">/// matches of the regular expression against a string.</span>
     <span class="doccomment">/// Called by the `String.prototype.matchAll` method.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">match_all</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsSymbol</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">match_all</span>() -&gt; <span class="ident">JsSymbol</span> {
         <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">match_all</span>.<span class="ident">clone</span>())
     }
 
@@ -522,7 +522,7 @@
     <span class="doccomment">/// A regular expression method that replaces matched substrings</span>
     <span class="doccomment">/// of a string. Called by the `String.prototype.replace` method.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">replace</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsSymbol</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">replace</span>() -&gt; <span class="ident">JsSymbol</span> {
         <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">replace</span>.<span class="ident">clone</span>())
     }
 
@@ -532,7 +532,7 @@
     <span class="doccomment">/// string that matches the regular expression.</span>
     <span class="doccomment">/// Called by the `String.prototype.search` method.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">search</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsSymbol</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">search</span>() -&gt; <span class="ident">JsSymbol</span> {
         <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">search</span>.<span class="ident">clone</span>())
     }
 
@@ -541,7 +541,7 @@
     <span class="doccomment">/// A function valued property that is the `constructor` function</span>
     <span class="doccomment">/// that is used to create derived objects.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">species</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsSymbol</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">species</span>() -&gt; <span class="ident">JsSymbol</span> {
         <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">species</span>.<span class="ident">clone</span>())
     }
 
@@ -551,7 +551,7 @@
     <span class="doccomment">/// that match the regular expression.</span>
     <span class="doccomment">/// Called by the `String.prototype.split` method.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">split</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsSymbol</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">split</span>() -&gt; <span class="ident">JsSymbol</span> {
         <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">split</span>.<span class="ident">clone</span>())
     }
 
@@ -560,7 +560,7 @@
     <span class="doccomment">/// A method that converts an object to a corresponding primitive value.</span>
     <span class="doccomment">/// Called by the `ToPrimitive` (`Value::to_primitve`) abstract operation.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_primitive</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsSymbol</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_primitive</span>() -&gt; <span class="ident">JsSymbol</span> {
         <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">to_primitive</span>.<span class="ident">clone</span>())
     }
 
@@ -570,7 +570,7 @@
     <span class="doccomment">/// string description of an object.</span>
     <span class="doccomment">/// Accessed by the built-in method `Object.prototype.toString`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_string_tag</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsSymbol</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_string_tag</span>() -&gt; <span class="ident">JsSymbol</span> {
         <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">to_string_tag</span>.<span class="ident">clone</span>())
     }
 
@@ -579,7 +579,7 @@
     <span class="doccomment">/// An object valued property whose own and inherited property names are property</span>
     <span class="doccomment">/// names that are excluded from the `with` environment bindings of the associated object.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unscopables</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsSymbol</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unscopables</span>() -&gt; <span class="ident">JsSymbol</span> {
         <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">unscopables</span>.<span class="ident">clone</span>())
     }
 }
@@ -600,7 +600,7 @@
 <span class="kw">impl</span> <span class="ident">JsSymbol</span> {
     <span class="doccomment">/// Create a new symbol.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">description</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">description</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">hash</span> <span class="op">=</span> <span class="ident">SYMBOL_HASH_COUNT</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">count</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">hash</span> <span class="op">=</span> <span class="ident">count</span>.<span class="ident">get</span>();
             <span class="ident">count</span>.<span class="ident">set</span>(<span class="ident">hash</span> <span class="op">+</span> <span class="number">1</span>);
@@ -614,7 +614,7 @@
 
     <span class="doccomment">/// Create a new symbol with a specified hash and description.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">with_hash</span>(<span class="ident">hash</span>: <span class="ident">u64</span>, <span class="ident">description</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">with_hash</span>(<span class="ident">hash</span>: <span class="ident">u64</span>, <span class="ident">description</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">inner</span>: <span class="ident">Rc::new</span>(<span class="ident">Inner</span> { <span class="ident">hash</span>, <span class="ident">description</span> }),
         }
@@ -622,7 +622,7 @@
 
     <span class="doccomment">/// Returns the `Symbol`s description.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">description</span>.<span class="ident">clone</span>()
     }
 
@@ -630,7 +630,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// The hash is guaranteed to be unique.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u64</span> {
         <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">hash</span>
     }
 }
@@ -645,10 +645,10 @@
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">JsSymbol</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">description</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">desc</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Symbol({})&quot;</span>, <span class="ident">desc</span>),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Symbol()&quot;</span>),
+            <span class="prelude-val">Some</span>(<span class="ident">desc</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Symbol({})&quot;</span>, <span class="ident">desc</span>),
+            <span class="prelude-val">None</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Symbol()&quot;</span>),
         }
     }
 }
@@ -657,21 +657,21 @@
 
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">JsSymbol</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">hash</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">inner</span>.<span class="ident">hash</span>
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">hash</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">inner</span>.<span class="ident">hash</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">PartialOrd</span> <span class="kw">for</span> <span class="ident">JsSymbol</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">std::cmp::Ordering</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">std::cmp::Ordering</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">hash</span>.<span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="ident">inner</span>.<span class="ident">hash</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Ord</span> <span class="kw">for</span> <span class="ident">JsSymbol</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std::cmp::Ordering</span> {
+    <span class="kw">fn</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">std::cmp::Ordering</span> {
         <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">hash</span>.<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="ident">inner</span>.<span class="ident">hash</span>)
     }
 }

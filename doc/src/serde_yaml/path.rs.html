@@ -45,24 +45,24 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Path</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">fmt::Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">fmt::Error</span><span class="op">&gt;</span> {
         <span class="kw">struct</span> <span class="ident">Parent</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Path</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>);
 
         <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Parent</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">fmt::Error</span><span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">fmt::Error</span><span class="op">&gt;</span> {
                 <span class="kw">match</span> <span class="self">self</span>.<span class="number">0</span> {
-                    <span class="ident">Path::Root</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(()),
-                    <span class="ident">path</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">formatter</span>, <span class="string">&quot;{}.&quot;</span>, <span class="ident">path</span>),
+                    <span class="ident">Path::Root</span> =&gt; <span class="prelude-val">Ok</span>(()),
+                    <span class="ident">path</span> =&gt; <span class="macro">write!</span>(<span class="ident">formatter</span>, <span class="string">&quot;{}.&quot;</span>, <span class="ident">path</span>),
                 }
             }
         }
 
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Path::Root</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">formatter</span>.<span class="ident">write_str</span>(<span class="string">&quot;.&quot;</span>),
-            <span class="ident">Path::Seq</span> { <span class="ident">parent</span>, <span class="ident">index</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">formatter</span>, <span class="string">&quot;{}[{}]&quot;</span>, <span class="ident">parent</span>, <span class="ident">index</span>),
-            <span class="ident">Path::Map</span> { <span class="ident">parent</span>, <span class="ident">key</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">formatter</span>, <span class="string">&quot;{}{}&quot;</span>, <span class="ident">Parent</span>(<span class="ident">parent</span>), <span class="ident">key</span>),
-            <span class="ident">Path::Alias</span> { <span class="ident">parent</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">formatter</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">parent</span>),
-            <span class="ident">Path::Unknown</span> { <span class="ident">parent</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">formatter</span>, <span class="string">&quot;{}?&quot;</span>, <span class="ident">Parent</span>(<span class="ident">parent</span>)),
+            <span class="ident">Path::Root</span> =&gt; <span class="ident">formatter</span>.<span class="ident">write_str</span>(<span class="string">&quot;.&quot;</span>),
+            <span class="ident">Path::Seq</span> { <span class="ident">parent</span>, <span class="ident">index</span> } =&gt; <span class="macro">write!</span>(<span class="ident">formatter</span>, <span class="string">&quot;{}[{}]&quot;</span>, <span class="ident">parent</span>, <span class="ident">index</span>),
+            <span class="ident">Path::Map</span> { <span class="ident">parent</span>, <span class="ident">key</span> } =&gt; <span class="macro">write!</span>(<span class="ident">formatter</span>, <span class="string">&quot;{}{}&quot;</span>, <span class="ident">Parent</span>(<span class="ident">parent</span>), <span class="ident">key</span>),
+            <span class="ident">Path::Alias</span> { <span class="ident">parent</span> } =&gt; <span class="macro">write!</span>(<span class="ident">formatter</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">parent</span>),
+            <span class="ident">Path::Unknown</span> { <span class="ident">parent</span> } =&gt; <span class="macro">write!</span>(<span class="ident">formatter</span>, <span class="string">&quot;{}?&quot;</span>, <span class="ident">Parent</span>(<span class="ident">parent</span>)),
         }
     }
 }

@@ -177,7 +177,7 @@
 <span class="kw">use</span> <span class="ident">syn</span>;
 
 <span class="doccomment">/// Check whether a given `&amp;str` is a Rust keyword</span>
-<span class="kw">fn</span> <span class="ident">is_rust_keyword</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">fn</span> <span class="ident">is_rust_keyword</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span> {
     <span class="kw">match</span> <span class="ident">name</span> {
         <span class="string">&quot;abstract&quot;</span> <span class="op">|</span> <span class="string">&quot;alignof&quot;</span> <span class="op">|</span> <span class="string">&quot;as&quot;</span> <span class="op">|</span> <span class="string">&quot;become&quot;</span> <span class="op">|</span> <span class="string">&quot;box&quot;</span> <span class="op">|</span> <span class="string">&quot;break&quot;</span> <span class="op">|</span> <span class="string">&quot;const&quot;</span> <span class="op">|</span> <span class="string">&quot;continue&quot;</span>
         <span class="op">|</span> <span class="string">&quot;crate&quot;</span> <span class="op">|</span> <span class="string">&quot;do&quot;</span> <span class="op">|</span> <span class="string">&quot;else&quot;</span> <span class="op">|</span> <span class="string">&quot;enum&quot;</span> <span class="op">|</span> <span class="string">&quot;extern&quot;</span> <span class="op">|</span> <span class="string">&quot;false&quot;</span> <span class="op">|</span> <span class="string">&quot;final&quot;</span> <span class="op">|</span> <span class="string">&quot;fn&quot;</span> <span class="op">|</span> <span class="string">&quot;for&quot;</span> <span class="op">|</span> <span class="string">&quot;if&quot;</span>
@@ -185,14 +185,14 @@
         <span class="op">|</span> <span class="string">&quot;offsetof&quot;</span> <span class="op">|</span> <span class="string">&quot;override&quot;</span> <span class="op">|</span> <span class="string">&quot;priv&quot;</span> <span class="op">|</span> <span class="string">&quot;proc&quot;</span> <span class="op">|</span> <span class="string">&quot;pub&quot;</span> <span class="op">|</span> <span class="string">&quot;pure&quot;</span> <span class="op">|</span> <span class="string">&quot;ref&quot;</span> <span class="op">|</span> <span class="string">&quot;return&quot;</span>
         <span class="op">|</span> <span class="string">&quot;Self&quot;</span> <span class="op">|</span> <span class="string">&quot;self&quot;</span> <span class="op">|</span> <span class="string">&quot;sizeof&quot;</span> <span class="op">|</span> <span class="string">&quot;static&quot;</span> <span class="op">|</span> <span class="string">&quot;struct&quot;</span> <span class="op">|</span> <span class="string">&quot;super&quot;</span> <span class="op">|</span> <span class="string">&quot;trait&quot;</span> <span class="op">|</span> <span class="string">&quot;true&quot;</span>
         <span class="op">|</span> <span class="string">&quot;type&quot;</span> <span class="op">|</span> <span class="string">&quot;typeof&quot;</span> <span class="op">|</span> <span class="string">&quot;unsafe&quot;</span> <span class="op">|</span> <span class="string">&quot;unsized&quot;</span> <span class="op">|</span> <span class="string">&quot;use&quot;</span> <span class="op">|</span> <span class="string">&quot;virtual&quot;</span> <span class="op">|</span> <span class="string">&quot;where&quot;</span> <span class="op">|</span> <span class="string">&quot;while&quot;</span>
-        <span class="op">|</span> <span class="string">&quot;yield&quot;</span> <span class="op">|</span> <span class="string">&quot;bool&quot;</span> <span class="op">|</span> <span class="string">&quot;_&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+        <span class="op">|</span> <span class="string">&quot;yield&quot;</span> <span class="op">|</span> <span class="string">&quot;bool&quot;</span> <span class="op">|</span> <span class="string">&quot;_&quot;</span> =&gt; <span class="bool-val">true</span>,
+        <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
     }
 }
 
 <span class="doccomment">/// Create an `Ident`, possibly mangling it if it conflicts with a Rust keyword.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rust_ident</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ident</span> {
-    <span class="kw">if</span> <span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;&quot;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rust_ident</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">Ident</span> {
+    <span class="kw">if</span> <span class="ident">name</span> <span class="op">==</span> <span class="string">&quot;&quot;</span> {
         <span class="macro">panic!</span>(<span class="string">&quot;tried to create empty Ident (from \&quot;\&quot;)&quot;</span>);
     } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">is_rust_keyword</span>(<span class="ident">name</span>) {
         <span class="ident">Ident::new</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{}_&quot;</span>, <span class="ident">name</span>), <span class="ident">proc_macro2::Span::call_site</span>())
@@ -205,7 +205,7 @@
     <span class="comment">// Note, though, that `proc-macro` doesn&#39;t support a normal way to create a</span>
     <span class="comment">// raw identifier. To get around that we do some wonky parsing to</span>
     <span class="comment">// roundaboutly create one.</span>
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;async&quot;</span> {
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">name</span> <span class="op">==</span> <span class="string">&quot;async&quot;</span> {
         <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="string">&quot;r#async&quot;</span>
             .<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">proc_macro2::TokenStream</span><span class="op">&gt;</span>()
             .<span class="ident">unwrap</span>()
@@ -213,8 +213,8 @@
             .<span class="ident">next</span>()
             .<span class="ident">unwrap</span>();
         <span class="kw">match</span> <span class="ident">ident</span> {
-            <span class="ident">proc_macro2::TokenTree::Ident</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+            <span class="ident">proc_macro2::TokenTree::Ident</span>(<span class="ident">i</span>) =&gt; <span class="ident">i</span>,
+            <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
         }
     } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">name</span>.<span class="ident">chars</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">is_ascii_digit</span>() {
         <span class="ident">Ident::new</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;N{}&quot;</span>, <span class="ident">name</span>), <span class="ident">proc_macro2::Span::call_site</span>())
@@ -225,13 +225,13 @@
 
 <span class="doccomment">/// Create an `Ident` without checking to see if it conflicts with a Rust</span>
 <span class="doccomment">/// keyword.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">raw_ident</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ident</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">raw_ident</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">Ident</span> {
     <span class="ident">Ident::new</span>(<span class="ident">name</span>, <span class="ident">proc_macro2::Span::call_site</span>())
 }
 
 <span class="doccomment">/// Create a path type from the given segments. For example an iterator yielding</span>
 <span class="doccomment">/// the idents `[foo, bar, baz]` will result in the path type `foo::bar::baz`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">simple_path_ty</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">segments</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">syn::Type</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">simple_path_ty</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">segments</span>: <span class="ident">I</span>) -&gt; <span class="ident">syn::Type</span>
 <span class="kw">where</span>
     <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Ident</span><span class="op">&gt;</span>,
 {
@@ -241,14 +241,14 @@
 <span class="doccomment">/// Create a global path type from the given segments. For example an iterator</span>
 <span class="doccomment">/// yielding the idents `[foo, bar, baz]` will result in the path type</span>
 <span class="doccomment">/// `::foo::bar::baz`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">leading_colon_path_ty</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">segments</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">syn::Type</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">leading_colon_path_ty</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">segments</span>: <span class="ident">I</span>) -&gt; <span class="ident">syn::Type</span>
 <span class="kw">where</span>
     <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Ident</span><span class="op">&gt;</span>,
 {
     <span class="ident">path_ty</span>(<span class="bool-val">true</span>, <span class="ident">segments</span>)
 }
 
-<span class="kw">fn</span> <span class="ident">path_ty</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">leading_colon</span>: <span class="ident">bool</span>, <span class="ident">segments</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">syn::Type</span>
+<span class="kw">fn</span> <span class="ident">path_ty</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">leading_colon</span>: <span class="ident">bool</span>, <span class="ident">segments</span>: <span class="ident">I</span>) -&gt; <span class="ident">syn::Type</span>
 <span class="kw">where</span>
     <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Ident</span><span class="op">&gt;</span>,
 {
@@ -275,12 +275,12 @@
 }
 
 <span class="doccomment">/// Create a path type with a single segment from a given Identifier</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ident_ty</span>(<span class="ident">ident</span>: <span class="ident">Ident</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">syn::Type</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ident_ty</span>(<span class="ident">ident</span>: <span class="ident">Ident</span>) -&gt; <span class="ident">syn::Type</span> {
     <span class="ident">simple_path_ty</span>(<span class="prelude-val">Some</span>(<span class="ident">ident</span>))
 }
 
 <span class="doccomment">/// Convert an ImportFunction into the more generic Import type, wrapping the provided function</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wrap_import_function</span>(<span class="ident">function</span>: <span class="ident">ast::ImportFunction</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ast::Import</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wrap_import_function</span>(<span class="ident">function</span>: <span class="ident">ast::ImportFunction</span>) -&gt; <span class="ident">ast::Import</span> {
     <span class="ident">ast::Import</span> {
         <span class="ident">module</span>: <span class="ident">ast::ImportModule::None</span>,
         <span class="ident">js_namespace</span>: <span class="prelude-val">None</span>,
@@ -296,7 +296,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ShortHash</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw">pub</span> <span class="ident">T</span>);
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Hash</span><span class="op">&gt;</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">ShortHash</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">static</span> <span class="ident">HASHED</span>: <span class="ident">AtomicBool</span> <span class="op">=</span> <span class="ident">AtomicBool::new</span>(<span class="bool-val">false</span>);
         <span class="kw">static</span> <span class="ident">HASH</span>: <span class="ident">AtomicUsize</span> <span class="op">=</span> <span class="ident">AtomicUsize::new</span>(<span class="number">0</span>);
 

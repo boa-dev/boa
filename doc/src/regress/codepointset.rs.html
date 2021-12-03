@@ -224,7 +224,7 @@
 
 <span class="kw">impl</span> <span class="ident">Interval</span> {
     <span class="doccomment">/// Return whether self is before rhs.</span>
-    <span class="kw">fn</span> <span class="ident">is_before</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="ident">Interval</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">is_before</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="ident">Interval</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">last</span> <span class="op">&lt;</span> <span class="ident">other</span>.<span class="ident">first</span>
     }
 
@@ -232,13 +232,13 @@
     <span class="doccomment">/// &quot;Strictly&quot; here means there is at least one value after the end of self,</span>
     <span class="doccomment">/// and before the start of rhs. Overlapping *or abutting* intervals are</span>
     <span class="doccomment">/// not considered strictly before.</span>
-    <span class="kw">fn</span> <span class="ident">is_strictly_before</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">Interval</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">is_strictly_before</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">Interval</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">last</span> <span class="op">+</span> <span class="number">1</span> <span class="op">&lt;</span> <span class="ident">rhs</span>.<span class="ident">first</span>
     }
 
     <span class="doccomment">/// Compare two intervals.</span>
     <span class="doccomment">/// Overlapping *or abutting* intervals are considered equal.</span>
-    <span class="kw">fn</span> <span class="ident">mergecmp</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">Interval</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ordering</span> {
+    <span class="kw">fn</span> <span class="ident">mergecmp</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">Interval</span>) -&gt; <span class="ident">Ordering</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_strictly_before</span>(<span class="ident">rhs</span>) {
             <span class="ident">Ordering::Less</span>
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">rhs</span>.<span class="ident">is_strictly_before</span>(<span class="self">self</span>) {
@@ -249,35 +249,35 @@
     }
 
     <span class="doccomment">/// Return whether self is mergeable with rhs.</span>
-    <span class="kw">fn</span> <span class="ident">mergeable</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">Interval</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">mergecmp</span>(<span class="ident">rhs</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">Ordering::Equal</span>
+    <span class="kw">fn</span> <span class="ident">mergeable</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">Interval</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">mergecmp</span>(<span class="ident">rhs</span>) <span class="op">==</span> <span class="ident">Ordering::Equal</span>
     }
 
     <span class="doccomment">/// Return whether self contains a code point \p cp.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">contains</span>(<span class="self">self</span>, <span class="ident">cp</span>: <span class="ident">CodePoint</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">contains</span>(<span class="self">self</span>, <span class="ident">cp</span>: <span class="ident">CodePoint</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">first</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">cp</span> <span class="op">&amp;&amp;</span> <span class="ident">cp</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">last</span>
     }
 
     <span class="doccomment">/// Return whether self overlaps &#39;other&#39;.</span>
     <span class="doccomment">/// Overlaps means that we share at least one code point with &#39;other&#39;.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">overlaps</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="ident">Interval</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">overlaps</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="ident">Interval</span>) -&gt; <span class="ident">bool</span> {
         <span class="op">!</span><span class="self">self</span>.<span class="ident">is_before</span>(<span class="ident">other</span>) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">other</span>.<span class="ident">is_before</span>(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Return the interval of codepoints.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">codepoints</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std::ops::Range</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">codepoints</span>(<span class="self">self</span>) -&gt; <span class="ident">std::ops::Range</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
         <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">last</span> <span class="op">+</span> <span class="number">1</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">last</span>, <span class="string">&quot;Overflow&quot;</span>);
         <span class="self">self</span>.<span class="ident">first</span>..(<span class="self">self</span>.<span class="ident">last</span> <span class="op">+</span> <span class="number">1</span>)
     }
 
     <span class="doccomment">/// Return the number of contained code points.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">count_codepoints</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">count_codepoints</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         (<span class="self">self</span>.<span class="ident">last</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">first</span> <span class="op">+</span> <span class="number">1</span>) <span class="kw">as</span> <span class="ident">usize</span>
     }
 }
 
 <span class="doccomment">/// Merge two intervals, which must be overlapping or abutting.</span>
-<span class="kw">fn</span> <span class="ident">merge_intervals</span>(<span class="ident">x</span>: <span class="ident">Interval</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="ident">Interval</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Interval</span> {
+<span class="kw">fn</span> <span class="ident">merge_intervals</span>(<span class="ident">x</span>: <span class="ident">Interval</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="ident">Interval</span>) -&gt; <span class="ident">Interval</span> {
     <span class="macro">debug_assert!</span>(<span class="ident">x</span>.<span class="ident">mergeable</span>(<span class="kw-2">*</span><span class="ident">y</span>), <span class="string">&quot;Ranges not mergeable&quot;</span>);
     <span class="ident">Interval</span> {
         <span class="ident">first</span>: <span class="ident">std::cmp::min</span>(<span class="ident">x</span>.<span class="ident">first</span>, <span class="ident">y</span>.<span class="ident">first</span>),
@@ -292,7 +292,7 @@
 
 <span class="doccomment">/// A set of code points stored via as disjoint, non-abutting, sorted intervals.</span>
 <span class="kw">impl</span> <span class="ident">CodePointSet</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CodePointSet</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">CodePointSet</span> {
         <span class="ident">CodePointSet</span> { <span class="ident">ivs</span>: <span class="ident">Vec::new</span>() }
     }
 
@@ -310,7 +310,7 @@
 
     <span class="doccomment">/// Construct from sorted, disjoint intervals. Note these are not allowed to</span>
     <span class="doccomment">/// even abut.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_sorted_disjoint_intervals</span>(<span class="ident">ivs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Interval</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CodePointSet</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_sorted_disjoint_intervals</span>(<span class="ident">ivs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Interval</span><span class="op">&gt;</span>) -&gt; <span class="ident">CodePointSet</span> {
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">CodePointSet</span> { <span class="ident">ivs</span> };
         <span class="ident">res</span>.<span class="ident">assert_is_well_formed</span>();
         <span class="ident">res</span>
@@ -364,12 +364,12 @@
     }
 
     <span class="doccomment">/// \return the intervals</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">intervals</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">Interval</span>] {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">intervals</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">Interval</span>] {
         <span class="self">self</span>.<span class="ident">ivs</span>.<span class="ident">as_slice</span>()
     }
 
     <span class="doccomment">/// \return the number of intervals that would be produced by inverting.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inverted_interval_count</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inverted_interval_count</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">start</span>: <span class="ident">CodePoint</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">for</span> <span class="ident">iv</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ivs</span> {
@@ -386,7 +386,7 @@
 
     <span class="doccomment">/// \return an inverted set: a set containing every code point NOT in the</span>
     <span class="doccomment">/// receiver.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inverted</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CodePointSet</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inverted</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">CodePointSet</span> {
         <span class="comment">// The intervals we collect.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inverted_ivs</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
 

@@ -1071,9 +1071,9 @@
 <span class="doccomment">/// execute, even if the spawning task should later panic. `scope()`</span>
 <span class="doccomment">/// returns once all spawned jobs have completed, and any panics are</span>
 <span class="doccomment">/// propagated at that point.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">scope</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span>, <span class="ident">OP</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">op</span>: <span class="ident">OP</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">scope</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span>, <span class="ident">OP</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">op</span>: <span class="ident">OP</span>) -&gt; <span class="ident">R</span>
 <span class="kw">where</span>
-    <span class="ident">OP</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">Scope</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> <span class="op">+</span> <span class="ident">Send</span>,
+    <span class="ident">OP</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">Scope</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span><span class="op">&gt;</span>) -&gt; <span class="ident">R</span> <span class="op">+</span> <span class="ident">Send</span>,
     <span class="ident">R</span>: <span class="ident">Send</span>,
 {
     <span class="ident">in_worker</span>(<span class="op">|</span><span class="ident">owner_thread</span>, <span class="kw">_</span><span class="op">|</span> {
@@ -1162,9 +1162,9 @@
 <span class="doccomment">/// will execute, even if the spawning task should later panic.</span>
 <span class="doccomment">/// `scope_fifo()` returns once all spawned jobs have completed, and any</span>
 <span class="doccomment">/// panics are propagated at that point.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">scope_fifo</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span>, <span class="ident">OP</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">op</span>: <span class="ident">OP</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">scope_fifo</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span>, <span class="ident">OP</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">op</span>: <span class="ident">OP</span>) -&gt; <span class="ident">R</span>
 <span class="kw">where</span>
-    <span class="ident">OP</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">ScopeFifo</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> <span class="op">+</span> <span class="ident">Send</span>,
+    <span class="ident">OP</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">ScopeFifo</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span><span class="op">&gt;</span>) -&gt; <span class="ident">R</span> <span class="op">+</span> <span class="ident">Send</span>,
     <span class="ident">R</span>: <span class="ident">Send</span>,
 {
     <span class="ident">in_worker</span>(<span class="op">|</span><span class="ident">owner_thread</span>, <span class="kw">_</span><span class="op">|</span> {
@@ -1194,16 +1194,16 @@
 <span class="doccomment">/// execute, even if the spawning task should later panic. `in_place_scope()`</span>
 <span class="doccomment">/// returns once all spawned jobs have completed, and any panics are</span>
 <span class="doccomment">/// propagated at that point.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">in_place_scope</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span>, <span class="ident">OP</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">op</span>: <span class="ident">OP</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">in_place_scope</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span>, <span class="ident">OP</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">op</span>: <span class="ident">OP</span>) -&gt; <span class="ident">R</span>
 <span class="kw">where</span>
-    <span class="ident">OP</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">Scope</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>,
+    <span class="ident">OP</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">Scope</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span><span class="op">&gt;</span>) -&gt; <span class="ident">R</span>,
 {
     <span class="ident">do_in_place_scope</span>(<span class="prelude-val">None</span>, <span class="ident">op</span>)
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">do_in_place_scope</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span>, <span class="ident">OP</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">registry</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Registry</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">op</span>: <span class="ident">OP</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">do_in_place_scope</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span>, <span class="ident">OP</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">registry</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Registry</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">op</span>: <span class="ident">OP</span>) -&gt; <span class="ident">R</span>
 <span class="kw">where</span>
-    <span class="ident">OP</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">Scope</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>,
+    <span class="ident">OP</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">Scope</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span><span class="op">&gt;</span>) -&gt; <span class="ident">R</span>,
 {
     <span class="kw">let</span> <span class="ident">thread</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">WorkerThread::current</span>().<span class="ident">as_ref</span>() };
     <span class="kw">let</span> <span class="ident">scope</span> <span class="op">=</span> <span class="ident">Scope</span>::<span class="op">&lt;</span><span class="lifetime">&#39;scope</span><span class="op">&gt;</span><span class="ident">::new</span>(<span class="ident">thread</span>, <span class="ident">registry</span>);
@@ -1231,16 +1231,16 @@
 <span class="doccomment">/// execute, even if the spawning task should later panic. `in_place_scope_fifo()`</span>
 <span class="doccomment">/// returns once all spawned jobs have completed, and any panics are</span>
 <span class="doccomment">/// propagated at that point.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">in_place_scope_fifo</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span>, <span class="ident">OP</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">op</span>: <span class="ident">OP</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">in_place_scope_fifo</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span>, <span class="ident">OP</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">op</span>: <span class="ident">OP</span>) -&gt; <span class="ident">R</span>
 <span class="kw">where</span>
-    <span class="ident">OP</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">ScopeFifo</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>,
+    <span class="ident">OP</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">ScopeFifo</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span><span class="op">&gt;</span>) -&gt; <span class="ident">R</span>,
 {
     <span class="ident">do_in_place_scope_fifo</span>(<span class="prelude-val">None</span>, <span class="ident">op</span>)
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">do_in_place_scope_fifo</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span>, <span class="ident">OP</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">registry</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Registry</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">op</span>: <span class="ident">OP</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">do_in_place_scope_fifo</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span>, <span class="ident">OP</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">registry</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Registry</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">op</span>: <span class="ident">OP</span>) -&gt; <span class="ident">R</span>
 <span class="kw">where</span>
-    <span class="ident">OP</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">ScopeFifo</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>,
+    <span class="ident">OP</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">ScopeFifo</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span><span class="op">&gt;</span>) -&gt; <span class="ident">R</span>,
 {
     <span class="kw">let</span> <span class="ident">thread</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">WorkerThread::current</span>().<span class="ident">as_ref</span>() };
     <span class="kw">let</span> <span class="ident">scope</span> <span class="op">=</span> <span class="ident">ScopeFifo</span>::<span class="op">&lt;</span><span class="lifetime">&#39;scope</span><span class="op">&gt;</span><span class="ident">::new</span>(<span class="ident">thread</span>, <span class="ident">registry</span>);
@@ -1248,7 +1248,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span><span class="op">&gt;</span> <span class="ident">Scope</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">owner</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">WorkerThread</span><span class="op">&gt;</span>, <span class="ident">registry</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Registry</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">owner</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">WorkerThread</span><span class="op">&gt;</span>, <span class="ident">registry</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Registry</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">base</span> <span class="op">=</span> <span class="ident">ScopeBase::new</span>(<span class="ident">owner</span>, <span class="ident">registry</span>);
         <span class="ident">Scope</span> { <span class="ident">base</span> }
     }
@@ -1325,7 +1325,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span><span class="op">&gt;</span> <span class="ident">ScopeFifo</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">owner</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">WorkerThread</span><span class="op">&gt;</span>, <span class="ident">registry</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Registry</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">owner</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">WorkerThread</span><span class="op">&gt;</span>, <span class="ident">registry</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Registry</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">base</span> <span class="op">=</span> <span class="ident">ScopeBase::new</span>(<span class="ident">owner</span>, <span class="ident">registry</span>);
         <span class="kw">let</span> <span class="ident">num_threads</span> <span class="op">=</span> <span class="ident">base</span>.<span class="ident">registry</span>.<span class="ident">num_threads</span>();
         <span class="kw">let</span> <span class="ident">fifos</span> <span class="op">=</span> (<span class="number">0</span>..<span class="ident">num_threads</span>).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">JobFifo::new</span>()).<span class="ident">collect</span>();
@@ -1360,11 +1360,11 @@
             <span class="comment">// If we&#39;re in the pool, use our scope&#39;s private fifo for this thread to execute</span>
             <span class="comment">// in a locally-FIFO order.  Otherwise, just use the pool&#39;s global injector.</span>
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">base</span>.<span class="ident">registry</span>.<span class="ident">current_thread</span>() {
-                <span class="prelude-val">Some</span>(<span class="ident">worker</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">worker</span>) =&gt; {
                     <span class="kw">let</span> <span class="ident">fifo</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">fifos</span>[<span class="ident">worker</span>.<span class="ident">index</span>()];
                     <span class="ident">worker</span>.<span class="ident">push</span>(<span class="ident">fifo</span>.<span class="ident">push</span>(<span class="ident">job_ref</span>));
                 }
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">base</span>.<span class="ident">registry</span>.<span class="ident">inject</span>(<span class="kw-2">&amp;</span>[<span class="ident">job_ref</span>]),
+                <span class="prelude-val">None</span> =&gt; <span class="self">self</span>.<span class="ident">base</span>.<span class="ident">registry</span>.<span class="ident">inject</span>(<span class="kw-2">&amp;</span>[<span class="ident">job_ref</span>]),
             }
         }
     }
@@ -1372,10 +1372,10 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span><span class="op">&gt;</span> <span class="ident">ScopeBase</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Creates the base of a new scope for the given registry</span>
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">owner</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">WorkerThread</span><span class="op">&gt;</span>, <span class="ident">registry</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Registry</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">owner</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">WorkerThread</span><span class="op">&gt;</span>, <span class="ident">registry</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Registry</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">registry</span> <span class="op">=</span> <span class="ident">registry</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">owner</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">owner</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">owner</span>.<span class="ident">registry</span>(),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">global_registry</span>(),
+            <span class="prelude-val">Some</span>(<span class="ident">owner</span>) =&gt; <span class="ident">owner</span>.<span class="ident">registry</span>(),
+            <span class="prelude-val">None</span> =&gt; <span class="ident">global_registry</span>(),
         });
 
         <span class="ident">ScopeBase</span> {
@@ -1392,9 +1392,9 @@
 
     <span class="doccomment">/// Executes `func` as a job, either aborting or executing as</span>
     <span class="doccomment">/// appropriate.</span>
-    <span class="kw">fn</span> <span class="ident">complete</span><span class="op">&lt;</span><span class="ident">FUNC</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">owner</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">WorkerThread</span><span class="op">&gt;</span>, <span class="ident">func</span>: <span class="ident">FUNC</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>
+    <span class="kw">fn</span> <span class="ident">complete</span><span class="op">&lt;</span><span class="ident">FUNC</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">owner</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">WorkerThread</span><span class="op">&gt;</span>, <span class="ident">func</span>: <span class="ident">FUNC</span>) -&gt; <span class="ident">R</span>
     <span class="kw">where</span>
-        <span class="ident">FUNC</span>: <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>,
+        <span class="ident">FUNC</span>: <span class="ident">FnOnce</span>() -&gt; <span class="ident">R</span>,
     {
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">execute_job_closure</span>(<span class="ident">func</span>);
         <span class="self">self</span>.<span class="ident">job_completed_latch</span>.<span class="ident">wait</span>(<span class="ident">owner</span>);
@@ -1414,16 +1414,16 @@
     <span class="doccomment">/// Executes `func` as a job in scope. Adjusts the &quot;job completed&quot;</span>
     <span class="doccomment">/// counters and also catches any panic and stores it into</span>
     <span class="doccomment">/// `scope`.</span>
-    <span class="kw">fn</span> <span class="ident">execute_job_closure</span><span class="op">&lt;</span><span class="ident">FUNC</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">func</span>: <span class="ident">FUNC</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">execute_job_closure</span><span class="op">&lt;</span><span class="ident">FUNC</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">func</span>: <span class="ident">FUNC</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">FUNC</span>: <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>,
+        <span class="ident">FUNC</span>: <span class="ident">FnOnce</span>() -&gt; <span class="ident">R</span>,
     {
         <span class="kw">match</span> <span class="ident">unwind::halt_unwinding</span>(<span class="ident">func</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">r</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">job_completed_latch</span>.<span class="ident">set</span>();
                 <span class="prelude-val">Some</span>(<span class="ident">r</span>)
             }
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">job_panicked</span>(<span class="ident">err</span>);
                 <span class="self">self</span>.<span class="ident">job_completed_latch</span>.<span class="ident">set</span>();
                 <span class="prelude-val">None</span>
@@ -1457,14 +1457,14 @@
 }
 
 <span class="kw">impl</span> <span class="ident">ScopeLatch</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">owner</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">WorkerThread</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">owner</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">WorkerThread</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">match</span> <span class="ident">owner</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">owner</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ScopeLatch::Stealing</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">owner</span>) =&gt; <span class="ident">ScopeLatch::Stealing</span> {
                 <span class="ident">latch</span>: <span class="ident">CountLatch::new</span>(),
                 <span class="ident">registry</span>: <span class="ident">Arc::clone</span>(<span class="ident">owner</span>.<span class="ident">registry</span>()),
                 <span class="ident">worker_index</span>: <span class="ident">owner</span>.<span class="ident">index</span>(),
             },
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ScopeLatch::Blocking</span> {
+            <span class="prelude-val">None</span> =&gt; <span class="ident">ScopeLatch::Blocking</span> {
                 <span class="ident">latch</span>: <span class="ident">CountLockLatch::new</span>(),
             },
         }
@@ -1472,8 +1472,8 @@
 
     <span class="kw">fn</span> <span class="ident">increment</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ScopeLatch::Stealing</span> { <span class="ident">latch</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">latch</span>.<span class="ident">increment</span>(),
-            <span class="ident">ScopeLatch::Blocking</span> { <span class="ident">latch</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">latch</span>.<span class="ident">increment</span>(),
+            <span class="ident">ScopeLatch::Stealing</span> { <span class="ident">latch</span>, .. } =&gt; <span class="ident">latch</span>.<span class="ident">increment</span>(),
+            <span class="ident">ScopeLatch::Blocking</span> { <span class="ident">latch</span> } =&gt; <span class="ident">latch</span>.<span class="ident">increment</span>(),
         }
     }
 
@@ -1483,8 +1483,8 @@
                 <span class="ident">latch</span>,
                 <span class="ident">registry</span>,
                 <span class="ident">worker_index</span>,
-            } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">latch</span>.<span class="ident">set_and_tickle_one</span>(<span class="ident">registry</span>, <span class="kw-2">*</span><span class="ident">worker_index</span>),
-            <span class="ident">ScopeLatch::Blocking</span> { <span class="ident">latch</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">latch</span>.<span class="ident">set</span>(),
+            } =&gt; <span class="ident">latch</span>.<span class="ident">set_and_tickle_one</span>(<span class="ident">registry</span>, <span class="kw-2">*</span><span class="ident">worker_index</span>),
+            <span class="ident">ScopeLatch::Blocking</span> { <span class="ident">latch</span> } =&gt; <span class="ident">latch</span>.<span class="ident">set</span>(),
         }
     }
 
@@ -1494,19 +1494,19 @@
                 <span class="ident">latch</span>,
                 <span class="ident">registry</span>,
                 <span class="ident">worker_index</span>,
-            } <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> {
+            } =&gt; <span class="kw">unsafe</span> {
                 <span class="kw">let</span> <span class="ident">owner</span> <span class="op">=</span> <span class="ident">owner</span>.<span class="ident">expect</span>(<span class="string">&quot;owner thread&quot;</span>);
                 <span class="macro">debug_assert_eq!</span>(<span class="ident">registry</span>.<span class="ident">id</span>(), <span class="ident">owner</span>.<span class="ident">registry</span>().<span class="ident">id</span>());
                 <span class="macro">debug_assert_eq!</span>(<span class="kw-2">*</span><span class="ident">worker_index</span>, <span class="ident">owner</span>.<span class="ident">index</span>());
                 <span class="ident">owner</span>.<span class="ident">wait_until</span>(<span class="ident">latch</span>);
             },
-            <span class="ident">ScopeLatch::Blocking</span> { <span class="ident">latch</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">latch</span>.<span class="ident">wait</span>(),
+            <span class="ident">ScopeLatch::Blocking</span> { <span class="ident">latch</span> } =&gt; <span class="ident">latch</span>.<span class="ident">wait</span>(),
         }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Scope</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="ident">fmt</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;Scope&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;pool_id&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">base</span>.<span class="ident">registry</span>.<span class="ident">id</span>())
             .<span class="ident">field</span>(<span class="string">&quot;panic&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">base</span>.<span class="ident">panic</span>)
@@ -1516,7 +1516,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">ScopeFifo</span><span class="op">&lt;</span><span class="lifetime">&#39;scope</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="ident">fmt</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;ScopeFifo&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;num_fifos&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">fifos</span>.<span class="ident">len</span>())
             .<span class="ident">field</span>(<span class="string">&quot;pool_id&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">base</span>.<span class="ident">registry</span>.<span class="ident">id</span>())
@@ -1527,13 +1527,13 @@
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">ScopeLatch</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ScopeLatch::Stealing</span> { <span class="ident">latch</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">fmt</span>
+            <span class="ident">ScopeLatch::Stealing</span> { <span class="ident">latch</span>, .. } =&gt; <span class="ident">fmt</span>
                 .<span class="ident">debug_tuple</span>(<span class="string">&quot;ScopeLatch::Stealing&quot;</span>)
                 .<span class="ident">field</span>(<span class="ident">latch</span>)
                 .<span class="ident">finish</span>(),
-            <span class="ident">ScopeLatch::Blocking</span> { <span class="ident">latch</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">fmt</span>
+            <span class="ident">ScopeLatch::Blocking</span> { <span class="ident">latch</span> } =&gt; <span class="ident">fmt</span>
                 .<span class="ident">debug_tuple</span>(<span class="string">&quot;ScopeLatch::Blocking&quot;</span>)
                 .<span class="ident">field</span>(<span class="ident">latch</span>)
                 .<span class="ident">finish</span>(),

@@ -55,16 +55,16 @@
     <span class="doccomment">/// &lt;https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-ecmascript-language-types&gt;.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Check [JsValue::type_of] if you need to call the `typeof` operator.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Type</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Type</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Type::Number</span>,
-            <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Type::String</span>,
-            <span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Type::Boolean</span>,
-            <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Type::Symbol</span>,
-            <span class="ident"><span class="self">Self</span>::Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Type::Null</span>,
-            <span class="ident"><span class="self">Self</span>::Undefined</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Type::Undefined</span>,
-            <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Type::BigInt</span>,
-            <span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Type::Object</span>,
+            <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="kw">_</span>) =&gt; <span class="ident">Type::Number</span>,
+            <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw">_</span>) =&gt; <span class="ident">Type::String</span>,
+            <span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="kw">_</span>) =&gt; <span class="ident">Type::Boolean</span>,
+            <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="kw">_</span>) =&gt; <span class="ident">Type::Symbol</span>,
+            <span class="ident"><span class="self">Self</span>::Null</span> =&gt; <span class="ident">Type::Null</span>,
+            <span class="ident"><span class="self">Self</span>::Undefined</span> =&gt; <span class="ident">Type::Undefined</span>,
+            <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw">_</span>) =&gt; <span class="ident">Type::BigInt</span>,
+            <span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw">_</span>) =&gt; <span class="ident">Type::Object</span>,
         }
     }
 }

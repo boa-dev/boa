@@ -80,13 +80,13 @@
 <span class="kw">impl</span> <span class="ident">std::error::Error</span> <span class="kw">for</span> <span class="ident">FromHexError</span> {}
 
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">FromHexError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">FromHexError::InvalidHexCharacter</span> { <span class="ident">c</span>, <span class="ident">index</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">FromHexError::InvalidHexCharacter</span> { <span class="ident">c</span>, <span class="ident">index</span> } =&gt; {
                 <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Invalid character {:?} at position {}&quot;</span>, <span class="ident">c</span>, <span class="ident">index</span>)
             }
-            <span class="ident">FromHexError::OddLength</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Odd number of digits&quot;</span>),
-            <span class="ident">FromHexError::InvalidStringLength</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Invalid string length&quot;</span>),
+            <span class="ident">FromHexError::OddLength</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Odd number of digits&quot;</span>),
+            <span class="ident">FromHexError::InvalidStringLength</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Invalid string length&quot;</span>),
         }
     }
 }

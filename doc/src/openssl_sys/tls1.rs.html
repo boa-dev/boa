@@ -128,7 +128,7 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TLSEXT_STATUSTYPE_ocsp</span>: <span class="ident">c_int</span> <span class="op">=</span> <span class="number">1</span>;
 
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SSL_get_servername</span>(<span class="ident">ssl</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">SSL</span>, <span class="ident">name_type</span>: <span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SSL_get_servername</span>(<span class="ident">ssl</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">SSL</span>, <span class="ident">name_type</span>: <span class="ident">c_int</span>) -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>;
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SSL_export_keying_material</span>(
         <span class="ident">s</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL</span>,
@@ -139,7 +139,7 @@
         <span class="ident">context</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>,
         <span class="ident">contextlen</span>: <span class="ident">size_t</span>,
         <span class="ident">use_context</span>: <span class="ident">c_int</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SSL_export_keying_material_early</span>(
@@ -150,10 +150,10 @@
         <span class="ident">llen</span>: <span class="ident">size_t</span>,
         <span class="ident">context</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>,
         <span class="ident">contextlen</span>: <span class="ident">size_t</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
 }
 
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">SSL_set_tlsext_host_name</span>(<span class="ident">s</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL</span>, <span class="ident">name</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_long</span> {
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">SSL_set_tlsext_host_name</span>(<span class="ident">s</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL</span>, <span class="ident">name</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_char</span>) -&gt; <span class="ident">c_long</span> {
     <span class="ident">SSL_ctrl</span>(
         <span class="ident">s</span>,
         <span class="ident">SSL_CTRL_SET_TLSEXT_HOSTNAME</span>,
@@ -162,7 +162,7 @@
     )
 }
 
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">SSL_set_tlsext_status_type</span>(<span class="ident">s</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL</span>, <span class="ident">type_</span>: <span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_long</span> {
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">SSL_set_tlsext_status_type</span>(<span class="ident">s</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL</span>, <span class="ident">type_</span>: <span class="ident">c_int</span>) -&gt; <span class="ident">c_long</span> {
     <span class="ident">SSL_ctrl</span>(
         <span class="ident">s</span>,
         <span class="ident">SSL_CTRL_SET_TLSEXT_STATUS_REQ_TYPE</span>,
@@ -171,7 +171,7 @@
     )
 }
 
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">SSL_get_tlsext_status_ocsp_resp</span>(<span class="ident">ssl</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL</span>, <span class="ident">resp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_long</span> {
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">SSL_get_tlsext_status_ocsp_resp</span>(<span class="ident">ssl</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL</span>, <span class="ident">resp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>) -&gt; <span class="ident">c_long</span> {
     <span class="ident">SSL_ctrl</span>(
         <span class="ident">ssl</span>,
         <span class="ident">SSL_CTRL_GET_TLSEXT_STATUS_REQ_OCSP_RESP</span>,
@@ -184,7 +184,7 @@
     <span class="ident">ssl</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL</span>,
     <span class="ident">resp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>,
     <span class="ident">len</span>: <span class="ident">c_long</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_long</span> {
+) -&gt; <span class="ident">c_long</span> {
     <span class="ident">SSL_ctrl</span>(
         <span class="ident">ssl</span>,
         <span class="ident">SSL_CTRL_SET_TLSEXT_STATUS_REQ_OCSP_RESP</span>,
@@ -197,7 +197,7 @@
     <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL_CTX</span>,
     <span class="comment">// FIXME should have the right signature</span>
     <span class="ident">cb</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>()<span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_long</span> {
+) -&gt; <span class="ident">c_long</span> {
     <span class="ident">SSL_CTX_callback_ctrl</span>(<span class="ident">ctx</span>, <span class="ident">SSL_CTRL_SET_TLSEXT_SERVERNAME_CB</span>, <span class="ident">cb</span>)
 }
 
@@ -206,18 +206,18 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_TLSEXT_ERR_ALERT_FATAL</span>: <span class="ident">c_int</span> <span class="op">=</span> <span class="number">2</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_TLSEXT_ERR_NOACK</span>: <span class="ident">c_int</span> <span class="op">=</span> <span class="number">3</span>;
 
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">SSL_CTX_set_tlsext_servername_arg</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL_CTX</span>, <span class="ident">arg</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_long</span> {
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">SSL_CTX_set_tlsext_servername_arg</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL_CTX</span>, <span class="ident">arg</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>) -&gt; <span class="ident">c_long</span> {
     <span class="ident">SSL_CTX_ctrl</span>(<span class="ident">ctx</span>, <span class="ident">SSL_CTRL_SET_TLSEXT_SERVERNAME_ARG</span>, <span class="number">0</span>, <span class="ident">arg</span>)
 }
 
 <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">SSL_CTX_set_tlsext_status_cb</span>(
     <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL_CTX</span>,
-    <span class="ident">cb</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL</span>, <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_long</span> {
+    <span class="ident">cb</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL</span>, <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>) -&gt; <span class="ident">c_int</span><span class="op">&gt;</span>,
+) -&gt; <span class="ident">c_long</span> {
     <span class="ident">SSL_CTX_callback_ctrl</span>(<span class="ident">ctx</span>, <span class="ident">SSL_CTRL_SET_TLSEXT_STATUS_REQ_CB</span>, <span class="ident">mem::transmute</span>(<span class="ident">cb</span>))
 }
 
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">SSL_CTX_set_tlsext_status_arg</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL_CTX</span>, <span class="ident">arg</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_long</span> {
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">SSL_CTX_set_tlsext_status_arg</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL_CTX</span>, <span class="ident">arg</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>) -&gt; <span class="ident">c_long</span> {
     <span class="ident">SSL_CTX_ctrl</span>(<span class="ident">ctx</span>, <span class="ident">SSL_CTRL_SET_TLSEXT_STATUS_REQ_CB_ARG</span>, <span class="number">0</span>, <span class="ident">arg</span>)
 }
 </code></pre></div>

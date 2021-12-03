@@ -4,10 +4,10 @@ thread pinned - it’s just a fake guard that allows loading from <a href="struc
 <p>Note that calling <a href="struct.Guard.html#method.defer"><code>defer</code></a> with a dummy guard will not defer the function - it will just
 execute the function immediately.</p>
 <p>If necessary, it’s possible to create more dummy guards by cloning: <code>unprotected().clone()</code>.</p>
-<h1 id="safety" class="section-header"><a href="#safety">Safety</a></h1>
+<h2 id="safety" class="section-header"><a href="#safety">Safety</a></h2>
 <p>Loading and dereferencing data from an <a href="struct.Atomic.html"><code>Atomic</code></a> using this guard is safe only if the
 <a href="struct.Atomic.html"><code>Atomic</code></a> is not being concurrently modified by other threads.</p>
-<h1 id="examples" class="section-header"><a href="#examples">Examples</a></h1>
+<h2 id="examples" class="section-header"><a href="#examples">Examples</a></h2>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">crossbeam_epoch</span>::{<span class="self">self</span> <span class="kw">as</span> <span class="ident">epoch</span>, <span class="ident">Atomic</span>};
 <span class="kw">use</span> <span class="ident">std::sync::atomic::Ordering::Relaxed</span>;
 

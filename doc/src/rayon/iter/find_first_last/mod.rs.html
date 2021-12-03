@@ -269,27 +269,27 @@
 
 <span class="doccomment">/// Returns true if pos1 is a better match than pos2 according to MatchPosition</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">better_position</span>(<span class="ident">pos1</span>: <span class="ident">usize</span>, <span class="ident">pos2</span>: <span class="ident">usize</span>, <span class="ident">mp</span>: <span class="ident">MatchPosition</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">fn</span> <span class="ident">better_position</span>(<span class="ident">pos1</span>: <span class="ident">usize</span>, <span class="ident">pos2</span>: <span class="ident">usize</span>, <span class="ident">mp</span>: <span class="ident">MatchPosition</span>) -&gt; <span class="ident">bool</span> {
     <span class="kw">match</span> <span class="ident">mp</span> {
-        <span class="ident">MatchPosition::Leftmost</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">pos1</span> <span class="op">&lt;</span> <span class="ident">pos2</span>,
-        <span class="ident">MatchPosition::Rightmost</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">pos1</span> <span class="op">&gt;</span> <span class="ident">pos2</span>,
+        <span class="ident">MatchPosition::Leftmost</span> =&gt; <span class="ident">pos1</span> <span class="op">&lt;</span> <span class="ident">pos2</span>,
+        <span class="ident">MatchPosition::Rightmost</span> =&gt; <span class="ident">pos1</span> <span class="op">&gt;</span> <span class="ident">pos2</span>,
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">find_first</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">P</span><span class="op">&gt;</span>(<span class="ident">pi</span>: <span class="ident">I</span>, <span class="ident">find_op</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">find_first</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">P</span><span class="op">&gt;</span>(<span class="ident">pi</span>: <span class="ident">I</span>, <span class="ident">find_op</span>: <span class="ident">P</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">I</span>: <span class="ident">ParallelIterator</span>,
-    <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">I::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> <span class="op">+</span> <span class="ident">Sync</span>,
+    <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">I::Item</span>) -&gt; <span class="ident">bool</span> <span class="op">+</span> <span class="ident">Sync</span>,
 {
     <span class="kw">let</span> <span class="ident">best_found</span> <span class="op">=</span> <span class="ident">AtomicUsize::new</span>(<span class="ident">usize::max_value</span>());
     <span class="kw">let</span> <span class="ident">consumer</span> <span class="op">=</span> <span class="ident">FindConsumer::new</span>(<span class="kw-2">&amp;</span><span class="ident">find_op</span>, <span class="ident">MatchPosition::Leftmost</span>, <span class="kw-2">&amp;</span><span class="ident">best_found</span>);
     <span class="ident">pi</span>.<span class="ident">drive_unindexed</span>(<span class="ident">consumer</span>)
 }
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">find_last</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">P</span><span class="op">&gt;</span>(<span class="ident">pi</span>: <span class="ident">I</span>, <span class="ident">find_op</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">find_last</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">P</span><span class="op">&gt;</span>(<span class="ident">pi</span>: <span class="ident">I</span>, <span class="ident">find_op</span>: <span class="ident">P</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">I</span>: <span class="ident">ParallelIterator</span>,
-    <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">I::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> <span class="op">+</span> <span class="ident">Sync</span>,
+    <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">I::Item</span>) -&gt; <span class="ident">bool</span> <span class="op">+</span> <span class="ident">Sync</span>,
 {
     <span class="kw">let</span> <span class="ident">best_found</span> <span class="op">=</span> <span class="ident">AtomicUsize::new</span>(<span class="number">0</span>);
     <span class="kw">let</span> <span class="ident">consumer</span> <span class="op">=</span> <span class="ident">FindConsumer::new</span>(<span class="kw-2">&amp;</span><span class="ident">find_op</span>, <span class="ident">MatchPosition::Rightmost</span>, <span class="kw-2">&amp;</span><span class="ident">best_found</span>);
@@ -305,7 +305,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">P</span><span class="op">&gt;</span> <span class="ident">FindConsumer</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">P</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">find_op</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <span class="ident">P</span>, <span class="ident">match_position</span>: <span class="ident">MatchPosition</span>, <span class="ident">best_found</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <span class="ident">AtomicUsize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">find_op</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <span class="ident">P</span>, <span class="ident">match_position</span>: <span class="ident">MatchPosition</span>, <span class="ident">best_found</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <span class="ident">AtomicUsize</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">FindConsumer</span> {
             <span class="ident">find_op</span>,
             <span class="ident">lower_bound</span>: <span class="ident">Cell::new</span>(<span class="number">0</span>),
@@ -315,10 +315,10 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">current_index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">current_index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">match_position</span> {
-            <span class="ident">MatchPosition::Leftmost</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">lower_bound</span>.<span class="ident">get</span>(),
-            <span class="ident">MatchPosition::Rightmost</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">upper_bound</span>,
+            <span class="ident">MatchPosition::Leftmost</span> =&gt; <span class="self">self</span>.<span class="ident">lower_bound</span>.<span class="ident">get</span>(),
+            <span class="ident">MatchPosition::Rightmost</span> =&gt; <span class="self">self</span>.<span class="ident">upper_bound</span>,
         }
     }
 }
@@ -326,13 +326,13 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">T</span>, <span class="ident">P</span><span class="op">&gt;</span> <span class="ident">Consumer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FindConsumer</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">P</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">Send</span>,
-    <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> <span class="op">+</span> <span class="ident">Sync</span>,
+    <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">bool</span> <span class="op">+</span> <span class="ident">Sync</span>,
 {
     <span class="kw">type</span> <span class="ident">Folder</span> <span class="op">=</span> <span class="ident">FindFolder</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">T</span>, <span class="ident">P</span><span class="op">&gt;</span>;
     <span class="kw">type</span> <span class="ident">Reducer</span> <span class="op">=</span> <span class="ident">FindReducer</span>;
     <span class="kw">type</span> <span class="prelude-ty">Result</span> <span class="op">=</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">split_at</span>(<span class="self">self</span>, <span class="ident">_index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="self">Self</span>, <span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Reducer</span>) {
+    <span class="kw">fn</span> <span class="ident">split_at</span>(<span class="self">self</span>, <span class="ident">_index</span>: <span class="ident">usize</span>) -&gt; (<span class="self">Self</span>, <span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Reducer</span>) {
         <span class="kw">let</span> <span class="ident">dir</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">match_position</span>;
         (
             <span class="self">self</span>.<span class="ident">split_off_left</span>(),
@@ -343,7 +343,7 @@
         )
     }
 
-    <span class="kw">fn</span> <span class="ident">into_folder</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Folder</span> {
+    <span class="kw">fn</span> <span class="ident">into_folder</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Folder</span> {
         <span class="ident">FindFolder</span> {
             <span class="ident">find_op</span>: <span class="self">self</span>.<span class="ident">find_op</span>,
             <span class="ident">boundary</span>: <span class="self">self</span>.<span class="ident">current_index</span>(),
@@ -353,7 +353,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">full</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">full</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="comment">// can stop consuming if the best found index so far is *strictly*</span>
         <span class="comment">// better than anything this consumer will find</span>
         <span class="ident">better_position</span>(
@@ -367,9 +367,9 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">T</span>, <span class="ident">P</span><span class="op">&gt;</span> <span class="ident">UnindexedConsumer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FindConsumer</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">P</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">Send</span>,
-    <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> <span class="op">+</span> <span class="ident">Sync</span>,
+    <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">bool</span> <span class="op">+</span> <span class="ident">Sync</span>,
 {
-    <span class="kw">fn</span> <span class="ident">split_off_left</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">split_off_left</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="comment">// Upper bound for one consumer will be lower bound for the other. This</span>
         <span class="comment">// overlap is okay, because only one of the bounds will be used for</span>
         <span class="comment">// comparing against best_found; the other is kept only to be able to</span>
@@ -394,7 +394,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">to_reducer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Reducer</span> {
+    <span class="kw">fn</span> <span class="ident">to_reducer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Reducer</span> {
         <span class="ident">FindReducer</span> {
             <span class="ident">match_position</span>: <span class="self">self</span>.<span class="ident">match_position</span>,
         }
@@ -409,13 +409,13 @@
     <span class="ident">item</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">P</span>: <span class="lifetime">&#39;p</span> <span class="op">+</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Folder</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FindFolder</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">T</span>, <span class="ident">P</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">P</span>: <span class="lifetime">&#39;p</span> <span class="op">+</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">bool</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Folder</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FindFolder</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">T</span>, <span class="ident">P</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="prelude-ty">Result</span> <span class="op">=</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">consume</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">item</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">consume</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">item</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">found_best_in_range</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">match_position</span> {
-            <span class="ident">MatchPosition::Leftmost</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">item</span>.<span class="ident">is_some</span>(),
-            <span class="ident">MatchPosition::Rightmost</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident">MatchPosition::Leftmost</span> =&gt; <span class="self">self</span>.<span class="ident">item</span>.<span class="ident">is_some</span>(),
+            <span class="ident">MatchPosition::Rightmost</span> =&gt; <span class="bool-val">false</span>,
         };
 
         <span class="kw">if</span> <span class="op">!</span><span class="ident">found_best_in_range</span> <span class="op">&amp;&amp;</span> (<span class="self">self</span>.<span class="ident">find_op</span>)(<span class="kw-2">&amp;</span><span class="ident">item</span>) {
@@ -432,25 +432,25 @@
                     <span class="ident">Ordering::Relaxed</span>,
                     <span class="ident">Ordering::Relaxed</span>,
                 ) {
-                    <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
                         <span class="self">self</span>.<span class="ident">item</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">item</span>);
                         <span class="kw">break</span>;
                     }
-                    <span class="prelude-val">Err</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">current</span> <span class="op">=</span> <span class="ident">v</span>,
+                    <span class="prelude-val">Err</span>(<span class="ident">v</span>) =&gt; <span class="ident">current</span> <span class="op">=</span> <span class="ident">v</span>,
                 }
             }
         }
         <span class="self">self</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">complete</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Result</span> {
+    <span class="kw">fn</span> <span class="ident">complete</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Result</span> {
         <span class="self">self</span>.<span class="ident">item</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">full</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">full</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="ident">found_best_in_range</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">match_position</span> {
-            <span class="ident">MatchPosition::Leftmost</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">item</span>.<span class="ident">is_some</span>(),
-            <span class="ident">MatchPosition::Rightmost</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident">MatchPosition::Leftmost</span> =&gt; <span class="self">self</span>.<span class="ident">item</span>.<span class="ident">is_some</span>(),
+            <span class="ident">MatchPosition::Rightmost</span> =&gt; <span class="bool-val">false</span>,
         };
 
         <span class="ident">found_best_in_range</span>
@@ -467,10 +467,10 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Reducer</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FindReducer</span> {
-    <span class="kw">fn</span> <span class="ident">reduce</span>(<span class="self">self</span>, <span class="ident">left</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">right</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">reduce</span>(<span class="self">self</span>, <span class="ident">left</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">right</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">match_position</span> {
-            <span class="ident">MatchPosition::Leftmost</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">left</span>.<span class="ident">or</span>(<span class="ident">right</span>),
-            <span class="ident">MatchPosition::Rightmost</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">right</span>.<span class="ident">or</span>(<span class="ident">left</span>),
+            <span class="ident">MatchPosition::Leftmost</span> =&gt; <span class="ident">left</span>.<span class="ident">or</span>(<span class="ident">right</span>),
+            <span class="ident">MatchPosition::Rightmost</span> =&gt; <span class="ident">right</span>.<span class="ident">or</span>(<span class="ident">left</span>),
         }
     }
 }

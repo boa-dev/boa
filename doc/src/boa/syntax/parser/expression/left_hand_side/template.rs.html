@@ -118,7 +118,7 @@
 
 <span class="kw">impl</span> <span class="ident">TaggedTemplateLiteral</span> {
     <span class="doccomment">/// Creates a new `TaggedTemplateLiteral` parser.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>, <span class="ident">start</span>: <span class="ident">Position</span>, <span class="ident">tag</span>: <span class="ident">Node</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>, <span class="ident">start</span>: <span class="ident">Position</span>, <span class="ident">tag</span>: <span class="ident">Node</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
         <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
@@ -138,7 +138,7 @@
 {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Node</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) -&gt; <span class="ident">ParseResult</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;TaggedTemplateLiteral&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">raws</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
@@ -149,7 +149,7 @@
 
         <span class="kw">loop</span> {
             <span class="kw">match</span> <span class="ident">token</span>.<span class="ident">kind</span>() {
-                <span class="ident">TokenKind::TemplateMiddle</span>(<span class="ident">template_string</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">TokenKind::TemplateMiddle</span>(<span class="ident">template_string</span>) =&gt; {
                     <span class="ident">raws</span>.<span class="ident">push</span>(<span class="ident">template_string</span>.<span class="ident">as_raw</span>().<span class="ident">to_owned</span>().<span class="ident">into_boxed_str</span>());
                     <span class="ident">cookeds</span>.<span class="ident">push</span>(<span class="ident">template_string</span>.<span class="ident">to_owned_cooked</span>().<span class="ident">ok</span>());
                     <span class="ident">exprs</span>.<span class="ident">push</span>(
@@ -160,14 +160,14 @@
                         <span class="string">&quot;template literal&quot;</span>,
                     )<span class="question-mark">?</span>;
                 }
-                <span class="ident">TokenKind::TemplateNoSubstitution</span>(<span class="ident">template_string</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">TokenKind::TemplateNoSubstitution</span>(<span class="ident">template_string</span>) =&gt; {
                     <span class="ident">raws</span>.<span class="ident">push</span>(<span class="ident">template_string</span>.<span class="ident">as_raw</span>().<span class="ident">to_owned</span>().<span class="ident">into_boxed_str</span>());
                     <span class="ident">cookeds</span>.<span class="ident">push</span>(<span class="ident">template_string</span>.<span class="ident">to_owned_cooked</span>().<span class="ident">ok</span>());
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Node::from</span>(<span class="ident">TaggedTemplate::new</span>(
                         <span class="self">self</span>.<span class="ident">tag</span>, <span class="ident">raws</span>, <span class="ident">cookeds</span>, <span class="ident">exprs</span>,
                     )));
                 }
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">_</span> =&gt; {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
                         <span class="string">&quot;cannot parse tagged template literal&quot;</span>,
                         <span class="self">self</span>.<span class="ident">start</span>,

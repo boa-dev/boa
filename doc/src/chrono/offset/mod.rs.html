@@ -571,35 +571,35 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">LocalResult</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Returns `Some` only when the conversion result is unique, or `None` otherwise.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">single</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">single</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">LocalResult::Single</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">LocalResult::Single</span>(<span class="ident">t</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">t</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 
     <span class="doccomment">/// Returns `Some` for the earliest possible conversion result, or `None` if none.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">earliest</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">earliest</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">LocalResult::Single</span>(<span class="ident">t</span>) <span class="op">|</span> <span class="ident">LocalResult::Ambiguous</span>(<span class="ident">t</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">LocalResult::Single</span>(<span class="ident">t</span>) <span class="op">|</span> <span class="ident">LocalResult::Ambiguous</span>(<span class="ident">t</span>, <span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">t</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 
     <span class="doccomment">/// Returns `Some` for the latest possible conversion result, or `None` if none.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">latest</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">latest</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">LocalResult::Single</span>(<span class="ident">t</span>) <span class="op">|</span> <span class="ident">LocalResult::Ambiguous</span>(<span class="kw">_</span>, <span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">LocalResult::Single</span>(<span class="ident">t</span>) <span class="op">|</span> <span class="ident">LocalResult::Ambiguous</span>(<span class="kw">_</span>, <span class="ident">t</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">t</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 
     <span class="doccomment">/// Maps a `LocalResult&lt;T&gt;` into `LocalResult&lt;U&gt;` with given function.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map</span><span class="op">&lt;</span><span class="ident">U</span>, <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">U</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LocalResult</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map</span><span class="op">&lt;</span><span class="ident">U</span>, <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">T</span>) -&gt; <span class="ident">U</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">LocalResult</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">LocalResult::None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LocalResult::None</span>,
-            <span class="ident">LocalResult::Single</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LocalResult::Single</span>(<span class="ident">f</span>(<span class="ident">v</span>)),
-            <span class="ident">LocalResult::Ambiguous</span>(<span class="ident">min</span>, <span class="ident">max</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LocalResult::Ambiguous</span>(<span class="ident">f</span>(<span class="ident">min</span>), <span class="ident">f</span>(<span class="ident">max</span>)),
+            <span class="ident">LocalResult::None</span> =&gt; <span class="ident">LocalResult::None</span>,
+            <span class="ident">LocalResult::Single</span>(<span class="ident">v</span>) =&gt; <span class="ident">LocalResult::Single</span>(<span class="ident">f</span>(<span class="ident">v</span>)),
+            <span class="ident">LocalResult::Ambiguous</span>(<span class="ident">min</span>, <span class="ident">max</span>) =&gt; <span class="ident">LocalResult::Ambiguous</span>(<span class="ident">f</span>(<span class="ident">min</span>), <span class="ident">f</span>(<span class="ident">max</span>)),
         }
     }
 }
@@ -610,12 +610,12 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Propagates any error. Ambiguous result would be discarded.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">and_time</span>(<span class="self">self</span>, <span class="ident">time</span>: <span class="ident">NaiveTime</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LocalResult</span><span class="op">&lt;</span><span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">Tz</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">and_time</span>(<span class="self">self</span>, <span class="ident">time</span>: <span class="ident">NaiveTime</span>) -&gt; <span class="ident">LocalResult</span><span class="op">&lt;</span><span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">Tz</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">LocalResult::Single</span>(<span class="ident">d</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">LocalResult::Single</span>(<span class="ident">d</span>) =&gt; {
                 <span class="ident">d</span>.<span class="ident">and_time</span>(<span class="ident">time</span>).<span class="ident">map_or</span>(<span class="ident">LocalResult::None</span>, <span class="ident">LocalResult::Single</span>)
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LocalResult::None</span>,
+            <span class="kw">_</span> =&gt; <span class="ident">LocalResult::None</span>,
         }
     }
 
@@ -624,12 +624,12 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Propagates any error. Ambiguous result would be discarded.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">and_hms_opt</span>(<span class="self">self</span>, <span class="ident">hour</span>: <span class="ident">u32</span>, <span class="ident">min</span>: <span class="ident">u32</span>, <span class="ident">sec</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LocalResult</span><span class="op">&lt;</span><span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">Tz</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">and_hms_opt</span>(<span class="self">self</span>, <span class="ident">hour</span>: <span class="ident">u32</span>, <span class="ident">min</span>: <span class="ident">u32</span>, <span class="ident">sec</span>: <span class="ident">u32</span>) -&gt; <span class="ident">LocalResult</span><span class="op">&lt;</span><span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">Tz</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">LocalResult::Single</span>(<span class="ident">d</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">LocalResult::Single</span>(<span class="ident">d</span>) =&gt; {
                 <span class="ident">d</span>.<span class="ident">and_hms_opt</span>(<span class="ident">hour</span>, <span class="ident">min</span>, <span class="ident">sec</span>).<span class="ident">map_or</span>(<span class="ident">LocalResult::None</span>, <span class="ident">LocalResult::Single</span>)
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LocalResult::None</span>,
+            <span class="kw">_</span> =&gt; <span class="ident">LocalResult::None</span>,
         }
     }
 
@@ -645,12 +645,12 @@
         <span class="ident">min</span>: <span class="ident">u32</span>,
         <span class="ident">sec</span>: <span class="ident">u32</span>,
         <span class="ident">milli</span>: <span class="ident">u32</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LocalResult</span><span class="op">&lt;</span><span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">Tz</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">LocalResult</span><span class="op">&lt;</span><span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">Tz</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">LocalResult::Single</span>(<span class="ident">d</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">d</span>
+            <span class="ident">LocalResult::Single</span>(<span class="ident">d</span>) =&gt; <span class="ident">d</span>
                 .<span class="ident">and_hms_milli_opt</span>(<span class="ident">hour</span>, <span class="ident">min</span>, <span class="ident">sec</span>, <span class="ident">milli</span>)
                 .<span class="ident">map_or</span>(<span class="ident">LocalResult::None</span>, <span class="ident">LocalResult::Single</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LocalResult::None</span>,
+            <span class="kw">_</span> =&gt; <span class="ident">LocalResult::None</span>,
         }
     }
 
@@ -666,12 +666,12 @@
         <span class="ident">min</span>: <span class="ident">u32</span>,
         <span class="ident">sec</span>: <span class="ident">u32</span>,
         <span class="ident">micro</span>: <span class="ident">u32</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LocalResult</span><span class="op">&lt;</span><span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">Tz</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">LocalResult</span><span class="op">&lt;</span><span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">Tz</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">LocalResult::Single</span>(<span class="ident">d</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">d</span>
+            <span class="ident">LocalResult::Single</span>(<span class="ident">d</span>) =&gt; <span class="ident">d</span>
                 .<span class="ident">and_hms_micro_opt</span>(<span class="ident">hour</span>, <span class="ident">min</span>, <span class="ident">sec</span>, <span class="ident">micro</span>)
                 .<span class="ident">map_or</span>(<span class="ident">LocalResult::None</span>, <span class="ident">LocalResult::Single</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LocalResult::None</span>,
+            <span class="kw">_</span> =&gt; <span class="ident">LocalResult::None</span>,
         }
     }
 
@@ -687,23 +687,23 @@
         <span class="ident">min</span>: <span class="ident">u32</span>,
         <span class="ident">sec</span>: <span class="ident">u32</span>,
         <span class="ident">nano</span>: <span class="ident">u32</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LocalResult</span><span class="op">&lt;</span><span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">Tz</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">LocalResult</span><span class="op">&lt;</span><span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">Tz</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">LocalResult::Single</span>(<span class="ident">d</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">d</span>
+            <span class="ident">LocalResult::Single</span>(<span class="ident">d</span>) =&gt; <span class="ident">d</span>
                 .<span class="ident">and_hms_nano_opt</span>(<span class="ident">hour</span>, <span class="ident">min</span>, <span class="ident">sec</span>, <span class="ident">nano</span>)
                 .<span class="ident">map_or</span>(<span class="ident">LocalResult::None</span>, <span class="ident">LocalResult::Single</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LocalResult::None</span>,
+            <span class="kw">_</span> =&gt; <span class="ident">LocalResult::None</span>,
         }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">fmt::Debug</span><span class="op">&gt;</span> <span class="ident">LocalResult</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Returns the single unique conversion result, or panics accordingly.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unwrap</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unwrap</span>(<span class="self">self</span>) -&gt; <span class="ident">T</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">LocalResult::None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;No such local time&quot;</span>),
-            <span class="ident">LocalResult::Single</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span>,
-            <span class="ident">LocalResult::Ambiguous</span>(<span class="ident">t1</span>, <span class="ident">t2</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">LocalResult::None</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;No such local time&quot;</span>),
+            <span class="ident">LocalResult::Single</span>(<span class="ident">t</span>) =&gt; <span class="ident">t</span>,
+            <span class="ident">LocalResult::Ambiguous</span>(<span class="ident">t1</span>, <span class="ident">t2</span>) =&gt; {
                 <span class="macro">panic!</span>(<span class="string">&quot;Ambiguous local time, ranging from {:?} to {:?}&quot;</span>, <span class="ident">t1</span>, <span class="ident">t2</span>)
             }
         }
@@ -713,7 +713,7 @@
 <span class="doccomment">/// The offset from the local time to UTC.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Offset</span>: <span class="ident">Sized</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">fmt::Debug</span> {
     <span class="doccomment">/// Returns the fixed offset from UTC to the local time stored.</span>
-    <span class="kw">fn</span> <span class="ident">fix</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FixedOffset</span>;
+    <span class="kw">fn</span> <span class="ident">fix</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">FixedOffset</span>;
 }
 
 <span class="doccomment">/// The time zone.</span>
@@ -741,7 +741,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(Utc.ymd(2015, 5, 15).to_string(), &quot;2015-05-15UTC&quot;);</span>
     <span class="doccomment">/// ~~~~</span>
-    <span class="kw">fn</span> <span class="ident">ymd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">year</span>: <span class="ident">i32</span>, <span class="ident">month</span>: <span class="ident">u32</span>, <span class="ident">day</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Date</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">ymd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">year</span>: <span class="ident">i32</span>, <span class="ident">month</span>: <span class="ident">u32</span>, <span class="ident">day</span>: <span class="ident">u32</span>) -&gt; <span class="ident">Date</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">ymd_opt</span>(<span class="ident">year</span>, <span class="ident">month</span>, <span class="ident">day</span>).<span class="ident">unwrap</span>()
     }
 
@@ -761,10 +761,10 @@
     <span class="doccomment">/// assert_eq!(Utc.ymd_opt(2015, 5, 15).unwrap().to_string(), &quot;2015-05-15UTC&quot;);</span>
     <span class="doccomment">/// assert_eq!(Utc.ymd_opt(2000, 0, 0), LocalResult::None);</span>
     <span class="doccomment">/// ~~~~</span>
-    <span class="kw">fn</span> <span class="ident">ymd_opt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">year</span>: <span class="ident">i32</span>, <span class="ident">month</span>: <span class="ident">u32</span>, <span class="ident">day</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LocalResult</span><span class="op">&lt;</span><span class="ident">Date</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">ymd_opt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">year</span>: <span class="ident">i32</span>, <span class="ident">month</span>: <span class="ident">u32</span>, <span class="ident">day</span>: <span class="ident">u32</span>) -&gt; <span class="ident">LocalResult</span><span class="op">&lt;</span><span class="ident">Date</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">NaiveDate::from_ymd_opt</span>(<span class="ident">year</span>, <span class="ident">month</span>, <span class="ident">day</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">d</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">from_local_date</span>(<span class="kw-2">&amp;</span><span class="ident">d</span>),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LocalResult::None</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">d</span>) =&gt; <span class="self">self</span>.<span class="ident">from_local_date</span>(<span class="kw-2">&amp;</span><span class="ident">d</span>),
+            <span class="prelude-val">None</span> =&gt; <span class="ident">LocalResult::None</span>,
         }
     }
 
@@ -783,7 +783,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(Utc.yo(2015, 135).to_string(), &quot;2015-05-15UTC&quot;);</span>
     <span class="doccomment">/// ~~~~</span>
-    <span class="kw">fn</span> <span class="ident">yo</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">year</span>: <span class="ident">i32</span>, <span class="ident">ordinal</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Date</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">yo</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">year</span>: <span class="ident">i32</span>, <span class="ident">ordinal</span>: <span class="ident">u32</span>) -&gt; <span class="ident">Date</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">yo_opt</span>(<span class="ident">year</span>, <span class="ident">ordinal</span>).<span class="ident">unwrap</span>()
     }
 
@@ -794,10 +794,10 @@
     <span class="doccomment">/// but it will propagate to the `DateTime` values constructed via this date.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns `None` on the out-of-range date and/or invalid DOY.</span>
-    <span class="kw">fn</span> <span class="ident">yo_opt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">year</span>: <span class="ident">i32</span>, <span class="ident">ordinal</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LocalResult</span><span class="op">&lt;</span><span class="ident">Date</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">yo_opt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">year</span>: <span class="ident">i32</span>, <span class="ident">ordinal</span>: <span class="ident">u32</span>) -&gt; <span class="ident">LocalResult</span><span class="op">&lt;</span><span class="ident">Date</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">NaiveDate::from_yo_opt</span>(<span class="ident">year</span>, <span class="ident">ordinal</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">d</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">from_local_date</span>(<span class="kw-2">&amp;</span><span class="ident">d</span>),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LocalResult::None</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">d</span>) =&gt; <span class="self">self</span>.<span class="ident">from_local_date</span>(<span class="kw-2">&amp;</span><span class="ident">d</span>),
+            <span class="prelude-val">None</span> =&gt; <span class="ident">LocalResult::None</span>,
         }
     }
 
@@ -818,7 +818,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(Utc.isoywd(2015, 20, Weekday::Fri).to_string(), &quot;2015-05-15UTC&quot;);</span>
     <span class="doccomment">/// ~~~~</span>
-    <span class="kw">fn</span> <span class="ident">isoywd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">year</span>: <span class="ident">i32</span>, <span class="ident">week</span>: <span class="ident">u32</span>, <span class="ident">weekday</span>: <span class="ident">Weekday</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Date</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">isoywd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">year</span>: <span class="ident">i32</span>, <span class="ident">week</span>: <span class="ident">u32</span>, <span class="ident">weekday</span>: <span class="ident">Weekday</span>) -&gt; <span class="ident">Date</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">isoywd_opt</span>(<span class="ident">year</span>, <span class="ident">week</span>, <span class="ident">weekday</span>).<span class="ident">unwrap</span>()
     }
 
@@ -831,10 +831,10 @@
     <span class="doccomment">/// but it will propagate to the `DateTime` values constructed via this date.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns `None` on the out-of-range date and/or invalid week number.</span>
-    <span class="kw">fn</span> <span class="ident">isoywd_opt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">year</span>: <span class="ident">i32</span>, <span class="ident">week</span>: <span class="ident">u32</span>, <span class="ident">weekday</span>: <span class="ident">Weekday</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LocalResult</span><span class="op">&lt;</span><span class="ident">Date</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">isoywd_opt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">year</span>: <span class="ident">i32</span>, <span class="ident">week</span>: <span class="ident">u32</span>, <span class="ident">weekday</span>: <span class="ident">Weekday</span>) -&gt; <span class="ident">LocalResult</span><span class="op">&lt;</span><span class="ident">Date</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">NaiveDate::from_isoywd_opt</span>(<span class="ident">year</span>, <span class="ident">week</span>, <span class="ident">weekday</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">d</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">from_local_date</span>(<span class="kw-2">&amp;</span><span class="ident">d</span>),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LocalResult::None</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">d</span>) =&gt; <span class="self">self</span>.<span class="ident">from_local_date</span>(<span class="kw-2">&amp;</span><span class="ident">d</span>),
+            <span class="prelude-val">None</span> =&gt; <span class="ident">LocalResult::None</span>,
         }
     }
 
@@ -852,7 +852,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(Utc.timestamp(1431648000, 0).to_string(), &quot;2015-05-15 00:00:00 UTC&quot;);</span>
     <span class="doccomment">/// ~~~~</span>
-    <span class="kw">fn</span> <span class="ident">timestamp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">secs</span>: <span class="ident">i64</span>, <span class="ident">nsecs</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DateTime</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">timestamp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">secs</span>: <span class="ident">i64</span>, <span class="ident">nsecs</span>: <span class="ident">u32</span>) -&gt; <span class="ident">DateTime</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">timestamp_opt</span>(<span class="ident">secs</span>, <span class="ident">nsecs</span>).<span class="ident">unwrap</span>()
     }
 
@@ -862,10 +862,10 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns `LocalResult::None` on out-of-range number of seconds and/or</span>
     <span class="doccomment">/// invalid nanosecond, otherwise always returns `LocalResult::Single`.</span>
-    <span class="kw">fn</span> <span class="ident">timestamp_opt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">secs</span>: <span class="ident">i64</span>, <span class="ident">nsecs</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LocalResult</span><span class="op">&lt;</span><span class="ident">DateTime</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">timestamp_opt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">secs</span>: <span class="ident">i64</span>, <span class="ident">nsecs</span>: <span class="ident">u32</span>) -&gt; <span class="ident">LocalResult</span><span class="op">&lt;</span><span class="ident">DateTime</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">NaiveDateTime::from_timestamp_opt</span>(<span class="ident">secs</span>, <span class="ident">nsecs</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">dt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LocalResult::Single</span>(<span class="self">self</span>.<span class="ident">from_utc_datetime</span>(<span class="kw-2">&amp;</span><span class="ident">dt</span>)),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LocalResult::None</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">dt</span>) =&gt; <span class="ident">LocalResult::Single</span>(<span class="self">self</span>.<span class="ident">from_utc_datetime</span>(<span class="kw-2">&amp;</span><span class="ident">dt</span>)),
+            <span class="prelude-val">None</span> =&gt; <span class="ident">LocalResult::None</span>,
         }
     }
 
@@ -882,7 +882,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(Utc.timestamp_millis(1431648000).timestamp(), 1431648);</span>
     <span class="doccomment">/// ~~~~</span>
-    <span class="kw">fn</span> <span class="ident">timestamp_millis</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">millis</span>: <span class="ident">i64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DateTime</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">timestamp_millis</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">millis</span>: <span class="ident">i64</span>) -&gt; <span class="ident">DateTime</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">timestamp_millis_opt</span>(<span class="ident">millis</span>).<span class="ident">unwrap</span>()
     }
 
@@ -903,7 +903,7 @@
     <span class="doccomment">///     _ =&gt; panic!(&quot;Incorrect timestamp_millis&quot;),</span>
     <span class="doccomment">/// };</span>
     <span class="doccomment">/// ~~~~</span>
-    <span class="kw">fn</span> <span class="ident">timestamp_millis_opt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">millis</span>: <span class="ident">i64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LocalResult</span><span class="op">&lt;</span><span class="ident">DateTime</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">timestamp_millis_opt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">millis</span>: <span class="ident">i64</span>) -&gt; <span class="ident">LocalResult</span><span class="op">&lt;</span><span class="ident">DateTime</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">secs</span>, <span class="kw-2">mut</span> <span class="ident">millis</span>) <span class="op">=</span> (<span class="ident">millis</span> <span class="op">/</span> <span class="number">1000</span>, <span class="ident">millis</span> <span class="op">%</span> <span class="number">1000</span>);
         <span class="kw">if</span> <span class="ident">millis</span> <span class="op">&lt;</span> <span class="number">0</span> {
             <span class="ident">secs</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
@@ -925,7 +925,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(Utc.timestamp_nanos(1431648000000000).timestamp(), 1431648);</span>
     <span class="doccomment">/// ~~~~</span>
-    <span class="kw">fn</span> <span class="ident">timestamp_nanos</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">nanos</span>: <span class="ident">i64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DateTime</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">timestamp_nanos</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">nanos</span>: <span class="ident">i64</span>) -&gt; <span class="ident">DateTime</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">secs</span>, <span class="kw-2">mut</span> <span class="ident">nanos</span>) <span class="op">=</span> (<span class="ident">nanos</span> <span class="op">/</span> <span class="number">1_000_000_000</span>, <span class="ident">nanos</span> <span class="op">%</span> <span class="number">1_000_000_000</span>);
         <span class="kw">if</span> <span class="ident">nanos</span> <span class="op">&lt;</span> <span class="number">0</span> {
             <span class="ident">secs</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
@@ -944,23 +944,23 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// See also `DateTime::parse_from_str` which gives a local `DateTime`</span>
     <span class="doccomment">/// with parsed `FixedOffset`.</span>
-    <span class="kw">fn</span> <span class="ident">datetime_from_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident">DateTime</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">datetime_from_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident">DateTime</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parsed</span> <span class="op">=</span> <span class="ident">Parsed::new</span>();
         <span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">parsed</span>, <span class="ident">s</span>, <span class="ident">StrftimeItems::new</span>(<span class="ident">fmt</span>))<span class="question-mark">?</span>;
         <span class="ident">parsed</span>.<span class="ident">to_datetime_with_timezone</span>(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Reconstructs the time zone from the offset.</span>
-    <span class="kw">fn</span> <span class="ident">from_offset</span>(<span class="ident">offset</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Offset</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">from_offset</span>(<span class="ident">offset</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Offset</span>) -&gt; <span class="self">Self</span>;
 
     <span class="doccomment">/// Creates the offset(s) for given local `NaiveDate` if possible.</span>
-    <span class="kw">fn</span> <span class="ident">offset_from_local_date</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">local</span>: <span class="kw-2">&amp;</span><span class="ident">NaiveDate</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LocalResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Offset</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">offset_from_local_date</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">local</span>: <span class="kw-2">&amp;</span><span class="ident">NaiveDate</span>) -&gt; <span class="ident">LocalResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Offset</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Creates the offset(s) for given local `NaiveDateTime` if possible.</span>
-    <span class="kw">fn</span> <span class="ident">offset_from_local_datetime</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">local</span>: <span class="kw-2">&amp;</span><span class="ident">NaiveDateTime</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LocalResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Offset</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">offset_from_local_datetime</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">local</span>: <span class="kw-2">&amp;</span><span class="ident">NaiveDateTime</span>) -&gt; <span class="ident">LocalResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Offset</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Converts the local `NaiveDate` to the timezone-aware `Date` if possible.</span>
-    <span class="kw">fn</span> <span class="ident">from_local_date</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">local</span>: <span class="kw-2">&amp;</span><span class="ident">NaiveDate</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LocalResult</span><span class="op">&lt;</span><span class="ident">Date</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_local_date</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">local</span>: <span class="kw-2">&amp;</span><span class="ident">NaiveDate</span>) -&gt; <span class="ident">LocalResult</span><span class="op">&lt;</span><span class="ident">Date</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">offset_from_local_date</span>(<span class="ident">local</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">offset</span><span class="op">|</span> {
             <span class="comment">// since FixedOffset is within +/- 1 day, the date is never affected</span>
             <span class="ident">Date::from_utc</span>(<span class="kw-2">*</span><span class="ident">local</span>, <span class="ident">offset</span>)
@@ -968,26 +968,26 @@
     }
 
     <span class="doccomment">/// Converts the local `NaiveDateTime` to the timezone-aware `DateTime` if possible.</span>
-    <span class="kw">fn</span> <span class="ident">from_local_datetime</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">local</span>: <span class="kw-2">&amp;</span><span class="ident">NaiveDateTime</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LocalResult</span><span class="op">&lt;</span><span class="ident">DateTime</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_local_datetime</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">local</span>: <span class="kw-2">&amp;</span><span class="ident">NaiveDateTime</span>) -&gt; <span class="ident">LocalResult</span><span class="op">&lt;</span><span class="ident">DateTime</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">offset_from_local_datetime</span>(<span class="ident">local</span>)
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">offset</span><span class="op">|</span> <span class="ident">DateTime::from_utc</span>(<span class="kw-2">*</span><span class="ident">local</span> <span class="op">-</span> <span class="ident">offset</span>.<span class="ident">fix</span>(), <span class="ident">offset</span>))
     }
 
     <span class="doccomment">/// Creates the offset for given UTC `NaiveDate`. This cannot fail.</span>
-    <span class="kw">fn</span> <span class="ident">offset_from_utc_date</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">utc</span>: <span class="kw-2">&amp;</span><span class="ident">NaiveDate</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Offset</span>;
+    <span class="kw">fn</span> <span class="ident">offset_from_utc_date</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">utc</span>: <span class="kw-2">&amp;</span><span class="ident">NaiveDate</span>) -&gt; <span class="ident"><span class="self">Self</span>::Offset</span>;
 
     <span class="doccomment">/// Creates the offset for given UTC `NaiveDateTime`. This cannot fail.</span>
-    <span class="kw">fn</span> <span class="ident">offset_from_utc_datetime</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">utc</span>: <span class="kw-2">&amp;</span><span class="ident">NaiveDateTime</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Offset</span>;
+    <span class="kw">fn</span> <span class="ident">offset_from_utc_datetime</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">utc</span>: <span class="kw-2">&amp;</span><span class="ident">NaiveDateTime</span>) -&gt; <span class="ident"><span class="self">Self</span>::Offset</span>;
 
     <span class="doccomment">/// Converts the UTC `NaiveDate` to the local time.</span>
     <span class="doccomment">/// The UTC is continuous and thus this cannot fail (but can give the duplicate local time).</span>
-    <span class="kw">fn</span> <span class="ident">from_utc_date</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">utc</span>: <span class="kw-2">&amp;</span><span class="ident">NaiveDate</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Date</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_utc_date</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">utc</span>: <span class="kw-2">&amp;</span><span class="ident">NaiveDate</span>) -&gt; <span class="ident">Date</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="ident">Date::from_utc</span>(<span class="kw-2">*</span><span class="ident">utc</span>, <span class="self">self</span>.<span class="ident">offset_from_utc_date</span>(<span class="ident">utc</span>))
     }
 
     <span class="doccomment">/// Converts the UTC `NaiveDateTime` to the local time.</span>
     <span class="doccomment">/// The UTC is continuous and thus this cannot fail (but can give the duplicate local time).</span>
-    <span class="kw">fn</span> <span class="ident">from_utc_datetime</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">utc</span>: <span class="kw-2">&amp;</span><span class="ident">NaiveDateTime</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DateTime</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_utc_datetime</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">utc</span>: <span class="kw-2">&amp;</span><span class="ident">NaiveDateTime</span>) -&gt; <span class="ident">DateTime</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="ident">DateTime::from_utc</span>(<span class="kw-2">*</span><span class="ident">utc</span>, <span class="self">self</span>.<span class="ident">offset_from_utc_datetime</span>(<span class="ident">utc</span>))
     }
 }
@@ -1031,10 +1031,10 @@
             (<span class="op">-</span><span class="number">7003</span>, <span class="string">&quot;1969-12-31 23:59:52.997 UTC&quot;</span>),
         ] {
             <span class="kw">match</span> <span class="ident">Utc</span>.<span class="ident">timestamp_millis_opt</span>(<span class="kw-2">*</span><span class="ident">millis</span>) {
-                <span class="ident">LocalResult::Single</span>(<span class="ident">dt</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">LocalResult::Single</span>(<span class="ident">dt</span>) =&gt; {
                     <span class="macro">assert_eq!</span>(<span class="ident">dt</span>.<span class="ident">to_string</span>(), <span class="kw-2">*</span><span class="ident">expected</span>);
                 }
-                <span class="ident">e</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;Got {:?} instead of an okay answer&quot;</span>, <span class="ident">e</span>),
+                <span class="ident">e</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Got {:?} instead of an okay answer&quot;</span>, <span class="ident">e</span>),
             }
         }
     }

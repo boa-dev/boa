@@ -462,7 +462,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Characters in the first line of the input (before the first newline</span>
     <span class="doccomment">/// character) are in line 1.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">line</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">line</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="ident">err</span>.<span class="ident">line</span>
     }
 
@@ -473,7 +473,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Note that errors may occur in column 0, for example if a read from an IO</span>
     <span class="doccomment">/// stream fails immediately following a previously read newline character.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">column</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">column</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="ident">err</span>.<span class="ident">column</span>
     }
 
@@ -483,14 +483,14 @@
     <span class="doccomment">/// - `Category::Syntax` - input that is not syntactically valid JSON</span>
     <span class="doccomment">/// - `Category::Data` - input data that is semantically incorrect</span>
     <span class="doccomment">/// - `Category::Eof` - unexpected end of the input data</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">classify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Category</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">classify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Category</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">err</span>.<span class="ident">code</span> {
-            <span class="ident">ErrorCode::Message</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Category::Data</span>,
-            <span class="ident">ErrorCode::Io</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Category::Io</span>,
+            <span class="ident">ErrorCode::Message</span>(<span class="kw">_</span>) =&gt; <span class="ident">Category::Data</span>,
+            <span class="ident">ErrorCode::Io</span>(<span class="kw">_</span>) =&gt; <span class="ident">Category::Io</span>,
             <span class="ident">ErrorCode::EofWhileParsingList</span>
             <span class="op">|</span> <span class="ident">ErrorCode::EofWhileParsingObject</span>
             <span class="op">|</span> <span class="ident">ErrorCode::EofWhileParsingString</span>
-            <span class="op">|</span> <span class="ident">ErrorCode::EofWhileParsingValue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Category::Eof</span>,
+            <span class="op">|</span> <span class="ident">ErrorCode::EofWhileParsingValue</span> =&gt; <span class="ident">Category::Eof</span>,
             <span class="ident">ErrorCode::ExpectedColon</span>
             <span class="op">|</span> <span class="ident">ErrorCode::ExpectedListCommaOrEnd</span>
             <span class="op">|</span> <span class="ident">ErrorCode::ExpectedObjectCommaOrEnd</span>
@@ -506,20 +506,20 @@
             <span class="op">|</span> <span class="ident">ErrorCode::TrailingComma</span>
             <span class="op">|</span> <span class="ident">ErrorCode::TrailingCharacters</span>
             <span class="op">|</span> <span class="ident">ErrorCode::UnexpectedEndOfHexEscape</span>
-            <span class="op">|</span> <span class="ident">ErrorCode::RecursionLimitExceeded</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Category::Syntax</span>,
+            <span class="op">|</span> <span class="ident">ErrorCode::RecursionLimitExceeded</span> =&gt; <span class="ident">Category::Syntax</span>,
         }
     }
 
     <span class="doccomment">/// Returns true if this error was caused by a failure to read or write</span>
     <span class="doccomment">/// bytes on an IO stream.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_io</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">classify</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">Category::Io</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_io</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">classify</span>() <span class="op">==</span> <span class="ident">Category::Io</span>
     }
 
     <span class="doccomment">/// Returns true if this error was caused by input that was not</span>
     <span class="doccomment">/// syntactically valid JSON.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_syntax</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">classify</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">Category::Syntax</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_syntax</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">classify</span>() <span class="op">==</span> <span class="ident">Category::Syntax</span>
     }
 
     <span class="doccomment">/// Returns true if this error was caused by input data that was</span>
@@ -527,8 +527,8 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// For example, JSON containing a number is semantically incorrect when the</span>
     <span class="doccomment">/// type being deserialized into holds a String.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_data</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">classify</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">Category::Data</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_data</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">classify</span>() <span class="op">==</span> <span class="ident">Category::Data</span>
     }
 
     <span class="doccomment">/// Returns true if this error was caused by prematurely reaching the end of</span>
@@ -536,8 +536,8 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Callers that process streaming input may be interested in retrying the</span>
     <span class="doccomment">/// deserialization once more data is available.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_eof</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">classify</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">Category::Eof</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_eof</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">classify</span>() <span class="op">==</span> <span class="ident">Category::Eof</span>
     }
 }
 
@@ -594,14 +594,14 @@
     <span class="doccomment">///     }</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">j</span>: <span class="ident">Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">j</span>: <span class="ident">Error</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ErrorCode::Io</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">j</span>.<span class="ident">err</span>.<span class="ident">code</span> {
             <span class="ident">err</span>
         } <span class="kw">else</span> {
             <span class="kw">match</span> <span class="ident">j</span>.<span class="ident">classify</span>() {
-                <span class="ident">Category::Io</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
-                <span class="ident">Category::Syntax</span> <span class="op">|</span> <span class="ident">Category::Data</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">io::Error::new</span>(<span class="ident">io::ErrorKind::InvalidData</span>, <span class="ident">j</span>),
-                <span class="ident">Category::Eof</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">io::Error::new</span>(<span class="ident">io::ErrorKind::UnexpectedEof</span>, <span class="ident">j</span>),
+                <span class="ident">Category::Io</span> =&gt; <span class="macro">unreachable!</span>(),
+                <span class="ident">Category::Syntax</span> <span class="op">|</span> <span class="ident">Category::Data</span> =&gt; <span class="ident">io::Error::new</span>(<span class="ident">io::ErrorKind::InvalidData</span>, <span class="ident">j</span>),
+                <span class="ident">Category::Eof</span> =&gt; <span class="ident">io::Error::new</span>(<span class="ident">io::ErrorKind::UnexpectedEof</span>, <span class="ident">j</span>),
             }
         }
     }
@@ -683,7 +683,7 @@
 
 <span class="kw">impl</span> <span class="ident">Error</span> {
     <span class="attribute">#[<span class="ident">cold</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">syntax</span>(<span class="ident">code</span>: <span class="ident">ErrorCode</span>, <span class="ident">line</span>: <span class="ident">usize</span>, <span class="ident">column</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">syntax</span>(<span class="ident">code</span>: <span class="ident">ErrorCode</span>, <span class="ident">line</span>: <span class="ident">usize</span>, <span class="ident">column</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">Error</span> {
             <span class="ident">err</span>: <span class="ident">Box::new</span>(<span class="ident">ErrorImpl</span> { <span class="ident">code</span>, <span class="ident">line</span>, <span class="ident">column</span> }),
         }
@@ -694,7 +694,7 @@
     <span class="comment">// Update `eager_json` crate when this function changes.</span>
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
     <span class="attribute">#[<span class="ident">cold</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">io</span>(<span class="ident">error</span>: <span class="ident">io::Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">io</span>(<span class="ident">error</span>: <span class="ident">io::Error</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">Error</span> {
             <span class="ident">err</span>: <span class="ident">Box::new</span>(<span class="ident">ErrorImpl</span> {
                 <span class="ident">code</span>: <span class="ident">ErrorCode::Io</span>(<span class="ident">error</span>),
@@ -705,11 +705,11 @@
     }
 
     <span class="attribute">#[<span class="ident">cold</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">fix_position</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">fix_position</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">ErrorCode</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span>,
+        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">ErrorCode</span>) -&gt; <span class="ident">Error</span>,
     {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">err</span>.<span class="ident">line</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">err</span>.<span class="ident">line</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="ident">f</span>(<span class="self">self</span>.<span class="ident">err</span>.<span class="ident">code</span>)
         } <span class="kw">else</span> {
             <span class="self">self</span>
@@ -718,57 +718,57 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">ErrorCode</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">ErrorCode::Message</span>(<span class="kw-2">ref</span> <span class="ident">msg</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="ident">msg</span>),
-            <span class="ident">ErrorCode::Io</span>(<span class="kw-2">ref</span> <span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">err</span>, <span class="ident">f</span>),
-            <span class="ident">ErrorCode::EofWhileParsingList</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;EOF while parsing a list&quot;</span>),
-            <span class="ident">ErrorCode::EofWhileParsingObject</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;EOF while parsing an object&quot;</span>),
-            <span class="ident">ErrorCode::EofWhileParsingString</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;EOF while parsing a string&quot;</span>),
-            <span class="ident">ErrorCode::EofWhileParsingValue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;EOF while parsing a value&quot;</span>),
-            <span class="ident">ErrorCode::ExpectedColon</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;expected `:`&quot;</span>),
-            <span class="ident">ErrorCode::ExpectedListCommaOrEnd</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;expected `,` or `]`&quot;</span>),
-            <span class="ident">ErrorCode::ExpectedObjectCommaOrEnd</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;expected `,` or `}`&quot;</span>),
-            <span class="ident">ErrorCode::ExpectedSomeIdent</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;expected ident&quot;</span>),
-            <span class="ident">ErrorCode::ExpectedSomeValue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;expected value&quot;</span>),
-            <span class="ident">ErrorCode::InvalidEscape</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;invalid escape&quot;</span>),
-            <span class="ident">ErrorCode::InvalidNumber</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;invalid number&quot;</span>),
-            <span class="ident">ErrorCode::NumberOutOfRange</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;number out of range&quot;</span>),
-            <span class="ident">ErrorCode::InvalidUnicodeCodePoint</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;invalid unicode code point&quot;</span>),
-            <span class="ident">ErrorCode::ControlCharacterWhileParsingString</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ErrorCode::Message</span>(<span class="kw-2">ref</span> <span class="ident">msg</span>) =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="ident">msg</span>),
+            <span class="ident">ErrorCode::Io</span>(<span class="kw-2">ref</span> <span class="ident">err</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">err</span>, <span class="ident">f</span>),
+            <span class="ident">ErrorCode::EofWhileParsingList</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;EOF while parsing a list&quot;</span>),
+            <span class="ident">ErrorCode::EofWhileParsingObject</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;EOF while parsing an object&quot;</span>),
+            <span class="ident">ErrorCode::EofWhileParsingString</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;EOF while parsing a string&quot;</span>),
+            <span class="ident">ErrorCode::EofWhileParsingValue</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;EOF while parsing a value&quot;</span>),
+            <span class="ident">ErrorCode::ExpectedColon</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;expected `:`&quot;</span>),
+            <span class="ident">ErrorCode::ExpectedListCommaOrEnd</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;expected `,` or `]`&quot;</span>),
+            <span class="ident">ErrorCode::ExpectedObjectCommaOrEnd</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;expected `,` or `}`&quot;</span>),
+            <span class="ident">ErrorCode::ExpectedSomeIdent</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;expected ident&quot;</span>),
+            <span class="ident">ErrorCode::ExpectedSomeValue</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;expected value&quot;</span>),
+            <span class="ident">ErrorCode::InvalidEscape</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;invalid escape&quot;</span>),
+            <span class="ident">ErrorCode::InvalidNumber</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;invalid number&quot;</span>),
+            <span class="ident">ErrorCode::NumberOutOfRange</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;number out of range&quot;</span>),
+            <span class="ident">ErrorCode::InvalidUnicodeCodePoint</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;invalid unicode code point&quot;</span>),
+            <span class="ident">ErrorCode::ControlCharacterWhileParsingString</span> =&gt; {
                 <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;control character (\\u0000-\\u001F) found while parsing a string&quot;</span>)
             }
-            <span class="ident">ErrorCode::KeyMustBeAString</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;key must be a string&quot;</span>),
-            <span class="ident">ErrorCode::LoneLeadingSurrogateInHexEscape</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ErrorCode::KeyMustBeAString</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;key must be a string&quot;</span>),
+            <span class="ident">ErrorCode::LoneLeadingSurrogateInHexEscape</span> =&gt; {
                 <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;lone leading surrogate in hex escape&quot;</span>)
             }
-            <span class="ident">ErrorCode::TrailingComma</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;trailing comma&quot;</span>),
-            <span class="ident">ErrorCode::TrailingCharacters</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;trailing characters&quot;</span>),
-            <span class="ident">ErrorCode::UnexpectedEndOfHexEscape</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;unexpected end of hex escape&quot;</span>),
-            <span class="ident">ErrorCode::RecursionLimitExceeded</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;recursion limit exceeded&quot;</span>),
+            <span class="ident">ErrorCode::TrailingComma</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;trailing comma&quot;</span>),
+            <span class="ident">ErrorCode::TrailingCharacters</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;trailing characters&quot;</span>),
+            <span class="ident">ErrorCode::UnexpectedEndOfHexEscape</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;unexpected end of hex escape&quot;</span>),
+            <span class="ident">ErrorCode::RecursionLimitExceeded</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;recursion limit exceeded&quot;</span>),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">serde::de::StdError</span> <span class="kw">for</span> <span class="ident">Error</span> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">error::Error</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">error::Error</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">err</span>.<span class="ident">code</span> {
-            <span class="ident">ErrorCode::Io</span>(<span class="kw-2">ref</span> <span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">err</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">ErrorCode::Io</span>(<span class="kw-2">ref</span> <span class="ident">err</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">err</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="ident">Display::fmt</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">err</span>, <span class="ident">f</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">ErrorImpl</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">line</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">line</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="ident">Display::fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">code</span>, <span class="ident">f</span>)
         } <span class="kw">else</span> {
             <span class="macro">write!</span>(
@@ -783,7 +783,7 @@
 <span class="comment">// Remove two layers of verbosity from the debug representation. Humans often</span>
 <span class="comment">// end up seeing this representation because it is what unwrap() shows.</span>
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="macro">write!</span>(
             <span class="ident">f</span>,
             <span class="string">&quot;Error({:?}, line: {}, column: {})&quot;</span>,
@@ -796,12 +796,12 @@
 
 <span class="kw">impl</span> <span class="ident">de::Error</span> <span class="kw">for</span> <span class="ident">Error</span> {
     <span class="attribute">#[<span class="ident">cold</span>]</span>
-    <span class="kw">fn</span> <span class="ident">custom</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Display</span><span class="op">&gt;</span>(<span class="ident">msg</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
+    <span class="kw">fn</span> <span class="ident">custom</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Display</span><span class="op">&gt;</span>(<span class="ident">msg</span>: <span class="ident">T</span>) -&gt; <span class="ident">Error</span> {
         <span class="ident">make_error</span>(<span class="ident">msg</span>.<span class="ident">to_string</span>())
     }
 
     <span class="attribute">#[<span class="ident">cold</span>]</span>
-    <span class="kw">fn</span> <span class="ident">invalid_type</span>(<span class="ident">unexp</span>: <span class="ident">de::Unexpected</span>, <span class="ident">exp</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">de::Expected</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">invalid_type</span>(<span class="ident">unexp</span>: <span class="ident">de::Unexpected</span>, <span class="ident">exp</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">de::Expected</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">de::Unexpected::Unit</span> <span class="op">=</span> <span class="ident">unexp</span> {
             <span class="ident">Error::custom</span>(<span class="macro">format_args!</span>(<span class="string">&quot;invalid type: null, expected {}&quot;</span>, <span class="ident">exp</span>))
         } <span class="kw">else</span> {
@@ -812,14 +812,14 @@
 
 <span class="kw">impl</span> <span class="ident">ser::Error</span> <span class="kw">for</span> <span class="ident">Error</span> {
     <span class="attribute">#[<span class="ident">cold</span>]</span>
-    <span class="kw">fn</span> <span class="ident">custom</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Display</span><span class="op">&gt;</span>(<span class="ident">msg</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
+    <span class="kw">fn</span> <span class="ident">custom</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Display</span><span class="op">&gt;</span>(<span class="ident">msg</span>: <span class="ident">T</span>) -&gt; <span class="ident">Error</span> {
         <span class="ident">make_error</span>(<span class="ident">msg</span>.<span class="ident">to_string</span>())
     }
 }
 
 <span class="comment">// Parse our own error message that looks like &quot;{} at line {} column {}&quot; to work</span>
 <span class="comment">// around erased-serde round-tripping the error through de::Error::custom.</span>
-<span class="kw">fn</span> <span class="ident">make_error</span>(<span class="kw-2">mut</span> <span class="ident">msg</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
+<span class="kw">fn</span> <span class="ident">make_error</span>(<span class="kw-2">mut</span> <span class="ident">msg</span>: <span class="ident">String</span>) -&gt; <span class="ident">Error</span> {
     <span class="kw">let</span> (<span class="ident">line</span>, <span class="ident">column</span>) <span class="op">=</span> <span class="ident">parse_line_col</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">msg</span>).<span class="ident">unwrap_or</span>((<span class="number">0</span>, <span class="number">0</span>));
     <span class="ident">Error</span> {
         <span class="ident">err</span>: <span class="ident">Box::new</span>(<span class="ident">ErrorImpl</span> {
@@ -830,10 +830,10 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">parse_line_col</span>(<span class="ident">msg</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">parse_line_col</span>(<span class="ident">msg</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">String</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">start_of_suffix</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">msg</span>.<span class="ident">rfind</span>(<span class="string">&quot; at line &quot;</span>) {
-        <span class="prelude-val">Some</span>(<span class="ident">index</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">index</span>,
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
+        <span class="prelude-val">Some</span>(<span class="ident">index</span>) =&gt; <span class="ident">index</span>,
+        <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
     };
 
     <span class="comment">// Find start and end of line number.</span>
@@ -860,22 +860,22 @@
 
     <span class="comment">// Parse numbers.</span>
     <span class="kw">let</span> <span class="ident">line</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">usize::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">msg</span>[<span class="ident">start_of_line</span>..<span class="ident">end_of_line</span>]) {
-        <span class="prelude-val">Ok</span>(<span class="ident">line</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">line</span>,
-        <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
+        <span class="prelude-val">Ok</span>(<span class="ident">line</span>) =&gt; <span class="ident">line</span>,
+        <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
     };
     <span class="kw">let</span> <span class="ident">column</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">usize::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">msg</span>[<span class="ident">start_of_column</span>..<span class="ident">end_of_column</span>]) {
-        <span class="prelude-val">Ok</span>(<span class="ident">column</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">column</span>,
-        <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
+        <span class="prelude-val">Ok</span>(<span class="ident">column</span>) =&gt; <span class="ident">column</span>,
+        <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
     };
 
     <span class="ident">msg</span>.<span class="ident">truncate</span>(<span class="ident">start_of_suffix</span>);
     <span class="prelude-val">Some</span>((<span class="ident">line</span>, <span class="ident">column</span>))
 }
 
-<span class="kw">fn</span> <span class="ident">starts_with_digit</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">fn</span> <span class="ident">starts_with_digit</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span> {
     <span class="kw">match</span> <span class="ident">slice</span>.<span class="ident">as_bytes</span>().<span class="ident">get</span>(<span class="number">0</span>) {
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">byte</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">byte</span> <span class="op">&gt;</span><span class="op">=</span> <span class="string">b&#39;0&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">byte</span> <span class="op">&lt;</span><span class="op">=</span> <span class="string">b&#39;9&#39;</span>,
+        <span class="prelude-val">None</span> =&gt; <span class="bool-val">false</span>,
+        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">byte</span>) =&gt; <span class="ident">byte</span> <span class="op">&gt;</span><span class="op">=</span> <span class="string">b&#39;0&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">byte</span> <span class="op">&lt;</span><span class="op">=</span> <span class="string">b&#39;9&#39;</span>,
     }
 }
 </code></pre></div>

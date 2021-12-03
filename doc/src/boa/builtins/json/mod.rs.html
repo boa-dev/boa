@@ -782,7 +782,7 @@
         .<span class="ident">union</span>(<span class="ident">Attribute::NON_ENUMERABLE</span>)
         .<span class="ident">union</span>(<span class="ident">Attribute::CONFIGURABLE</span>);
 
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
+    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsValue</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="ident"><span class="self">Self</span>::NAME</span>, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let</span> <span class="ident">to_string_tag</span> <span class="op">=</span> <span class="ident">WellKnownSymbols::to_string_tag</span>();
@@ -811,7 +811,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-json.parse</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let jsonString be ? ToString(text).</span>
         <span class="kw">let</span> <span class="ident">json_string</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">0</span>)
@@ -867,7 +867,7 @@
         <span class="ident">name</span>: <span class="ident">JsString</span>,
         <span class="ident">reviver</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let val be ? Get(holder, name).</span>
         <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">holder</span>.<span class="ident">get</span>(<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
 
@@ -954,7 +954,7 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let stack be a new empty List.</span>
         <span class="kw">let</span> <span class="ident">stack</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
 
@@ -1046,10 +1046,10 @@
                 .<span class="ident">to_integer_or_infinity</span>(<span class="ident">context</span>)
                 .<span class="ident">expect</span>(<span class="string">&quot;ToIntegerOrInfinity cannot fail on number&quot;</span>)
             {
-                <span class="ident">IntegerOrInfinity::PositiveInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">JsString::new</span>(<span class="string">&quot;          &quot;</span>),
-                <span class="ident">IntegerOrInfinity::NegativeInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">JsString::new</span>(<span class="string">&quot;&quot;</span>),
-                <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">JsString::new</span>(<span class="string">&quot;&quot;</span>),
-                <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; <span class="ident">JsString::new</span>(<span class="string">&quot;          &quot;</span>),
+                <span class="ident">IntegerOrInfinity::NegativeInfinity</span> =&gt; <span class="ident">JsString::new</span>(<span class="string">&quot;&quot;</span>),
+                <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="number">1</span> =&gt; <span class="ident">JsString::new</span>(<span class="string">&quot;&quot;</span>),
+                <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) =&gt; {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">String::new</span>();
                     <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="ident">std::cmp::min</span>(<span class="number">10</span>, <span class="ident">i</span>);
                     <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">i</span> {
@@ -1104,7 +1104,7 @@
         <span class="ident">key</span>: <span class="ident">JsString</span>,
         <span class="ident">holder</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let value be ? Get(holder, key).</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">holder</span>.<span class="ident">get</span>(<span class="ident">key</span>.<span class="ident">clone</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
 
@@ -1161,8 +1161,8 @@
         <span class="comment">// 7. If value is false, return &quot;false&quot;.</span>
         <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_boolean</span>() {
             <span class="kw">return</span> <span class="kw">match</span> <span class="ident">value</span>.<span class="ident">to_boolean</span>() {
-                <span class="bool-val">true</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">JsString::new</span>(<span class="string">&quot;true&quot;</span>))),
-                <span class="bool-val">false</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">JsString::new</span>(<span class="string">&quot;false&quot;</span>))),
+                <span class="bool-val">true</span> =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">JsString::new</span>(<span class="string">&quot;true&quot;</span>))),
+                <span class="bool-val">false</span> =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">JsString::new</span>(<span class="string">&quot;false&quot;</span>))),
             };
         }
 
@@ -1215,7 +1215,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-quotejsonstring</span>
-    <span class="kw">fn</span> <span class="ident">quote_json_string</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">JsString</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsString</span> {
+    <span class="kw">fn</span> <span class="ident">quote_json_string</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">JsString</span>) -&gt; <span class="ident">JsString</span> {
         <span class="comment">// 1. Let product be the String value consisting solely of the code unit 0x0022 (QUOTATION MARK).</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">product</span> <span class="op">=</span> <span class="ident">String::from</span>(<span class="string">&#39;&quot;&#39;</span>);
 
@@ -1224,23 +1224,23 @@
             <span class="kw">match</span> <span class="ident">code_point</span> {
                 <span class="comment">// a. If C is listed in the “Code Point” column of Table 73, then</span>
                 <span class="comment">// i. Set product to the string-concatenation of product and the escape sequence for C as specified in the “Escape Sequence” column of the corresponding row.</span>
-                <span class="number">0x8</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">product</span>.<span class="ident">push_str</span>(<span class="string">&quot;\\b&quot;</span>),
-                <span class="number">0x9</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">product</span>.<span class="ident">push_str</span>(<span class="string">&quot;\\t&quot;</span>),
-                <span class="number">0xA</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">product</span>.<span class="ident">push_str</span>(<span class="string">&quot;\\n&quot;</span>),
-                <span class="number">0xC</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">product</span>.<span class="ident">push_str</span>(<span class="string">&quot;\\f&quot;</span>),
-                <span class="number">0xD</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">product</span>.<span class="ident">push_str</span>(<span class="string">&quot;\\r&quot;</span>),
-                <span class="number">0x22</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">product</span>.<span class="ident">push_str</span>(<span class="string">&quot;\\\&quot;&quot;</span>),
-                <span class="number">0x5C</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">product</span>.<span class="ident">push_str</span>(<span class="string">&quot;\\\\&quot;</span>),
+                <span class="number">0x8</span> =&gt; <span class="ident">product</span>.<span class="ident">push_str</span>(<span class="string">&quot;\\b&quot;</span>),
+                <span class="number">0x9</span> =&gt; <span class="ident">product</span>.<span class="ident">push_str</span>(<span class="string">&quot;\\t&quot;</span>),
+                <span class="number">0xA</span> =&gt; <span class="ident">product</span>.<span class="ident">push_str</span>(<span class="string">&quot;\\n&quot;</span>),
+                <span class="number">0xC</span> =&gt; <span class="ident">product</span>.<span class="ident">push_str</span>(<span class="string">&quot;\\f&quot;</span>),
+                <span class="number">0xD</span> =&gt; <span class="ident">product</span>.<span class="ident">push_str</span>(<span class="string">&quot;\\r&quot;</span>),
+                <span class="number">0x22</span> =&gt; <span class="ident">product</span>.<span class="ident">push_str</span>(<span class="string">&quot;\\\&quot;&quot;</span>),
+                <span class="number">0x5C</span> =&gt; <span class="ident">product</span>.<span class="ident">push_str</span>(<span class="string">&quot;\\\\&quot;</span>),
                 <span class="comment">// b. Else if C has a numeric value less than 0x0020 (SPACE), or if C has the same numeric value as a leading surrogate or trailing surrogate, then</span>
                 <span class="ident">code_point</span>
-                    <span class="kw">if</span> <span class="ident">is_leading_surrogate</span>(<span class="ident">code_point</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">is_trailing_surrogate</span>(<span class="ident">code_point</span>) <span class="op">=</span><span class="op">&gt;</span>
+                    <span class="kw">if</span> <span class="ident">is_leading_surrogate</span>(<span class="ident">code_point</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">is_trailing_surrogate</span>(<span class="ident">code_point</span>) =&gt;
                 {
                     <span class="comment">// i. Let unit be the code unit whose numeric value is that of C.</span>
                     <span class="comment">// ii. Set product to the string-concatenation of product and UnicodeEscape(unit).</span>
                     <span class="ident">product</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;\\\\uAA{:x}&quot;</span>, <span class="ident">code_point</span>));
                 }
                 <span class="comment">// c. Else,</span>
-                <span class="ident">code_point</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">code_point</span> =&gt; {
                     <span class="comment">// i. Set product to the string-concatenation of product and ! UTF16EncodeCodePoint(C).</span>
                     <span class="ident">product</span>.<span class="ident">push</span>(
                         <span class="ident">char::from_u32</span>(<span class="ident">code_point</span> <span class="kw">as</span> <span class="ident">u32</span>)
@@ -1267,7 +1267,7 @@
         <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">StateRecord</span>,
         <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span> {
         <span class="comment">// 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.</span>
         <span class="kw">let</span> <span class="ident">limiter</span> <span class="op">=</span> <span class="ident">RecursionLimiter::new</span>(<span class="ident">value</span>);
         <span class="kw">if</span> <span class="ident">limiter</span>.<span class="ident">live</span> {
@@ -1380,7 +1380,7 @@
         <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">StateRecord</span>,
         <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span> {
         <span class="comment">// 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.</span>
         <span class="kw">let</span> <span class="ident">limiter</span> <span class="op">=</span> <span class="ident">RecursionLimiter::new</span>(<span class="ident">value</span>);
         <span class="kw">if</span> <span class="ident">limiter</span>.<span class="ident">live</span> {

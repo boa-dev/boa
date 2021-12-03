@@ -878,7 +878,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">advance</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bytes</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">advance</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bytes</span>: <span class="ident">usize</span>) -&gt; <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">_front</span>, <span class="ident">rest</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">rest</span>.<span class="ident">split_at</span>(<span class="ident">bytes</span>);
         <span class="ident">Cursor</span> {
             <span class="ident">rest</span>,
@@ -887,35 +887,35 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">starts_with</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">starts_with</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">rest</span>.<span class="ident">starts_with</span>(<span class="ident">s</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">rest</span>.<span class="ident">is_empty</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="ident">rest</span>.<span class="ident">len</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">as_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>] {
+    <span class="kw">fn</span> <span class="ident">as_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>] {
         <span class="self">self</span>.<span class="ident">rest</span>.<span class="ident">as_bytes</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Bytes</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Bytes</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">rest</span>.<span class="ident">bytes</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">chars</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Chars</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">chars</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Chars</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">rest</span>.<span class="ident">chars</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">char_indices</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CharIndices</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">char_indices</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">CharIndices</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">rest</span>.<span class="ident">char_indices</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tag</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Reject</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tag</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Reject</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">starts_with</span>(<span class="ident">tag</span>) {
             <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">advance</span>(<span class="ident">tag</span>.<span class="ident">len</span>()))
         } <span class="kw">else</span> {
@@ -927,12 +927,12 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Reject</span>;
 <span class="kw">type</span> <span class="ident">PResult</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">O</span><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">O</span>), <span class="ident">Reject</span><span class="op">&gt;</span>;
 
-<span class="kw">fn</span> <span class="ident">skip_whitespace</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Cursor</span> {
+<span class="kw">fn</span> <span class="ident">skip_whitespace</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) -&gt; <span class="ident">Cursor</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">input</span>;
 
     <span class="kw">while</span> <span class="op">!</span><span class="ident">s</span>.<span class="ident">is_empty</span>() {
         <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">as_bytes</span>()[<span class="number">0</span>];
-        <span class="kw">if</span> <span class="ident">byte</span> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;/&#39;</span> {
+        <span class="kw">if</span> <span class="ident">byte</span> <span class="op">==</span> <span class="string">b&#39;/&#39;</span> {
             <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">starts_with</span>(<span class="string">&quot;//&quot;</span>)
                 <span class="op">&amp;&amp;</span> (<span class="op">!</span><span class="ident">s</span>.<span class="ident">starts_with</span>(<span class="string">&quot;///&quot;</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">starts_with</span>(<span class="string">&quot;////&quot;</span>))
                 <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">s</span>.<span class="ident">starts_with</span>(<span class="string">&quot;//!&quot;</span>)
@@ -948,21 +948,21 @@
                 <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">s</span>.<span class="ident">starts_with</span>(<span class="string">&quot;/*!&quot;</span>)
             {
                 <span class="kw">match</span> <span class="ident">block_comment</span>(<span class="ident">s</span>) {
-                    <span class="prelude-val">Ok</span>((<span class="ident">rest</span>, <span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Ok</span>((<span class="ident">rest</span>, <span class="kw">_</span>)) =&gt; {
                         <span class="ident">s</span> <span class="op">=</span> <span class="ident">rest</span>;
                         <span class="kw">continue</span>;
                     }
-                    <span class="prelude-val">Err</span>(<span class="ident">Reject</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">s</span>,
+                    <span class="prelude-val">Err</span>(<span class="ident">Reject</span>) =&gt; <span class="kw">return</span> <span class="ident">s</span>,
                 }
             }
         }
         <span class="kw">match</span> <span class="ident">byte</span> {
-            <span class="string">b&#39; &#39;</span> <span class="op">|</span> <span class="number">0x09</span>..<span class="op">=</span><span class="number">0x0d</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="string">b&#39; &#39;</span> <span class="op">|</span> <span class="number">0x09</span>..<span class="op">=</span><span class="number">0x0d</span> =&gt; {
                 <span class="ident">s</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">advance</span>(<span class="number">1</span>);
                 <span class="kw">continue</span>;
             }
-            <span class="ident">b</span> <span class="kw">if</span> <span class="ident">b</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0x7f</span> <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">b</span> <span class="kw">if</span> <span class="ident">b</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0x7f</span> =&gt; {}
+            <span class="kw">_</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">ch</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">chars</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>();
                 <span class="kw">if</span> <span class="ident">is_whitespace</span>(<span class="ident">ch</span>) {
                     <span class="ident">s</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">advance</span>(<span class="ident">ch</span>.<span class="ident">len_utf8</span>());
@@ -975,7 +975,7 @@
     <span class="ident">s</span>
 }
 
-<span class="kw">fn</span> <span class="ident">block_comment</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">block_comment</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) -&gt; <span class="ident">PResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="op">!</span><span class="ident">input</span>.<span class="ident">starts_with</span>(<span class="string">&quot;/*&quot;</span>) {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Reject</span>);
     }
@@ -986,12 +986,12 @@
     <span class="kw">let</span> <span class="ident">upper</span> <span class="op">=</span> <span class="ident">bytes</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>;
 
     <span class="kw">while</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">upper</span> {
-        <span class="kw">if</span> <span class="ident">bytes</span>[<span class="ident">i</span>] <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;/&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">bytes</span>[<span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>] <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;*&#39;</span> {
+        <span class="kw">if</span> <span class="ident">bytes</span>[<span class="ident">i</span>] <span class="op">==</span> <span class="string">b&#39;/&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">bytes</span>[<span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>] <span class="op">==</span> <span class="string">b&#39;*&#39;</span> {
             <span class="ident">depth</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
             <span class="ident">i</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>; <span class="comment">// eat &#39;*&#39;</span>
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">bytes</span>[<span class="ident">i</span>] <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;*&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">bytes</span>[<span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>] <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;/&#39;</span> {
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">bytes</span>[<span class="ident">i</span>] <span class="op">==</span> <span class="string">b&#39;*&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">bytes</span>[<span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>] <span class="op">==</span> <span class="string">b&#39;/&#39;</span> {
             <span class="ident">depth</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
-            <span class="kw">if</span> <span class="ident">depth</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">if</span> <span class="ident">depth</span> <span class="op">==</span> <span class="number">0</span> {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="ident">input</span>.<span class="ident">advance</span>(<span class="ident">i</span> <span class="op">+</span> <span class="number">2</span>), <span class="kw-2">&amp;</span><span class="ident">input</span>.<span class="ident">rest</span>[..<span class="ident">i</span> <span class="op">+</span> <span class="number">2</span>]));
             }
             <span class="ident">i</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>; <span class="comment">// eat &#39;/&#39;</span>
@@ -1002,19 +1002,19 @@
     <span class="prelude-val">Err</span>(<span class="ident">Reject</span>)
 }
 
-<span class="kw">fn</span> <span class="ident">is_whitespace</span>(<span class="ident">ch</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">fn</span> <span class="ident">is_whitespace</span>(<span class="ident">ch</span>: <span class="ident">char</span>) -&gt; <span class="ident">bool</span> {
     <span class="comment">// Rust treats left-to-right mark and right-to-left mark as whitespace</span>
-    <span class="ident">ch</span>.<span class="ident">is_whitespace</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">ch</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;\u{200e}&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">ch</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;\u{200f}&#39;</span>
+    <span class="ident">ch</span>.<span class="ident">is_whitespace</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">ch</span> <span class="op">==</span> <span class="string">&#39;\u{200e}&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">ch</span> <span class="op">==</span> <span class="string">&#39;\u{200f}&#39;</span>
 }
 
-<span class="kw">fn</span> <span class="ident">word_break</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cursor</span>, <span class="ident">Reject</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">word_break</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cursor</span>, <span class="ident">Reject</span><span class="op">&gt;</span> {
     <span class="kw">match</span> <span class="ident">input</span>.<span class="ident">chars</span>().<span class="ident">next</span>() {
-        <span class="prelude-val">Some</span>(<span class="ident">ch</span>) <span class="kw">if</span> <span class="ident">is_ident_continue</span>(<span class="ident">ch</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Reject</span>),
-        <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">input</span>),
+        <span class="prelude-val">Some</span>(<span class="ident">ch</span>) <span class="kw">if</span> <span class="ident">is_ident_continue</span>(<span class="ident">ch</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">Reject</span>),
+        <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">input</span>),
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">token_stream</span>(<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TokenStream</span>, <span class="ident">LexError</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">token_stream</span>(<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">Cursor</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TokenStream</span>, <span class="ident">LexError</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">trees</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stack</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
 
@@ -1031,25 +1031,25 @@
         <span class="kw">let</span> <span class="ident">lo</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">off</span>;
 
         <span class="kw">let</span> <span class="ident">first</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">input</span>.<span class="ident">bytes</span>().<span class="ident">next</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">first</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">first</span>,
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">stack</span>.<span class="ident">last</span>() {
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">TokenStream</span> { <span class="ident">inner</span>: <span class="ident">trees</span> }),
+            <span class="prelude-val">Some</span>(<span class="ident">first</span>) =&gt; <span class="ident">first</span>,
+            <span class="prelude-val">None</span> =&gt; <span class="kw">match</span> <span class="ident">stack</span>.<span class="ident">last</span>() {
+                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">TokenStream</span> { <span class="ident">inner</span>: <span class="ident">trees</span> }),
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">span_locations</span>)]</span>
-                <span class="prelude-val">Some</span>((<span class="ident">lo</span>, <span class="ident">_frame</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Some</span>((<span class="ident">lo</span>, <span class="ident">_frame</span>)) =&gt; {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LexError</span> {
                         <span class="ident">span</span>: <span class="ident">Span</span> { <span class="ident">lo</span>: <span class="kw-2">*</span><span class="ident">lo</span>, <span class="ident">hi</span>: <span class="kw-2">*</span><span class="ident">lo</span> },
                     })
                 }
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">span_locations</span>))]</span>
-                <span class="prelude-val">Some</span>(<span class="ident">_frame</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LexError</span> { <span class="ident">span</span>: <span class="ident">Span</span> {} }),
+                <span class="prelude-val">Some</span>(<span class="ident">_frame</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LexError</span> { <span class="ident">span</span>: <span class="ident">Span</span> {} }),
             },
         };
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">open_delimiter</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">first</span> {
-            <span class="string">b&#39;(&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Delimiter::Parenthesis</span>),
-            <span class="string">b&#39;[&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Delimiter::Bracket</span>),
-            <span class="string">b&#39;{&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Delimiter::Brace</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="string">b&#39;(&#39;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Delimiter::Parenthesis</span>),
+            <span class="string">b&#39;[&#39;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Delimiter::Bracket</span>),
+            <span class="string">b&#39;{&#39;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Delimiter::Brace</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         } {
             <span class="ident">input</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">advance</span>(<span class="number">1</span>);
             <span class="kw">let</span> <span class="ident">frame</span> <span class="op">=</span> (<span class="ident">open_delimiter</span>, <span class="ident">trees</span>);
@@ -1058,14 +1058,14 @@
             <span class="ident">stack</span>.<span class="ident">push</span>(<span class="ident">frame</span>);
             <span class="ident">trees</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">close_delimiter</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">first</span> {
-            <span class="string">b&#39;)&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Delimiter::Parenthesis</span>),
-            <span class="string">b&#39;]&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Delimiter::Bracket</span>),
-            <span class="string">b&#39;}&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Delimiter::Brace</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="string">b&#39;)&#39;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Delimiter::Parenthesis</span>),
+            <span class="string">b&#39;]&#39;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Delimiter::Bracket</span>),
+            <span class="string">b&#39;}&#39;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Delimiter::Brace</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         } {
             <span class="kw">let</span> <span class="ident">frame</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">stack</span>.<span class="ident">pop</span>() {
-                <span class="prelude-val">Some</span>(<span class="ident">frame</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">frame</span>,
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">lex_error</span>(<span class="ident">input</span>)),
+                <span class="prelude-val">Some</span>(<span class="ident">frame</span>) =&gt; <span class="ident">frame</span>,
+                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">lex_error</span>(<span class="ident">input</span>)),
             };
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">span_locations</span>)]</span>
             <span class="kw">let</span> (<span class="ident">lo</span>, <span class="ident">frame</span>) <span class="op">=</span> <span class="ident">frame</span>;
@@ -1085,8 +1085,8 @@
             <span class="ident">trees</span>.<span class="ident">push</span>(<span class="ident">TokenTree::Group</span>(<span class="ident"><span class="kw">crate</span>::Group::_new_stable</span>(<span class="ident">g</span>)));
         } <span class="kw">else</span> {
             <span class="kw">let</span> (<span class="ident">rest</span>, <span class="kw-2">mut</span> <span class="ident">tt</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">leaf_token</span>(<span class="ident">input</span>) {
-                <span class="prelude-val">Ok</span>((<span class="ident">rest</span>, <span class="ident">tt</span>)) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">rest</span>, <span class="ident">tt</span>),
-                <span class="prelude-val">Err</span>(<span class="ident">Reject</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">lex_error</span>(<span class="ident">input</span>)),
+                <span class="prelude-val">Ok</span>((<span class="ident">rest</span>, <span class="ident">tt</span>)) =&gt; (<span class="ident">rest</span>, <span class="ident">tt</span>),
+                <span class="prelude-val">Err</span>(<span class="ident">Reject</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">lex_error</span>(<span class="ident">input</span>)),
             };
             <span class="ident">tt</span>.<span class="ident">set_span</span>(<span class="ident"><span class="kw">crate</span>::Span::_new_stable</span>(<span class="ident">Span</span> {
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">span_locations</span>)]</span>
@@ -1100,7 +1100,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">lex_error</span>(<span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LexError</span> {
+<span class="kw">fn</span> <span class="ident">lex_error</span>(<span class="ident">cursor</span>: <span class="ident">Cursor</span>) -&gt; <span class="ident">LexError</span> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">span_locations</span>))]</span>
     <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">cursor</span>;
     <span class="ident">LexError</span> {
@@ -1113,7 +1113,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">leaf_token</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PResult</span><span class="op">&lt;</span><span class="ident">TokenTree</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">leaf_token</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) -&gt; <span class="ident">PResult</span><span class="op">&lt;</span><span class="ident">TokenTree</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>((<span class="ident">input</span>, <span class="ident">l</span>)) <span class="op">=</span> <span class="ident">literal</span>(<span class="ident">input</span>) {
         <span class="comment">// must be parsed before ident</span>
         <span class="prelude-val">Ok</span>((<span class="ident">input</span>, <span class="ident">TokenTree::Literal</span>(<span class="ident"><span class="kw">crate</span>::Literal::_new_stable</span>(<span class="ident">l</span>))))
@@ -1126,7 +1126,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">ident</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PResult</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::Ident</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">ident</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) -&gt; <span class="ident">PResult</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::Ident</span><span class="op">&gt;</span> {
     <span class="kw">if</span> [<span class="string">&quot;r\&quot;&quot;</span>, <span class="string">&quot;r#\&quot;&quot;</span>, <span class="string">&quot;r##&quot;</span>, <span class="string">&quot;b\&quot;&quot;</span>, <span class="string">&quot;b\&#39;&quot;</span>, <span class="string">&quot;br\&quot;&quot;</span>, <span class="string">&quot;br#&quot;</span>]
         .<span class="ident">iter</span>()
         .<span class="ident">any</span>(<span class="op">|</span><span class="ident">prefix</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">starts_with</span>(<span class="ident">prefix</span>))
@@ -1137,7 +1137,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">ident_any</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PResult</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::Ident</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">ident_any</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) -&gt; <span class="ident">PResult</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::Ident</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">starts_with</span>(<span class="string">&quot;r#&quot;</span>);
     <span class="kw">let</span> <span class="ident">rest</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">advance</span>((<span class="ident">raw</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">1</span>);
 
@@ -1148,7 +1148,7 @@
         <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="ident">rest</span>, <span class="ident">ident</span>));
     }
 
-    <span class="kw">if</span> <span class="ident">sym</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;_&quot;</span> {
+    <span class="kw">if</span> <span class="ident">sym</span> <span class="op">==</span> <span class="string">&quot;_&quot;</span> {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Reject</span>);
     }
 
@@ -1156,12 +1156,12 @@
     <span class="prelude-val">Ok</span>((<span class="ident">rest</span>, <span class="ident">ident</span>))
 }
 
-<span class="kw">fn</span> <span class="ident">ident_not_raw</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">ident_not_raw</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) -&gt; <span class="ident">PResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">char_indices</span>();
 
     <span class="kw">match</span> <span class="ident">chars</span>.<span class="ident">next</span>() {
-        <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">ch</span>)) <span class="kw">if</span> <span class="ident">is_ident_start</span>(<span class="ident">ch</span>) <span class="op">=</span><span class="op">&gt;</span> {}
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Reject</span>),
+        <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">ch</span>)) <span class="kw">if</span> <span class="ident">is_ident_start</span>(<span class="ident">ch</span>) =&gt; {}
+        <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Reject</span>),
     }
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">len</span>();
@@ -1175,13 +1175,13 @@
     <span class="prelude-val">Ok</span>((<span class="ident">input</span>.<span class="ident">advance</span>(<span class="ident">end</span>), <span class="kw-2">&amp;</span><span class="ident">input</span>.<span class="ident">rest</span>[..<span class="ident">end</span>]))
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">literal</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PResult</span><span class="op">&lt;</span><span class="ident">Literal</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">literal</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) -&gt; <span class="ident">PResult</span><span class="op">&lt;</span><span class="ident">Literal</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">rest</span> <span class="op">=</span> <span class="ident">literal_nocapture</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">rest</span>.<span class="ident">len</span>();
     <span class="prelude-val">Ok</span>((<span class="ident">rest</span>, <span class="ident">Literal::_new</span>(<span class="ident">input</span>.<span class="ident">rest</span>[..<span class="ident">end</span>].<span class="ident">to_string</span>())))
 }
 
-<span class="kw">fn</span> <span class="ident">literal_nocapture</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cursor</span>, <span class="ident">Reject</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">literal_nocapture</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cursor</span>, <span class="ident">Reject</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">ok</span>) <span class="op">=</span> <span class="ident">string</span>(<span class="ident">input</span>) {
         <span class="prelude-val">Ok</span>(<span class="ident">ok</span>)
     } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">ok</span>) <span class="op">=</span> <span class="ident">byte_string</span>(<span class="ident">input</span>) {
@@ -1199,14 +1199,14 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">literal_suffix</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Cursor</span> {
+<span class="kw">fn</span> <span class="ident">literal_suffix</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) -&gt; <span class="ident">Cursor</span> {
     <span class="kw">match</span> <span class="ident">ident_not_raw</span>(<span class="ident">input</span>) {
-        <span class="prelude-val">Ok</span>((<span class="ident">input</span>, <span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">input</span>,
-        <span class="prelude-val">Err</span>(<span class="ident">Reject</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">input</span>,
+        <span class="prelude-val">Ok</span>((<span class="ident">input</span>, <span class="kw">_</span>)) =&gt; <span class="ident">input</span>,
+        <span class="prelude-val">Err</span>(<span class="ident">Reject</span>) =&gt; <span class="ident">input</span>,
     }
 }
 
-<span class="kw">fn</span> <span class="ident">string</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cursor</span>, <span class="ident">Reject</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">string</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cursor</span>, <span class="ident">Reject</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">input</span>) <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>(<span class="string">&quot;\&quot;&quot;</span>) {
         <span class="ident">cooked_string</span>(<span class="ident">input</span>)
     } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">input</span>) <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>(<span class="string">&quot;r&quot;</span>) {
@@ -1216,56 +1216,56 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">cooked_string</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cursor</span>, <span class="ident">Reject</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">cooked_string</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cursor</span>, <span class="ident">Reject</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">char_indices</span>().<span class="ident">peekable</span>();
 
     <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">i</span>, <span class="ident">ch</span>)) <span class="op">=</span> <span class="ident">chars</span>.<span class="ident">next</span>() {
         <span class="kw">match</span> <span class="ident">ch</span> {
-            <span class="string">&#39;&quot;&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="string">&#39;&quot;&#39;</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">advance</span>(<span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>);
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">literal_suffix</span>(<span class="ident">input</span>));
             }
-            <span class="string">&#39;\r&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">chars</span>.<span class="ident">next</span>() {
-                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;\n&#39;</span>)) <span class="op">=</span><span class="op">&gt;</span> {}
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
+            <span class="string">&#39;\r&#39;</span> =&gt; <span class="kw">match</span> <span class="ident">chars</span>.<span class="ident">next</span>() {
+                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;\n&#39;</span>)) =&gt; {}
+                <span class="kw">_</span> =&gt; <span class="kw">break</span>,
             },
-            <span class="string">&#39;\\&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">chars</span>.<span class="ident">next</span>() {
-                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;x&#39;</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="string">&#39;\\&#39;</span> =&gt; <span class="kw">match</span> <span class="ident">chars</span>.<span class="ident">next</span>() {
+                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;x&#39;</span>)) =&gt; {
                     <span class="kw">if</span> <span class="op">!</span><span class="ident">backslash_x_char</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">chars</span>) {
                         <span class="kw">break</span>;
                     }
                 }
                 <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;n&#39;</span>)) <span class="op">|</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;r&#39;</span>)) <span class="op">|</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;t&#39;</span>)) <span class="op">|</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;\\&#39;</span>))
-                <span class="op">|</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;\&#39;&#39;</span>)) <span class="op">|</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;&quot;&#39;</span>)) <span class="op">|</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;0&#39;</span>)) <span class="op">=</span><span class="op">&gt;</span> {}
-                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;u&#39;</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="op">|</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;\&#39;&#39;</span>)) <span class="op">|</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;&quot;&#39;</span>)) <span class="op">|</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;0&#39;</span>)) =&gt; {}
+                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;u&#39;</span>)) =&gt; {
                     <span class="kw">if</span> <span class="op">!</span><span class="ident">backslash_u</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">chars</span>) {
                         <span class="kw">break</span>;
                     }
                 }
-                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">ch</span> @ <span class="string">&#39;\n&#39;</span>)) <span class="op">|</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">ch</span> @ <span class="string">&#39;\r&#39;</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">ch</span> @ <span class="string">&#39;\n&#39;</span>)) <span class="op">|</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">ch</span> @ <span class="string">&#39;\r&#39;</span>)) =&gt; {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last</span> <span class="op">=</span> <span class="ident">ch</span>;
                     <span class="kw">loop</span> {
-                        <span class="kw">if</span> <span class="ident">last</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;\r&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">chars</span>.<span class="ident">next</span>().<span class="ident">map_or</span>(<span class="bool-val">true</span>, <span class="op">|</span>(<span class="kw">_</span>, <span class="ident">ch</span>)<span class="op">|</span> <span class="ident">ch</span> <span class="op">!</span><span class="op">=</span> <span class="string">&#39;\n&#39;</span>) {
+                        <span class="kw">if</span> <span class="ident">last</span> <span class="op">==</span> <span class="string">&#39;\r&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">chars</span>.<span class="ident">next</span>().<span class="ident">map_or</span>(<span class="bool-val">true</span>, <span class="op">|</span>(<span class="kw">_</span>, <span class="ident">ch</span>)<span class="op">|</span> <span class="ident">ch</span> <span class="op">!</span><span class="op">=</span> <span class="string">&#39;\n&#39;</span>) {
                             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Reject</span>);
                         }
                         <span class="kw">match</span> <span class="ident">chars</span>.<span class="ident">peek</span>() {
-                            <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">ch</span>)) <span class="kw">if</span> <span class="ident">ch</span>.<span class="ident">is_whitespace</span>() <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">ch</span>)) <span class="kw">if</span> <span class="ident">ch</span>.<span class="ident">is_whitespace</span>() =&gt; {
                                 <span class="ident">last</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">ch</span>;
                                 <span class="ident">chars</span>.<span class="ident">next</span>();
                             }
-                            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
+                            <span class="kw">_</span> =&gt; <span class="kw">break</span>,
                         }
                     }
                 }
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
+                <span class="kw">_</span> =&gt; <span class="kw">break</span>,
             },
-            <span class="ident">_ch</span> <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="ident">_ch</span> =&gt; {}
         }
     }
     <span class="prelude-val">Err</span>(<span class="ident">Reject</span>)
 }
 
-<span class="kw">fn</span> <span class="ident">byte_string</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cursor</span>, <span class="ident">Reject</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">byte_string</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cursor</span>, <span class="ident">Reject</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">input</span>) <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>(<span class="string">&quot;b\&quot;&quot;</span>) {
         <span class="ident">cooked_byte_string</span>(<span class="ident">input</span>)
     } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">input</span>) <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>(<span class="string">&quot;br&quot;</span>) {
@@ -1275,94 +1275,94 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">cooked_byte_string</span>(<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cursor</span>, <span class="ident">Reject</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">cooked_byte_string</span>(<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">Cursor</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cursor</span>, <span class="ident">Reject</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">bytes</span>().<span class="ident">enumerate</span>();
     <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">offset</span>, <span class="ident">b</span>)) <span class="op">=</span> <span class="ident">bytes</span>.<span class="ident">next</span>() {
         <span class="kw">match</span> <span class="ident">b</span> {
-            <span class="string">b&#39;&quot;&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="string">b&#39;&quot;&#39;</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">advance</span>(<span class="ident">offset</span> <span class="op">+</span> <span class="number">1</span>);
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">literal_suffix</span>(<span class="ident">input</span>));
             }
-            <span class="string">b&#39;\r&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">bytes</span>.<span class="ident">next</span>() {
-                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">b&#39;\n&#39;</span>)) <span class="op">=</span><span class="op">&gt;</span> {}
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
+            <span class="string">b&#39;\r&#39;</span> =&gt; <span class="kw">match</span> <span class="ident">bytes</span>.<span class="ident">next</span>() {
+                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">b&#39;\n&#39;</span>)) =&gt; {}
+                <span class="kw">_</span> =&gt; <span class="kw">break</span>,
             },
-            <span class="string">b&#39;\\&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">bytes</span>.<span class="ident">next</span>() {
-                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">b&#39;x&#39;</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="string">b&#39;\\&#39;</span> =&gt; <span class="kw">match</span> <span class="ident">bytes</span>.<span class="ident">next</span>() {
+                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">b&#39;x&#39;</span>)) =&gt; {
                     <span class="kw">if</span> <span class="op">!</span><span class="ident">backslash_x_byte</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">bytes</span>) {
                         <span class="kw">break</span>;
                     }
                 }
                 <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">b&#39;n&#39;</span>)) <span class="op">|</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">b&#39;r&#39;</span>)) <span class="op">|</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">b&#39;t&#39;</span>)) <span class="op">|</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">b&#39;\\&#39;</span>))
-                <span class="op">|</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">b&#39;0&#39;</span>)) <span class="op">|</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">b&#39;\&#39;&#39;</span>)) <span class="op">|</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">b&#39;&quot;&#39;</span>)) <span class="op">=</span><span class="op">&gt;</span> {}
-                <span class="prelude-val">Some</span>((<span class="ident">newline</span>, <span class="ident">b</span> @ <span class="string">b&#39;\n&#39;</span>)) <span class="op">|</span> <span class="prelude-val">Some</span>((<span class="ident">newline</span>, <span class="ident">b</span> @ <span class="string">b&#39;\r&#39;</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="op">|</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">b&#39;0&#39;</span>)) <span class="op">|</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">b&#39;\&#39;&#39;</span>)) <span class="op">|</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">b&#39;&quot;&#39;</span>)) =&gt; {}
+                <span class="prelude-val">Some</span>((<span class="ident">newline</span>, <span class="ident">b</span> @ <span class="string">b&#39;\n&#39;</span>)) <span class="op">|</span> <span class="prelude-val">Some</span>((<span class="ident">newline</span>, <span class="ident">b</span> @ <span class="string">b&#39;\r&#39;</span>)) =&gt; {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last</span> <span class="op">=</span> <span class="ident">b</span> <span class="kw">as</span> <span class="ident">char</span>;
                     <span class="kw">let</span> <span class="ident">rest</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">advance</span>(<span class="ident">newline</span> <span class="op">+</span> <span class="number">1</span>);
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <span class="ident">rest</span>.<span class="ident">char_indices</span>();
                     <span class="kw">loop</span> {
-                        <span class="kw">if</span> <span class="ident">last</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;\r&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">chars</span>.<span class="ident">next</span>().<span class="ident">map_or</span>(<span class="bool-val">true</span>, <span class="op">|</span>(<span class="kw">_</span>, <span class="ident">ch</span>)<span class="op">|</span> <span class="ident">ch</span> <span class="op">!</span><span class="op">=</span> <span class="string">&#39;\n&#39;</span>) {
+                        <span class="kw">if</span> <span class="ident">last</span> <span class="op">==</span> <span class="string">&#39;\r&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">chars</span>.<span class="ident">next</span>().<span class="ident">map_or</span>(<span class="bool-val">true</span>, <span class="op">|</span>(<span class="kw">_</span>, <span class="ident">ch</span>)<span class="op">|</span> <span class="ident">ch</span> <span class="op">!</span><span class="op">=</span> <span class="string">&#39;\n&#39;</span>) {
                             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Reject</span>);
                         }
                         <span class="kw">match</span> <span class="ident">chars</span>.<span class="ident">next</span>() {
-                            <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">ch</span>)) <span class="kw">if</span> <span class="ident">ch</span>.<span class="ident">is_whitespace</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="ident">last</span> <span class="op">=</span> <span class="ident">ch</span>,
-                            <span class="prelude-val">Some</span>((<span class="ident">offset</span>, <span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">ch</span>)) <span class="kw">if</span> <span class="ident">ch</span>.<span class="ident">is_whitespace</span>() =&gt; <span class="ident">last</span> <span class="op">=</span> <span class="ident">ch</span>,
+                            <span class="prelude-val">Some</span>((<span class="ident">offset</span>, <span class="kw">_</span>)) =&gt; {
                                 <span class="ident">input</span> <span class="op">=</span> <span class="ident">rest</span>.<span class="ident">advance</span>(<span class="ident">offset</span>);
                                 <span class="ident">bytes</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">bytes</span>().<span class="ident">enumerate</span>();
                                 <span class="kw">break</span>;
                             }
-                            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Reject</span>),
+                            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Reject</span>),
                         }
                     }
                 }
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
+                <span class="kw">_</span> =&gt; <span class="kw">break</span>,
             },
-            <span class="ident">b</span> <span class="kw">if</span> <span class="ident">b</span> <span class="op">&lt;</span> <span class="number">0x80</span> <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
+            <span class="ident">b</span> <span class="kw">if</span> <span class="ident">b</span> <span class="op">&lt;</span> <span class="number">0x80</span> =&gt; {}
+            <span class="kw">_</span> =&gt; <span class="kw">break</span>,
         }
     }
     <span class="prelude-val">Err</span>(<span class="ident">Reject</span>)
 }
 
-<span class="kw">fn</span> <span class="ident">raw_string</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cursor</span>, <span class="ident">Reject</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">raw_string</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cursor</span>, <span class="ident">Reject</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">char_indices</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">n</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">ch</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">chars</span> {
         <span class="kw">match</span> <span class="ident">ch</span> {
-            <span class="string">&#39;&quot;&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="string">&#39;&quot;&#39;</span> =&gt; {
                 <span class="ident">n</span> <span class="op">=</span> <span class="ident">i</span>;
                 <span class="kw">break</span>;
             }
-            <span class="string">&#39;#&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Reject</span>),
+            <span class="string">&#39;#&#39;</span> =&gt; {}
+            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Reject</span>),
         }
     }
     <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">i</span>, <span class="ident">ch</span>)) <span class="op">=</span> <span class="ident">chars</span>.<span class="ident">next</span>() {
         <span class="kw">match</span> <span class="ident">ch</span> {
-            <span class="string">&#39;&quot;&#39;</span> <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">rest</span>[<span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>..].<span class="ident">starts_with</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>.<span class="ident">rest</span>[..<span class="ident">n</span>]) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="string">&#39;&quot;&#39;</span> <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">rest</span>[<span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>..].<span class="ident">starts_with</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>.<span class="ident">rest</span>[..<span class="ident">n</span>]) =&gt; {
                 <span class="kw">let</span> <span class="ident">rest</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">advance</span>(<span class="ident">i</span> <span class="op">+</span> <span class="number">1</span> <span class="op">+</span> <span class="ident">n</span>);
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">literal_suffix</span>(<span class="ident">rest</span>));
             }
-            <span class="string">&#39;\r&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">chars</span>.<span class="ident">next</span>() {
-                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;\n&#39;</span>)) <span class="op">=</span><span class="op">&gt;</span> {}
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
+            <span class="string">&#39;\r&#39;</span> =&gt; <span class="kw">match</span> <span class="ident">chars</span>.<span class="ident">next</span>() {
+                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;\n&#39;</span>)) =&gt; {}
+                <span class="kw">_</span> =&gt; <span class="kw">break</span>,
             },
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="kw">_</span> =&gt; {}
         }
     }
     <span class="prelude-val">Err</span>(<span class="ident">Reject</span>)
 }
 
-<span class="kw">fn</span> <span class="ident">byte</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cursor</span>, <span class="ident">Reject</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">byte</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cursor</span>, <span class="ident">Reject</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>(<span class="string">&quot;b&#39;&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">bytes</span>().<span class="ident">enumerate</span>();
     <span class="kw">let</span> <span class="ident">ok</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">bytes</span>.<span class="ident">next</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">b</span>)<span class="op">|</span> <span class="ident">b</span>) {
-        <span class="prelude-val">Some</span>(<span class="string">b&#39;\\&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">bytes</span>.<span class="ident">next</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">b</span>)<span class="op">|</span> <span class="ident">b</span>) {
-            <span class="prelude-val">Some</span>(<span class="string">b&#39;x&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">backslash_x_byte</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">bytes</span>),
+        <span class="prelude-val">Some</span>(<span class="string">b&#39;\\&#39;</span>) =&gt; <span class="kw">match</span> <span class="ident">bytes</span>.<span class="ident">next</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">b</span>)<span class="op">|</span> <span class="ident">b</span>) {
+            <span class="prelude-val">Some</span>(<span class="string">b&#39;x&#39;</span>) =&gt; <span class="ident">backslash_x_byte</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">bytes</span>),
             <span class="prelude-val">Some</span>(<span class="string">b&#39;n&#39;</span>) <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="string">b&#39;r&#39;</span>) <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="string">b&#39;t&#39;</span>) <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="string">b&#39;\\&#39;</span>) <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="string">b&#39;0&#39;</span>) <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="string">b&#39;\&#39;&#39;</span>)
-            <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="string">b&#39;&quot;&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="string">b&#39;&quot;&#39;</span>) =&gt; <span class="bool-val">true</span>,
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         },
-        <span class="ident">b</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">b</span>.<span class="ident">is_some</span>(),
+        <span class="ident">b</span> =&gt; <span class="ident">b</span>.<span class="ident">is_some</span>(),
     };
     <span class="kw">if</span> <span class="op">!</span><span class="ident">ok</span> {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Reject</span>);
@@ -1375,19 +1375,19 @@
     <span class="prelude-val">Ok</span>(<span class="ident">literal_suffix</span>(<span class="ident">input</span>))
 }
 
-<span class="kw">fn</span> <span class="ident">character</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cursor</span>, <span class="ident">Reject</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">character</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cursor</span>, <span class="ident">Reject</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>(<span class="string">&quot;&#39;&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">char_indices</span>();
     <span class="kw">let</span> <span class="ident">ok</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">chars</span>.<span class="ident">next</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">ch</span>)<span class="op">|</span> <span class="ident">ch</span>) {
-        <span class="prelude-val">Some</span>(<span class="string">&#39;\\&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">chars</span>.<span class="ident">next</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">ch</span>)<span class="op">|</span> <span class="ident">ch</span>) {
-            <span class="prelude-val">Some</span>(<span class="string">&#39;x&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">backslash_x_char</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">chars</span>),
-            <span class="prelude-val">Some</span>(<span class="string">&#39;u&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">backslash_u</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">chars</span>),
-            <span class="prelude-val">Some</span>(<span class="string">&#39;n&#39;</span>) <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="string">&#39;r&#39;</span>) <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="string">&#39;t&#39;</span>) <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="string">&#39;\\&#39;</span>) <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="string">&#39;0&#39;</span>) <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="string">&#39;\&#39;&#39;</span>) <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="string">&#39;&quot;&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Some</span>(<span class="string">&#39;\\&#39;</span>) =&gt; <span class="kw">match</span> <span class="ident">chars</span>.<span class="ident">next</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">ch</span>)<span class="op">|</span> <span class="ident">ch</span>) {
+            <span class="prelude-val">Some</span>(<span class="string">&#39;x&#39;</span>) =&gt; <span class="ident">backslash_x_char</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">chars</span>),
+            <span class="prelude-val">Some</span>(<span class="string">&#39;u&#39;</span>) =&gt; <span class="ident">backslash_u</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">chars</span>),
+            <span class="prelude-val">Some</span>(<span class="string">&#39;n&#39;</span>) <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="string">&#39;r&#39;</span>) <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="string">&#39;t&#39;</span>) <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="string">&#39;\\&#39;</span>) <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="string">&#39;0&#39;</span>) <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="string">&#39;\&#39;&#39;</span>) <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="string">&#39;&quot;&#39;</span>) =&gt; {
                 <span class="bool-val">true</span>
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         },
-        <span class="ident">ch</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ch</span>.<span class="ident">is_some</span>(),
+        <span class="ident">ch</span> =&gt; <span class="ident">ch</span>.<span class="ident">is_some</span>(),
     };
     <span class="kw">if</span> <span class="op">!</span><span class="ident">ok</span> {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Reject</span>);
@@ -1398,18 +1398,18 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">next_ch</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">chars</span>:<span class="ident">ident</span> @ <span class="macro-nonterminal">$</span><span class="macro-nonterminal">pat</span>:<span class="ident">pat</span> $(<span class="op">|</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>:<span class="ident">pat</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">chars</span>:<span class="ident">ident</span> @ <span class="macro-nonterminal">$</span><span class="macro-nonterminal">pat</span>:<span class="ident">pat</span> $(<span class="op">|</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>:<span class="ident">pat</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">chars</span>.<span class="ident">next</span>() {
-            <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">ch</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">ch</span> {
-                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">pat</span> $(<span class="op">|</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>)<span class="op">*</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ch</span>,
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="bool-val">false</span>,
+            <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">ch</span>)) =&gt; <span class="kw">match</span> <span class="ident">ch</span> {
+                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">pat</span> $(<span class="op">|</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>)<span class="op">*</span> =&gt; <span class="ident">ch</span>,
+                <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="bool-val">false</span>,
             },
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="bool-val">false</span>,
+            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="bool-val">false</span>,
         }
     };
 }
 
-<span class="kw">fn</span> <span class="ident">backslash_x_char</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">chars</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>
+<span class="kw">fn</span> <span class="ident">backslash_x_char</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">chars</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">I</span>) -&gt; <span class="ident">bool</span>
 <span class="kw">where</span>
     <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">usize</span>, <span class="ident">char</span>)<span class="op">&gt;</span>,
 {
@@ -1418,7 +1418,7 @@
     <span class="bool-val">true</span>
 }
 
-<span class="kw">fn</span> <span class="ident">backslash_x_byte</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">chars</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>
+<span class="kw">fn</span> <span class="ident">backslash_x_byte</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">chars</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">I</span>) -&gt; <span class="ident">bool</span>
 <span class="kw">where</span>
     <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">usize</span>, <span class="ident">u8</span>)<span class="op">&gt;</span>,
 {
@@ -1427,7 +1427,7 @@
     <span class="bool-val">true</span>
 }
 
-<span class="kw">fn</span> <span class="ident">backslash_u</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">chars</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>
+<span class="kw">fn</span> <span class="ident">backslash_u</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">chars</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">I</span>) -&gt; <span class="ident">bool</span>
 <span class="kw">where</span>
     <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">usize</span>, <span class="ident">char</span>)<span class="op">&gt;</span>,
 {
@@ -1436,14 +1436,14 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">len</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">for</span> (<span class="kw">_</span>, <span class="ident">ch</span>) <span class="kw">in</span> <span class="ident">chars</span> {
         <span class="kw">let</span> <span class="ident">digit</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">ch</span> {
-            <span class="string">&#39;0&#39;</span>..<span class="op">=</span><span class="string">&#39;9&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ch</span> <span class="kw">as</span> <span class="ident">u8</span> <span class="op">-</span> <span class="string">b&#39;0&#39;</span>,
-            <span class="string">&#39;a&#39;</span>..<span class="op">=</span><span class="string">&#39;f&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">10</span> <span class="op">+</span> <span class="ident">ch</span> <span class="kw">as</span> <span class="ident">u8</span> <span class="op">-</span> <span class="string">b&#39;a&#39;</span>,
-            <span class="string">&#39;A&#39;</span>..<span class="op">=</span><span class="string">&#39;F&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">10</span> <span class="op">+</span> <span class="ident">ch</span> <span class="kw">as</span> <span class="ident">u8</span> <span class="op">-</span> <span class="string">b&#39;A&#39;</span>,
-            <span class="string">&#39;_&#39;</span> <span class="kw">if</span> <span class="ident">len</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">continue</span>,
-            <span class="string">&#39;}&#39;</span> <span class="kw">if</span> <span class="ident">len</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">char::from_u32</span>(<span class="ident">value</span>).<span class="ident">is_some</span>(),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="bool-val">false</span>,
+            <span class="string">&#39;0&#39;</span>..<span class="op">=</span><span class="string">&#39;9&#39;</span> =&gt; <span class="ident">ch</span> <span class="kw">as</span> <span class="ident">u8</span> <span class="op">-</span> <span class="string">b&#39;0&#39;</span>,
+            <span class="string">&#39;a&#39;</span>..<span class="op">=</span><span class="string">&#39;f&#39;</span> =&gt; <span class="number">10</span> <span class="op">+</span> <span class="ident">ch</span> <span class="kw">as</span> <span class="ident">u8</span> <span class="op">-</span> <span class="string">b&#39;a&#39;</span>,
+            <span class="string">&#39;A&#39;</span>..<span class="op">=</span><span class="string">&#39;F&#39;</span> =&gt; <span class="number">10</span> <span class="op">+</span> <span class="ident">ch</span> <span class="kw">as</span> <span class="ident">u8</span> <span class="op">-</span> <span class="string">b&#39;A&#39;</span>,
+            <span class="string">&#39;_&#39;</span> <span class="kw">if</span> <span class="ident">len</span> <span class="op">&gt;</span> <span class="number">0</span> =&gt; <span class="kw">continue</span>,
+            <span class="string">&#39;}&#39;</span> <span class="kw">if</span> <span class="ident">len</span> <span class="op">&gt;</span> <span class="number">0</span> =&gt; <span class="kw">return</span> <span class="ident">char::from_u32</span>(<span class="ident">value</span>).<span class="ident">is_some</span>(),
+            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="bool-val">false</span>,
         };
-        <span class="kw">if</span> <span class="ident">len</span> <span class="op">=</span><span class="op">=</span> <span class="number">6</span> {
+        <span class="kw">if</span> <span class="ident">len</span> <span class="op">==</span> <span class="number">6</span> {
             <span class="kw">return</span> <span class="bool-val">false</span>;
         }
         <span class="ident">value</span> <span class="kw-2">*</span><span class="op">=</span> <span class="number">0x10</span>;
@@ -1453,7 +1453,7 @@
     <span class="bool-val">false</span>
 }
 
-<span class="kw">fn</span> <span class="ident">float</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cursor</span>, <span class="ident">Reject</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">float</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cursor</span>, <span class="ident">Reject</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rest</span> <span class="op">=</span> <span class="ident">float_digits</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ch</span>) <span class="op">=</span> <span class="ident">rest</span>.<span class="ident">chars</span>().<span class="ident">next</span>() {
         <span class="kw">if</span> <span class="ident">is_ident_start</span>(<span class="ident">ch</span>) {
@@ -1463,11 +1463,11 @@
     <span class="ident">word_break</span>(<span class="ident">rest</span>)
 }
 
-<span class="kw">fn</span> <span class="ident">float_digits</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cursor</span>, <span class="ident">Reject</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">float_digits</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cursor</span>, <span class="ident">Reject</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">chars</span>().<span class="ident">peekable</span>();
     <span class="kw">match</span> <span class="ident">chars</span>.<span class="ident">next</span>() {
-        <span class="prelude-val">Some</span>(<span class="ident">ch</span>) <span class="kw">if</span> <span class="ident">ch</span> <span class="op">&gt;</span><span class="op">=</span> <span class="string">&#39;0&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">ch</span> <span class="op">&lt;</span><span class="op">=</span> <span class="string">&#39;9&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {}
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Reject</span>),
+        <span class="prelude-val">Some</span>(<span class="ident">ch</span>) <span class="kw">if</span> <span class="ident">ch</span> <span class="op">&gt;</span><span class="op">=</span> <span class="string">&#39;0&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">ch</span> <span class="op">&lt;</span><span class="op">=</span> <span class="string">&#39;9&#39;</span> =&gt; {}
+        <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Reject</span>),
     }
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">len</span> <span class="op">=</span> <span class="number">1</span>;
@@ -1475,31 +1475,31 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">has_exp</span> <span class="op">=</span> <span class="bool-val">false</span>;
     <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">ch</span>) <span class="op">=</span> <span class="ident">chars</span>.<span class="ident">peek</span>() {
         <span class="kw">match</span> <span class="ident">ch</span> {
-            <span class="string">&#39;0&#39;</span>..<span class="op">=</span><span class="string">&#39;9&#39;</span> <span class="op">|</span> <span class="string">&#39;_&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="string">&#39;0&#39;</span>..<span class="op">=</span><span class="string">&#39;9&#39;</span> <span class="op">|</span> <span class="string">&#39;_&#39;</span> =&gt; {
                 <span class="ident">chars</span>.<span class="ident">next</span>();
                 <span class="ident">len</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
             }
-            <span class="string">&#39;.&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="string">&#39;.&#39;</span> =&gt; {
                 <span class="kw">if</span> <span class="ident">has_dot</span> {
                     <span class="kw">break</span>;
                 }
                 <span class="ident">chars</span>.<span class="ident">next</span>();
                 <span class="kw">if</span> <span class="ident">chars</span>
                     .<span class="ident">peek</span>()
-                    .<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">ch</span><span class="op">|</span> <span class="ident">ch</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;.&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">is_ident_start</span>(<span class="ident">ch</span>))
+                    .<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">ch</span><span class="op">|</span> <span class="ident">ch</span> <span class="op">==</span> <span class="string">&#39;.&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">is_ident_start</span>(<span class="ident">ch</span>))
                 {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Reject</span>);
                 }
                 <span class="ident">len</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 <span class="ident">has_dot</span> <span class="op">=</span> <span class="bool-val">true</span>;
             }
-            <span class="string">&#39;e&#39;</span> <span class="op">|</span> <span class="string">&#39;E&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="string">&#39;e&#39;</span> <span class="op">|</span> <span class="string">&#39;E&#39;</span> =&gt; {
                 <span class="ident">chars</span>.<span class="ident">next</span>();
                 <span class="ident">len</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 <span class="ident">has_exp</span> <span class="op">=</span> <span class="bool-val">true</span>;
                 <span class="kw">break</span>;
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
+            <span class="kw">_</span> =&gt; <span class="kw">break</span>,
         }
     }
 
@@ -1517,7 +1517,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">has_exp_value</span> <span class="op">=</span> <span class="bool-val">false</span>;
         <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">ch</span>) <span class="op">=</span> <span class="ident">chars</span>.<span class="ident">peek</span>() {
             <span class="kw">match</span> <span class="ident">ch</span> {
-                <span class="string">&#39;+&#39;</span> <span class="op">|</span> <span class="string">&#39;-&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="string">&#39;+&#39;</span> <span class="op">|</span> <span class="string">&#39;-&#39;</span> =&gt; {
                     <span class="kw">if</span> <span class="ident">has_exp_value</span> {
                         <span class="kw">break</span>;
                     }
@@ -1528,16 +1528,16 @@
                     <span class="ident">len</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                     <span class="ident">has_sign</span> <span class="op">=</span> <span class="bool-val">true</span>;
                 }
-                <span class="string">&#39;0&#39;</span>..<span class="op">=</span><span class="string">&#39;9&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="string">&#39;0&#39;</span>..<span class="op">=</span><span class="string">&#39;9&#39;</span> =&gt; {
                     <span class="ident">chars</span>.<span class="ident">next</span>();
                     <span class="ident">len</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                     <span class="ident">has_exp_value</span> <span class="op">=</span> <span class="bool-val">true</span>;
                 }
-                <span class="string">&#39;_&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="string">&#39;_&#39;</span> =&gt; {
                     <span class="ident">chars</span>.<span class="ident">next</span>();
                     <span class="ident">len</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 }
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
+                <span class="kw">_</span> =&gt; <span class="kw">break</span>,
             }
         }
         <span class="kw">if</span> <span class="op">!</span><span class="ident">has_exp_value</span> {
@@ -1548,7 +1548,7 @@
     <span class="prelude-val">Ok</span>(<span class="ident">input</span>.<span class="ident">advance</span>(<span class="ident">len</span>))
 }
 
-<span class="kw">fn</span> <span class="ident">int</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cursor</span>, <span class="ident">Reject</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">int</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cursor</span>, <span class="ident">Reject</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rest</span> <span class="op">=</span> <span class="ident">digits</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ch</span>) <span class="op">=</span> <span class="ident">rest</span>.<span class="ident">chars</span>().<span class="ident">next</span>() {
         <span class="kw">if</span> <span class="ident">is_ident_start</span>(<span class="ident">ch</span>) {
@@ -1558,7 +1558,7 @@
     <span class="ident">word_break</span>(<span class="ident">rest</span>)
 }
 
-<span class="kw">fn</span> <span class="ident">digits</span>(<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cursor</span>, <span class="ident">Reject</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">digits</span>(<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">Cursor</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cursor</span>, <span class="ident">Reject</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">base</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">starts_with</span>(<span class="string">&quot;0x&quot;</span>) {
         <span class="ident">input</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">advance</span>(<span class="number">2</span>);
         <span class="number">16</span>
@@ -1576,32 +1576,32 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">empty</span> <span class="op">=</span> <span class="bool-val">true</span>;
     <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="ident">input</span>.<span class="ident">bytes</span>() {
         <span class="kw">match</span> <span class="ident">b</span> {
-            <span class="string">b&#39;0&#39;</span>..<span class="op">=</span><span class="string">b&#39;9&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="string">b&#39;0&#39;</span>..<span class="op">=</span><span class="string">b&#39;9&#39;</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">digit</span> <span class="op">=</span> (<span class="ident">b</span> <span class="op">-</span> <span class="string">b&#39;0&#39;</span>) <span class="kw">as</span> <span class="ident">u64</span>;
                 <span class="kw">if</span> <span class="ident">digit</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">base</span> {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Reject</span>);
                 }
             }
-            <span class="string">b&#39;a&#39;</span>..<span class="op">=</span><span class="string">b&#39;f&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="string">b&#39;a&#39;</span>..<span class="op">=</span><span class="string">b&#39;f&#39;</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">digit</span> <span class="op">=</span> <span class="number">10</span> <span class="op">+</span> (<span class="ident">b</span> <span class="op">-</span> <span class="string">b&#39;a&#39;</span>) <span class="kw">as</span> <span class="ident">u64</span>;
                 <span class="kw">if</span> <span class="ident">digit</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">base</span> {
                     <span class="kw">break</span>;
                 }
             }
-            <span class="string">b&#39;A&#39;</span>..<span class="op">=</span><span class="string">b&#39;F&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="string">b&#39;A&#39;</span>..<span class="op">=</span><span class="string">b&#39;F&#39;</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">digit</span> <span class="op">=</span> <span class="number">10</span> <span class="op">+</span> (<span class="ident">b</span> <span class="op">-</span> <span class="string">b&#39;A&#39;</span>) <span class="kw">as</span> <span class="ident">u64</span>;
                 <span class="kw">if</span> <span class="ident">digit</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">base</span> {
                     <span class="kw">break</span>;
                 }
             }
-            <span class="string">b&#39;_&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <span class="ident">empty</span> <span class="op">&amp;&amp;</span> <span class="ident">base</span> <span class="op">=</span><span class="op">=</span> <span class="number">10</span> {
+            <span class="string">b&#39;_&#39;</span> =&gt; {
+                <span class="kw">if</span> <span class="ident">empty</span> <span class="op">&amp;&amp;</span> <span class="ident">base</span> <span class="op">==</span> <span class="number">10</span> {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Reject</span>);
                 }
                 <span class="ident">len</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 <span class="kw">continue</span>;
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
+            <span class="kw">_</span> =&gt; <span class="kw">break</span>,
         };
         <span class="ident">len</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         <span class="ident">empty</span> <span class="op">=</span> <span class="bool-val">false</span>;
@@ -1613,9 +1613,9 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">punct</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PResult</span><span class="op">&lt;</span><span class="ident">Punct</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">punct</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) -&gt; <span class="ident">PResult</span><span class="op">&lt;</span><span class="ident">Punct</span><span class="op">&gt;</span> {
     <span class="kw">let</span> (<span class="ident">rest</span>, <span class="ident">ch</span>) <span class="op">=</span> <span class="ident">punct_char</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
-    <span class="kw">if</span> <span class="ident">ch</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;\&#39;&#39;</span> {
+    <span class="kw">if</span> <span class="ident">ch</span> <span class="op">==</span> <span class="string">&#39;\&#39;&#39;</span> {
         <span class="kw">if</span> <span class="ident">ident_any</span>(<span class="ident">rest</span>)<span class="question-mark">?</span>.<span class="number">0</span>.<span class="ident">starts_with</span>(<span class="string">&quot;&#39;&quot;</span>) {
             <span class="prelude-val">Err</span>(<span class="ident">Reject</span>)
         } <span class="kw">else</span> {
@@ -1623,14 +1623,14 @@
         }
     } <span class="kw">else</span> {
         <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">punct_char</span>(<span class="ident">rest</span>) {
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Spacing::Joint</span>,
-            <span class="prelude-val">Err</span>(<span class="ident">Reject</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Spacing::Alone</span>,
+            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="ident">Spacing::Joint</span>,
+            <span class="prelude-val">Err</span>(<span class="ident">Reject</span>) =&gt; <span class="ident">Spacing::Alone</span>,
         };
         <span class="prelude-val">Ok</span>((<span class="ident">rest</span>, <span class="ident">Punct::new</span>(<span class="ident">ch</span>, <span class="ident">kind</span>)))
     }
 }
 
-<span class="kw">fn</span> <span class="ident">punct_char</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PResult</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">punct_char</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) -&gt; <span class="ident">PResult</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">starts_with</span>(<span class="string">&quot;//&quot;</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">starts_with</span>(<span class="string">&quot;/*&quot;</span>) {
         <span class="comment">// Do not accept `/` of a comment as a punct.</span>
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Reject</span>);
@@ -1638,8 +1638,8 @@
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">chars</span>();
     <span class="kw">let</span> <span class="ident">first</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">chars</span>.<span class="ident">next</span>() {
-        <span class="prelude-val">Some</span>(<span class="ident">ch</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ch</span>,
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Some</span>(<span class="ident">ch</span>) =&gt; <span class="ident">ch</span>,
+        <span class="prelude-val">None</span> =&gt; {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Reject</span>);
         }
     };
@@ -1651,7 +1651,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">doc_comment</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TokenTree</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">doc_comment</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) -&gt; <span class="ident">PResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TokenTree</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">span_locations</span>)]</span>
     <span class="kw">let</span> <span class="ident">lo</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">off</span>;
     <span class="kw">let</span> (<span class="ident">rest</span>, (<span class="ident">comment</span>, <span class="ident">inner</span>)) <span class="op">=</span> <span class="ident">doc_comment_contents</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
@@ -1692,7 +1692,7 @@
     <span class="prelude-val">Ok</span>((<span class="ident">rest</span>, <span class="ident">trees</span>))
 }
 
-<span class="kw">fn</span> <span class="ident">doc_comment_contents</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PResult</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">bool</span>)<span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">doc_comment_contents</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) -&gt; <span class="ident">PResult</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">bool</span>)<span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">starts_with</span>(<span class="string">&quot;//!&quot;</span>) {
         <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">advance</span>(<span class="number">3</span>);
         <span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">s</span>) <span class="op">=</span> <span class="ident">take_until_newline_or_eof</span>(<span class="ident">input</span>);
@@ -1715,13 +1715,13 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">take_until_newline_or_eof</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">Cursor</span>, <span class="kw-2">&amp;</span><span class="ident">str</span>) {
+<span class="kw">fn</span> <span class="ident">take_until_newline_or_eof</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) -&gt; (<span class="ident">Cursor</span>, <span class="kw-2">&amp;</span><span class="ident">str</span>) {
     <span class="kw">let</span> <span class="ident">chars</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">char_indices</span>();
 
     <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">ch</span>) <span class="kw">in</span> <span class="ident">chars</span> {
-        <span class="kw">if</span> <span class="ident">ch</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;\n&#39;</span> {
+        <span class="kw">if</span> <span class="ident">ch</span> <span class="op">==</span> <span class="string">&#39;\n&#39;</span> {
             <span class="kw">return</span> (<span class="ident">input</span>.<span class="ident">advance</span>(<span class="ident">i</span>), <span class="kw-2">&amp;</span><span class="ident">input</span>.<span class="ident">rest</span>[..<span class="ident">i</span>]);
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">ch</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;\r&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">input</span>.<span class="ident">rest</span>[<span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>..].<span class="ident">starts_with</span>(<span class="string">&#39;\n&#39;</span>) {
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">ch</span> <span class="op">==</span> <span class="string">&#39;\r&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">input</span>.<span class="ident">rest</span>[<span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>..].<span class="ident">starts_with</span>(<span class="string">&#39;\n&#39;</span>) {
             <span class="kw">return</span> (<span class="ident">input</span>.<span class="ident">advance</span>(<span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>), <span class="kw-2">&amp;</span><span class="ident">input</span>.<span class="ident">rest</span>[..<span class="ident">i</span>]);
         }
     }

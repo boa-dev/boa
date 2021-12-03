@@ -21,13 +21,13 @@ a macro to be testable in isolation, they must be implemented using
 <code>proc_macro2</code>.</p>
 </li>
 </ul>
-<h1 id="usage" class="section-header"><a href="#usage">Usage</a></h1>
+<h2 id="usage" class="section-header"><a href="#usage">Usage</a></h2>
 <p>The skeleton of a typical procedural macro typically looks like this:</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">proc_macro</span>;
 
 <span class="attribute">#[<span class="ident">proc_macro_derive</span>(<span class="ident">MyDerive</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">my_derive</span>(<span class="ident">input</span>: <span class="ident">proc_macro::TokenStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">proc_macro::TokenStream</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">my_derive</span>(<span class="ident">input</span>: <span class="ident">proc_macro::TokenStream</span>) -&gt; <span class="ident">proc_macro::TokenStream</span> {
     <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">proc_macro2::TokenStream::from</span>(<span class="ident">input</span>);
 
     <span class="kw">let</span> <span class="ident">output</span>: <span class="ident">proc_macro2::TokenStream</span> <span class="op">=</span> {
@@ -38,7 +38,7 @@ a macro to be testable in isolation, they must be implemented using
 }</code></pre></div>
 <p>If parsing with <a href="https://github.com/dtolnay/syn">Syn</a>, you’ll use <a href="https://docs.rs/syn/1.0/syn/macro.parse_macro_input.html"><code>parse_macro_input!</code></a> instead to
 propagate parse errors correctly back to the compiler when parsing fails.</p>
-<h1 id="unstable-features" class="section-header"><a href="#unstable-features">Unstable features</a></h1>
+<h2 id="unstable-features" class="section-header"><a href="#unstable-features">Unstable features</a></h2>
 <p>The default feature set of proc-macro2 tracks the most recent stable
 compiler API. Functionality in <code>proc_macro</code> that is not yet stable is not
 exposed by proc-macro2 by default.</p>
@@ -52,27 +52,27 @@ proc-macro2 may make breaking changes to them at any time.</p>
 depends on your crate. This infectious nature is intentional, as it serves
 as a reminder that you are outside of the normal semver guarantees.</p>
 <p>Semver exempt methods are marked as such in the proc-macro2 documentation.</p>
-<h1 id="thread-safety" class="section-header"><a href="#thread-safety">Thread-Safety</a></h1>
+<h2 id="thread-safety" class="section-header"><a href="#thread-safety">Thread-Safety</a></h2>
 <p>Most types in this crate are <code>!Sync</code> because the underlying compiler
 types make use of thread-local memory, meaning they cannot be accessed from
 a different thread.</p>
 </div></details><h2 id="modules" class="section-header"><a href="#modules">Modules</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="mod" href="token_stream/index.html" title="proc_macro2::token_stream mod">token_stream</a></div><div class="item-right docblock-short"><p>Public implementation details for the <code>TokenStream</code> type, such as iterators.</p>
-</div></div><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="struct" href="struct.Group.html" title="proc_macro2::Group struct">Group</a></div><div class="item-right docblock-short"><p>A delimited token stream.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.Ident.html" title="proc_macro2::Ident struct">Ident</a></div><div class="item-right docblock-short"><p>A word of Rust code, which may be a keyword or legal variable name.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.LexError.html" title="proc_macro2::LexError struct">LexError</a></div><div class="item-right docblock-short"><p>Error returned from <code>TokenStream::from_str</code>.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.Literal.html" title="proc_macro2::Literal struct">Literal</a></div><div class="item-right docblock-short"><p>A literal string (<code>&quot;hello&quot;</code>), byte string (<code>b&quot;hello&quot;</code>), character (<code>'a'</code>),
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="mod" href="token_stream/index.html" title="proc_macro2::token_stream mod">token_stream</a></div><div class="item-right docblock-short"><p>Public implementation details for the <code>TokenStream</code> type, such as iterators.</p>
+</div></div></div><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Group.html" title="proc_macro2::Group struct">Group</a></div><div class="item-right docblock-short"><p>A delimited token stream.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Ident.html" title="proc_macro2::Ident struct">Ident</a></div><div class="item-right docblock-short"><p>A word of Rust code, which may be a keyword or legal variable name.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.LexError.html" title="proc_macro2::LexError struct">LexError</a></div><div class="item-right docblock-short"><p>Error returned from <code>TokenStream::from_str</code>.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Literal.html" title="proc_macro2::Literal struct">Literal</a></div><div class="item-right docblock-short"><p>A literal string (<code>&quot;hello&quot;</code>), byte string (<code>b&quot;hello&quot;</code>), character (<code>'a'</code>),
 byte character (<code>b'a'</code>), an integer or floating point number with or without
 a suffix (<code>1</code>, <code>1u8</code>, <code>2.3</code>, <code>2.3f32</code>).</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.Punct.html" title="proc_macro2::Punct struct">Punct</a></div><div class="item-right docblock-short"><p>A <code>Punct</code> is a single punctuation character like <code>+</code>, <code>-</code> or <code>#</code>.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.Span.html" title="proc_macro2::Span struct">Span</a></div><div class="item-right docblock-short"><p>A region of source code, along with macro expansion information.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.TokenStream.html" title="proc_macro2::TokenStream struct">TokenStream</a></div><div class="item-right docblock-short"><p>An abstract stream of tokens, or more concretely a sequence of token trees.</p>
-</div></div><h2 id="enums" class="section-header"><a href="#enums">Enums</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="enum" href="enum.Delimiter.html" title="proc_macro2::Delimiter enum">Delimiter</a></div><div class="item-right docblock-short"><p>Describes how a sequence of token trees is delimited.</p>
-</div><div class="item-left module-item"><a class="enum" href="enum.Spacing.html" title="proc_macro2::Spacing enum">Spacing</a></div><div class="item-right docblock-short"><p>Whether a <code>Punct</code> is followed immediately by another <code>Punct</code> or followed by
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Punct.html" title="proc_macro2::Punct struct">Punct</a></div><div class="item-right docblock-short"><p>A <code>Punct</code> is a single punctuation character like <code>+</code>, <code>-</code> or <code>#</code>.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Span.html" title="proc_macro2::Span struct">Span</a></div><div class="item-right docblock-short"><p>A region of source code, along with macro expansion information.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.TokenStream.html" title="proc_macro2::TokenStream struct">TokenStream</a></div><div class="item-right docblock-short"><p>An abstract stream of tokens, or more concretely a sequence of token trees.</p>
+</div></div></div><h2 id="enums" class="section-header"><a href="#enums">Enums</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.Delimiter.html" title="proc_macro2::Delimiter enum">Delimiter</a></div><div class="item-right docblock-short"><p>Describes how a sequence of token trees is delimited.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.Spacing.html" title="proc_macro2::Spacing enum">Spacing</a></div><div class="item-right docblock-short"><p>Whether a <code>Punct</code> is followed immediately by another <code>Punct</code> or followed by
 another token or whitespace.</p>
-</div><div class="item-left module-item"><a class="enum" href="enum.TokenTree.html" title="proc_macro2::TokenTree enum">TokenTree</a></div><div class="item-right docblock-short"><p>A single token or a delimited sequence of token trees (e.g. <code>[1, (), ..]</code>).</p>
-</div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="proc_macro2" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.TokenTree.html" title="proc_macro2::TokenTree enum">TokenTree</a></div><div class="item-right docblock-short"><p>A single token or a delimited sequence of token trees (e.g. <code>[1, (), ..]</code>).</p>
+</div></div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="proc_macro2" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
     <script src="../main.js"></script>
 </body></html>

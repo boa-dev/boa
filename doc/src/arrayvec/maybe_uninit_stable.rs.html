@@ -49,12 +49,12 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Create a new MaybeUninit with uninitialized interior</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">uninitialized</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">uninitialized</span>() -&gt; <span class="self">Self</span> {
         <span class="ident">MaybeUninit</span> { <span class="ident">inner</span>: <span class="ident">StdMaybeUninit::uninit</span>() }
     }
 
     <span class="doccomment">/// Create a new MaybeUninit from the value `v`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">v</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">v</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">MaybeUninit</span> { <span class="ident">inner</span>: <span class="ident">StdMaybeUninit::new</span>(<span class="ident">v</span>) }
     }
 
@@ -62,7 +62,7 @@
     <span class="comment">// uninitialized interior value</span>
 
     <span class="doccomment">/// Return a raw pointer to the start of the interior array</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">T::Item</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">T::Item</span>
         <span class="kw">where</span> <span class="ident">T</span>: <span class="ident">Array</span>
     {
         <span class="comment">// std MaybeUninit creates a &amp;self.value reference here which is</span>
@@ -72,7 +72,7 @@
     }
 
     <span class="doccomment">/// Return a mut raw pointer to the start of the interior array</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ptr_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">T::Item</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ptr_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">T::Item</span>
         <span class="kw">where</span> <span class="ident">T</span>: <span class="ident">Array</span>
     {
         <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">T::Item</span>

@@ -232,14 +232,14 @@
 <span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl300</span>)]</span> {
         <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_CTX_set_rsa_padding</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>, <span class="ident">pad_mode</span>: <span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_CTX_get_rsa_padding</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>, <span class="ident">pad_mode</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_CTX_set_rsa_padding</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>, <span class="ident">pad_mode</span>: <span class="ident">c_int</span>) -&gt; <span class="ident">c_int</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_CTX_get_rsa_padding</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>, <span class="ident">pad_mode</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_int</span>) -&gt; <span class="ident">c_int</span>;
 
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_CTX_set_rsa_pss_saltlen</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>, <span class="ident">len</span>: <span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_CTX_set_rsa_mgf1_md</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>, <span class="ident">md</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_CTX_set_rsa_pss_saltlen</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>, <span class="ident">len</span>: <span class="ident">c_int</span>) -&gt; <span class="ident">c_int</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_CTX_set_rsa_mgf1_md</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>, <span class="ident">md</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>) -&gt; <span class="ident">c_int</span>;
         }
     } <span class="kw">else</span> {
-        <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_CTX_set_rsa_padding</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>, <span class="ident">pad</span>: <span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span> {
+        <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_CTX_set_rsa_padding</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>, <span class="ident">pad</span>: <span class="ident">c_int</span>) -&gt; <span class="ident">c_int</span> {
             <span class="ident">EVP_PKEY_CTX_ctrl</span>(
                 <span class="ident">ctx</span>,
                 <span class="ident">EVP_PKEY_RSA</span>,
@@ -249,7 +249,7 @@
                 <span class="ident">ptr::null_mut</span>(),
             )
         }
-        <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_CTX_get_rsa_padding</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>, <span class="ident">ppad</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span> {
+        <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_CTX_get_rsa_padding</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>, <span class="ident">ppad</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_int</span>) -&gt; <span class="ident">c_int</span> {
             <span class="ident">EVP_PKEY_CTX_ctrl</span>(
                 <span class="ident">ctx</span>,
                 <span class="ident">EVP_PKEY_RSA</span>,
@@ -260,7 +260,7 @@
             )
         }
 
-        <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_CTX_set_rsa_pss_saltlen</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>, <span class="ident">len</span>: <span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span> {
+        <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_CTX_set_rsa_pss_saltlen</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>, <span class="ident">len</span>: <span class="ident">c_int</span>) -&gt; <span class="ident">c_int</span> {
             <span class="ident">EVP_PKEY_CTX_ctrl</span>(
                 <span class="ident">ctx</span>,
                 <span class="ident">EVP_PKEY_RSA</span>,
@@ -271,7 +271,7 @@
             )
         }
 
-        <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_CTX_set_rsa_mgf1_md</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>, <span class="ident">md</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_MD</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span> {
+        <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_CTX_set_rsa_mgf1_md</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>, <span class="ident">md</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_MD</span>) -&gt; <span class="ident">c_int</span> {
             <span class="ident">EVP_PKEY_CTX_ctrl</span>(
                 <span class="ident">ctx</span>,
                 <span class="ident">EVP_PKEY_RSA</span>,
@@ -285,7 +285,7 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl102</span>, <span class="ident">libressl310</span>))]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_CTX_set_rsa_oaep_md</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>, <span class="ident">md</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_MD</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span> {
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_CTX_set_rsa_oaep_md</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>, <span class="ident">md</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_MD</span>) -&gt; <span class="ident">c_int</span> {
     <span class="ident">EVP_PKEY_CTX_ctrl</span>(
         <span class="ident">ctx</span>,
         <span class="ident">EVP_PKEY_RSA</span>,
@@ -301,7 +301,7 @@
     <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>,
     <span class="ident">label</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
     <span class="ident">len</span>: <span class="ident">c_int</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span> {
+) -&gt; <span class="ident">c_int</span> {
     <span class="ident">EVP_PKEY_CTX_ctrl</span>(
         <span class="ident">ctx</span>,
         <span class="ident">EVP_PKEY_RSA</span>,
@@ -333,8 +333,8 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RSA_PKCS1_PSS_PADDING</span>: <span class="ident">c_int</span> <span class="op">=</span> <span class="number">6</span>;
 
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">RSA</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_size</span>(<span class="ident">k</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">RSA</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_new</span>() -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">RSA</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_size</span>(<span class="ident">k</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">RSA</span>) -&gt; <span class="ident">c_int</span>;
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl273</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_set0_key</span>(
@@ -342,16 +342,16 @@
         <span class="ident">n</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BIGNUM</span>,
         <span class="ident">e</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BIGNUM</span>,
         <span class="ident">d</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BIGNUM</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl273</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_set0_factors</span>(<span class="ident">r</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::RSA</span>, <span class="ident">p</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BIGNUM</span>, <span class="ident">q</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BIGNUM</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_set0_factors</span>(<span class="ident">r</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::RSA</span>, <span class="ident">p</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BIGNUM</span>, <span class="ident">q</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BIGNUM</span>) -&gt; <span class="ident">c_int</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl273</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_set0_crt_params</span>(
         <span class="ident">r</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::RSA</span>,
         <span class="ident">dmp1</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BIGNUM</span>,
         <span class="ident">dmq1</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BIGNUM</span>,
         <span class="ident">iqmp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BIGNUM</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl273</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_get0_key</span>(
         <span class="ident">r</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::RSA</span>,
@@ -375,14 +375,14 @@
         <span class="ident">e</span>: <span class="ident">c_ulong</span>,
         <span class="ident">cb</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="ident">c_int</span>, <span class="ident">c_int</span>, <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>)<span class="op">&gt;</span>,
         <span class="ident">cbarg</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">RSA</span>;
+    ) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">RSA</span>;
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_generate_key_ex</span>(
         <span class="ident">rsa</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">RSA</span>,
         <span class="ident">bits</span>: <span class="ident">c_int</span>,
         <span class="ident">e</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIGNUM</span>,
         <span class="ident">cb</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BN_GENCB</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_public_encrypt</span>(
         <span class="ident">flen</span>: <span class="ident">c_int</span>,
@@ -390,36 +390,36 @@
         <span class="ident">to</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>,
         <span class="ident">k</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">RSA</span>,
         <span class="ident">pad</span>: <span class="ident">c_int</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_private_encrypt</span>(
         <span class="ident">flen</span>: <span class="ident">c_int</span>,
         <span class="ident">from</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>,
         <span class="ident">to</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>,
         <span class="ident">k</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">RSA</span>,
         <span class="ident">pad</span>: <span class="ident">c_int</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_public_decrypt</span>(
         <span class="ident">flen</span>: <span class="ident">c_int</span>,
         <span class="ident">from</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>,
         <span class="ident">to</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>,
         <span class="ident">k</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">RSA</span>,
         <span class="ident">pad</span>: <span class="ident">c_int</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_private_decrypt</span>(
         <span class="ident">flen</span>: <span class="ident">c_int</span>,
         <span class="ident">from</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>,
         <span class="ident">to</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>,
         <span class="ident">k</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">RSA</span>,
         <span class="ident">pad</span>: <span class="ident">c_int</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_check_key</span>(<span class="ident">r</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::RSA</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_check_key</span>(<span class="ident">r</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::RSA</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_free</span>(<span class="ident">rsa</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">RSA</span>);
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_up_ref</span>(<span class="ident">rsa</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">RSA</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_up_ref</span>(<span class="ident">rsa</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">RSA</span>) -&gt; <span class="ident">c_int</span>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">i2d_RSAPublicKey</span>(<span class="ident">k</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">RSA</span>, <span class="ident">buf</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">d2i_RSAPublicKey</span>(<span class="ident">k</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">RSA</span>, <span class="ident">buf</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>, <span class="ident">len</span>: <span class="ident">c_long</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">RSA</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">i2d_RSAPrivateKey</span>(<span class="ident">k</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">RSA</span>, <span class="ident">buf</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">d2i_RSAPrivateKey</span>(<span class="ident">k</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">RSA</span>, <span class="ident">buf</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>, <span class="ident">len</span>: <span class="ident">c_long</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">RSA</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">i2d_RSAPublicKey</span>(<span class="ident">k</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">RSA</span>, <span class="ident">buf</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>) -&gt; <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">d2i_RSAPublicKey</span>(<span class="ident">k</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">RSA</span>, <span class="ident">buf</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>, <span class="ident">len</span>: <span class="ident">c_long</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">RSA</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">i2d_RSAPrivateKey</span>(<span class="ident">k</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">RSA</span>, <span class="ident">buf</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>) -&gt; <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">d2i_RSAPrivateKey</span>(<span class="ident">k</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">RSA</span>, <span class="ident">buf</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>, <span class="ident">len</span>: <span class="ident">c_long</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">RSA</span>;
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_sign</span>(
         <span class="ident">t</span>: <span class="ident">c_int</span>,
@@ -428,7 +428,7 @@
         <span class="ident">sig</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>,
         <span class="ident">siglen</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uint</span>,
         <span class="ident">k</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">RSA</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_verify</span>(
         <span class="ident">t</span>: <span class="ident">c_int</span>,
         <span class="ident">m</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>,
@@ -436,7 +436,7 @@
         <span class="ident">sig</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>,
         <span class="ident">siglen</span>: <span class="ident">c_uint</span>,
         <span class="ident">k</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">RSA</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">RSA_padding_check_PKCS1_type_2</span>(
         <span class="ident">to</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>,
@@ -444,7 +444,7 @@
         <span class="ident">f</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>,
         <span class="ident">fl</span>: <span class="ident">c_int</span>,
         <span class="ident">rsa_len</span>: <span class="ident">c_int</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl_sys" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>

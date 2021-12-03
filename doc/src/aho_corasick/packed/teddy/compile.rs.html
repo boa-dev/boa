@@ -443,14 +443,14 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Builder</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Builder</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="ident">Builder</span> {
         <span class="ident">Builder::new</span>()
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Builder</span> {
     <span class="doccomment">/// Create a new builder for configuring a Teddy matcher.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Builder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">Builder</span> {
         <span class="ident">Builder</span> { <span class="ident">fat</span>: <span class="prelude-val">None</span>, <span class="ident">avx</span>: <span class="prelude-val">None</span> }
     }
 
@@ -460,7 +460,7 @@
     <span class="doccomment">/// Generally, a matcher isn&#39;t built if the necessary CPU features aren&#39;t</span>
     <span class="doccomment">/// available, an unsupported target or if the searcher is believed to be</span>
     <span class="doccomment">/// slower than standard techniques (i.e., if there are too many literals).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">patterns</span>: <span class="kw-2">&amp;</span><span class="ident">Patterns</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Teddy</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">patterns</span>: <span class="kw-2">&amp;</span><span class="ident">Patterns</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Teddy</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">build_imp</span>(<span class="ident">patterns</span>)
     }
 
@@ -470,7 +470,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// `None` is the default, which results in an automatic selection based</span>
     <span class="doccomment">/// on the number of literals and available CPU features.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fat</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Builder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fat</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Builder</span> {
         <span class="self">self</span>.<span class="ident">fat</span> <span class="op">=</span> <span class="ident">yes</span>;
         <span class="self">self</span>
     }
@@ -481,12 +481,12 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// `None` is the default, which results in an automatic selection based on</span>
     <span class="doccomment">/// the number of literals and available CPU features.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">avx</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Builder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">avx</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Builder</span> {
         <span class="self">self</span>.<span class="ident">avx</span> <span class="op">=</span> <span class="ident">yes</span>;
         <span class="self">self</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">build_imp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">patterns</span>: <span class="kw-2">&amp;</span><span class="ident">Patterns</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Teddy</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">build_imp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">patterns</span>: <span class="kw-2">&amp;</span><span class="ident">Patterns</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Teddy</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::packed::teddy::runtime</span>;
 
         <span class="comment">// Most of the logic here is just about selecting the optimal settings,</span>
@@ -502,12 +502,12 @@
         }
         <span class="kw">let</span> <span class="ident">has_ssse3</span> <span class="op">=</span> <span class="macro">is_x86_feature_detected!</span>(<span class="string">&quot;ssse3&quot;</span>);
         <span class="kw">let</span> <span class="ident">has_avx</span> <span class="op">=</span> <span class="macro">is_x86_feature_detected!</span>(<span class="string">&quot;avx2&quot;</span>);
-        <span class="kw">let</span> <span class="ident">avx</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">avx</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
+        <span class="kw">let</span> <span class="ident">avx</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">avx</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
             <span class="kw">if</span> <span class="op">!</span><span class="ident">has_avx</span> {
                 <span class="kw">return</span> <span class="prelude-val">None</span>;
             }
             <span class="bool-val">true</span>
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">avx</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="bool-val">false</span>) {
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">avx</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="bool-val">false</span>) {
             <span class="kw">if</span> <span class="op">!</span><span class="ident">has_ssse3</span> {
                 <span class="kw">return</span> <span class="prelude-val">None</span>;
             }
@@ -518,10 +518,10 @@
             <span class="ident">has_avx</span>
         };
         <span class="kw">let</span> <span class="ident">fat</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">fat</span> {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">avx</span> <span class="op">&amp;&amp;</span> <span class="ident">patterns</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">32</span>,
-            <span class="prelude-val">Some</span>(<span class="bool-val">false</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-            <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">avx</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
-            <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+            <span class="prelude-val">None</span> =&gt; <span class="ident">avx</span> <span class="op">&amp;&amp;</span> <span class="ident">patterns</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">32</span>,
+            <span class="prelude-val">Some</span>(<span class="bool-val">false</span>) =&gt; <span class="bool-val">false</span>,
+            <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">avx</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+            <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) =&gt; <span class="bool-val">true</span>,
         };
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">compiler</span> <span class="op">=</span> <span class="ident">Compiler::new</span>(<span class="ident">patterns</span>, <span class="ident">fat</span>);
@@ -532,7 +532,7 @@
         <span class="comment">// that the presence of (for example) TeddySlim1Mask256 means it is</span>
         <span class="comment">// safe to call functions marked with the `avx2` target feature.</span>
         <span class="kw">match</span> (<span class="ident">masks</span>.<span class="ident">len</span>(), <span class="ident">avx</span>, <span class="ident">fat</span>) {
-            (<span class="number">1</span>, <span class="bool-val">false</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Teddy</span> {
+            (<span class="number">1</span>, <span class="bool-val">false</span>, <span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Teddy</span> {
                 <span class="ident">buckets</span>,
                 <span class="ident">max_pattern_id</span>: <span class="ident">patterns</span>.<span class="ident">max_pattern_id</span>(),
                 <span class="ident">exec</span>: <span class="ident">runtime::Exec::TeddySlim1Mask128</span>(
@@ -541,7 +541,7 @@
                     },
                 ),
             }),
-            (<span class="number">1</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Teddy</span> {
+            (<span class="number">1</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Teddy</span> {
                 <span class="ident">buckets</span>,
                 <span class="ident">max_pattern_id</span>: <span class="ident">patterns</span>.<span class="ident">max_pattern_id</span>(),
                 <span class="ident">exec</span>: <span class="ident">runtime::Exec::TeddySlim1Mask256</span>(
@@ -550,7 +550,7 @@
                     },
                 ),
             }),
-            (<span class="number">1</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Teddy</span> {
+            (<span class="number">1</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Teddy</span> {
                 <span class="ident">buckets</span>,
                 <span class="ident">max_pattern_id</span>: <span class="ident">patterns</span>.<span class="ident">max_pattern_id</span>(),
                 <span class="ident">exec</span>: <span class="ident">runtime::Exec::TeddyFat1Mask256</span>(
@@ -559,7 +559,7 @@
                     },
                 ),
             }),
-            (<span class="number">2</span>, <span class="bool-val">false</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Teddy</span> {
+            (<span class="number">2</span>, <span class="bool-val">false</span>, <span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Teddy</span> {
                 <span class="ident">buckets</span>,
                 <span class="ident">max_pattern_id</span>: <span class="ident">patterns</span>.<span class="ident">max_pattern_id</span>(),
                 <span class="ident">exec</span>: <span class="ident">runtime::Exec::TeddySlim2Mask128</span>(
@@ -569,7 +569,7 @@
                     },
                 ),
             }),
-            (<span class="number">2</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Teddy</span> {
+            (<span class="number">2</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Teddy</span> {
                 <span class="ident">buckets</span>,
                 <span class="ident">max_pattern_id</span>: <span class="ident">patterns</span>.<span class="ident">max_pattern_id</span>(),
                 <span class="ident">exec</span>: <span class="ident">runtime::Exec::TeddySlim2Mask256</span>(
@@ -579,7 +579,7 @@
                     },
                 ),
             }),
-            (<span class="number">2</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Teddy</span> {
+            (<span class="number">2</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Teddy</span> {
                 <span class="ident">buckets</span>,
                 <span class="ident">max_pattern_id</span>: <span class="ident">patterns</span>.<span class="ident">max_pattern_id</span>(),
                 <span class="ident">exec</span>: <span class="ident">runtime::Exec::TeddyFat2Mask256</span>(
@@ -589,7 +589,7 @@
                     },
                 ),
             }),
-            (<span class="number">3</span>, <span class="bool-val">false</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Teddy</span> {
+            (<span class="number">3</span>, <span class="bool-val">false</span>, <span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Teddy</span> {
                 <span class="ident">buckets</span>,
                 <span class="ident">max_pattern_id</span>: <span class="ident">patterns</span>.<span class="ident">max_pattern_id</span>(),
                 <span class="ident">exec</span>: <span class="ident">runtime::Exec::TeddySlim3Mask128</span>(
@@ -600,7 +600,7 @@
                     },
                 ),
             }),
-            (<span class="number">3</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Teddy</span> {
+            (<span class="number">3</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Teddy</span> {
                 <span class="ident">buckets</span>,
                 <span class="ident">max_pattern_id</span>: <span class="ident">patterns</span>.<span class="ident">max_pattern_id</span>(),
                 <span class="ident">exec</span>: <span class="ident">runtime::Exec::TeddySlim3Mask256</span>(
@@ -611,7 +611,7 @@
                     },
                 ),
             }),
-            (<span class="number">3</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Teddy</span> {
+            (<span class="number">3</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Teddy</span> {
                 <span class="ident">buckets</span>,
                 <span class="ident">max_pattern_id</span>: <span class="ident">patterns</span>.<span class="ident">max_pattern_id</span>(),
                 <span class="ident">exec</span>: <span class="ident">runtime::Exec::TeddyFat3Mask256</span>(
@@ -622,7 +622,7 @@
                     },
                 ),
             }),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+            <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
         }
     }
 }
@@ -641,7 +641,7 @@
     <span class="doccomment">/// then 16 buckets will be used instead of 8.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This panics if any of the patterns given are empty.</span>
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">patterns</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <span class="ident">Patterns</span>, <span class="ident">fat</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Compiler</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">patterns</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <span class="ident">Patterns</span>, <span class="ident">fat</span>: <span class="ident">bool</span>) -&gt; <span class="ident">Compiler</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">mask_len</span> <span class="op">=</span> <span class="ident">cmp::min</span>(<span class="number">3</span>, <span class="ident">patterns</span>.<span class="ident">minimum_len</span>());
         <span class="macro">assert!</span>(<span class="number">1</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">mask_len</span> <span class="op">&amp;&amp;</span> <span class="ident">mask_len</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">3</span>);
 
@@ -698,7 +698,7 @@
             <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">pat_id</span> <span class="kw">in</span> <span class="ident">bucket</span> {
                 <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">patterns</span>.<span class="ident">get</span>(<span class="ident">pat_id</span>);
                 <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">mask</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">masks</span>.<span class="ident">iter_mut</span>().<span class="ident">enumerate</span>() {
-                    <span class="kw">if</span> <span class="self">self</span>.<span class="ident">buckets</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">8</span> {
+                    <span class="kw">if</span> <span class="self">self</span>.<span class="ident">buckets</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">8</span> {
                         <span class="ident">mask</span>.<span class="ident">add_slim</span>(<span class="ident">bucket_index</span> <span class="kw">as</span> <span class="ident">u8</span>, <span class="ident">pat</span>.<span class="ident">bytes</span>()[<span class="ident">i</span>]);
                     } <span class="kw">else</span> {
                         <span class="ident">mask</span>.<span class="ident">add_fat</span>(<span class="ident">bucket_index</span> <span class="kw">as</span> <span class="ident">u8</span>, <span class="ident">pat</span>.<span class="ident">bytes</span>()[<span class="ident">i</span>]);
@@ -710,7 +710,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Compiler</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buckets</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="macro">vec!</span>[]; <span class="self">self</span>.<span class="ident">buckets</span>.<span class="ident">len</span>()];
         <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">bucket</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">buckets</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
             <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">patid</span> <span class="kw">in</span> <span class="ident">bucket</span> {
@@ -789,32 +789,32 @@
     }
 
     <span class="doccomment">/// Return the low 128 bits of the low-nybble mask.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lo128</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> [<span class="ident">u8</span>; <span class="number">16</span>] {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lo128</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; [<span class="ident">u8</span>; <span class="number">16</span>] {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmp</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">16</span>];
         <span class="ident">tmp</span>.<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">lo</span>[..<span class="number">16</span>]);
         <span class="ident">tmp</span>
     }
 
     <span class="doccomment">/// Return the full low-nybble mask.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lo256</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> [<span class="ident">u8</span>; <span class="number">32</span>] {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lo256</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; [<span class="ident">u8</span>; <span class="number">32</span>] {
         <span class="self">self</span>.<span class="ident">lo</span>
     }
 
     <span class="doccomment">/// Return the low 128 bits of the high-nybble mask.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hi128</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> [<span class="ident">u8</span>; <span class="number">16</span>] {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hi128</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; [<span class="ident">u8</span>; <span class="number">16</span>] {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmp</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">16</span>];
         <span class="ident">tmp</span>.<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">hi</span>[..<span class="number">16</span>]);
         <span class="ident">tmp</span>
     }
 
     <span class="doccomment">/// Return the full high-nybble mask.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hi256</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> [<span class="ident">u8</span>; <span class="number">32</span>] {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hi256</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; [<span class="ident">u8</span>; <span class="number">32</span>] {
         <span class="self">self</span>.<span class="ident">hi</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Mask</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">parts_lo</span>, <span class="kw-2">mut</span> <span class="ident">parts_hi</span>) <span class="op">=</span> (<span class="macro">vec!</span>[], <span class="macro">vec!</span>[]);
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">32</span> {
             <span class="ident">parts_lo</span>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;{:02}: {:08b}&quot;</span>, <span class="ident">i</span>, <span class="self">self</span>.<span class="ident">lo</span>[<span class="ident">i</span>]));

@@ -6,7 +6,7 @@ steal tasks (<em>stealers</em>).</p>
 <p>We spawn a new task onto the scheduler by pushing it into the <em>injector</em> queue. Each worker
 thread waits in a loop until it finds the next task to run and then runs it. To find a task, it
 first looks into its local <em>worker</em> queue, and then into the <em>injector</em> and <em>stealers</em>.</p>
-<h1 id="queues" class="section-header"><a href="#queues">Queues</a></h1>
+<h2 id="queues" class="section-header"><a href="#queues">Queues</a></h2>
 <p><a href="struct.Injector.html" title="Injector"><code>Injector</code></a> is a FIFO queue, where tasks are pushed and stolen from opposite ends. It is
 shared among threads and is usually the entry point for new tasks.</p>
 <p><a href="struct.Worker.html" title="Worker"><code>Worker</code></a> has two constructors:</p>
@@ -19,7 +19,7 @@ end.</li>
 <p>Each <a href="struct.Worker.html" title="Worker"><code>Worker</code></a> is owned by a single thread and supports only push and pop operations.</p>
 <p>Method <a href="struct.Worker.html#method.stealer"><code>stealer()</code></a> creates a <a href="struct.Stealer.html" title="Stealer"><code>Stealer</code></a> that may be shared among threads and can only steal
 tasks from its <a href="struct.Worker.html" title="Worker"><code>Worker</code></a>. Tasks are stolen from the end opposite to where they get pushed.</p>
-<h1 id="stealing" class="section-header"><a href="#stealing">Stealing</a></h1>
+<h2 id="stealing" class="section-header"><a href="#stealing">Stealing</a></h2>
 <p>Steal operations come in three flavors:</p>
 <ol>
 <li><a href="struct.Stealer.html#method.steal"><code>steal()</code></a> - Steals one task.</li>
@@ -29,7 +29,7 @@ one task from that worker.</li>
 </ol>
 <p>In contrast to push and pop operations, stealing can spuriously fail with <a href="enum.Steal.html#variant.Retry" title="Steal::Retry"><code>Steal::Retry</code></a>, in
 which case the steal operation needs to be retried.</p>
-<h1 id="examples" class="section-header"><a href="#examples">Examples</a></h1>
+<h2 id="examples" class="section-header"><a href="#examples">Examples</a></h2>
 <p>Suppose a thread in a work-stealing scheduler is idle and looking for the next task to run. To
 find an available task, it might do the following:</p>
 <ol>
@@ -46,7 +46,7 @@ find an available task, it might do the following:</p>
     <span class="ident">local</span>: <span class="kw-2">&amp;</span><span class="ident">Worker</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     <span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Injector</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     <span class="ident">stealers</span>: <span class="kw-2">&amp;</span>[<span class="ident">Stealer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>],
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="comment">// Pop a task from the local queue, if not empty.</span>
     <span class="ident">local</span>.<span class="ident">pop</span>().<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
         <span class="comment">// Otherwise, we need to look for a task elsewhere.</span>
@@ -63,11 +63,11 @@ find an available task, it might do the following:</p>
     })
 }</code></pre></div>
 </div></details><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="struct" href="struct.Injector.html" title="crossbeam_deque::Injector struct">Injector</a></div><div class="item-right docblock-short"><p>An injector queue.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.Stealer.html" title="crossbeam_deque::Stealer struct">Stealer</a></div><div class="item-right docblock-short"><p>A stealer handle of a worker queue.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.Worker.html" title="crossbeam_deque::Worker struct">Worker</a></div><div class="item-right docblock-short"><p>A worker queue.</p>
-</div></div><h2 id="enums" class="section-header"><a href="#enums">Enums</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="enum" href="enum.Steal.html" title="crossbeam_deque::Steal enum">Steal</a></div><div class="item-right docblock-short"><p>Possible outcomes of a steal operation.</p>
-</div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="crossbeam_deque" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Injector.html" title="crossbeam_deque::Injector struct">Injector</a></div><div class="item-right docblock-short"><p>An injector queue.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Stealer.html" title="crossbeam_deque::Stealer struct">Stealer</a></div><div class="item-right docblock-short"><p>A stealer handle of a worker queue.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Worker.html" title="crossbeam_deque::Worker struct">Worker</a></div><div class="item-right docblock-short"><p>A worker queue.</p>
+</div></div></div><h2 id="enums" class="section-header"><a href="#enums">Enums</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.Steal.html" title="crossbeam_deque::Steal enum">Steal</a></div><div class="item-right docblock-short"><p>Possible outcomes of a steal operation.</p>
+</div></div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="crossbeam_deque" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
     <script src="../main.js"></script>
 </body></html>

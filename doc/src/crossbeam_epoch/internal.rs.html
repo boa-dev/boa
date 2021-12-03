@@ -744,13 +744,13 @@
 
 <span class="kw">impl</span> <span class="ident">Bag</span> {
     <span class="doccomment">/// Returns a new, empty bag.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::default</span>()
     }
 
     <span class="doccomment">/// Returns `true` if the bag is empty.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">len</span> <span class="op">==</span> <span class="number">0</span>
     }
 
     <span class="doccomment">/// Attempts to insert a deferred function into the bag.</span>
@@ -761,7 +761,7 @@
     <span class="doccomment">/// # Safety</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// It should be safe for another thread to execute the given function.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">try_push</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">deferred</span>: <span class="ident">Deferred</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Deferred</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">try_push</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">deferred</span>: <span class="ident">Deferred</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Deferred</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">len</span> <span class="op">&lt;</span> <span class="ident">MAX_OBJECTS</span> {
             <span class="self">self</span>.<span class="ident">deferreds</span>[<span class="self">self</span>.<span class="ident">len</span>] <span class="op">=</span> <span class="ident">deferred</span>;
             <span class="self">self</span>.<span class="ident">len</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
@@ -772,14 +772,14 @@
     }
 
     <span class="doccomment">/// Seals the bag with the given epoch.</span>
-    <span class="kw">fn</span> <span class="ident">seal</span>(<span class="self">self</span>, <span class="ident">epoch</span>: <span class="ident">Epoch</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SealedBag</span> {
+    <span class="kw">fn</span> <span class="ident">seal</span>(<span class="self">self</span>, <span class="ident">epoch</span>: <span class="ident">Epoch</span>) -&gt; <span class="ident">SealedBag</span> {
         <span class="ident">SealedBag</span> { <span class="ident">epoch</span>, <span class="ident">bag</span>: <span class="self">self</span> }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Bag</span> {
     <span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="comment">// TODO: [no_op; MAX_OBJECTS] syntax blocked by https://github.com/rust-lang/rust/issues/49147</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">crossbeam_sanitize</span>))]</span>
         <span class="kw">return</span> <span class="ident">Bag</span> {
@@ -875,7 +875,7 @@
 
 <span class="comment">// can&#39;t #[derive(Debug)] because Debug is not implemented for arrays 64 items long</span>
 <span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Bag</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;Bag&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;deferreds&quot;</span>, <span class="op">&amp;&amp;</span><span class="self">self</span>.<span class="ident">deferreds</span>[..<span class="self">self</span>.<span class="ident">len</span>])
             .<span class="ident">finish</span>()
@@ -896,7 +896,7 @@
 
 <span class="kw">impl</span> <span class="ident">SealedBag</span> {
     <span class="doccomment">/// Checks if it is safe to drop the bag w.r.t. the given global epoch.</span>
-    <span class="kw">fn</span> <span class="ident">is_expired</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">global_epoch</span>: <span class="ident">Epoch</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">is_expired</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">global_epoch</span>: <span class="ident">Epoch</span>) -&gt; <span class="ident">bool</span> {
         <span class="comment">// A pinned participant can witness at most one epoch advancement. Therefore, any bag that</span>
         <span class="comment">// is within one epoch of the current one cannot be destroyed yet.</span>
         <span class="ident">global_epoch</span>.<span class="ident">wrapping_sub</span>(<span class="self">self</span>.<span class="ident">epoch</span>) <span class="op">&gt;</span><span class="op">=</span> <span class="number">2</span>
@@ -921,7 +921,7 @@
 
     <span class="doccomment">/// Creates a new global data for garbage collection.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">locals</span>: <span class="ident">List::new</span>(),
             <span class="ident">queue</span>: <span class="ident">Queue::new</span>(),
@@ -961,8 +961,8 @@
                 <span class="kw-2">&amp;</span><span class="op">|</span><span class="ident">sealed_bag</span>: <span class="kw-2">&amp;</span><span class="ident">SealedBag</span><span class="op">|</span> <span class="ident">sealed_bag</span>.<span class="ident">is_expired</span>(<span class="ident">global_epoch</span>),
                 <span class="ident">guard</span>,
             ) {
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
-                <span class="prelude-val">Some</span>(<span class="ident">sealed_bag</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">drop</span>(<span class="ident">sealed_bag</span>),
+                <span class="prelude-val">None</span> =&gt; <span class="kw">break</span>,
+                <span class="prelude-val">Some</span>(<span class="ident">sealed_bag</span>) =&gt; <span class="ident">drop</span>(<span class="ident">sealed_bag</span>),
             }
         }
     }
@@ -976,7 +976,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// `try_advance()` is annotated `#[cold]` because it is rarely called.</span>
     <span class="attribute">#[<span class="ident">cold</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">try_advance</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">guard</span>: <span class="kw-2">&amp;</span><span class="ident">Guard</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Epoch</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">try_advance</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">guard</span>: <span class="kw-2">&amp;</span><span class="ident">Guard</span>) -&gt; <span class="ident">Epoch</span> {
         <span class="kw">let</span> <span class="ident">global_epoch</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">epoch</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
         <span class="ident">atomic::fence</span>(<span class="ident">Ordering::SeqCst</span>);
 
@@ -985,13 +985,13 @@
         <span class="comment">// misses and data dependencies. We should experiment with other data structures as well.</span>
         <span class="kw">for</span> <span class="ident">local</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">locals</span>.<span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="ident">guard</span>) {
             <span class="kw">match</span> <span class="ident">local</span> {
-                <span class="prelude-val">Err</span>(<span class="ident">IterError::Stalled</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Err</span>(<span class="ident">IterError::Stalled</span>) =&gt; {
                     <span class="comment">// A concurrent thread stalled this iteration. That thread might also try to</span>
                     <span class="comment">// advance the epoch, in which case we leave the job to it. Otherwise, the</span>
                     <span class="comment">// epoch will not be advanced.</span>
                     <span class="kw">return</span> <span class="ident">global_epoch</span>;
                 }
-                <span class="prelude-val">Ok</span>(<span class="ident">local</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Ok</span>(<span class="ident">local</span>) =&gt; {
                     <span class="kw">let</span> <span class="ident">local_epoch</span> <span class="op">=</span> <span class="ident">local</span>.<span class="ident">epoch</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
 
                     <span class="comment">// If the participant was pinned in a different epoch, we cannot advance the</span>
@@ -1062,7 +1062,7 @@
     <span class="kw">const</span> <span class="ident">PINNINGS_BETWEEN_COLLECT</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">128</span>;
 
     <span class="doccomment">/// Registers a new `Local` in the provided `Global`.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">register</span>(<span class="ident">collector</span>: <span class="kw-2">&amp;</span><span class="ident">Collector</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LocalHandle</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">register</span>(<span class="ident">collector</span>: <span class="kw-2">&amp;</span><span class="ident">Collector</span>) -&gt; <span class="ident">LocalHandle</span> {
         <span class="kw">unsafe</span> {
             <span class="comment">// Since we dereference no pointers in this block, it is safe to use `unprotected`.</span>
 
@@ -1085,19 +1085,19 @@
 
     <span class="doccomment">/// Returns a reference to the `Global` in which this `Local` resides.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">global</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Global</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">global</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Global</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">collector</span>().<span class="ident">global</span>
     }
 
     <span class="doccomment">/// Returns a reference to the `Collector` in which this `Local` resides.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">collector</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Collector</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">collector</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Collector</span> {
         <span class="self">self</span>.<span class="ident">collector</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">c</span> })
     }
 
     <span class="doccomment">/// Returns `true` if the current participant is pinned.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_pinned</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_pinned</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">guard_count</span>.<span class="ident">get</span>() <span class="op">&gt;</span> <span class="number">0</span>
     }
 
@@ -1127,13 +1127,13 @@
 
     <span class="doccomment">/// Pins the `Local`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">pin</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Guard</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">pin</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Guard</span> {
         <span class="kw">let</span> <span class="ident">guard</span> <span class="op">=</span> <span class="ident">Guard</span> { <span class="ident">local</span>: <span class="self">self</span> };
 
         <span class="kw">let</span> <span class="ident">guard_count</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">guard_count</span>.<span class="ident">get</span>();
         <span class="self">self</span>.<span class="ident">guard_count</span>.<span class="ident">set</span>(<span class="ident">guard_count</span>.<span class="ident">checked_add</span>(<span class="number">1</span>).<span class="ident">unwrap</span>());
 
-        <span class="kw">if</span> <span class="ident">guard_count</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">guard_count</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="kw">let</span> <span class="ident">global_epoch</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">global</span>().<span class="ident">epoch</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
             <span class="kw">let</span> <span class="ident">new_epoch</span> <span class="op">=</span> <span class="ident">global_epoch</span>.<span class="ident">pinned</span>();
 
@@ -1177,7 +1177,7 @@
 
             <span class="comment">// After every `PINNINGS_BETWEEN_COLLECT` try advancing the epoch and collecting</span>
             <span class="comment">// some garbage.</span>
-            <span class="kw">if</span> <span class="ident">count</span>.<span class="number">0</span> <span class="op">%</span> <span class="ident"><span class="self">Self</span>::PINNINGS_BETWEEN_COLLECT</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">if</span> <span class="ident">count</span>.<span class="number">0</span> <span class="op">%</span> <span class="ident"><span class="self">Self</span>::PINNINGS_BETWEEN_COLLECT</span> <span class="op">==</span> <span class="number">0</span> {
                 <span class="self">self</span>.<span class="ident">global</span>().<span class="ident">collect</span>(<span class="kw-2">&amp;</span><span class="ident">guard</span>);
             }
         }
@@ -1191,10 +1191,10 @@
         <span class="kw">let</span> <span class="ident">guard_count</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">guard_count</span>.<span class="ident">get</span>();
         <span class="self">self</span>.<span class="ident">guard_count</span>.<span class="ident">set</span>(<span class="ident">guard_count</span> <span class="op">-</span> <span class="number">1</span>);
 
-        <span class="kw">if</span> <span class="ident">guard_count</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+        <span class="kw">if</span> <span class="ident">guard_count</span> <span class="op">==</span> <span class="number">1</span> {
             <span class="self">self</span>.<span class="ident">epoch</span>.<span class="ident">store</span>(<span class="ident">Epoch::starting</span>(), <span class="ident">Ordering::Release</span>);
 
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">handle_count</span>.<span class="ident">get</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">handle_count</span>.<span class="ident">get</span>() <span class="op">==</span> <span class="number">0</span> {
                 <span class="self">self</span>.<span class="ident">finalize</span>();
             }
         }
@@ -1206,7 +1206,7 @@
         <span class="kw">let</span> <span class="ident">guard_count</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">guard_count</span>.<span class="ident">get</span>();
 
         <span class="comment">// Update the local epoch only if there&#39;s only one guard.</span>
-        <span class="kw">if</span> <span class="ident">guard_count</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+        <span class="kw">if</span> <span class="ident">guard_count</span> <span class="op">==</span> <span class="number">1</span> {
             <span class="kw">let</span> <span class="ident">epoch</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">epoch</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
             <span class="kw">let</span> <span class="ident">global_epoch</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">global</span>().<span class="ident">epoch</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>).<span class="ident">pinned</span>();
 
@@ -1239,7 +1239,7 @@
         <span class="macro">debug_assert!</span>(<span class="ident">handle_count</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">1</span>);
         <span class="self">self</span>.<span class="ident">handle_count</span>.<span class="ident">set</span>(<span class="ident">handle_count</span> <span class="op">-</span> <span class="number">1</span>);
 
-        <span class="kw">if</span> <span class="ident">guard_count</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">handle_count</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+        <span class="kw">if</span> <span class="ident">guard_count</span> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">handle_count</span> <span class="op">==</span> <span class="number">1</span> {
             <span class="self">self</span>.<span class="ident">finalize</span>();
         }
     }
@@ -1281,12 +1281,12 @@
 }
 
 <span class="kw">impl</span> <span class="ident">IsElement</span><span class="op">&lt;</span><span class="ident">Local</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Local</span> {
-    <span class="kw">fn</span> <span class="ident">entry_of</span>(<span class="ident">local</span>: <span class="kw-2">&amp;</span><span class="ident">Local</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Entry</span> {
+    <span class="kw">fn</span> <span class="ident">entry_of</span>(<span class="ident">local</span>: <span class="kw-2">&amp;</span><span class="ident">Local</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Entry</span> {
         <span class="kw">let</span> <span class="ident">entry_ptr</span> <span class="op">=</span> (<span class="ident">local</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Local</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">+</span> <span class="macro">offset_of!</span>(<span class="ident">Local</span>, <span class="ident">entry</span>)) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Entry</span>;
         <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">entry_ptr</span> }
     }
 
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">element_of</span>(<span class="ident">entry</span>: <span class="kw-2">&amp;</span><span class="ident">Entry</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Local</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">element_of</span>(<span class="ident">entry</span>: <span class="kw-2">&amp;</span><span class="ident">Entry</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Local</span> {
         <span class="comment">// offset_of! macro uses unsafe, but it&#39;s unnecessary in this context.</span>
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_unsafe</span>)]</span>
         <span class="kw">let</span> <span class="ident">local_ptr</span> <span class="op">=</span> (<span class="ident">entry</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Entry</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="macro">offset_of!</span>(<span class="ident">Local</span>, <span class="ident">entry</span>)) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Local</span>;

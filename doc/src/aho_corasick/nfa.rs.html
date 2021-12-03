@@ -1470,39 +1470,39 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Note that the NFA doesn&#39;t actually make use of these equivalence</span>
     <span class="doccomment">/// classes. Instead, these are useful for building the DFA when desired.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">byte_classes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">ByteClasses</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">byte_classes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">ByteClasses</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">byte_classes</span>
     }
 
     <span class="doccomment">/// Returns a prefilter, if one exists.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prefilter_obj</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">PrefilterObj</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prefilter_obj</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">PrefilterObj</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">prefilter</span>.<span class="ident">as_ref</span>()
     }
 
     <span class="doccomment">/// Returns the total number of heap bytes used by this NFA&#39;s transition</span>
     <span class="doccomment">/// table.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">heap_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">heap_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="ident">heap_bytes</span>
             <span class="op">+</span> <span class="self">self</span>.<span class="ident">prefilter</span>.<span class="ident">as_ref</span>().<span class="ident">map_or</span>(<span class="number">0</span>, <span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">as_ref</span>().<span class="ident">heap_bytes</span>())
     }
 
     <span class="doccomment">/// Return the length of the longest pattern in this automaton.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_pattern_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_pattern_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="ident">max_pattern_len</span>
     }
 
     <span class="doccomment">/// Return the total number of patterns added to this automaton.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pattern_count</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pattern_count</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="ident">pattern_count</span>
     }
 
     <span class="doccomment">/// Returns the total number of states in this NFA.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">state_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">state_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="ident">states</span>.<span class="ident">len</span>()
     }
 
     <span class="doccomment">/// Returns the matches for the given state.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[(<span class="ident">PatternID</span>, <span class="ident">PatternLength</span>)] {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <span class="kw-2">&amp;</span>[(<span class="ident">PatternID</span>, <span class="ident">PatternLength</span>)] {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">states</span>[<span class="ident">id</span>.<span class="ident">to_usize</span>()].<span class="ident">matches</span>
     }
 
@@ -1520,7 +1520,7 @@
     }
 
     <span class="doccomment">/// Returns the failure transition for the given state.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">failure_transition</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">S</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">failure_transition</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <span class="ident">S</span> {
         <span class="self">self</span>.<span class="ident">states</span>[<span class="ident">id</span>.<span class="ident">to_usize</span>()].<span class="ident">fail</span>
     }
 
@@ -1528,28 +1528,28 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Note that this does not follow failure transitions. As such, the id</span>
     <span class="doccomment">/// returned may be `fail_id`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">current</span>: <span class="ident">S</span>, <span class="ident">input</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">S</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">current</span>: <span class="ident">S</span>, <span class="ident">input</span>: <span class="ident">u8</span>) -&gt; <span class="ident">S</span> {
         <span class="self">self</span>.<span class="ident">states</span>[<span class="ident">current</span>.<span class="ident">to_usize</span>()].<span class="ident">next_state</span>(<span class="ident">input</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">State</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">State</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">states</span>[<span class="ident">id</span>.<span class="ident">to_usize</span>()]
     }
 
-    <span class="kw">fn</span> <span class="ident">state_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">State</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">state_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">State</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">states</span>[<span class="ident">id</span>.<span class="ident">to_usize</span>()]
     }
 
-    <span class="kw">fn</span> <span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">State</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">State</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">state</span>(<span class="self">self</span>.<span class="ident">start_id</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">start_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">State</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">start_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">State</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">start_id</span>;
         <span class="self">self</span>.<span class="ident">state_mut</span>(<span class="ident">id</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">iter_transitions_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IterTransitionsMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">iter_transitions_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <span class="ident">IterTransitionsMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">S</span><span class="op">&gt;</span> {
         <span class="ident">IterTransitionsMut::new</span>(<span class="self">self</span>, <span class="ident">id</span>)
     }
 
@@ -1564,7 +1564,7 @@
         <span class="self">self</span>.<span class="ident">copy_matches</span>(<span class="ident">start_id</span>, <span class="ident">dst</span>);
     }
 
-    <span class="kw">fn</span> <span class="ident">add_dense_state</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">depth</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">add_dense_state</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">depth</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">trans</span> <span class="op">=</span> <span class="ident">Transitions::Dense</span>(<span class="ident">Dense::new</span>());
         <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">usize_to_state_id</span>(<span class="self">self</span>.<span class="ident">states</span>.<span class="ident">len</span>())<span class="question-mark">?</span>;
         <span class="self">self</span>.<span class="ident">states</span>.<span class="ident">push</span>(<span class="ident">State</span> {
@@ -1577,7 +1577,7 @@
         <span class="prelude-val">Ok</span>(<span class="ident">id</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">add_sparse_state</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">depth</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">add_sparse_state</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">depth</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">trans</span> <span class="op">=</span> <span class="ident">Transitions::Sparse</span>(<span class="macro">vec!</span>[]);
         <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">usize_to_state_id</span>(<span class="self">self</span>.<span class="ident">states</span>.<span class="ident">len</span>())<span class="question-mark">?</span>;
         <span class="self">self</span>.<span class="ident">states</span>.<span class="ident">push</span>(<span class="ident">State</span> {
@@ -1594,27 +1594,27 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span> <span class="ident">Automaton</span> <span class="kw">for</span> <span class="ident">NFA</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">ID</span> <span class="op">=</span> <span class="ident">S</span>;
 
-    <span class="kw">fn</span> <span class="ident">match_kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">MatchKind</span> {
+    <span class="kw">fn</span> <span class="ident">match_kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">MatchKind</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">match_kind</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">anchored</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">anchored</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">anchored</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">prefilter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Prefilter</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">prefilter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Prefilter</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">prefilter</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">as_ref</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">start_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">S</span> {
+    <span class="kw">fn</span> <span class="ident">start_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">S</span> {
         <span class="self">self</span>.<span class="ident">start_id</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">is_valid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">is_valid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <span class="ident">bool</span> {
         <span class="ident">id</span>.<span class="ident">to_usize</span>() <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">states</span>.<span class="ident">len</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">is_match_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">is_match_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">states</span>[<span class="ident">id</span>.<span class="ident">to_usize</span>()].<span class="ident">is_match</span>()
     }
 
@@ -1623,10 +1623,10 @@
         <span class="ident">id</span>: <span class="ident">S</span>,
         <span class="ident">match_index</span>: <span class="ident">usize</span>,
         <span class="ident">end</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">states</span>.<span class="ident">get</span>(<span class="ident">id</span>.<span class="ident">to_usize</span>()) {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
-            <span class="prelude-val">Some</span>(<span class="ident">state</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">state</span>,
+            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">state</span>) =&gt; <span class="ident">state</span>,
         };
         <span class="ident">state</span>.<span class="ident">matches</span>.<span class="ident">get</span>(<span class="ident">match_index</span>).<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="ident">id</span>, <span class="ident">len</span>)<span class="op">|</span> <span class="ident">Match</span> {
             <span class="ident">pattern</span>: <span class="ident">id</span>,
@@ -1635,11 +1635,11 @@
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">match_count</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">match_count</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="ident">states</span>[<span class="ident">id</span>.<span class="ident">to_usize</span>()].<span class="ident">matches</span>.<span class="ident">len</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">next_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">current</span>: <span class="ident">S</span>, <span class="ident">input</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">S</span> {
+    <span class="kw">fn</span> <span class="ident">next_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">current</span>: <span class="ident">S</span>, <span class="ident">input</span>: <span class="ident">u8</span>) -&gt; <span class="ident">S</span> {
         <span class="comment">// This terminates since:</span>
         <span class="comment">//</span>
         <span class="comment">// 1. `State.fail` never points to fail_id().</span>
@@ -1677,7 +1677,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span> <span class="ident">State</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">heap_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">heap_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="ident">trans</span>.<span class="ident">heap_bytes</span>()
             <span class="op">+</span> (<span class="self">self</span>.<span class="ident">matches</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="ident">size_of</span>::<span class="op">&lt;</span>(<span class="ident">PatternID</span>, <span class="ident">PatternLength</span>)<span class="op">&gt;</span>())
     }
@@ -1686,11 +1686,11 @@
         <span class="self">self</span>.<span class="ident">matches</span>.<span class="ident">push</span>((<span class="ident">i</span>, <span class="ident">len</span>));
     }
 
-    <span class="kw">fn</span> <span class="ident">is_match</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">is_match</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="op">!</span><span class="self">self</span>.<span class="ident">matches</span>.<span class="ident">is_empty</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">get_longest_match_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">get_longest_match_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="comment">// Why is this true? Because the first match in any matching state</span>
         <span class="comment">// will always correspond to the match added to it during trie</span>
         <span class="comment">// construction (since when we copy matches due to failure transitions,</span>
@@ -1701,7 +1701,7 @@
         <span class="self">self</span>.<span class="ident">matches</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="kw">_</span>, <span class="ident">len</span>)<span class="op">|</span> <span class="ident">len</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">next_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">S</span> {
+    <span class="kw">fn</span> <span class="ident">next_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <span class="ident">u8</span>) -&gt; <span class="ident">S</span> {
         <span class="self">self</span>.<span class="ident">trans</span>.<span class="ident">next_state</span>(<span class="ident">input</span>)
     }
 
@@ -1722,12 +1722,12 @@
 <span class="kw">where</span>
     <span class="ident">S</span>: <span class="ident">StateID</span>,
 {
-    <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
         <span class="ident">Dense</span>(<span class="macro">vec!</span>[<span class="ident">fail_id</span>(); <span class="number">256</span>])
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">len</span>()
     }
 }
@@ -1736,7 +1736,7 @@
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">S</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">i</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">S</span> {
+    <span class="kw">fn</span> <span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">i</span>: <span class="ident">u8</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">S</span> {
         <span class="comment">// SAFETY: This is safe because all dense transitions have</span>
         <span class="comment">// exactly 256 elements, so all u8 values are valid indices.</span>
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>[<span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>]
@@ -1745,7 +1745,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="ident">IndexMut</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Dense</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">index_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">i</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">S</span> {
+    <span class="kw">fn</span> <span class="ident">index_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">i</span>: <span class="ident">u8</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">S</span> {
         <span class="comment">// SAFETY: This is safe because all dense transitions have</span>
         <span class="comment">// exactly 256 elements, so all u8 values are valid indices.</span>
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="number">0</span>[<span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>]
@@ -1770,38 +1770,38 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span> <span class="ident">Transitions</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">heap_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">heap_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Transitions::Sparse</span>(<span class="kw-2">ref</span> <span class="ident">sparse</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Transitions::Sparse</span>(<span class="kw-2">ref</span> <span class="ident">sparse</span>) =&gt; {
                 <span class="ident">sparse</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="ident">size_of</span>::<span class="op">&lt;</span>(<span class="ident">u8</span>, <span class="ident">S</span>)<span class="op">&gt;</span>()
             }
-            <span class="ident">Transitions::Dense</span>(<span class="kw-2">ref</span> <span class="ident">dense</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">dense</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(),
+            <span class="ident">Transitions::Dense</span>(<span class="kw-2">ref</span> <span class="ident">dense</span>) =&gt; <span class="ident">dense</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">next_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">S</span> {
+    <span class="kw">fn</span> <span class="ident">next_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <span class="ident">u8</span>) -&gt; <span class="ident">S</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Transitions::Sparse</span>(<span class="kw-2">ref</span> <span class="ident">sparse</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Transitions::Sparse</span>(<span class="kw-2">ref</span> <span class="ident">sparse</span>) =&gt; {
                 <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">b</span>, <span class="ident">id</span>) <span class="kw">in</span> <span class="ident">sparse</span> {
-                    <span class="kw">if</span> <span class="ident">b</span> <span class="op">=</span><span class="op">=</span> <span class="ident">input</span> {
+                    <span class="kw">if</span> <span class="ident">b</span> <span class="op">==</span> <span class="ident">input</span> {
                         <span class="kw">return</span> <span class="ident">id</span>;
                     }
                 }
                 <span class="ident">fail_id</span>()
             }
-            <span class="ident">Transitions::Dense</span>(<span class="kw-2">ref</span> <span class="ident">dense</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">dense</span>[<span class="ident">input</span>],
+            <span class="ident">Transitions::Dense</span>(<span class="kw-2">ref</span> <span class="ident">dense</span>) =&gt; <span class="ident">dense</span>[<span class="ident">input</span>],
         }
     }
 
     <span class="kw">fn</span> <span class="ident">set_next_state</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">input</span>: <span class="ident">u8</span>, <span class="ident">next</span>: <span class="ident">S</span>) {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Transitions::Sparse</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">sparse</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Transitions::Sparse</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">sparse</span>) =&gt; {
                 <span class="kw">match</span> <span class="ident">sparse</span>.<span class="ident">binary_search_by_key</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>, <span class="op">|</span><span class="kw-2">&amp;</span>(<span class="ident">b</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">b</span>) {
-                    <span class="prelude-val">Ok</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">sparse</span>[<span class="ident">i</span>] <span class="op">=</span> (<span class="ident">input</span>, <span class="ident">next</span>),
-                    <span class="prelude-val">Err</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">sparse</span>.<span class="ident">insert</span>(<span class="ident">i</span>, (<span class="ident">input</span>, <span class="ident">next</span>)),
+                    <span class="prelude-val">Ok</span>(<span class="ident">i</span>) =&gt; <span class="ident">sparse</span>[<span class="ident">i</span>] <span class="op">=</span> (<span class="ident">input</span>, <span class="ident">next</span>),
+                    <span class="prelude-val">Err</span>(<span class="ident">i</span>) =&gt; <span class="ident">sparse</span>.<span class="ident">insert</span>(<span class="ident">i</span>, (<span class="ident">input</span>, <span class="ident">next</span>)),
                 }
             }
-            <span class="ident">Transitions::Dense</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">dense</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Transitions::Dense</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">dense</span>) =&gt; {
                 <span class="ident">dense</span>[<span class="ident">input</span>] <span class="op">=</span> <span class="ident">next</span>;
             }
         }
@@ -1811,12 +1811,12 @@
     <span class="doccomment">/// to `fail_id()`.</span>
     <span class="kw">fn</span> <span class="ident">iter</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">u8</span>, <span class="ident">S</span>)<span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Transitions::Sparse</span>(<span class="kw-2">ref</span> <span class="ident">sparse</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Transitions::Sparse</span>(<span class="kw-2">ref</span> <span class="ident">sparse</span>) =&gt; {
                 <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">b</span>, <span class="ident">id</span>) <span class="kw">in</span> <span class="ident">sparse</span> {
                     <span class="ident">f</span>(<span class="ident">b</span>, <span class="ident">id</span>);
                 }
             }
-            <span class="ident">Transitions::Dense</span>(<span class="kw-2">ref</span> <span class="ident">dense</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Transitions::Dense</span>(<span class="kw-2">ref</span> <span class="ident">dense</span>) =&gt; {
                 <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="ident">AllBytesIter::new</span>() {
                     <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">dense</span>[<span class="ident">b</span>];
                     <span class="kw">if</span> <span class="ident">id</span> <span class="op">!</span><span class="op">=</span> <span class="ident">fail_id</span>() {
@@ -1832,10 +1832,10 @@
     <span class="kw">fn</span> <span class="ident">iter_all</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">u8</span>, <span class="ident">S</span>)<span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">classes</span>: <span class="kw-2">&amp;</span><span class="ident">ByteClasses</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) {
         <span class="kw">if</span> <span class="ident">classes</span>.<span class="ident">is_singleton</span>() {
             <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-                <span class="ident">Transitions::Sparse</span>(<span class="kw-2">ref</span> <span class="ident">sparse</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Transitions::Sparse</span>(<span class="kw-2">ref</span> <span class="ident">sparse</span>) =&gt; {
                     <span class="ident">sparse_iter</span>(<span class="ident">sparse</span>, <span class="ident">f</span>);
                 }
-                <span class="ident">Transitions::Dense</span>(<span class="kw-2">ref</span> <span class="ident">dense</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Transitions::Dense</span>(<span class="kw-2">ref</span> <span class="ident">dense</span>) =&gt; {
                     <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="ident">AllBytesIter::new</span>() {
                         <span class="ident">f</span>(<span class="ident">b</span>, <span class="ident">dense</span>[<span class="ident">b</span>]);
                     }
@@ -1845,7 +1845,7 @@
             <span class="comment">// In this case, we only want to yield a single byte for each</span>
             <span class="comment">// equivalence class.</span>
             <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-                <span class="ident">Transitions::Sparse</span>(<span class="kw-2">ref</span> <span class="ident">sparse</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Transitions::Sparse</span>(<span class="kw-2">ref</span> <span class="ident">sparse</span>) =&gt; {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_class</span> <span class="op">=</span> <span class="prelude-val">None</span>;
                     <span class="ident">sparse_iter</span>(<span class="ident">sparse</span>, <span class="op">|</span><span class="ident">b</span>, <span class="ident">next</span><span class="op">|</span> {
                         <span class="kw">let</span> <span class="ident">class</span> <span class="op">=</span> <span class="ident">classes</span>.<span class="ident">get</span>(<span class="ident">b</span>);
@@ -1855,7 +1855,7 @@
                         }
                     })
                 }
-                <span class="ident">Transitions::Dense</span>(<span class="kw-2">ref</span> <span class="ident">dense</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Transitions::Dense</span>(<span class="kw-2">ref</span> <span class="ident">dense</span>) =&gt; {
                     <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="ident">classes</span>.<span class="ident">representatives</span>() {
                         <span class="ident">f</span>(<span class="ident">b</span>, <span class="ident">dense</span>[<span class="ident">b</span>]);
                     }
@@ -1881,11 +1881,11 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span> <span class="ident">IterTransitionsMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">nfa</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">NFA</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">state_id</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IterTransitionsMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">nfa</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">NFA</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">state_id</span>: <span class="ident">S</span>) -&gt; <span class="ident">IterTransitionsMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span> {
         <span class="ident">IterTransitionsMut</span> { <span class="ident">nfa</span>, <span class="ident">state_id</span>, <span class="ident">cur</span>: <span class="number">0</span> }
     }
 
-    <span class="kw">fn</span> <span class="ident">nfa</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NFA</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">nfa</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NFA</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">nfa</span>
     }
 }
@@ -1893,9 +1893,9 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">IterTransitionsMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> (<span class="ident">u8</span>, <span class="ident">S</span>);
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">u8</span>, <span class="ident">S</span>)<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">u8</span>, <span class="ident">S</span>)<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">states</span>[<span class="self">self</span>.<span class="ident">state_id</span>.<span class="ident">to_usize</span>()].<span class="ident">trans</span> {
-            <span class="ident">Transitions::Sparse</span>(<span class="kw-2">ref</span> <span class="ident">sparse</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Transitions::Sparse</span>(<span class="kw-2">ref</span> <span class="ident">sparse</span>) =&gt; {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">cur</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">sparse</span>.<span class="ident">len</span>() {
                     <span class="kw">return</span> <span class="prelude-val">None</span>;
                 }
@@ -1903,7 +1903,7 @@
                 <span class="self">self</span>.<span class="ident">cur</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 <span class="prelude-val">Some</span>(<span class="ident">sparse</span>[<span class="ident">i</span>])
             }
-            <span class="ident">Transitions::Dense</span>(<span class="kw-2">ref</span> <span class="ident">dense</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Transitions::Dense</span>(<span class="kw-2">ref</span> <span class="ident">dense</span>) =&gt; {
                 <span class="kw">while</span> <span class="self">self</span>.<span class="ident">cur</span> <span class="op">&lt;</span> <span class="ident">dense</span>.<span class="ident">len</span>() {
                     <span class="comment">// There are always exactly 255 transitions in dense repr.</span>
                     <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">cur</span> <span class="op">&lt;</span> <span class="number">256</span>);
@@ -1932,7 +1932,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Builder</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Builder</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="ident">Builder</span> {
         <span class="ident">Builder</span> {
             <span class="ident">dense_depth</span>: <span class="number">2</span>,
             <span class="ident">match_kind</span>: <span class="ident">MatchKind::default</span>(),
@@ -1944,11 +1944,11 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Builder</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Builder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">Builder</span> {
         <span class="ident">Builder::default</span>()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">P</span>, <span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">patterns</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NFA</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">P</span>, <span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">patterns</span>: <span class="ident">I</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NFA</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">P</span><span class="op">&gt;</span>,
         <span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>,
@@ -1956,27 +1956,27 @@
         <span class="ident">Compiler::new</span>(<span class="self">self</span>)<span class="question-mark">?</span>.<span class="ident">compile</span>(<span class="ident">patterns</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">match_kind</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">kind</span>: <span class="ident">MatchKind</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Builder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">match_kind</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">kind</span>: <span class="ident">MatchKind</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Builder</span> {
         <span class="self">self</span>.<span class="ident">match_kind</span> <span class="op">=</span> <span class="ident">kind</span>;
         <span class="self">self</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dense_depth</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">depth</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Builder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dense_depth</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">depth</span>: <span class="ident">usize</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Builder</span> {
         <span class="self">self</span>.<span class="ident">dense_depth</span> <span class="op">=</span> <span class="ident">depth</span>;
         <span class="self">self</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prefilter</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Builder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prefilter</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Builder</span> {
         <span class="self">self</span>.<span class="ident">prefilter</span> <span class="op">=</span> <span class="ident">yes</span>;
         <span class="self">self</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">anchored</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Builder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">anchored</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Builder</span> {
         <span class="self">self</span>.<span class="ident">anchored</span> <span class="op">=</span> <span class="ident">yes</span>;
         <span class="self">self</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ascii_case_insensitive</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Builder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ascii_case_insensitive</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Builder</span> {
         <span class="self">self</span>.<span class="ident">ascii_case_insensitive</span> <span class="op">=</span> <span class="ident">yes</span>;
         <span class="self">self</span>
     }
@@ -1994,7 +1994,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span> <span class="ident">Compiler</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">builder</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Builder</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Compiler</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">builder</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Builder</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Compiler</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="ident">Compiler</span> {
             <span class="ident">builder</span>,
             <span class="ident">prefilter</span>: <span class="ident">prefilter::Builder::new</span>(<span class="ident">builder</span>.<span class="ident">match_kind</span>)
@@ -2014,7 +2014,7 @@
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">compile</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">P</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">patterns</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NFA</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">compile</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">P</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">patterns</span>: <span class="ident">I</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NFA</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">P</span><span class="op">&gt;</span>,
         <span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>,
@@ -2045,7 +2045,7 @@
     <span class="doccomment">/// automaton. Effectively, it creates the basic structure of the</span>
     <span class="doccomment">/// automaton, where every pattern given has a path from the start state to</span>
     <span class="doccomment">/// the end of the pattern.</span>
-    <span class="kw">fn</span> <span class="ident">build_trie</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">P</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">patterns</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">build_trie</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">P</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">patterns</span>: <span class="ident">I</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">P</span><span class="op">&gt;</span>,
         <span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>,
@@ -2248,7 +2248,7 @@
                 <span class="ident">seen</span>.<span class="ident">insert</span>(<span class="ident">next</span>);
 
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fail</span> <span class="op">=</span> <span class="ident">it</span>.<span class="ident">nfa</span>().<span class="ident">state</span>(<span class="ident">id</span>).<span class="ident">fail</span>;
-                <span class="kw">while</span> <span class="ident">it</span>.<span class="ident">nfa</span>().<span class="ident">state</span>(<span class="ident">fail</span>).<span class="ident">next_state</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">fail_id</span>() {
+                <span class="kw">while</span> <span class="ident">it</span>.<span class="ident">nfa</span>().<span class="ident">state</span>(<span class="ident">fail</span>).<span class="ident">next_state</span>(<span class="ident">b</span>) <span class="op">==</span> <span class="ident">fail_id</span>() {
                     <span class="ident">fail</span> <span class="op">=</span> <span class="ident">it</span>.<span class="ident">nfa</span>().<span class="ident">state</span>(<span class="ident">fail</span>).<span class="ident">fail</span>;
                 }
                 <span class="ident">fail</span> <span class="op">=</span> <span class="ident">it</span>.<span class="ident">nfa</span>().<span class="ident">state</span>(<span class="ident">fail</span>).<span class="ident">next_state</span>(<span class="ident">b</span>);
@@ -2319,7 +2319,7 @@
         <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span> <span class="ident">QueuedState</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
             <span class="doccomment">/// Create a queued state corresponding to the given NFA&#39;s start</span>
             <span class="doccomment">/// state.</span>
-            <span class="kw">fn</span> <span class="ident">start</span>(<span class="ident">nfa</span>: <span class="kw-2">&amp;</span><span class="ident">NFA</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">QueuedState</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="ident">start</span>(<span class="ident">nfa</span>: <span class="kw-2">&amp;</span><span class="ident">NFA</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) -&gt; <span class="ident">QueuedState</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">match_at_depth</span> <span class="op">=</span>
                     <span class="kw">if</span> <span class="ident">nfa</span>.<span class="ident">start</span>().<span class="ident">is_match</span>() { <span class="prelude-val">Some</span>(<span class="number">0</span>) } <span class="kw">else</span> { <span class="prelude-val">None</span> };
                 <span class="ident">QueuedState</span> { <span class="ident">id</span>: <span class="ident">nfa</span>.<span class="ident">start_id</span>, <span class="ident">match_at_depth</span> }
@@ -2331,7 +2331,7 @@
                 <span class="kw-2">&amp;</span><span class="self">self</span>,
                 <span class="ident">nfa</span>: <span class="kw-2">&amp;</span><span class="ident">NFA</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>,
                 <span class="ident">id</span>: <span class="ident">S</span>,
-            ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">QueuedState</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
+            ) -&gt; <span class="ident">QueuedState</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">match_at_depth</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_match_at_depth</span>(<span class="ident">nfa</span>, <span class="ident">id</span>);
                 <span class="ident">QueuedState</span> { <span class="ident">id</span>, <span class="ident">match_at_depth</span> }
             }
@@ -2343,15 +2343,15 @@
                 <span class="kw-2">&amp;</span><span class="self">self</span>,
                 <span class="ident">nfa</span>: <span class="kw-2">&amp;</span><span class="ident">NFA</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>,
                 <span class="ident">next</span>: <span class="ident">S</span>,
-            ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+            ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
                 <span class="comment">// This is a little tricky. If the previous state has already</span>
                 <span class="comment">// seen a match or if `next` isn&#39;t a match state, then nothing</span>
                 <span class="comment">// needs to change since a later state cannot find an earlier</span>
                 <span class="comment">// match.</span>
                 <span class="kw">match</span> <span class="self">self</span>.<span class="ident">match_at_depth</span> {
-                    <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>),
-                    <span class="prelude-val">None</span> <span class="kw">if</span> <span class="ident">nfa</span>.<span class="ident">state</span>(<span class="ident">next</span>).<span class="ident">is_match</span>() <span class="op">=</span><span class="op">&gt;</span> {}
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
+                    <span class="prelude-val">Some</span>(<span class="ident">x</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>),
+                    <span class="prelude-val">None</span> <span class="kw">if</span> <span class="ident">nfa</span>.<span class="ident">state</span>(<span class="ident">next</span>).<span class="ident">is_match</span>() =&gt; {}
+                    <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
                 }
                 <span class="kw">let</span> <span class="ident">depth</span> <span class="op">=</span> <span class="ident">nfa</span>.<span class="ident">state</span>(<span class="ident">next</span>).<span class="ident">depth</span>
                     <span class="op">-</span> <span class="ident">nfa</span>.<span class="ident">state</span>(<span class="ident">next</span>).<span class="ident">get_longest_match_len</span>().<span class="ident">unwrap</span>()
@@ -2410,7 +2410,7 @@
 
                 <span class="comment">// Find the failure state for next. Same as standard.</span>
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fail</span> <span class="op">=</span> <span class="ident">it</span>.<span class="ident">nfa</span>().<span class="ident">state</span>(<span class="ident">item</span>.<span class="ident">id</span>).<span class="ident">fail</span>;
-                <span class="kw">while</span> <span class="ident">it</span>.<span class="ident">nfa</span>().<span class="ident">state</span>(<span class="ident">fail</span>).<span class="ident">next_state</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">fail_id</span>() {
+                <span class="kw">while</span> <span class="ident">it</span>.<span class="ident">nfa</span>().<span class="ident">state</span>(<span class="ident">fail</span>).<span class="ident">next_state</span>(<span class="ident">b</span>) <span class="op">==</span> <span class="ident">fail_id</span>() {
                     <span class="ident">fail</span> <span class="op">=</span> <span class="ident">it</span>.<span class="ident">nfa</span>().<span class="ident">state</span>(<span class="ident">fail</span>).<span class="ident">fail</span>;
                 }
                 <span class="ident">fail</span> <span class="op">=</span> <span class="ident">it</span>.<span class="ident">nfa</span>().<span class="ident">state</span>(<span class="ident">fail</span>).<span class="ident">next_state</span>(<span class="ident">b</span>);
@@ -2484,7 +2484,7 @@
     <span class="doccomment">/// it is the only way to visit the same state twice. Otherwise, this</span>
     <span class="doccomment">/// returns an inert set that nevers adds anything and always reports</span>
     <span class="doccomment">/// `false` for every member test.</span>
-    <span class="kw">fn</span> <span class="ident">queued_set</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">QueuedSet</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">queued_set</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">QueuedSet</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">ascii_case_insensitive</span> {
             <span class="ident">QueuedSet::active</span>()
         } <span class="kw">else</span> {
@@ -2505,7 +2505,7 @@
         <span class="kw">let</span> <span class="ident">start_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">start_id</span>;
         <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">start_mut</span>();
         <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="ident">AllBytesIter::new</span>() {
-            <span class="kw">if</span> <span class="ident">start</span>.<span class="ident">next_state</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">fail_id</span>() {
+            <span class="kw">if</span> <span class="ident">start</span>.<span class="ident">next_state</span>(<span class="ident">b</span>) <span class="op">==</span> <span class="ident">fail_id</span>() {
                 <span class="ident">start</span>.<span class="ident">set_next_state</span>(<span class="ident">b</span>, <span class="ident">start_id</span>);
             }
         }
@@ -2532,7 +2532,7 @@
             <span class="kw">let</span> <span class="ident">start_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">start_id</span>;
             <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">start_mut</span>();
             <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="ident">AllBytesIter::new</span>() {
-                <span class="kw">if</span> <span class="ident">start</span>.<span class="ident">next_state</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">start_id</span> {
+                <span class="kw">if</span> <span class="ident">start</span>.<span class="ident">next_state</span>(<span class="ident">b</span>) <span class="op">==</span> <span class="ident">start_id</span> {
                     <span class="ident">start</span>.<span class="ident">set_next_state</span>(<span class="ident">b</span>, <span class="ident">dead_id</span>());
                 }
             }
@@ -2563,7 +2563,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// If adding the new state would overflow the chosen state ID</span>
     <span class="doccomment">/// representation, then this returns an error.</span>
-    <span class="kw">fn</span> <span class="ident">add_state</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">depth</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">add_state</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">depth</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">depth</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">dense_depth</span> {
             <span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">add_dense_state</span>(<span class="ident">depth</span>)
         } <span class="kw">else</span> {
@@ -2572,7 +2572,7 @@
     }
 
     <span class="doccomment">/// Returns the match kind configured on the underlying builder.</span>
-    <span class="kw">fn</span> <span class="ident">match_kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MatchKind</span> {
+    <span class="kw">fn</span> <span class="ident">match_kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">MatchKind</span> {
         <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">match_kind</span>
     }
 }
@@ -2592,12 +2592,12 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span> <span class="ident">QueuedSet</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Return an inert set that returns `false` for every state ID membership</span>
     <span class="doccomment">/// test.</span>
-    <span class="kw">fn</span> <span class="ident">inert</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">QueuedSet</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">inert</span>() -&gt; <span class="ident">QueuedSet</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
         <span class="ident">QueuedSet</span> { <span class="ident">set</span>: <span class="prelude-val">None</span> }
     }
 
     <span class="doccomment">/// Return an active set that tracks state ID membership.</span>
-    <span class="kw">fn</span> <span class="ident">active</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">QueuedSet</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">active</span>() -&gt; <span class="ident">QueuedSet</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
         <span class="ident">QueuedSet</span> { <span class="ident">set</span>: <span class="prelude-val">Some</span>(<span class="ident">BTreeSet::new</span>()) }
     }
 
@@ -2611,10 +2611,10 @@
 
     <span class="doccomment">/// Returns true if and only if the given state ID is in this set. If the</span>
     <span class="doccomment">/// set is inert, this always returns false.</span>
-    <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state_id</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state_id</span>: <span class="ident">S</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">set</span> {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">set</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">set</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">state_id</span>),
+            <span class="prelude-val">None</span> =&gt; <span class="bool-val">false</span>,
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">set</span>) =&gt; <span class="ident">set</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">state_id</span>),
         }
     }
 }
@@ -2631,7 +2631,7 @@
 <span class="kw">struct</span> <span class="ident">AllBytesIter</span>(<span class="ident">u16</span>);
 
 <span class="kw">impl</span> <span class="ident">AllBytesIter</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AllBytesIter</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">AllBytesIter</span> {
         <span class="ident">AllBytesIter</span>(<span class="number">0</span>)
     }
 }
@@ -2639,7 +2639,7 @@
 <span class="kw">impl</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">AllBytesIter</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">u8</span>;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">256</span> {
             <span class="prelude-val">None</span>
         } <span class="kw">else</span> {
@@ -2651,7 +2651,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">NFA</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;NFA(&quot;</span>)<span class="question-mark">?</span>;
         <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;match_kind: {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">match_kind</span>)<span class="question-mark">?</span>;
         <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;prefilter: {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">prefilter</span>)<span class="question-mark">?</span>;
@@ -2664,12 +2664,12 @@
                 <span class="comment">// are critical to understanding the automaton, but they are</span>
                 <span class="comment">// very noisy without better formatting for contiugous ranges</span>
                 <span class="comment">// to the same state.</span>
-                <span class="kw">if</span> <span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">start_id</span>.<span class="ident">to_usize</span>() <span class="op">&amp;&amp;</span> <span class="ident">next</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">start_id</span> {
+                <span class="kw">if</span> <span class="ident">id</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">start_id</span>.<span class="ident">to_usize</span>() <span class="op">&amp;&amp;</span> <span class="ident">next</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">start_id</span> {
                     <span class="kw">return</span>;
                 }
                 <span class="comment">// Similarly, the dead state has a bunch of uninteresting</span>
                 <span class="comment">// transitions too.</span>
-                <span class="kw">if</span> <span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">dead_id</span>() {
+                <span class="kw">if</span> <span class="ident">id</span> <span class="op">==</span> <span class="ident">dead_id</span>() {
                     <span class="kw">return</span>;
                 }
                 <span class="ident">trans</span>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;{} =&gt; {}&quot;</span>, <span class="ident">escape</span>(<span class="ident">byte</span>), <span class="ident">next</span>.<span class="ident">to_usize</span>()));
@@ -2711,7 +2711,7 @@
 <span class="doccomment">/// slice.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This panics if i == j.</span>
-<span class="kw">fn</span> <span class="ident">get_two_mut</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">xs</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>], <span class="ident">i</span>: <span class="ident">usize</span>, <span class="ident">j</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>) {
+<span class="kw">fn</span> <span class="ident">get_two_mut</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">xs</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>], <span class="ident">i</span>: <span class="ident">usize</span>, <span class="ident">j</span>: <span class="ident">usize</span>) -&gt; (<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>) {
     <span class="macro">assert!</span>(<span class="ident">i</span> <span class="op">!</span><span class="op">=</span> <span class="ident">j</span>, <span class="string">&quot;{} must not be equal to {}&quot;</span>, <span class="ident">i</span>, <span class="ident">j</span>);
     <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">j</span> {
         <span class="kw">let</span> (<span class="ident">before</span>, <span class="ident">after</span>) <span class="op">=</span> <span class="ident">xs</span>.<span class="ident">split_at_mut</span>(<span class="ident">j</span>);
@@ -2723,7 +2723,7 @@
 }
 
 <span class="doccomment">/// Return the given byte as its escaped string form.</span>
-<span class="kw">fn</span> <span class="ident">escape</span>(<span class="ident">b</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+<span class="kw">fn</span> <span class="ident">escape</span>(<span class="ident">b</span>: <span class="ident">u8</span>) -&gt; <span class="ident">String</span> {
     <span class="kw">use</span> <span class="ident">std::ascii</span>;
 
     <span class="ident">String::from_utf8</span>(<span class="ident">ascii::escape_default</span>(<span class="ident">b</span>).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()).<span class="ident">unwrap</span>()

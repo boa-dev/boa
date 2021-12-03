@@ -36,7 +36,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// assert_eq!(get_general_category(&#39;A&#39;), GeneralCategory::UppercaseLetter);</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_general_category</span>(<span class="ident">chr</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GeneralCategory</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_general_category</span>(<span class="ident">chr</span>: <span class="ident">char</span>) -&gt; <span class="ident">GeneralCategory</span> {
     <span class="kw">let</span> <span class="ident">u</span> <span class="op">=</span> <span class="ident">chr</span> <span class="kw">as</span> <span class="ident">u32</span>;
 
     <span class="kw">if</span> <span class="ident">u</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">LAST_CODEPOINT</span> {

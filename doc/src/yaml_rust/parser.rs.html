@@ -910,12 +910,12 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Event</span> {
-    <span class="kw">fn</span> <span class="ident">empty_scalar</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Event</span> {
+    <span class="kw">fn</span> <span class="ident">empty_scalar</span>() -&gt; <span class="ident">Event</span> {
         <span class="comment">// a null scalar</span>
         <span class="ident">Event::Scalar</span>(<span class="string">&quot;~&quot;</span>.<span class="ident">to_owned</span>(), <span class="ident">TScalarStyle::Plain</span>, <span class="number">0</span>, <span class="prelude-val">None</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">empty_scalar_with_anchor</span>(<span class="ident">anchor</span>: <span class="ident">usize</span>, <span class="ident">tag</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TokenType</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Event</span> {
+    <span class="kw">fn</span> <span class="ident">empty_scalar_with_anchor</span>(<span class="ident">anchor</span>: <span class="ident">usize</span>, <span class="ident">tag</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TokenType</span><span class="op">&gt;</span>) -&gt; <span class="ident">Event</span> {
         <span class="ident">Event::Scalar</span>(<span class="string">&quot;&quot;</span>.<span class="ident">to_owned</span>(), <span class="ident">TScalarStyle::Plain</span>, <span class="ident">anchor</span>, <span class="ident">tag</span>)
     }
 }
@@ -949,7 +949,7 @@
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ParseResult</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">Event</span>, <span class="ident">Marker</span>), <span class="ident">ScanError</span><span class="op">&gt;</span>;
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">char</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">Parser</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">src</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Parser</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">src</span>: <span class="ident">T</span>) -&gt; <span class="ident">Parser</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="ident">Parser</span> {
             <span class="ident">scanner</span>: <span class="ident">Scanner::new</span>(<span class="ident">src</span>),
             <span class="ident">states</span>: <span class="ident">Vec::new</span>(),
@@ -964,45 +964,45 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peek</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="ident">Event</span>, <span class="ident">Marker</span>), <span class="ident">ScanError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peek</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="ident">Event</span>, <span class="ident">Marker</span>), <span class="ident">ScanError</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">current</span> {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">x</span>),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">x</span>),
+            <span class="prelude-val">None</span> =&gt; {
                 <span class="self">self</span>.<span class="ident">current</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">next</span>()<span class="question-mark">?</span>);
                 <span class="self">self</span>.<span class="ident">peek</span>()
             }
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">ParseResult</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">current</span> {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">parse</span>(),
-            <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">current</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>()),
+            <span class="prelude-val">None</span> =&gt; <span class="self">self</span>.<span class="ident">parse</span>(),
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">current</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>()),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">peek_token</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Token</span>, <span class="ident">ScanError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">peek_token</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Token</span>, <span class="ident">ScanError</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">token</span> {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">None</span> =&gt; {
                 <span class="self">self</span>.<span class="ident">token</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">scan_next_token</span>()<span class="question-mark">?</span>);
                 <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">token</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>())
             }
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">tok</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">tok</span>),
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">tok</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">tok</span>),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">scan_next_token</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Token</span>, <span class="ident">ScanError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">scan_next_token</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Token</span>, <span class="ident">ScanError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">scanner</span>.<span class="ident">next</span>();
         <span class="kw">match</span> <span class="ident">token</span> {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">scanner</span>.<span class="ident">get_error</span>() {
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ScanError::new</span>(<span class="self">self</span>.<span class="ident">scanner</span>.<span class="ident">mark</span>(), <span class="string">&quot;unexpected eof&quot;</span>)),
-                <span class="prelude-val">Some</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>),
+            <span class="prelude-val">None</span> =&gt; <span class="kw">match</span> <span class="self">self</span>.<span class="ident">scanner</span>.<span class="ident">get_error</span>() {
+                <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ScanError::new</span>(<span class="self">self</span>.<span class="ident">scanner</span>.<span class="ident">mark</span>(), <span class="string">&quot;unexpected eof&quot;</span>)),
+                <span class="prelude-val">Some</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">e</span>),
             },
-            <span class="prelude-val">Some</span>(<span class="ident">tok</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">tok</span>),
+            <span class="prelude-val">Some</span>(<span class="ident">tok</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">tok</span>),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">fetch_token</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Token</span> {
+    <span class="kw">fn</span> <span class="ident">fetch_token</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Token</span> {
         <span class="self">self</span>.<span class="ident">token</span>
             .<span class="ident">take</span>()
             .<span class="ident">expect</span>(<span class="string">&quot;fetch_token needs to be preceded by peek_token&quot;</span>)
@@ -1019,8 +1019,8 @@
         <span class="self">self</span>.<span class="ident">states</span>.<span class="ident">push</span>(<span class="ident">state</span>);
     }
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span><span class="op">=</span> <span class="ident">State::End</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">ParseResult</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">state</span> <span class="op">==</span> <span class="ident">State::End</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="ident">Event::StreamEnd</span>, <span class="self">self</span>.<span class="ident">scanner</span>.<span class="ident">mark</span>()));
         }
         <span class="kw">let</span> (<span class="ident">ev</span>, <span class="ident">mark</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">state_machine</span>()<span class="question-mark">?</span>;
@@ -1032,7 +1032,7 @@
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">recv</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>,
         <span class="ident">multi</span>: <span class="ident">bool</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ScanError</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ScanError</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">scanner</span>.<span class="ident">stream_started</span>() {
             <span class="kw">let</span> (<span class="ident">ev</span>, <span class="ident">mark</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">next</span>()<span class="question-mark">?</span>;
             <span class="macro">assert_eq!</span>(<span class="ident">ev</span>, <span class="ident">Event::StreamStart</span>);
@@ -1046,7 +1046,7 @@
         }
         <span class="kw">loop</span> {
             <span class="kw">let</span> (<span class="ident">ev</span>, <span class="ident">mark</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">next</span>()<span class="question-mark">?</span>;
-            <span class="kw">if</span> <span class="ident">ev</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Event::StreamEnd</span> {
+            <span class="kw">if</span> <span class="ident">ev</span> <span class="op">==</span> <span class="ident">Event::StreamEnd</span> {
                 <span class="ident">recv</span>.<span class="ident">on_event</span>(<span class="ident">ev</span>, <span class="ident">mark</span>);
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
             }
@@ -1065,7 +1065,7 @@
         <span class="ident">first_ev</span>: <span class="ident">Event</span>,
         <span class="ident">mark</span>: <span class="ident">Marker</span>,
         <span class="ident">recv</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ScanError</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ScanError</span><span class="op">&gt;</span> {
         <span class="macro">assert_eq!</span>(<span class="ident">first_ev</span>, <span class="ident">Event::DocumentStart</span>);
         <span class="ident">recv</span>.<span class="ident">on_event</span>(<span class="ident">first_ev</span>, <span class="ident">mark</span>);
 
@@ -1085,28 +1085,28 @@
         <span class="ident">first_ev</span>: <span class="ident">Event</span>,
         <span class="ident">mark</span>: <span class="ident">Marker</span>,
         <span class="ident">recv</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ScanError</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ScanError</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">first_ev</span> {
-            <span class="ident">Event::Alias</span>(..) <span class="op">|</span> <span class="ident">Event::Scalar</span>(..) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Event::Alias</span>(..) <span class="op">|</span> <span class="ident">Event::Scalar</span>(..) =&gt; {
                 <span class="ident">recv</span>.<span class="ident">on_event</span>(<span class="ident">first_ev</span>, <span class="ident">mark</span>);
                 <span class="prelude-val">Ok</span>(())
             }
-            <span class="ident">Event::SequenceStart</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Event::SequenceStart</span>(<span class="kw">_</span>) =&gt; {
                 <span class="ident">recv</span>.<span class="ident">on_event</span>(<span class="ident">first_ev</span>, <span class="ident">mark</span>);
                 <span class="self">self</span>.<span class="ident">load_sequence</span>(<span class="ident">recv</span>)
             }
-            <span class="ident">Event::MappingStart</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Event::MappingStart</span>(<span class="kw">_</span>) =&gt; {
                 <span class="ident">recv</span>.<span class="ident">on_event</span>(<span class="ident">first_ev</span>, <span class="ident">mark</span>);
                 <span class="self">self</span>.<span class="ident">load_mapping</span>(<span class="ident">recv</span>)
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">_</span> =&gt; {
                 <span class="macro">println!</span>(<span class="string">&quot;UNREACHABLE EVENT: {:?}&quot;</span>, <span class="ident">first_ev</span>);
                 <span class="macro">unreachable!</span>();
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">load_mapping</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">MarkedEventReceiver</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">recv</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ScanError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">load_mapping</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">MarkedEventReceiver</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">recv</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ScanError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">key_ev</span>, <span class="kw-2">mut</span> <span class="ident">key_mark</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">next</span>()<span class="question-mark">?</span>;
         <span class="kw">while</span> <span class="ident">key_ev</span> <span class="op">!</span><span class="op">=</span> <span class="ident">Event::MappingEnd</span> {
             <span class="comment">// key</span>
@@ -1125,7 +1125,7 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">load_sequence</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">MarkedEventReceiver</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">recv</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ScanError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">load_sequence</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">MarkedEventReceiver</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">recv</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ScanError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">ev</span>, <span class="kw-2">mut</span> <span class="ident">mark</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">next</span>()<span class="question-mark">?</span>;
         <span class="kw">while</span> <span class="ident">ev</span> <span class="op">!</span><span class="op">=</span> <span class="ident">Event::SequenceEnd</span> {
             <span class="self">self</span>.<span class="ident">load_node</span>(<span class="ident">ev</span>, <span class="ident">mark</span>, <span class="ident">recv</span>)<span class="question-mark">?</span>;
@@ -1139,58 +1139,58 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">state_machine</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span> {
+    <span class="kw">fn</span> <span class="ident">state_machine</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">ParseResult</span> {
         <span class="comment">// let next_tok = self.peek_token()?;</span>
         <span class="comment">// println!(&quot;cur_state {:?}, next tok: {:?}&quot;, self.state, next_tok);</span>
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span> {
-            <span class="ident">State::StreamStart</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">stream_start</span>(),
+            <span class="ident">State::StreamStart</span> =&gt; <span class="self">self</span>.<span class="ident">stream_start</span>(),
 
-            <span class="ident">State::ImplicitDocumentStart</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">document_start</span>(<span class="bool-val">true</span>),
-            <span class="ident">State::DocumentStart</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">document_start</span>(<span class="bool-val">false</span>),
-            <span class="ident">State::DocumentContent</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">document_content</span>(),
-            <span class="ident">State::DocumentEnd</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">document_end</span>(),
+            <span class="ident">State::ImplicitDocumentStart</span> =&gt; <span class="self">self</span>.<span class="ident">document_start</span>(<span class="bool-val">true</span>),
+            <span class="ident">State::DocumentStart</span> =&gt; <span class="self">self</span>.<span class="ident">document_start</span>(<span class="bool-val">false</span>),
+            <span class="ident">State::DocumentContent</span> =&gt; <span class="self">self</span>.<span class="ident">document_content</span>(),
+            <span class="ident">State::DocumentEnd</span> =&gt; <span class="self">self</span>.<span class="ident">document_end</span>(),
 
-            <span class="ident">State::BlockNode</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">parse_node</span>(<span class="bool-val">true</span>, <span class="bool-val">false</span>),
+            <span class="ident">State::BlockNode</span> =&gt; <span class="self">self</span>.<span class="ident">parse_node</span>(<span class="bool-val">true</span>, <span class="bool-val">false</span>),
             <span class="comment">// State::BlockNodeOrIndentlessSequence =&gt; self.parse_node(true, true),</span>
             <span class="comment">// State::FlowNode =&gt; self.parse_node(false, false),</span>
-            <span class="ident">State::BlockMappingFirstKey</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">block_mapping_key</span>(<span class="bool-val">true</span>),
-            <span class="ident">State::BlockMappingKey</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">block_mapping_key</span>(<span class="bool-val">false</span>),
-            <span class="ident">State::BlockMappingValue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">block_mapping_value</span>(),
+            <span class="ident">State::BlockMappingFirstKey</span> =&gt; <span class="self">self</span>.<span class="ident">block_mapping_key</span>(<span class="bool-val">true</span>),
+            <span class="ident">State::BlockMappingKey</span> =&gt; <span class="self">self</span>.<span class="ident">block_mapping_key</span>(<span class="bool-val">false</span>),
+            <span class="ident">State::BlockMappingValue</span> =&gt; <span class="self">self</span>.<span class="ident">block_mapping_value</span>(),
 
-            <span class="ident">State::BlockSequenceFirstEntry</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">block_sequence_entry</span>(<span class="bool-val">true</span>),
-            <span class="ident">State::BlockSequenceEntry</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">block_sequence_entry</span>(<span class="bool-val">false</span>),
+            <span class="ident">State::BlockSequenceFirstEntry</span> =&gt; <span class="self">self</span>.<span class="ident">block_sequence_entry</span>(<span class="bool-val">true</span>),
+            <span class="ident">State::BlockSequenceEntry</span> =&gt; <span class="self">self</span>.<span class="ident">block_sequence_entry</span>(<span class="bool-val">false</span>),
 
-            <span class="ident">State::FlowSequenceFirstEntry</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">flow_sequence_entry</span>(<span class="bool-val">true</span>),
-            <span class="ident">State::FlowSequenceEntry</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">flow_sequence_entry</span>(<span class="bool-val">false</span>),
+            <span class="ident">State::FlowSequenceFirstEntry</span> =&gt; <span class="self">self</span>.<span class="ident">flow_sequence_entry</span>(<span class="bool-val">true</span>),
+            <span class="ident">State::FlowSequenceEntry</span> =&gt; <span class="self">self</span>.<span class="ident">flow_sequence_entry</span>(<span class="bool-val">false</span>),
 
-            <span class="ident">State::FlowMappingFirstKey</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">flow_mapping_key</span>(<span class="bool-val">true</span>),
-            <span class="ident">State::FlowMappingKey</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">flow_mapping_key</span>(<span class="bool-val">false</span>),
-            <span class="ident">State::FlowMappingValue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">flow_mapping_value</span>(<span class="bool-val">false</span>),
+            <span class="ident">State::FlowMappingFirstKey</span> =&gt; <span class="self">self</span>.<span class="ident">flow_mapping_key</span>(<span class="bool-val">true</span>),
+            <span class="ident">State::FlowMappingKey</span> =&gt; <span class="self">self</span>.<span class="ident">flow_mapping_key</span>(<span class="bool-val">false</span>),
+            <span class="ident">State::FlowMappingValue</span> =&gt; <span class="self">self</span>.<span class="ident">flow_mapping_value</span>(<span class="bool-val">false</span>),
 
-            <span class="ident">State::IndentlessSequenceEntry</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">indentless_sequence_entry</span>(),
+            <span class="ident">State::IndentlessSequenceEntry</span> =&gt; <span class="self">self</span>.<span class="ident">indentless_sequence_entry</span>(),
 
-            <span class="ident">State::FlowSequenceEntryMappingKey</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">flow_sequence_entry_mapping_key</span>(),
-            <span class="ident">State::FlowSequenceEntryMappingValue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">flow_sequence_entry_mapping_value</span>(),
-            <span class="ident">State::FlowSequenceEntryMappingEnd</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">flow_sequence_entry_mapping_end</span>(),
-            <span class="ident">State::FlowMappingEmptyValue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">flow_mapping_value</span>(<span class="bool-val">true</span>),
+            <span class="ident">State::FlowSequenceEntryMappingKey</span> =&gt; <span class="self">self</span>.<span class="ident">flow_sequence_entry_mapping_key</span>(),
+            <span class="ident">State::FlowSequenceEntryMappingValue</span> =&gt; <span class="self">self</span>.<span class="ident">flow_sequence_entry_mapping_value</span>(),
+            <span class="ident">State::FlowSequenceEntryMappingEnd</span> =&gt; <span class="self">self</span>.<span class="ident">flow_sequence_entry_mapping_end</span>(),
+            <span class="ident">State::FlowMappingEmptyValue</span> =&gt; <span class="self">self</span>.<span class="ident">flow_mapping_value</span>(<span class="bool-val">true</span>),
 
             <span class="comment">/* impossible */</span>
-            <span class="ident">State::End</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+            <span class="ident">State::End</span> =&gt; <span class="macro">unreachable!</span>(),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">stream_start</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span> {
+    <span class="kw">fn</span> <span class="ident">stream_start</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">ParseResult</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">peek_token</span>()<span class="question-mark">?</span> {
-            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::StreamStart</span>(<span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::StreamStart</span>(<span class="kw">_</span>)) =&gt; {
                 <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">State::ImplicitDocumentStart</span>;
                 <span class="self">self</span>.<span class="ident">skip</span>();
                 <span class="prelude-val">Ok</span>((<span class="ident">Event::StreamStart</span>, <span class="ident">mark</span>))
             }
-            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ScanError::new</span>(<span class="ident">mark</span>, <span class="string">&quot;did not find expected &lt;stream-start&gt;&quot;</span>)),
+            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ScanError::new</span>(<span class="ident">mark</span>, <span class="string">&quot;did not find expected &lt;stream-start&gt;&quot;</span>)),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">document_start</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">implicit</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span> {
+    <span class="kw">fn</span> <span class="ident">document_start</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">implicit</span>: <span class="ident">bool</span>) -&gt; <span class="ident">ParseResult</span> {
         <span class="kw">if</span> <span class="op">!</span><span class="ident">implicit</span> {
             <span class="kw">while</span> <span class="kw">let</span> <span class="ident">TokenType::DocumentEnd</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">peek_token</span>()<span class="question-mark">?</span>.<span class="number">1</span> {
                 <span class="self">self</span>.<span class="ident">skip</span>();
@@ -1198,44 +1198,44 @@
         }
 
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">peek_token</span>()<span class="question-mark">?</span> {
-            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::StreamEnd</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::StreamEnd</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">State::End</span>;
                 <span class="self">self</span>.<span class="ident">skip</span>();
                 <span class="prelude-val">Ok</span>((<span class="ident">Event::StreamEnd</span>, <span class="ident">mark</span>))
             }
             <span class="ident">Token</span>(<span class="kw">_</span>, <span class="ident">TokenType::VersionDirective</span>(..))
             <span class="op">|</span> <span class="ident">Token</span>(<span class="kw">_</span>, <span class="ident">TokenType::TagDirective</span>(..))
-            <span class="op">|</span> <span class="ident">Token</span>(<span class="kw">_</span>, <span class="ident">TokenType::DocumentStart</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="op">|</span> <span class="ident">Token</span>(<span class="kw">_</span>, <span class="ident">TokenType::DocumentStart</span>) =&gt; {
                 <span class="comment">// explicit document</span>
                 <span class="self">self</span>.<span class="ident">_explicit_document_start</span>()
             }
-            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="kw">_</span>) <span class="kw">if</span> <span class="ident">implicit</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="kw">_</span>) <span class="kw">if</span> <span class="ident">implicit</span> =&gt; {
                 <span class="self">self</span>.<span class="ident">parser_process_directives</span>()<span class="question-mark">?</span>;
                 <span class="self">self</span>.<span class="ident">push_state</span>(<span class="ident">State::DocumentEnd</span>);
                 <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">State::BlockNode</span>;
                 <span class="prelude-val">Ok</span>((<span class="ident">Event::DocumentStart</span>, <span class="ident">mark</span>))
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">_</span> =&gt; {
                 <span class="comment">// explicit document</span>
                 <span class="self">self</span>.<span class="ident">_explicit_document_start</span>()
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">parser_process_directives</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ScanError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parser_process_directives</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ScanError</span><span class="op">&gt;</span> {
         <span class="kw">loop</span> {
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">peek_token</span>()<span class="question-mark">?</span>.<span class="number">1</span> {
-                <span class="ident">TokenType::VersionDirective</span>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">TokenType::VersionDirective</span>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
                     <span class="comment">// XXX parsing with warning according to spec</span>
                     <span class="comment">//if major != 1 || minor &gt; 2 {</span>
                     <span class="comment">//    return Err(ScanError::new(tok.0,</span>
                     <span class="comment">//        &quot;found incompatible YAML document&quot;));</span>
                     <span class="comment">//}</span>
                 }
-                <span class="ident">TokenType::TagDirective</span>(..) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">TokenType::TagDirective</span>(..) =&gt; {
                     <span class="comment">// TODO add tag directive</span>
                 }
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
+                <span class="kw">_</span> =&gt; <span class="kw">break</span>,
             }
             <span class="self">self</span>.<span class="ident">skip</span>();
         }
@@ -1243,46 +1243,46 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">_explicit_document_start</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span> {
+    <span class="kw">fn</span> <span class="ident">_explicit_document_start</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">ParseResult</span> {
         <span class="self">self</span>.<span class="ident">parser_process_directives</span>()<span class="question-mark">?</span>;
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">peek_token</span>()<span class="question-mark">?</span> {
-            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::DocumentStart</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::DocumentStart</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">push_state</span>(<span class="ident">State::DocumentEnd</span>);
                 <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">State::DocumentContent</span>;
                 <span class="self">self</span>.<span class="ident">skip</span>();
                 <span class="prelude-val">Ok</span>((<span class="ident">Event::DocumentStart</span>, <span class="ident">mark</span>))
             }
-            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ScanError::new</span>(
+            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ScanError::new</span>(
                 <span class="ident">mark</span>,
                 <span class="string">&quot;did not find expected &lt;document start&gt;&quot;</span>,
             )),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">document_content</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span> {
+    <span class="kw">fn</span> <span class="ident">document_content</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">ParseResult</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">peek_token</span>()<span class="question-mark">?</span> {
             <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::VersionDirective</span>(..))
             <span class="op">|</span> <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::TagDirective</span>(..))
             <span class="op">|</span> <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::DocumentStart</span>)
             <span class="op">|</span> <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::DocumentEnd</span>)
-            <span class="op">|</span> <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::StreamEnd</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="op">|</span> <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::StreamEnd</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">pop_state</span>();
                 <span class="comment">// empty scalar</span>
                 <span class="prelude-val">Ok</span>((<span class="ident">Event::empty_scalar</span>(), <span class="ident">mark</span>))
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">parse_node</span>(<span class="bool-val">true</span>, <span class="bool-val">false</span>),
+            <span class="kw">_</span> =&gt; <span class="self">self</span>.<span class="ident">parse_node</span>(<span class="bool-val">true</span>, <span class="bool-val">false</span>),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">document_end</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span> {
+    <span class="kw">fn</span> <span class="ident">document_end</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">ParseResult</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">_implicit</span> <span class="op">=</span> <span class="bool-val">true</span>;
         <span class="kw">let</span> <span class="ident">marker</span>: <span class="ident">Marker</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">peek_token</span>()<span class="question-mark">?</span> {
-            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::DocumentEnd</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::DocumentEnd</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">skip</span>();
                 <span class="ident">_implicit</span> <span class="op">=</span> <span class="bool-val">false</span>;
                 <span class="ident">mark</span>
             }
-            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mark</span>,
+            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="kw">_</span>) =&gt; <span class="ident">mark</span>,
         };
 
         <span class="comment">// TODO tag handling</span>
@@ -1290,7 +1290,7 @@
         <span class="prelude-val">Ok</span>((<span class="ident">Event::DocumentEnd</span>, <span class="ident">marker</span>))
     }
 
-    <span class="kw">fn</span> <span class="ident">register_anchor</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="ident">String</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Marker</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">ScanError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">register_anchor</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="ident">String</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Marker</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">ScanError</span><span class="op">&gt;</span> {
         <span class="comment">// anchors can be overridden/reused</span>
         <span class="comment">// if self.anchors.contains_key(name) {</span>
         <span class="comment">//     return Err(ScanError::new(*mark,</span>
@@ -1302,27 +1302,27 @@
         <span class="prelude-val">Ok</span>(<span class="ident">new_id</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">parse_node</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">block</span>: <span class="ident">bool</span>, <span class="ident">indentless_sequence</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span> {
+    <span class="kw">fn</span> <span class="ident">parse_node</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">block</span>: <span class="ident">bool</span>, <span class="ident">indentless_sequence</span>: <span class="ident">bool</span>) -&gt; <span class="ident">ParseResult</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">anchor_id</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tag</span> <span class="op">=</span> <span class="prelude-val">None</span>;
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">peek_token</span>()<span class="question-mark">?</span> {
-            <span class="ident">Token</span>(<span class="kw">_</span>, <span class="ident">TokenType::Alias</span>(<span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Token</span>(<span class="kw">_</span>, <span class="ident">TokenType::Alias</span>(<span class="kw">_</span>)) =&gt; {
                 <span class="self">self</span>.<span class="ident">pop_state</span>();
                 <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::Alias</span>(<span class="ident">name</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="ident">fetch_token</span>() {
                     <span class="kw">match</span> <span class="self">self</span>.<span class="ident">anchors</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>) {
-                        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">None</span> =&gt; {
                             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ScanError::new</span>(
                                 <span class="ident">mark</span>,
                                 <span class="string">&quot;while parsing node, found unknown anchor&quot;</span>,
                             ))
                         }
-                        <span class="prelude-val">Some</span>(<span class="ident">id</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="ident">Event::Alias</span>(<span class="kw-2">*</span><span class="ident">id</span>), <span class="ident">mark</span>)),
+                        <span class="prelude-val">Some</span>(<span class="ident">id</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="ident">Event::Alias</span>(<span class="kw-2">*</span><span class="ident">id</span>), <span class="ident">mark</span>)),
                     }
                 } <span class="kw">else</span> {
                     <span class="macro">unreachable!</span>()
                 }
             }
-            <span class="ident">Token</span>(<span class="kw">_</span>, <span class="ident">TokenType::Anchor</span>(<span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Token</span>(<span class="kw">_</span>, <span class="ident">TokenType::Anchor</span>(<span class="kw">_</span>)) =&gt; {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::Anchor</span>(<span class="ident">name</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="ident">fetch_token</span>() {
                     <span class="ident">anchor_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">register_anchor</span>(<span class="ident">name</span>, <span class="kw-2">&amp;</span><span class="ident">mark</span>)<span class="question-mark">?</span>;
                     <span class="kw">if</span> <span class="kw">let</span> <span class="ident">TokenType::Tag</span>(..) <span class="op">=</span> <span class="self">self</span>.<span class="ident">peek_token</span>()<span class="question-mark">?</span>.<span class="number">1</span> {
@@ -1336,7 +1336,7 @@
                     <span class="macro">unreachable!</span>()
                 }
             }
-            <span class="ident">Token</span>(<span class="kw">_</span>, <span class="ident">TokenType::Tag</span>(..)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Token</span>(<span class="kw">_</span>, <span class="ident">TokenType::Tag</span>(..)) =&gt; {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="ident">tg</span> @ <span class="ident">TokenType::Tag</span>(..) <span class="op">=</span> <span class="self">self</span>.<span class="ident">fetch_token</span>().<span class="number">1</span> {
                     <span class="ident">tag</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">tg</span>);
                     <span class="kw">if</span> <span class="kw">let</span> <span class="ident">TokenType::Anchor</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">peek_token</span>()<span class="question-mark">?</span>.<span class="number">1</span> {
@@ -1350,14 +1350,14 @@
                     <span class="macro">unreachable!</span>()
                 }
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="kw">_</span> =&gt; {}
         }
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">peek_token</span>()<span class="question-mark">?</span> {
-            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::BlockEntry</span>) <span class="kw">if</span> <span class="ident">indentless_sequence</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::BlockEntry</span>) <span class="kw">if</span> <span class="ident">indentless_sequence</span> =&gt; {
                 <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">State::IndentlessSequenceEntry</span>;
                 <span class="prelude-val">Ok</span>((<span class="ident">Event::SequenceStart</span>(<span class="ident">anchor_id</span>), <span class="ident">mark</span>))
             }
-            <span class="ident">Token</span>(<span class="kw">_</span>, <span class="ident">TokenType::Scalar</span>(..)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Token</span>(<span class="kw">_</span>, <span class="ident">TokenType::Scalar</span>(..)) =&gt; {
                 <span class="self">self</span>.<span class="ident">pop_state</span>();
                 <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::Scalar</span>(<span class="ident">style</span>, <span class="ident">v</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="ident">fetch_token</span>() {
                     <span class="prelude-val">Ok</span>((<span class="ident">Event::Scalar</span>(<span class="ident">v</span>, <span class="ident">style</span>, <span class="ident">anchor_id</span>, <span class="ident">tag</span>), <span class="ident">mark</span>))
@@ -1365,35 +1365,35 @@
                     <span class="macro">unreachable!</span>()
                 }
             }
-            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::FlowSequenceStart</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::FlowSequenceStart</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">State::FlowSequenceFirstEntry</span>;
                 <span class="prelude-val">Ok</span>((<span class="ident">Event::SequenceStart</span>(<span class="ident">anchor_id</span>), <span class="ident">mark</span>))
             }
-            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::FlowMappingStart</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::FlowMappingStart</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">State::FlowMappingFirstKey</span>;
                 <span class="prelude-val">Ok</span>((<span class="ident">Event::MappingStart</span>(<span class="ident">anchor_id</span>), <span class="ident">mark</span>))
             }
-            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::BlockSequenceStart</span>) <span class="kw">if</span> <span class="ident">block</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::BlockSequenceStart</span>) <span class="kw">if</span> <span class="ident">block</span> =&gt; {
                 <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">State::BlockSequenceFirstEntry</span>;
                 <span class="prelude-val">Ok</span>((<span class="ident">Event::SequenceStart</span>(<span class="ident">anchor_id</span>), <span class="ident">mark</span>))
             }
-            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::BlockMappingStart</span>) <span class="kw">if</span> <span class="ident">block</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::BlockMappingStart</span>) <span class="kw">if</span> <span class="ident">block</span> =&gt; {
                 <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">State::BlockMappingFirstKey</span>;
                 <span class="prelude-val">Ok</span>((<span class="ident">Event::MappingStart</span>(<span class="ident">anchor_id</span>), <span class="ident">mark</span>))
             }
             <span class="comment">// ex 7.2, an empty scalar can follow a secondary tag</span>
-            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="kw">_</span>) <span class="kw">if</span> <span class="ident">tag</span>.<span class="ident">is_some</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">anchor_id</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="kw">_</span>) <span class="kw">if</span> <span class="ident">tag</span>.<span class="ident">is_some</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">anchor_id</span> <span class="op">&gt;</span> <span class="number">0</span> =&gt; {
                 <span class="self">self</span>.<span class="ident">pop_state</span>();
                 <span class="prelude-val">Ok</span>((<span class="ident">Event::empty_scalar_with_anchor</span>(<span class="ident">anchor_id</span>, <span class="ident">tag</span>), <span class="ident">mark</span>))
             }
-            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ScanError::new</span>(
+            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ScanError::new</span>(
                 <span class="ident">mark</span>,
                 <span class="string">&quot;while parsing a node, did not find expected node content&quot;</span>,
             )),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">block_mapping_key</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">first</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span> {
+    <span class="kw">fn</span> <span class="ident">block_mapping_key</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">first</span>: <span class="ident">bool</span>) -&gt; <span class="ident">ParseResult</span> {
         <span class="comment">// skip BlockMappingStart</span>
         <span class="kw">if</span> <span class="ident">first</span> {
             <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">peek_token</span>()<span class="question-mark">?</span>;
@@ -1401,58 +1401,58 @@
             <span class="self">self</span>.<span class="ident">skip</span>();
         }
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">peek_token</span>()<span class="question-mark">?</span> {
-            <span class="ident">Token</span>(<span class="kw">_</span>, <span class="ident">TokenType::Key</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Token</span>(<span class="kw">_</span>, <span class="ident">TokenType::Key</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">skip</span>();
                 <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">peek_token</span>()<span class="question-mark">?</span> {
                     <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::Key</span>)
                     <span class="op">|</span> <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::Value</span>)
-                    <span class="op">|</span> <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::BlockEnd</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="op">|</span> <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::BlockEnd</span>) =&gt; {
                         <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">State::BlockMappingValue</span>;
                         <span class="comment">// empty scalar</span>
                         <span class="prelude-val">Ok</span>((<span class="ident">Event::empty_scalar</span>(), <span class="ident">mark</span>))
                     }
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="kw">_</span> =&gt; {
                         <span class="self">self</span>.<span class="ident">push_state</span>(<span class="ident">State::BlockMappingValue</span>);
                         <span class="self">self</span>.<span class="ident">parse_node</span>(<span class="bool-val">true</span>, <span class="bool-val">true</span>)
                     }
                 }
             }
             <span class="comment">// XXX(chenyh): libyaml failed to parse spec 1.2, ex8.18</span>
-            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::Value</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::Value</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">State::BlockMappingValue</span>;
                 <span class="prelude-val">Ok</span>((<span class="ident">Event::empty_scalar</span>(), <span class="ident">mark</span>))
             }
-            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::BlockEnd</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::BlockEnd</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">pop_state</span>();
                 <span class="self">self</span>.<span class="ident">skip</span>();
                 <span class="prelude-val">Ok</span>((<span class="ident">Event::MappingEnd</span>, <span class="ident">mark</span>))
             }
-            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ScanError::new</span>(
+            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ScanError::new</span>(
                 <span class="ident">mark</span>,
                 <span class="string">&quot;while parsing a block mapping, did not find expected key&quot;</span>,
             )),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">block_mapping_value</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span> {
+    <span class="kw">fn</span> <span class="ident">block_mapping_value</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">ParseResult</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">peek_token</span>()<span class="question-mark">?</span> {
-            <span class="ident">Token</span>(<span class="kw">_</span>, <span class="ident">TokenType::Value</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Token</span>(<span class="kw">_</span>, <span class="ident">TokenType::Value</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">skip</span>();
                 <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">peek_token</span>()<span class="question-mark">?</span> {
                     <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::Key</span>)
                     <span class="op">|</span> <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::Value</span>)
-                    <span class="op">|</span> <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::BlockEnd</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="op">|</span> <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::BlockEnd</span>) =&gt; {
                         <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">State::BlockMappingKey</span>;
                         <span class="comment">// empty scalar</span>
                         <span class="prelude-val">Ok</span>((<span class="ident">Event::empty_scalar</span>(), <span class="ident">mark</span>))
                     }
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="kw">_</span> =&gt; {
                         <span class="self">self</span>.<span class="ident">push_state</span>(<span class="ident">State::BlockMappingKey</span>);
                         <span class="self">self</span>.<span class="ident">parse_node</span>(<span class="bool-val">true</span>, <span class="bool-val">true</span>)
                     }
                 }
             }
-            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="kw">_</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">State::BlockMappingKey</span>;
                 <span class="comment">// empty scalar</span>
                 <span class="prelude-val">Ok</span>((<span class="ident">Event::empty_scalar</span>(), <span class="ident">mark</span>))
@@ -1460,7 +1460,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">flow_mapping_key</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">first</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span> {
+    <span class="kw">fn</span> <span class="ident">flow_mapping_key</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">first</span>: <span class="ident">bool</span>) -&gt; <span class="ident">ParseResult</span> {
         <span class="kw">if</span> <span class="ident">first</span> {
             <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">peek_token</span>()<span class="question-mark">?</span>;
             <span class="self">self</span>.<span class="ident">skip</span>();
@@ -1468,38 +1468,38 @@
         <span class="kw">let</span> <span class="ident">marker</span>: <span class="ident">Marker</span> <span class="op">=</span>
             {
                 <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">peek_token</span>()<span class="question-mark">?</span> {
-                    <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::FlowMappingEnd</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mark</span>,
-                    <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::FlowMappingEnd</span>) =&gt; <span class="ident">mark</span>,
+                    <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="kw">_</span>) =&gt; {
                         <span class="kw">if</span> <span class="op">!</span><span class="ident">first</span> {
                             <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">peek_token</span>()<span class="question-mark">?</span> {
-                            <span class="ident">Token</span>(<span class="kw">_</span>, <span class="ident">TokenType::FlowEntry</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">skip</span>(),
-                            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ScanError::new</span>(<span class="ident">mark</span>,
+                            <span class="ident">Token</span>(<span class="kw">_</span>, <span class="ident">TokenType::FlowEntry</span>) =&gt; <span class="self">self</span>.<span class="ident">skip</span>(),
+                            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ScanError::new</span>(<span class="ident">mark</span>,
                                 <span class="string">&quot;while parsing a flow mapping, did not find expected &#39;,&#39; or &#39;}&#39;&quot;</span>))
                         }
                         }
 
                         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">peek_token</span>()<span class="question-mark">?</span> {
-                            <span class="ident">Token</span>(<span class="kw">_</span>, <span class="ident">TokenType::Key</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="ident">Token</span>(<span class="kw">_</span>, <span class="ident">TokenType::Key</span>) =&gt; {
                                 <span class="self">self</span>.<span class="ident">skip</span>();
                                 <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">peek_token</span>()<span class="question-mark">?</span> {
                                     <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::Value</span>)
                                     <span class="op">|</span> <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::FlowEntry</span>)
-                                    <span class="op">|</span> <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::FlowMappingEnd</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                                    <span class="op">|</span> <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::FlowMappingEnd</span>) =&gt; {
                                         <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">State::FlowMappingValue</span>;
                                         <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="ident">Event::empty_scalar</span>(), <span class="ident">mark</span>));
                                     }
-                                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+                                    <span class="kw">_</span> =&gt; {
                                         <span class="self">self</span>.<span class="ident">push_state</span>(<span class="ident">State::FlowMappingValue</span>);
                                         <span class="kw">return</span> <span class="self">self</span>.<span class="ident">parse_node</span>(<span class="bool-val">false</span>, <span class="bool-val">false</span>);
                                     }
                                 }
                             }
-                            <span class="ident">Token</span>(<span class="ident">marker</span>, <span class="ident">TokenType::Value</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="ident">Token</span>(<span class="ident">marker</span>, <span class="ident">TokenType::Value</span>) =&gt; {
                                 <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">State::FlowMappingValue</span>;
                                 <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="ident">Event::empty_scalar</span>(), <span class="ident">marker</span>));
                             }
-                            <span class="ident">Token</span>(<span class="kw">_</span>, <span class="ident">TokenType::FlowMappingEnd</span>) <span class="op">=</span><span class="op">&gt;</span> (),
-                            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="ident">Token</span>(<span class="kw">_</span>, <span class="ident">TokenType::FlowMappingEnd</span>) =&gt; (),
+                            <span class="kw">_</span> =&gt; {
                                 <span class="self">self</span>.<span class="ident">push_state</span>(<span class="ident">State::FlowMappingEmptyValue</span>);
                                 <span class="kw">return</span> <span class="self">self</span>.<span class="ident">parse_node</span>(<span class="bool-val">false</span>, <span class="bool-val">false</span>);
                             }
@@ -1515,7 +1515,7 @@
         <span class="prelude-val">Ok</span>((<span class="ident">Event::MappingEnd</span>, <span class="ident">marker</span>))
     }
 
-    <span class="kw">fn</span> <span class="ident">flow_mapping_value</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">empty</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span> {
+    <span class="kw">fn</span> <span class="ident">flow_mapping_value</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">empty</span>: <span class="ident">bool</span>) -&gt; <span class="ident">ParseResult</span> {
         <span class="kw">let</span> <span class="ident">mark</span>: <span class="ident">Marker</span> <span class="op">=</span> {
             <span class="kw">if</span> <span class="ident">empty</span> {
                 <span class="kw">let</span> <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">peek_token</span>()<span class="question-mark">?</span>;
@@ -1523,18 +1523,18 @@
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="ident">Event::empty_scalar</span>(), <span class="ident">mark</span>));
             } <span class="kw">else</span> {
                 <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">peek_token</span>()<span class="question-mark">?</span> {
-                    <span class="ident">Token</span>(<span class="ident">marker</span>, <span class="ident">TokenType::Value</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">Token</span>(<span class="ident">marker</span>, <span class="ident">TokenType::Value</span>) =&gt; {
                         <span class="self">self</span>.<span class="ident">skip</span>();
                         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">peek_token</span>()<span class="question-mark">?</span>.<span class="number">1</span> {
-                            <span class="ident">TokenType::FlowEntry</span> <span class="op">|</span> <span class="ident">TokenType::FlowMappingEnd</span> <span class="op">=</span><span class="op">&gt;</span> {}
-                            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="ident">TokenType::FlowEntry</span> <span class="op">|</span> <span class="ident">TokenType::FlowMappingEnd</span> =&gt; {}
+                            <span class="kw">_</span> =&gt; {
                                 <span class="self">self</span>.<span class="ident">push_state</span>(<span class="ident">State::FlowMappingKey</span>);
                                 <span class="kw">return</span> <span class="self">self</span>.<span class="ident">parse_node</span>(<span class="bool-val">false</span>, <span class="bool-val">false</span>);
                             }
                         }
                         <span class="ident">marker</span>
                     }
-                    <span class="ident">Token</span>(<span class="ident">marker</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">marker</span>,
+                    <span class="ident">Token</span>(<span class="ident">marker</span>, <span class="kw">_</span>) =&gt; <span class="ident">marker</span>,
                 }
             }
         };
@@ -1543,7 +1543,7 @@
         <span class="prelude-val">Ok</span>((<span class="ident">Event::empty_scalar</span>(), <span class="ident">mark</span>))
     }
 
-    <span class="kw">fn</span> <span class="ident">flow_sequence_entry</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">first</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span> {
+    <span class="kw">fn</span> <span class="ident">flow_sequence_entry</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">first</span>: <span class="ident">bool</span>) -&gt; <span class="ident">ParseResult</span> {
         <span class="comment">// skip FlowMappingStart</span>
         <span class="kw">if</span> <span class="ident">first</span> {
             <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">peek_token</span>()<span class="question-mark">?</span>;
@@ -1551,44 +1551,44 @@
             <span class="self">self</span>.<span class="ident">skip</span>();
         }
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">peek_token</span>()<span class="question-mark">?</span> {
-            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::FlowSequenceEnd</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::FlowSequenceEnd</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">pop_state</span>();
                 <span class="self">self</span>.<span class="ident">skip</span>();
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="ident">Event::SequenceEnd</span>, <span class="ident">mark</span>));
             }
-            <span class="ident">Token</span>(<span class="kw">_</span>, <span class="ident">TokenType::FlowEntry</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">first</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Token</span>(<span class="kw">_</span>, <span class="ident">TokenType::FlowEntry</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">first</span> =&gt; {
                 <span class="self">self</span>.<span class="ident">skip</span>();
             }
-            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="kw">_</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">first</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="kw">_</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">first</span> =&gt; {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ScanError::new</span>(
                     <span class="ident">mark</span>,
                     <span class="string">&quot;while parsing a flow sequence, expected &#39;,&#39; or &#39;]&#39;&quot;</span>,
                 ));
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="comment">/* next */</span> }
+            <span class="kw">_</span> =&gt; { <span class="comment">/* next */</span> }
         }
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">peek_token</span>()<span class="question-mark">?</span> {
-            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::FlowSequenceEnd</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::FlowSequenceEnd</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">pop_state</span>();
                 <span class="self">self</span>.<span class="ident">skip</span>();
                 <span class="prelude-val">Ok</span>((<span class="ident">Event::SequenceEnd</span>, <span class="ident">mark</span>))
             }
-            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::Key</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::Key</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">State::FlowSequenceEntryMappingKey</span>;
                 <span class="self">self</span>.<span class="ident">skip</span>();
                 <span class="prelude-val">Ok</span>((<span class="ident">Event::MappingStart</span>(<span class="number">0</span>), <span class="ident">mark</span>))
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">_</span> =&gt; {
                 <span class="self">self</span>.<span class="ident">push_state</span>(<span class="ident">State::FlowSequenceEntry</span>);
                 <span class="self">self</span>.<span class="ident">parse_node</span>(<span class="bool-val">false</span>, <span class="bool-val">false</span>)
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">indentless_sequence_entry</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span> {
+    <span class="kw">fn</span> <span class="ident">indentless_sequence_entry</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">ParseResult</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">peek_token</span>()<span class="question-mark">?</span> {
-            <span class="ident">Token</span>(<span class="kw">_</span>, <span class="ident">TokenType::BlockEntry</span>) <span class="op">=</span><span class="op">&gt;</span> (),
-            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Token</span>(<span class="kw">_</span>, <span class="ident">TokenType::BlockEntry</span>) =&gt; (),
+            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="kw">_</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">pop_state</span>();
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="ident">Event::SequenceEnd</span>, <span class="ident">mark</span>));
             }
@@ -1598,18 +1598,18 @@
             <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::BlockEntry</span>)
             <span class="op">|</span> <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::Key</span>)
             <span class="op">|</span> <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::Value</span>)
-            <span class="op">|</span> <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::BlockEnd</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="op">|</span> <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::BlockEnd</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">State::IndentlessSequenceEntry</span>;
                 <span class="prelude-val">Ok</span>((<span class="ident">Event::empty_scalar</span>(), <span class="ident">mark</span>))
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">_</span> =&gt; {
                 <span class="self">self</span>.<span class="ident">push_state</span>(<span class="ident">State::IndentlessSequenceEntry</span>);
                 <span class="self">self</span>.<span class="ident">parse_node</span>(<span class="bool-val">true</span>, <span class="bool-val">false</span>)
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">block_sequence_entry</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">first</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span> {
+    <span class="kw">fn</span> <span class="ident">block_sequence_entry</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">first</span>: <span class="ident">bool</span>) -&gt; <span class="ident">ParseResult</span> {
         <span class="comment">// BLOCK-SEQUENCE-START</span>
         <span class="kw">if</span> <span class="ident">first</span> {
             <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">peek_token</span>()<span class="question-mark">?</span>;
@@ -1617,71 +1617,71 @@
             <span class="self">self</span>.<span class="ident">skip</span>();
         }
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">peek_token</span>()<span class="question-mark">?</span> {
-            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::BlockEnd</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::BlockEnd</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">pop_state</span>();
                 <span class="self">self</span>.<span class="ident">skip</span>();
                 <span class="prelude-val">Ok</span>((<span class="ident">Event::SequenceEnd</span>, <span class="ident">mark</span>))
             }
-            <span class="ident">Token</span>(<span class="kw">_</span>, <span class="ident">TokenType::BlockEntry</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Token</span>(<span class="kw">_</span>, <span class="ident">TokenType::BlockEntry</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">skip</span>();
                 <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">peek_token</span>()<span class="question-mark">?</span> {
-                    <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::BlockEntry</span>) <span class="op">|</span> <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::BlockEnd</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::BlockEntry</span>) <span class="op">|</span> <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::BlockEnd</span>) =&gt; {
                         <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">State::BlockSequenceEntry</span>;
                         <span class="prelude-val">Ok</span>((<span class="ident">Event::empty_scalar</span>(), <span class="ident">mark</span>))
                     }
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="kw">_</span> =&gt; {
                         <span class="self">self</span>.<span class="ident">push_state</span>(<span class="ident">State::BlockSequenceEntry</span>);
                         <span class="self">self</span>.<span class="ident">parse_node</span>(<span class="bool-val">true</span>, <span class="bool-val">false</span>)
                     }
                 }
             }
-            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ScanError::new</span>(
+            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ScanError::new</span>(
                 <span class="ident">mark</span>,
                 <span class="string">&quot;while parsing a block collection, did not find expected &#39;-&#39; indicator&quot;</span>,
             )),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">flow_sequence_entry_mapping_key</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span> {
+    <span class="kw">fn</span> <span class="ident">flow_sequence_entry_mapping_key</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">ParseResult</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">peek_token</span>()<span class="question-mark">?</span> {
             <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::Value</span>)
             <span class="op">|</span> <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::FlowEntry</span>)
-            <span class="op">|</span> <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::FlowSequenceEnd</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="op">|</span> <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::FlowSequenceEnd</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">skip</span>();
                 <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">State::FlowSequenceEntryMappingValue</span>;
                 <span class="prelude-val">Ok</span>((<span class="ident">Event::empty_scalar</span>(), <span class="ident">mark</span>))
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">_</span> =&gt; {
                 <span class="self">self</span>.<span class="ident">push_state</span>(<span class="ident">State::FlowSequenceEntryMappingValue</span>);
                 <span class="self">self</span>.<span class="ident">parse_node</span>(<span class="bool-val">false</span>, <span class="bool-val">false</span>)
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">flow_sequence_entry_mapping_value</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span> {
+    <span class="kw">fn</span> <span class="ident">flow_sequence_entry_mapping_value</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">ParseResult</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">peek_token</span>()<span class="question-mark">?</span> {
-            <span class="ident">Token</span>(<span class="kw">_</span>, <span class="ident">TokenType::Value</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Token</span>(<span class="kw">_</span>, <span class="ident">TokenType::Value</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">skip</span>();
                 <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">State::FlowSequenceEntryMappingValue</span>;
                 <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">peek_token</span>()<span class="question-mark">?</span> {
-                    <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::FlowEntry</span>) <span class="op">|</span> <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::FlowSequenceEnd</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::FlowEntry</span>) <span class="op">|</span> <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="ident">TokenType::FlowSequenceEnd</span>) =&gt; {
                         <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">State::FlowSequenceEntryMappingEnd</span>;
                         <span class="prelude-val">Ok</span>((<span class="ident">Event::empty_scalar</span>(), <span class="ident">mark</span>))
                     }
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="kw">_</span> =&gt; {
                         <span class="self">self</span>.<span class="ident">push_state</span>(<span class="ident">State::FlowSequenceEntryMappingEnd</span>);
                         <span class="self">self</span>.<span class="ident">parse_node</span>(<span class="bool-val">false</span>, <span class="bool-val">false</span>)
                     }
                 }
             }
-            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Token</span>(<span class="ident">mark</span>, <span class="kw">_</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">State::FlowSequenceEntryMappingEnd</span>;
                 <span class="prelude-val">Ok</span>((<span class="ident">Event::empty_scalar</span>(), <span class="ident">mark</span>))
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">flow_sequence_entry_mapping_end</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span> {
+    <span class="kw">fn</span> <span class="ident">flow_sequence_entry_mapping_end</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">ParseResult</span> {
         <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">State::FlowSequenceEntry</span>;
         <span class="prelude-val">Ok</span>((<span class="ident">Event::MappingEnd</span>, <span class="self">self</span>.<span class="ident">scanner</span>.<span class="ident">mark</span>()))
     }

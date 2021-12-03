@@ -144,48 +144,48 @@
         <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ERR_RFLAG_FATAL</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">ERR_RFLAGS_OFFSET</span>;
 
         <span class="macro">const_fn!</span> {
-            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">ERR_SYSTEM_ERROR</span>(<span class="ident">errcode</span>: <span class="ident">c_ulong</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">ERR_SYSTEM_ERROR</span>(<span class="ident">errcode</span>: <span class="ident">c_ulong</span>) -&gt; <span class="ident">bool</span> {
                 <span class="ident">errcode</span> <span class="op">&amp;</span> <span class="ident">ERR_SYSTEM_FLAG</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>
             }
 
-            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">ERR_GET_LIB</span>(<span class="ident">errcode</span>: <span class="ident">c_ulong</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span> {
+            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">ERR_GET_LIB</span>(<span class="ident">errcode</span>: <span class="ident">c_ulong</span>) -&gt; <span class="ident">c_int</span> {
                 <span class="comment">// hacks since `if` isn&#39;t yet stable in const functions :(</span>
                 ((<span class="ident">ERR_LIB_SYS</span> <span class="kw">as</span> <span class="ident">c_ulong</span> <span class="op">*</span> (<span class="ident">ERR_SYSTEM_ERROR</span>(<span class="ident">errcode</span>) <span class="kw">as</span> <span class="ident">c_ulong</span>)) <span class="op">|</span>
                 (((<span class="ident">errcode</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">ERR_LIB_OFFSET</span>) <span class="op">&amp;</span> <span class="ident">ERR_LIB_MASK</span>)) <span class="op">*</span> (<span class="op">!</span><span class="ident">ERR_SYSTEM_ERROR</span>(<span class="ident">errcode</span>) <span class="kw">as</span> <span class="ident">c_ulong</span>)) <span class="kw">as</span> <span class="ident">c_int</span>
             }
 
-            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">ERR_GET_FUNC</span>(<span class="ident">_errcode</span>: <span class="ident">c_ulong</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span> {
+            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">ERR_GET_FUNC</span>(<span class="ident">_errcode</span>: <span class="ident">c_ulong</span>) -&gt; <span class="ident">c_int</span> {
                 <span class="number">0</span>
             }
 
-            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">ERR_GET_REASON</span>(<span class="ident">errcode</span>: <span class="ident">c_ulong</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span> {
+            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">ERR_GET_REASON</span>(<span class="ident">errcode</span>: <span class="ident">c_ulong</span>) -&gt; <span class="ident">c_int</span> {
                 <span class="comment">// hacks since `if` isn&#39;t yet stable in const functions :(</span>
                 ((<span class="ident">ERR_LIB_SYS</span> <span class="kw">as</span> <span class="ident">c_ulong</span> <span class="op">*</span> (<span class="ident">ERR_SYSTEM_ERROR</span>(<span class="ident">errcode</span>) <span class="kw">as</span> <span class="ident">c_ulong</span>)) <span class="op">|</span>
                 ((<span class="ident">errcode</span> <span class="op">&amp;</span> <span class="ident">ERR_REASON_MASK</span>)) <span class="op">*</span> (<span class="op">!</span><span class="ident">ERR_SYSTEM_ERROR</span>(<span class="ident">errcode</span>) <span class="kw">as</span> <span class="ident">c_ulong</span>)) <span class="kw">as</span> <span class="ident">c_int</span>
             }
 
-            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">ERR_PACK</span>(<span class="ident">lib</span>: <span class="ident">c_int</span>, <span class="ident">_func</span>: <span class="ident">c_int</span>, <span class="ident">reason</span>: <span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_ulong</span> {
+            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">ERR_PACK</span>(<span class="ident">lib</span>: <span class="ident">c_int</span>, <span class="ident">_func</span>: <span class="ident">c_int</span>, <span class="ident">reason</span>: <span class="ident">c_int</span>) -&gt; <span class="ident">c_ulong</span> {
                 ((<span class="ident">lib</span> <span class="kw">as</span> <span class="ident">c_ulong</span> <span class="op">&amp;</span> <span class="ident">ERR_LIB_MASK</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">ERR_LIB_OFFSET</span>) <span class="op">|</span>
                 ((<span class="ident">reason</span> <span class="kw">as</span> <span class="ident">c_ulong</span> <span class="op">&amp;</span> <span class="ident">ERR_REASON_MASK</span>))
             }
         }
     } <span class="kw">else</span> {
         <span class="macro">const_fn!</span> {
-            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">ERR_PACK</span>(<span class="ident">l</span>: <span class="ident">c_int</span>, <span class="ident">f</span>: <span class="ident">c_int</span>, <span class="ident">r</span>: <span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_ulong</span> {
+            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">ERR_PACK</span>(<span class="ident">l</span>: <span class="ident">c_int</span>, <span class="ident">f</span>: <span class="ident">c_int</span>, <span class="ident">r</span>: <span class="ident">c_int</span>) -&gt; <span class="ident">c_ulong</span> {
                 ((<span class="ident">l</span> <span class="kw">as</span> <span class="ident">c_ulong</span> <span class="op">&amp;</span> <span class="number">0x0FF</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">24</span>) <span class="op">|</span>
                 ((<span class="ident">f</span> <span class="kw">as</span> <span class="ident">c_ulong</span> <span class="op">&amp;</span> <span class="number">0xFFF</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">12</span>) <span class="op">|</span>
                 (<span class="ident">r</span> <span class="kw">as</span> <span class="ident">c_ulong</span> <span class="op">&amp;</span> <span class="number">0xFFF</span>)
             }
 
-            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">ERR_GET_LIB</span>(<span class="ident">l</span>: <span class="ident">c_ulong</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span> {
+            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">ERR_GET_LIB</span>(<span class="ident">l</span>: <span class="ident">c_ulong</span>) -&gt; <span class="ident">c_int</span> {
                 ((<span class="ident">l</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">24</span>) <span class="op">&amp;</span> <span class="number">0x0FF</span>) <span class="kw">as</span> <span class="ident">c_int</span>
             }
 
-            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">ERR_GET_FUNC</span>(<span class="ident">l</span>: <span class="ident">c_ulong</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span> {
+            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">ERR_GET_FUNC</span>(<span class="ident">l</span>: <span class="ident">c_ulong</span>) -&gt; <span class="ident">c_int</span> {
                 ((<span class="ident">l</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">12</span>) <span class="op">&amp;</span> <span class="number">0xFFF</span>) <span class="kw">as</span> <span class="ident">c_int</span>
             }
 
-            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">ERR_GET_REASON</span>(<span class="ident">l</span>: <span class="ident">c_ulong</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span> {
+            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">ERR_GET_REASON</span>(<span class="ident">l</span>: <span class="ident">c_ulong</span>) -&gt; <span class="ident">c_int</span> {
                 (<span class="ident">l</span> <span class="op">&amp;</span> <span class="number">0xFFF</span>) <span class="kw">as</span> <span class="ident">c_int</span>
             }
         }
@@ -215,7 +215,7 @@
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ERR_set_error_data</span>(<span class="ident">data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_char</span>, <span class="ident">flags</span>: <span class="ident">c_int</span>);
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ERR_get_error</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_ulong</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ERR_get_error</span>() -&gt; <span class="ident">c_ulong</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl300</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ERR_get_error_all</span>(
         <span class="ident">file</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
@@ -223,26 +223,26 @@
         <span class="ident">func</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
         <span class="ident">data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
         <span class="ident">flags</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_int</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_ulong</span>;
+    ) -&gt; <span class="ident">c_ulong</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ERR_get_error_line_data</span>(
         <span class="ident">file</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
         <span class="ident">line</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_int</span>,
         <span class="ident">data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
         <span class="ident">flags</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_int</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_ulong</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ERR_peek_last_error</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_ulong</span>;
+    ) -&gt; <span class="ident">c_ulong</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ERR_peek_last_error</span>() -&gt; <span class="ident">c_ulong</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ERR_clear_error</span>();
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ERR_lib_error_string</span>(<span class="ident">err</span>: <span class="ident">c_ulong</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ERR_func_error_string</span>(<span class="ident">err</span>: <span class="ident">c_ulong</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ERR_reason_error_string</span>(<span class="ident">err</span>: <span class="ident">c_ulong</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ERR_lib_error_string</span>(<span class="ident">err</span>: <span class="ident">c_ulong</span>) -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ERR_func_error_string</span>(<span class="ident">err</span>: <span class="ident">c_ulong</span>) -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ERR_reason_error_string</span>(<span class="ident">err</span>: <span class="ident">c_ulong</span>) -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ERR_load_strings</span>(<span class="ident">lib</span>: <span class="ident">c_int</span>, <span class="ident">str</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ERR_STRING_DATA</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ERR_load_strings</span>(<span class="ident">lib</span>: <span class="ident">c_int</span>, <span class="ident">str</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ERR_STRING_DATA</span>) -&gt; <span class="ident">c_int</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">ossl110</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ERR_load_strings</span>(<span class="ident">lib</span>: <span class="ident">c_int</span>, <span class="ident">str</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ERR_STRING_DATA</span>);
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">ossl110</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ERR_load_crypto_strings</span>();
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ERR_get_next_error_library</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ERR_get_next_error_library</span>() -&gt; <span class="ident">c_int</span>;
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl_sys" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>

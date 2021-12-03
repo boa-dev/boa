@@ -289,7 +289,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MappedArguments</span>(<span class="ident">JsObject</span>);
 
 <span class="kw">impl</span> <span class="ident">MappedArguments</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parameter_map</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsObject</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parameter_map</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">JsObject</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>()
     }
 }
@@ -310,7 +310,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_unmapped_arguments_object</span>(
         <span class="ident">arguments_list</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsObject</span> {
+    ) -&gt; <span class="ident">JsObject</span> {
         <span class="comment">// 1. Let len be the number of elements in argumentsList.</span>
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">arguments_list</span>.<span class="ident">len</span>();
 
@@ -388,7 +388,7 @@
         <span class="ident">arguments_list</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Environment</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsObject</span> {
+    ) -&gt; <span class="ident">JsObject</span> {
         <span class="comment">// 1. Assert: formals does not contain a rest parameter, any binding patterns, or any initializers.</span>
         <span class="comment">// It may contain duplicate identifiers.</span>
         <span class="comment">// 2. Let len be the number of elements in argumentsList.</span>

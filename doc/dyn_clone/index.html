@@ -5,7 +5,7 @@ and a <a href="fn.clone_box.html"><code>clone_box</code></a> function that can c
 implementation of <code>DynClone</code>. Types that implement the standard library’s
 <a href="https://doc.rust-lang.org/std/clone/trait.Clone.html"><code>std::clone::Clone</code></a> trait are automatically usable by a <code>DynClone</code> trait
 object.</p>
-<h1 id="example" class="section-header"><a href="#example">Example</a></h1>
+<h2 id="example" class="section-header"><a href="#example">Example</a></h2>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">dyn_clone::DynClone</span>;
 
 <span class="kw">trait</span> <span class="ident">MyTrait</span>: <span class="ident">DynClone</span> {
@@ -47,11 +47,11 @@ object.</p>
     <span class="ident">trait_object</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">MyTrait</span><span class="op">&gt;</span>,
 }</code></pre></div>
 </div></details><h2 id="macros" class="section-header"><a href="#macros">Macros</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="macro" href="macro.clone_trait_object.html" title="dyn_clone::clone_trait_object macro">clone_trait_object</a></div><div class="item-right docblock-short"><p>Implement the standard library <code>Clone</code> for a trait object that has
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="macro" href="macro.clone_trait_object.html" title="dyn_clone::clone_trait_object macro">clone_trait_object</a></div><div class="item-right docblock-short"><p>Implement the standard library <code>Clone</code> for a trait object that has
 <code>DynClone</code> as a supertrait.</p>
-</div></div><h2 id="traits" class="section-header"><a href="#traits">Traits</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="trait" href="trait.DynClone.html" title="dyn_clone::DynClone trait">DynClone</a></div><div class="item-right docblock-short"><p>This trait is implemented by any type that implements <a href="https://doc.rust-lang.org/std/clone/trait.Clone.html"><code>std::clone::Clone</code></a>.</p>
-</div></div><h2 id="functions" class="section-header"><a href="#functions">Functions</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="fn" href="fn.clone.html" title="dyn_clone::clone fn">clone</a></div><div class="item-right docblock-short"></div><div class="item-left module-item"><a class="fn" href="fn.clone_box.html" title="dyn_clone::clone_box fn">clone_box</a></div><div class="item-right docblock-short"></div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="dyn_clone" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
+</div></div></div><h2 id="traits" class="section-header"><a href="#traits">Traits</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.DynClone.html" title="dyn_clone::DynClone trait">DynClone</a></div><div class="item-right docblock-short"><p>This trait is implemented by any type that implements <a href="https://doc.rust-lang.org/std/clone/trait.Clone.html"><code>std::clone::Clone</code></a>.</p>
+</div></div></div><h2 id="functions" class="section-header"><a href="#functions">Functions</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.clone.html" title="dyn_clone::clone fn">clone</a></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.clone_box.html" title="dyn_clone::clone_box fn">clone_box</a></div><div class="item-right docblock-short"></div></div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="dyn_clone" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
     <script src="../main.js"></script>
 </body></html>

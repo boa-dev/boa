@@ -269,7 +269,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This method is implicitly implemented using `to_tokens`, and acts as a</span>
     <span class="doccomment">/// convenience method for consumers of the `ToTokens` trait.</span>
-    <span class="kw">fn</span> <span class="ident">to_token_stream</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span> {
+    <span class="kw">fn</span> <span class="ident">to_token_stream</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">TokenStream</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tokens</span> <span class="op">=</span> <span class="ident">TokenStream::new</span>();
         <span class="self">self</span>.<span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">tokens</span>);
         <span class="ident">tokens</span>
@@ -279,7 +279,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This method is implicitly implemented using `to_tokens`, and acts as a</span>
     <span class="doccomment">/// convenience method for consumers of the `ToTokens` trait.</span>
-    <span class="kw">fn</span> <span class="ident">into_token_stream</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span>
+    <span class="kw">fn</span> <span class="ident">into_token_stream</span>(<span class="self">self</span>) -&gt; <span class="ident">TokenStream</span>
     <span class="kw">where</span>
         <span class="self">Self</span>: <span class="ident">Sized</span>,
     {
@@ -338,7 +338,7 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">primitive</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ident</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ident</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>)<span class="kw-2">*</span>) =&gt; {
         $(
             <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
                 <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TokenStream</span>) {
@@ -350,22 +350,22 @@
 }
 
 <span class="macro">primitive!</span> {
-    <span class="ident">i8</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i8_suffixed</span>
-    <span class="ident">i16</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i16_suffixed</span>
-    <span class="ident">i32</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i32_suffixed</span>
-    <span class="ident">i64</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i64_suffixed</span>
-    <span class="ident">i128</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i128_suffixed</span>
-    <span class="ident">isize</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">isize_suffixed</span>
+    <span class="ident">i8</span> =&gt; <span class="ident">i8_suffixed</span>
+    <span class="ident">i16</span> =&gt; <span class="ident">i16_suffixed</span>
+    <span class="ident">i32</span> =&gt; <span class="ident">i32_suffixed</span>
+    <span class="ident">i64</span> =&gt; <span class="ident">i64_suffixed</span>
+    <span class="ident">i128</span> =&gt; <span class="ident">i128_suffixed</span>
+    <span class="ident">isize</span> =&gt; <span class="ident">isize_suffixed</span>
 
-    <span class="ident">u8</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">u8_suffixed</span>
-    <span class="ident">u16</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">u16_suffixed</span>
-    <span class="ident">u32</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">u32_suffixed</span>
-    <span class="ident">u64</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">u64_suffixed</span>
-    <span class="ident">u128</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">u128_suffixed</span>
-    <span class="ident">usize</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">usize_suffixed</span>
+    <span class="ident">u8</span> =&gt; <span class="ident">u8_suffixed</span>
+    <span class="ident">u16</span> =&gt; <span class="ident">u16_suffixed</span>
+    <span class="ident">u32</span> =&gt; <span class="ident">u32_suffixed</span>
+    <span class="ident">u64</span> =&gt; <span class="ident">u64_suffixed</span>
+    <span class="ident">u128</span> =&gt; <span class="ident">u128_suffixed</span>
+    <span class="ident">usize</span> =&gt; <span class="ident">usize_suffixed</span>
 
-    <span class="ident">f32</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f32_suffixed</span>
-    <span class="ident">f64</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f64_suffixed</span>
+    <span class="ident">f32</span> =&gt; <span class="ident">f32_suffixed</span>
+    <span class="ident">f64</span> =&gt; <span class="ident">f64_suffixed</span>
 }
 
 <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">char</span> {
@@ -416,7 +416,7 @@
         <span class="ident">dst</span>.<span class="ident">extend</span>(<span class="ident">iter::once</span>(<span class="self">self</span>.<span class="ident">clone</span>()));
     }
 
-    <span class="kw">fn</span> <span class="ident">into_token_stream</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span> {
+    <span class="kw">fn</span> <span class="ident">into_token_stream</span>(<span class="self">self</span>) -&gt; <span class="ident">TokenStream</span> {
         <span class="self">self</span>
     }
 }

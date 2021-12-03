@@ -197,55 +197,55 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// If the next value is not an assignment operation it will pattern match  the provided values and return the corresponding token.</span>
 <span class="macro">macro_rules!</span> <span class="ident">vop</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cursor</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">assign_op</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> ({
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cursor</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">assign_op</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>:<span class="ident">expr</span>) =&gt; ({
         <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cursor</span>.<span class="ident">peek</span>()<span class="question-mark">?</span> {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Error::syntax</span>(<span class="string">&quot;abrupt end - could not preview next value as part of the operator&quot;</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cursor</span>.<span class="ident">pos</span>())),
-            <span class="prelude-val">Some</span>(<span class="string">b&#39;=&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">Error::syntax</span>(<span class="string">&quot;abrupt end - could not preview next value as part of the operator&quot;</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cursor</span>.<span class="ident">pos</span>())),
+            <span class="prelude-val">Some</span>(<span class="string">b&#39;=&#39;</span>) =&gt; {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cursor</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;= token vanished&quot;</span>);
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cursor</span>.<span class="ident">next_column</span>();
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">assign_op</span>
             }
-            <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>,
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>,
         }
     });
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cursor</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">assign_op</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>:<span class="ident">expr</span>, {$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">pat</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">block</span>:<span class="ident">expr</span>), <span class="op">+</span>}) <span class="op">=</span><span class="op">&gt;</span> ({
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cursor</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">assign_op</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>:<span class="ident">expr</span>, {$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">pat</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">block</span>:<span class="ident">expr</span>), <span class="op">+</span>}) =&gt; ({
         <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cursor</span>.<span class="ident">peek</span>()<span class="question-mark">?</span> {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Error::syntax</span>(<span class="string">&quot;abrupt end - could not preview next value as part of the operator&quot;</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cursor</span>.<span class="ident">pos</span>())),
-            <span class="prelude-val">Some</span>(<span class="string">b&#39;=&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">Error::syntax</span>(<span class="string">&quot;abrupt end - could not preview next value as part of the operator&quot;</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cursor</span>.<span class="ident">pos</span>())),
+            <span class="prelude-val">Some</span>(<span class="string">b&#39;=&#39;</span>) =&gt; {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cursor</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;= token vanished&quot;</span>);
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cursor</span>.<span class="ident">next_column</span>();
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">assign_op</span>
             },
-            $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span> <span class="op">=</span><span class="op">&gt;</span> {
+            $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span> =&gt; {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cursor</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;Token vanished&quot;</span>);
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cursor</span>.<span class="ident">next_column</span>();
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">block</span>
             })<span class="op">+</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>,
+            <span class="kw">_</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>,
         }
     });
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cursor</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>:<span class="ident">expr</span>, {$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">pat</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">block</span>:<span class="ident">expr</span>),<span class="op">+</span>}) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cursor</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>:<span class="ident">expr</span>, {$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">pat</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">block</span>:<span class="ident">expr</span>),<span class="op">+</span>}) =&gt; {
         <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cursor</span>.<span class="ident">peek</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Error::syntax</span>(<span class="string">&quot;could not preview next value&quot;</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cursor</span>.<span class="ident">pos</span>()))<span class="question-mark">?</span> {
-            $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span> <span class="op">=</span><span class="op">&gt;</span> {
+            $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span> =&gt; {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cursor</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span>;
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cursor</span>.<span class="ident">next_column</span>();
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">block</span>
             })<span class="op">+</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>
+            <span class="kw">_</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>
         }
     }
 }
 
 <span class="doccomment">/// The `op` macro handles binary operations or assignment operations and converts them into tokens.</span>
 <span class="macro">macro_rules!</span> <span class="ident">op</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cursor</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">start_pos</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">assign_op</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> ({
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cursor</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">start_pos</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">assign_op</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>:<span class="ident">expr</span>) =&gt; ({
         <span class="prelude-val">Ok</span>(<span class="ident">Token::new</span>(
             <span class="macro">vop!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cursor</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">assign_op</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>)<span class="question-mark">?</span>.<span class="ident">into</span>(),
             <span class="ident">Span::new</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">start_pos</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cursor</span>.<span class="ident">pos</span>()),
         ))
     });
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cursor</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">start_pos</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">assign_op</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>:<span class="ident">expr</span>, {$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">pat</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">block</span>:<span class="ident">expr</span>),<span class="op">+</span>}) <span class="op">=</span><span class="op">&gt;</span> ({
-        <span class="kw">let</span> <span class="ident">punc</span>: <span class="ident">Punctuator</span> <span class="op">=</span> <span class="macro">vop!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cursor</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">assign_op</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>, {$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">block</span>),<span class="op">+</span>})<span class="question-mark">?</span>;
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cursor</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">start_pos</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">assign_op</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>:<span class="ident">expr</span>, {$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">pat</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">block</span>:<span class="ident">expr</span>),<span class="op">+</span>}) =&gt; ({
+        <span class="kw">let</span> <span class="ident">punc</span>: <span class="ident">Punctuator</span> <span class="op">=</span> <span class="macro">vop!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cursor</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">assign_op</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>, {$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">block</span>),<span class="op">+</span>})<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">Token::new</span>(
             <span class="ident">punc</span>.<span class="ident">into</span>(),
             <span class="ident">Span::new</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">start_pos</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cursor</span>.<span class="ident">pos</span>()),
@@ -270,44 +270,44 @@
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators</span>
 <span class="kw">impl</span> <span class="ident">Operator</span> {
     <span class="doccomment">/// Creates a new operator lexer.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">init</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">init</span>: <span class="ident">u8</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> { <span class="ident">init</span> }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">Tokenizer</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Operator</span> {
-    <span class="kw">fn</span> <span class="ident">lex</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">start_pos</span>: <span class="ident">Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Token</span>, <span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">lex</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">start_pos</span>: <span class="ident">Position</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Token</span>, <span class="ident">Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">R</span>: <span class="ident">Read</span>,
     {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Operator&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">init</span> {
-            <span class="string">b&#39;*&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">op!</span>(<span class="ident">cursor</span>, <span class="ident">start_pos</span>, <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::AssignMul</span>), <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::Mul</span>), {
-                <span class="prelude-val">Some</span>(<span class="string">b&#39;*&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">vop!</span>(<span class="ident">cursor</span>, <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::AssignPow</span>), <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::Exp</span>))
+            <span class="string">b&#39;*&#39;</span> =&gt; <span class="macro">op!</span>(<span class="ident">cursor</span>, <span class="ident">start_pos</span>, <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::AssignMul</span>), <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::Mul</span>), {
+                <span class="prelude-val">Some</span>(<span class="string">b&#39;*&#39;</span>) =&gt; <span class="macro">vop!</span>(<span class="ident">cursor</span>, <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::AssignPow</span>), <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::Exp</span>))
             }),
-            <span class="string">b&#39;+&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">op!</span>(<span class="ident">cursor</span>, <span class="ident">start_pos</span>, <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::AssignAdd</span>), <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::Add</span>), {
-                <span class="prelude-val">Some</span>(<span class="string">b&#39;+&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::Inc</span>)
+            <span class="string">b&#39;+&#39;</span> =&gt; <span class="macro">op!</span>(<span class="ident">cursor</span>, <span class="ident">start_pos</span>, <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::AssignAdd</span>), <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::Add</span>), {
+                <span class="prelude-val">Some</span>(<span class="string">b&#39;+&#39;</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::Inc</span>)
             }),
-            <span class="string">b&#39;-&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">op!</span>(<span class="ident">cursor</span>, <span class="ident">start_pos</span>, <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::AssignSub</span>), <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::Sub</span>), {
-                <span class="prelude-val">Some</span>(<span class="string">b&#39;-&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="string">b&#39;-&#39;</span> =&gt; <span class="macro">op!</span>(<span class="ident">cursor</span>, <span class="ident">start_pos</span>, <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::AssignSub</span>), <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::Sub</span>), {
+                <span class="prelude-val">Some</span>(<span class="string">b&#39;-&#39;</span>) =&gt; {
                     <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::Dec</span>)
                 }
             }),
-            <span class="string">b&#39;%&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">op!</span>(
+            <span class="string">b&#39;%&#39;</span> =&gt; <span class="macro">op!</span>(
                 <span class="ident">cursor</span>,
                 <span class="ident">start_pos</span>,
                 <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::AssignMod</span>),
                 <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::Mod</span>)
             ),
-            <span class="string">b&#39;|&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">op!</span>(<span class="ident">cursor</span>, <span class="ident">start_pos</span>, <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::AssignOr</span>), <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::Or</span>), {
-                <span class="prelude-val">Some</span>(<span class="string">b&#39;|&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">vop!</span>(<span class="ident">cursor</span>, <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::AssignBoolOr</span>), <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::BoolOr</span>))
+            <span class="string">b&#39;|&#39;</span> =&gt; <span class="macro">op!</span>(<span class="ident">cursor</span>, <span class="ident">start_pos</span>, <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::AssignOr</span>), <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::Or</span>), {
+                <span class="prelude-val">Some</span>(<span class="string">b&#39;|&#39;</span>) =&gt; <span class="macro">vop!</span>(<span class="ident">cursor</span>, <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::AssignBoolOr</span>), <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::BoolOr</span>))
             }),
-            <span class="string">b&#39;&amp;&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">op!</span>(<span class="ident">cursor</span>, <span class="ident">start_pos</span>, <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::AssignAnd</span>), <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::And</span>), {
-                <span class="prelude-val">Some</span>(<span class="string">b&#39;&amp;&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">vop!</span>(<span class="ident">cursor</span>, <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::AssignBoolAnd</span>), <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::BoolAnd</span>))
+            <span class="string">b&#39;&amp;&#39;</span> =&gt; <span class="macro">op!</span>(<span class="ident">cursor</span>, <span class="ident">start_pos</span>, <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::AssignAnd</span>), <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::And</span>), {
+                <span class="prelude-val">Some</span>(<span class="string">b&#39;&amp;&#39;</span>) =&gt; <span class="macro">vop!</span>(<span class="ident">cursor</span>, <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::AssignBoolAnd</span>), <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::BoolAnd</span>))
             }),
-            <span class="string">b&#39;?&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek</span>()<span class="question-mark">?</span> {
-                <span class="prelude-val">Some</span>(<span class="string">b&#39;?&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="string">b&#39;?&#39;</span> =&gt; <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek</span>()<span class="question-mark">?</span> {
+                <span class="prelude-val">Some</span>(<span class="string">b&#39;?&#39;</span>) =&gt; {
                     <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;? vanished&quot;</span>);
                     <span class="macro">op!</span>(
                         <span class="ident">cursor</span>,
@@ -316,49 +316,49 @@
                         <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::Coalesce</span>)
                     )
                 }
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Token::new</span>(
+                <span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Token::new</span>(
                     <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Question</span>),
                     <span class="ident">Span::new</span>(<span class="ident">start_pos</span>, <span class="ident">cursor</span>.<span class="ident">pos</span>()),
                 )),
             },
-            <span class="string">b&#39;^&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">op!</span>(
+            <span class="string">b&#39;^&#39;</span> =&gt; <span class="macro">op!</span>(
                 <span class="ident">cursor</span>,
                 <span class="ident">start_pos</span>,
                 <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::AssignXor</span>),
                 <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::Xor</span>)
             ),
-            <span class="string">b&#39;=&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">op!</span>(<span class="ident">cursor</span>, <span class="ident">start_pos</span>, <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">next_is</span>(<span class="string">b&#39;=&#39;</span>)<span class="question-mark">?</span> {
+            <span class="string">b&#39;=&#39;</span> =&gt; <span class="macro">op!</span>(<span class="ident">cursor</span>, <span class="ident">start_pos</span>, <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">next_is</span>(<span class="string">b&#39;=&#39;</span>)<span class="question-mark">?</span> {
                 <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::StrictEq</span>)
             } <span class="kw">else</span> {
                 <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::Eq</span>)
             }, <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::Assign</span>), {
-                <span class="prelude-val">Some</span>(<span class="string">b&#39;&gt;&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Some</span>(<span class="string">b&#39;&gt;&#39;</span>) =&gt; {
                     <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::Arrow</span>)
                 }
             }),
-            <span class="string">b&#39;&lt;&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="string">b&#39;&lt;&#39;</span> =&gt; {
                 <span class="macro">op!</span>(<span class="ident">cursor</span>, <span class="ident">start_pos</span>, <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::LessThanOrEq</span>), <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::LessThan</span>), {
-                    <span class="prelude-val">Some</span>(<span class="string">b&#39;&lt;&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">vop!</span>(<span class="ident">cursor</span>, <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::AssignLeftSh</span>), <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::LeftSh</span>))
+                    <span class="prelude-val">Some</span>(<span class="string">b&#39;&lt;&#39;</span>) =&gt; <span class="macro">vop!</span>(<span class="ident">cursor</span>, <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::AssignLeftSh</span>), <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::LeftSh</span>))
                 })
             }
-            <span class="string">b&#39;&gt;&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="string">b&#39;&gt;&#39;</span> =&gt; {
                 <span class="macro">op!</span>(<span class="ident">cursor</span>, <span class="ident">start_pos</span>, <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::GreaterThanOrEq</span>), <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::GreaterThan</span>), {
-                    <span class="prelude-val">Some</span>(<span class="string">b&#39;&gt;&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">vop!</span>(<span class="ident">cursor</span>, <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::AssignRightSh</span>), <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::RightSh</span>), {
-                        <span class="prelude-val">Some</span>(<span class="string">b&#39;&gt;&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">vop!</span>(<span class="ident">cursor</span>, <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::AssignURightSh</span>), <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::URightSh</span>))
+                    <span class="prelude-val">Some</span>(<span class="string">b&#39;&gt;&#39;</span>) =&gt; <span class="macro">vop!</span>(<span class="ident">cursor</span>, <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::AssignRightSh</span>), <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::RightSh</span>), {
+                        <span class="prelude-val">Some</span>(<span class="string">b&#39;&gt;&#39;</span>) =&gt; <span class="macro">vop!</span>(<span class="ident">cursor</span>, <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::AssignURightSh</span>), <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::URightSh</span>))
                     })
                 })
             }
-            <span class="string">b&#39;!&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">op!</span>(
+            <span class="string">b&#39;!&#39;</span> =&gt; <span class="macro">op!</span>(
                 <span class="ident">cursor</span>,
                 <span class="ident">start_pos</span>,
                 <span class="macro">vop!</span>(<span class="ident">cursor</span>, <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::StrictNotEq</span>), <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::NotEq</span>)),
                 <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::Not</span>)
             ),
-            <span class="string">b&#39;~&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Token::new</span>(
+            <span class="string">b&#39;~&#39;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Token::new</span>(
                 <span class="ident">Punctuator::Neg</span>.<span class="ident">into</span>(),
                 <span class="ident">Span::new</span>(<span class="ident">start_pos</span>, <span class="ident">cursor</span>.<span class="ident">pos</span>()),
             )),
-            <span class="ident">op</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented!</span>(<span class="string">&quot;operator {}&quot;</span>, <span class="ident">op</span>),
+            <span class="ident">op</span> =&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;operator {}&quot;</span>, <span class="ident">op</span>),
         }
     }
 }

@@ -93,13 +93,13 @@
 
 <span class="doccomment">/// Returns true if and only if needle is a prefix of haystack.</span>
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_prefix</span>(<span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_prefix</span>(<span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">bool</span> {
     <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">haystack</span>.<span class="ident">len</span>() <span class="op">&amp;&amp;</span> <span class="ident">memcmp</span>(<span class="kw-2">&amp;</span><span class="ident">haystack</span>[..<span class="ident">needle</span>.<span class="ident">len</span>()], <span class="ident">needle</span>)
 }
 
 <span class="doccomment">/// Returns true if and only if needle is a suffix of haystack.</span>
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_suffix</span>(<span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_suffix</span>(<span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">bool</span> {
     <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">haystack</span>.<span class="ident">len</span>()
         <span class="op">&amp;&amp;</span> <span class="ident">memcmp</span>(<span class="kw-2">&amp;</span><span class="ident">haystack</span>[<span class="ident">haystack</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">needle</span>.<span class="ident">len</span>()..], <span class="ident">needle</span>)
 }
@@ -117,7 +117,7 @@
 <span class="doccomment">/// inlined for better codegen (like Rabin-Karp). In that case, callers are</span>
 <span class="doccomment">/// advised to create a non-inlineable wrapper routine that calls memcmp.</span>
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">memcmp</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">y</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">memcmp</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">y</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">bool</span> {
     <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">y</span>.<span class="ident">len</span>() {
         <span class="kw">return</span> <span class="bool-val">false</span>;
     }
@@ -171,7 +171,7 @@
         }
         <span class="kw">let</span> <span class="ident">vx</span> <span class="op">=</span> (<span class="ident">pxend</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u32</span>).<span class="ident">read_unaligned</span>();
         <span class="kw">let</span> <span class="ident">vy</span> <span class="op">=</span> (<span class="ident">pyend</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u32</span>).<span class="ident">read_unaligned</span>();
-        <span class="ident">vx</span> <span class="op">=</span><span class="op">=</span> <span class="ident">vy</span>
+        <span class="ident">vx</span> <span class="op">==</span> <span class="ident">vy</span>
     }
 }
 </code></pre></div>

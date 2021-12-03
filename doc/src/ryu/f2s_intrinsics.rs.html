@@ -137,7 +137,7 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FLOAT_POW5_BITCOUNT</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">d2s::DOUBLE_POW5_BITCOUNT</span> <span class="op">-</span> <span class="number">64</span>;
 
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;no-panic&quot;</span>, <span class="ident">inline</span>)]</span>
-<span class="kw">fn</span> <span class="ident">pow5factor_32</span>(<span class="kw-2">mut</span> <span class="ident">value</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+<span class="kw">fn</span> <span class="ident">pow5factor_32</span>(<span class="kw-2">mut</span> <span class="ident">value</span>: <span class="ident">u32</span>) -&gt; <span class="ident">u32</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">count</span> <span class="op">=</span> <span class="number">0u32</span>;
     <span class="kw">loop</span> {
         <span class="macro">debug_assert!</span>(<span class="ident">value</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>);
@@ -154,21 +154,21 @@
 
 <span class="comment">// Returns true if value is divisible by 5^p.</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;no-panic&quot;</span>, <span class="ident">inline</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">multiple_of_power_of_5_32</span>(<span class="ident">value</span>: <span class="ident">u32</span>, <span class="ident">p</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">multiple_of_power_of_5_32</span>(<span class="ident">value</span>: <span class="ident">u32</span>, <span class="ident">p</span>: <span class="ident">u32</span>) -&gt; <span class="ident">bool</span> {
     <span class="ident">pow5factor_32</span>(<span class="ident">value</span>) <span class="op">&gt;</span><span class="op">=</span> <span class="ident">p</span>
 }
 
 <span class="comment">// Returns true if value is divisible by 2^p.</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;no-panic&quot;</span>, <span class="ident">inline</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">multiple_of_power_of_2_32</span>(<span class="ident">value</span>: <span class="ident">u32</span>, <span class="ident">p</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">multiple_of_power_of_2_32</span>(<span class="ident">value</span>: <span class="ident">u32</span>, <span class="ident">p</span>: <span class="ident">u32</span>) -&gt; <span class="ident">bool</span> {
     <span class="comment">// __builtin_ctz doesn&#39;t appear to be faster here.</span>
-    (<span class="ident">value</span> <span class="op">&amp;</span> ((<span class="number">1u32</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">p</span>) <span class="op">-</span> <span class="number">1</span>)) <span class="op">=</span><span class="op">=</span> <span class="number">0</span>
+    (<span class="ident">value</span> <span class="op">&amp;</span> ((<span class="number">1u32</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">p</span>) <span class="op">-</span> <span class="number">1</span>)) <span class="op">==</span> <span class="number">0</span>
 }
 
 <span class="comment">// It seems to be slightly faster to avoid uint128_t here, although the</span>
 <span class="comment">// generated code for uint128_t looks slightly nicer.</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;no-panic&quot;</span>, <span class="ident">inline</span>)]</span>
-<span class="kw">fn</span> <span class="ident">mul_shift_32</span>(<span class="ident">m</span>: <span class="ident">u32</span>, <span class="ident">factor</span>: <span class="ident">u64</span>, <span class="ident">shift</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+<span class="kw">fn</span> <span class="ident">mul_shift_32</span>(<span class="ident">m</span>: <span class="ident">u32</span>, <span class="ident">factor</span>: <span class="ident">u64</span>, <span class="ident">shift</span>: <span class="ident">i32</span>) -&gt; <span class="ident">u32</span> {
     <span class="macro">debug_assert!</span>(<span class="ident">shift</span> <span class="op">&gt;</span> <span class="number">32</span>);
 
     <span class="comment">// The casts here help MSVC to avoid calls to the __allmul library</span>
@@ -185,7 +185,7 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;no-panic&quot;</span>, <span class="ident">inline</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mul_pow5_inv_div_pow2</span>(<span class="ident">m</span>: <span class="ident">u32</span>, <span class="ident">q</span>: <span class="ident">u32</span>, <span class="ident">j</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mul_pow5_inv_div_pow2</span>(<span class="ident">m</span>: <span class="ident">u32</span>, <span class="ident">q</span>: <span class="ident">u32</span>, <span class="ident">j</span>: <span class="ident">i32</span>) -&gt; <span class="ident">u32</span> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;small&quot;</span>)]</span>
     {
         <span class="comment">// The inverse multipliers are defined as [2^x / 5^y] + 1; the upper 64</span>
@@ -211,7 +211,7 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;no-panic&quot;</span>, <span class="ident">inline</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mul_pow5_div_pow2</span>(<span class="ident">m</span>: <span class="ident">u32</span>, <span class="ident">i</span>: <span class="ident">u32</span>, <span class="ident">j</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mul_pow5_div_pow2</span>(<span class="ident">m</span>: <span class="ident">u32</span>, <span class="ident">i</span>: <span class="ident">u32</span>, <span class="ident">j</span>: <span class="ident">i32</span>) -&gt; <span class="ident">u32</span> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;small&quot;</span>)]</span>
     {
         <span class="kw">let</span> <span class="ident">pow5</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">d2s::compute_pow5</span>(<span class="ident">i</span>) };

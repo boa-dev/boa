@@ -17,28 +17,28 @@
     <span class="kw">const</span> <span class="ident">LENGTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1</span>;
 
     <span class="comment">// This is what is called when we do `new Animal()`</span>
-    <span class="kw">fn</span> <span class="ident">constructor</span>(<span class="ident">_this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">constructor</span>(<span class="ident">_this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="comment">// This is equivalent to `String(arg)`.</span>
         <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">animal</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">kind</span>.<span class="ident">as_str</span>() {
-            <span class="string">&quot;cat&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Cat</span>,
-            <span class="string">&quot;dog&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Dog</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Other</span>,
+            <span class="string">&quot;cat&quot;</span> =&gt; <span class="ident"><span class="self">Self</span>::Cat</span>,
+            <span class="string">&quot;dog&quot;</span> =&gt; <span class="ident"><span class="self">Self</span>::Dog</span>,
+            <span class="kw">_</span> =&gt; <span class="ident"><span class="self">Self</span>::Other</span>,
         };
 
         <span class="prelude-val">Ok</span>(<span class="ident">animal</span>)
     }
 
     <span class="doccomment">/// This is where the object is intitialized.</span>
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">class</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ClassBuilder</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">class</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ClassBuilder</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="ident">class</span>.<span class="ident">method</span>(<span class="string">&quot;speak&quot;</span>, <span class="number">0</span>, <span class="op">|</span><span class="ident">this</span>, <span class="ident">_args</span>, <span class="ident">_ctx</span><span class="op">|</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">animal</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">Animal</span><span class="op">&gt;</span>() {
                     <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">animal</span> {
-                        <span class="ident"><span class="self">Self</span>::Cat</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">println!</span>(<span class="string">&quot;meow&quot;</span>),
-                        <span class="ident"><span class="self">Self</span>::Dog</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">println!</span>(<span class="string">&quot;woof&quot;</span>),
-                        <span class="ident"><span class="self">Self</span>::Other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">println!</span>(<span class="string">r&quot;¯\_(ツ)_/¯&quot;</span>),
+                        <span class="ident"><span class="self">Self</span>::Cat</span> =&gt; <span class="macro">println!</span>(<span class="string">&quot;meow&quot;</span>),
+                        <span class="ident"><span class="self">Self</span>::Dog</span> =&gt; <span class="macro">println!</span>(<span class="string">&quot;woof&quot;</span>),
+                        <span class="ident"><span class="self">Self</span>::Other</span> =&gt; <span class="macro">println!</span>(<span class="string">r&quot;¯\_(ツ)_/¯&quot;</span>),
                     }
                 }
             }
@@ -49,10 +49,10 @@
     }
 }</code></pre></div>
 </div></details><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="struct" href="struct.ClassBuilder.html" title="boa::class::ClassBuilder struct">ClassBuilder</a></div><div class="item-right docblock-short"><p>Class builder which allows adding methods and static methods to the class.</p>
-</div></div><h2 id="traits" class="section-header"><a href="#traits">Traits</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="trait" href="trait.Class.html" title="boa::class::Class trait">Class</a></div><div class="item-right docblock-short"><p>Native class.</p>
-</div><div class="item-left module-item"><a class="trait" href="trait.ClassConstructor.html" title="boa::class::ClassConstructor trait">ClassConstructor</a></div><div class="item-right docblock-short"><p>This is a wrapper around <code>Class::constructor</code> that sets the internal data of a class.</p>
-</div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.ClassBuilder.html" title="boa::class::ClassBuilder struct">ClassBuilder</a></div><div class="item-right docblock-short"><p>Class builder which allows adding methods and static methods to the class.</p>
+</div></div></div><h2 id="traits" class="section-header"><a href="#traits">Traits</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.Class.html" title="boa::class::Class trait">Class</a></div><div class="item-right docblock-short"><p>Native class.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.ClassConstructor.html" title="boa::class::ClassConstructor trait">ClassConstructor</a></div><div class="item-right docblock-short"><p>This is a wrapper around <code>Class::constructor</code> that sets the internal data of a class.</p>
+</div></div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script>
 </body></html>

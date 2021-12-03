@@ -50,7 +50,7 @@
 <span class="kw">use</span> <span class="ident">core::ptr</span>;
 
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;no-panic&quot;</span>, <span class="ident">inline</span>)]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">write_exponent3</span>(<span class="kw-2">mut</span> <span class="ident">k</span>: <span class="ident">isize</span>, <span class="kw-2">mut</span> <span class="ident">result</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">write_exponent3</span>(<span class="kw-2">mut</span> <span class="ident">k</span>: <span class="ident">isize</span>, <span class="kw-2">mut</span> <span class="ident">result</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>) -&gt; <span class="ident">usize</span> {
     <span class="kw">let</span> <span class="ident">sign</span> <span class="op">=</span> <span class="ident">k</span> <span class="op">&lt;</span> <span class="number">0</span>;
     <span class="kw">if</span> <span class="ident">sign</span> {
         <span class="kw-2">*</span><span class="ident">result</span> <span class="op">=</span> <span class="string">b&#39;-&#39;</span>;
@@ -76,7 +76,7 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;no-panic&quot;</span>, <span class="ident">inline</span>)]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">write_exponent2</span>(<span class="kw-2">mut</span> <span class="ident">k</span>: <span class="ident">isize</span>, <span class="kw-2">mut</span> <span class="ident">result</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">write_exponent2</span>(<span class="kw-2">mut</span> <span class="ident">k</span>: <span class="ident">isize</span>, <span class="kw-2">mut</span> <span class="ident">result</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>) -&gt; <span class="ident">usize</span> {
     <span class="kw">let</span> <span class="ident">sign</span> <span class="op">=</span> <span class="ident">k</span> <span class="op">&lt;</span> <span class="number">0</span>;
     <span class="kw">if</span> <span class="ident">sign</span> {
         <span class="kw-2">*</span><span class="ident">result</span> <span class="op">=</span> <span class="string">b&#39;-&#39;</span>;

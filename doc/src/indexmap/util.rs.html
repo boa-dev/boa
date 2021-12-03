@@ -40,32 +40,32 @@
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">core::iter::Enumerate</span>;
 <span class="kw">use</span> <span class="ident">core::ops</span>::{<span class="ident">Bound</span>, <span class="ident">Range</span>, <span class="ident">RangeBounds</span>};
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">third</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">C</span><span class="op">&gt;</span>(<span class="ident">t</span>: (<span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">C</span>)) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">C</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">third</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">C</span><span class="op">&gt;</span>(<span class="ident">t</span>: (<span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">C</span>)) -&gt; <span class="ident">C</span> {
     <span class="ident">t</span>.<span class="number">2</span>
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">enumerate</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">iterable</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Enumerate</span><span class="op">&lt;</span><span class="ident">I::IntoIter</span><span class="op">&gt;</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">enumerate</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">iterable</span>: <span class="ident">I</span>) -&gt; <span class="ident">Enumerate</span><span class="op">&lt;</span><span class="ident">I::IntoIter</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">I</span>: <span class="ident">IntoIterator</span>,
 {
     <span class="ident">iterable</span>.<span class="ident">into_iter</span>().<span class="ident">enumerate</span>()
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">simplify_range</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">range</span>: <span class="ident">R</span>, <span class="ident">len</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">simplify_range</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">range</span>: <span class="ident">R</span>, <span class="ident">len</span>: <span class="ident">usize</span>) -&gt; <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">RangeBounds</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
 {
     <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">range</span>.<span class="ident">start_bound</span>() {
-        <span class="ident">Bound::Unbounded</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
-        <span class="ident">Bound::Included</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">len</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i</span>,
-        <span class="ident">Bound::Excluded</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">len</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>,
-        <span class="ident">bound</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;range start {:?} should be &lt;= length {}&quot;</span>, <span class="ident">bound</span>, <span class="ident">len</span>),
+        <span class="ident">Bound::Unbounded</span> =&gt; <span class="number">0</span>,
+        <span class="ident">Bound::Included</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">len</span> =&gt; <span class="ident">i</span>,
+        <span class="ident">Bound::Excluded</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">len</span> =&gt; <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>,
+        <span class="ident">bound</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;range start {:?} should be &lt;= length {}&quot;</span>, <span class="ident">bound</span>, <span class="ident">len</span>),
     };
     <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">range</span>.<span class="ident">end_bound</span>() {
-        <span class="ident">Bound::Unbounded</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">len</span>,
-        <span class="ident">Bound::Excluded</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">len</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i</span>,
-        <span class="ident">Bound::Included</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">len</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>,
-        <span class="ident">bound</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;range end {:?} should be &lt;= length {}&quot;</span>, <span class="ident">bound</span>, <span class="ident">len</span>),
+        <span class="ident">Bound::Unbounded</span> =&gt; <span class="ident">len</span>,
+        <span class="ident">Bound::Excluded</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">len</span> =&gt; <span class="ident">i</span>,
+        <span class="ident">Bound::Included</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">len</span> =&gt; <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>,
+        <span class="ident">bound</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;range end {:?} should be &lt;= length {}&quot;</span>, <span class="ident">bound</span>, <span class="ident">len</span>),
     };
     <span class="kw">if</span> <span class="ident">start</span> <span class="op">&gt;</span> <span class="ident">end</span> {
         <span class="macro">panic!</span>(

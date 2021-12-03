@@ -413,7 +413,7 @@
     <span class="ident">para_level</span>: <span class="ident">Level</span>,
     <span class="ident">original_classes</span>: <span class="kw-2">&amp;</span>[<span class="ident">BidiClass</span>],
     <span class="ident">levels</span>: <span class="kw-2">&amp;</span>[<span class="ident">Level</span>],
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">IsolatingRunSequence</span><span class="op">&gt;</span> {
+) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">IsolatingRunSequence</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">runs</span> <span class="op">=</span> <span class="ident">level_runs</span>(<span class="ident">levels</span>, <span class="ident">original_classes</span>);
 
     <span class="comment">// Compute the set of isolating run sequences.</span>
@@ -431,7 +431,7 @@
         <span class="kw">let</span> <span class="ident">start_class</span> <span class="op">=</span> <span class="ident">original_classes</span>[<span class="ident">run</span>.<span class="ident">start</span>];
         <span class="kw">let</span> <span class="ident">end_class</span> <span class="op">=</span> <span class="ident">original_classes</span>[<span class="ident">run</span>.<span class="ident">end</span> <span class="op">-</span> <span class="number">1</span>];
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sequence</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">start_class</span> <span class="op">=</span><span class="op">=</span> <span class="ident">PDI</span> <span class="op">&amp;&amp;</span> <span class="ident">stack</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">1</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sequence</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">start_class</span> <span class="op">==</span> <span class="ident">PDI</span> <span class="op">&amp;&amp;</span> <span class="ident">stack</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">1</span> {
             <span class="comment">// Continue a previous sequence interrupted by an isolate.</span>
             <span class="ident">stack</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>()
         } <span class="kw">else</span> {
@@ -476,8 +476,8 @@
             <span class="kw">let</span> <span class="ident">pred_level</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">original_classes</span>[..<span class="ident">start_of_seq</span>].<span class="ident">iter</span>().<span class="ident">rposition</span>(
                 <span class="ident">not_removed_by_x9</span>,
             ) {
-                <span class="prelude-val">Some</span>(<span class="ident">idx</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">levels</span>[<span class="ident">idx</span>],
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">para_level</span>,
+                <span class="prelude-val">Some</span>(<span class="ident">idx</span>) =&gt; <span class="ident">levels</span>[<span class="ident">idx</span>],
+                <span class="prelude-val">None</span> =&gt; <span class="ident">para_level</span>,
             };
 
             <span class="comment">// Get the level of the next non-removed char after the runs.</span>
@@ -487,8 +487,8 @@
                 <span class="kw">match</span> <span class="ident">original_classes</span>[<span class="ident">end_of_seq</span>..].<span class="ident">iter</span>().<span class="ident">position</span>(
                     <span class="ident">not_removed_by_x9</span>,
                 ) {
-                    <span class="prelude-val">Some</span>(<span class="ident">idx</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">levels</span>[<span class="ident">end_of_seq</span> <span class="op">+</span> <span class="ident">idx</span>],
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">para_level</span>,
+                    <span class="prelude-val">Some</span>(<span class="ident">idx</span>) =&gt; <span class="ident">levels</span>[<span class="ident">end_of_seq</span> <span class="op">+</span> <span class="ident">idx</span>],
+                    <span class="prelude-val">None</span> =&gt; <span class="ident">para_level</span>,
                 }
             };
 
@@ -504,7 +504,7 @@
 <span class="doccomment">/// Finds the level runs in a paragraph.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// &lt;http://www.unicode.org/reports/tr9/#BD7&gt;</span>
-<span class="kw">fn</span> <span class="ident">level_runs</span>(<span class="ident">levels</span>: <span class="kw-2">&amp;</span>[<span class="ident">Level</span>], <span class="ident">original_classes</span>: <span class="kw-2">&amp;</span>[<span class="ident">BidiClass</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">LevelRun</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">level_runs</span>(<span class="ident">levels</span>: <span class="kw-2">&amp;</span>[<span class="ident">Level</span>], <span class="ident">original_classes</span>: <span class="kw-2">&amp;</span>[<span class="ident">BidiClass</span>]) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">LevelRun</span><span class="op">&gt;</span> {
     <span class="macro">assert_eq!</span>(<span class="ident">levels</span>.<span class="ident">len</span>(), <span class="ident">original_classes</span>.<span class="ident">len</span>());
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">runs</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
@@ -530,15 +530,15 @@
 <span class="doccomment">/// Should this character be ignored in steps after X9?</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// &lt;http://www.unicode.org/reports/tr9/#X9&gt;</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">removed_by_x9</span>(<span class="ident">class</span>: <span class="ident">BidiClass</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">removed_by_x9</span>(<span class="ident">class</span>: <span class="ident">BidiClass</span>) -&gt; <span class="ident">bool</span> {
     <span class="kw">match</span> <span class="ident">class</span> {
-        <span class="ident">RLE</span> <span class="op">|</span> <span class="ident">LRE</span> <span class="op">|</span> <span class="ident">RLO</span> <span class="op">|</span> <span class="ident">LRO</span> <span class="op">|</span> <span class="ident">PDF</span> <span class="op">|</span> <span class="ident">BN</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+        <span class="ident">RLE</span> <span class="op">|</span> <span class="ident">LRE</span> <span class="op">|</span> <span class="ident">RLO</span> <span class="op">|</span> <span class="ident">LRO</span> <span class="op">|</span> <span class="ident">PDF</span> <span class="op">|</span> <span class="ident">BN</span> =&gt; <span class="bool-val">true</span>,
+        <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
     }
 }
 
 <span class="comment">// For use as a predicate for `position` / `rposition`</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">not_removed_by_x9</span>(<span class="ident">class</span>: <span class="kw-2">&amp;</span><span class="ident">BidiClass</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">not_removed_by_x9</span>(<span class="ident">class</span>: <span class="kw-2">&amp;</span><span class="ident">BidiClass</span>) -&gt; <span class="ident">bool</span> {
     <span class="op">!</span><span class="ident">removed_by_x9</span>(<span class="kw-2">*</span><span class="ident">class</span>)
 }
 

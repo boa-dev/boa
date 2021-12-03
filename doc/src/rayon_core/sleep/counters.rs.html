@@ -301,7 +301,7 @@
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const</span> <span class="ident">DUMMY</span>: <span class="ident">JobsEventCounter</span> <span class="op">=</span> <span class="ident">JobsEventCounter</span>(<span class="ident">std::usize::MAX</span>);
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">as_usize</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">as_usize</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="number">0</span>
     }
 
@@ -310,15 +310,15 @@
     <span class="doccomment">/// When new jobs are posted, they check if the JEC is sleepy, and if so</span>
     <span class="doccomment">/// they incremented it.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">is_sleepy</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        (<span class="self">self</span>.<span class="ident">as_usize</span>() <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">=</span><span class="op">=</span> <span class="number">0</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">is_sleepy</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        (<span class="self">self</span>.<span class="ident">as_usize</span>() <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">==</span> <span class="number">0</span>
     }
 
     <span class="doccomment">/// The JEC &quot;is active&quot; if the last thread to increment it was posting new</span>
     <span class="doccomment">/// work. This is indicated by its value being *odd*. When threads get</span>
     <span class="doccomment">/// sleepy, they will check if the JEC is active, and increment it.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">is_active</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">is_active</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="op">!</span><span class="self">self</span>.<span class="ident">is_sleepy</span>()
     }
 }
@@ -353,7 +353,7 @@
 
 <span class="kw">impl</span> <span class="ident">AtomicCounters</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AtomicCounters</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">AtomicCounters</span> {
         <span class="ident">AtomicCounters</span> {
             <span class="ident">value</span>: <span class="ident">AtomicUsize::new</span>(<span class="number">0</span>),
         }
@@ -363,12 +363,12 @@
     <span class="doccomment">/// This value can then be given to other method which will</span>
     <span class="doccomment">/// attempt to update the counters via compare-and-swap.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">load</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ordering</span>: <span class="ident">Ordering</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Counters</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">load</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ordering</span>: <span class="ident">Ordering</span>) -&gt; <span class="ident">Counters</span> {
         <span class="ident">Counters::new</span>(<span class="self">self</span>.<span class="ident">value</span>.<span class="ident">load</span>(<span class="ident">ordering</span>))
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">try_exchange</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">old_value</span>: <span class="ident">Counters</span>, <span class="ident">new_value</span>: <span class="ident">Counters</span>, <span class="ident">ordering</span>: <span class="ident">Ordering</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">try_exchange</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">old_value</span>: <span class="ident">Counters</span>, <span class="ident">new_value</span>: <span class="ident">Counters</span>, <span class="ident">ordering</span>: <span class="ident">Ordering</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">value</span>
             .<span class="ident">compare_exchange</span>(<span class="ident">old_value</span>.<span class="ident">word</span>, <span class="ident">new_value</span>.<span class="ident">word</span>, <span class="ident">ordering</span>, <span class="ident">Ordering::Relaxed</span>)
             .<span class="ident">is_ok</span>()
@@ -392,8 +392,8 @@
     <span class="doccomment">/// which `increment_when` is guaranteed to return false.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">increment_jobs_event_counter_if</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">increment_when</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">JobsEventCounter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Counters</span> {
+        <span class="ident">increment_when</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">JobsEventCounter</span>) -&gt; <span class="ident">bool</span>,
+    ) -&gt; <span class="ident">Counters</span> {
         <span class="kw">loop</span> {
             <span class="kw">let</span> <span class="ident">old_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>);
             <span class="kw">if</span> <span class="ident">increment_when</span>(<span class="ident">old_value</span>.<span class="ident">jobs_counter</span>()) {
@@ -413,7 +413,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// See `add_inactive_thread`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">sub_inactive_thread</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">sub_inactive_thread</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="kw">let</span> <span class="ident">old_value</span> <span class="op">=</span> <span class="ident">Counters::new</span>(<span class="self">self</span>.<span class="ident">value</span>.<span class="ident">fetch_sub</span>(<span class="ident">ONE_INACTIVE</span>, <span class="ident">Ordering::SeqCst</span>));
         <span class="macro">debug_assert!</span>(
             <span class="ident">old_value</span>.<span class="ident">inactive_threads</span>() <span class="op">&gt;</span> <span class="number">0</span>,
@@ -456,7 +456,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">try_add_sleeping_thread</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">old_value</span>: <span class="ident">Counters</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">try_add_sleeping_thread</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">old_value</span>: <span class="ident">Counters</span>) -&gt; <span class="ident">bool</span> {
         <span class="macro">debug_assert!</span>(
             <span class="ident">old_value</span>.<span class="ident">inactive_threads</span>() <span class="op">&gt;</span> <span class="number">0</span>,
             <span class="string">&quot;try_add_sleeping_thread: old_value {:?} has no inactive threads&quot;</span>,
@@ -476,23 +476,23 @@
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">select_thread</span>(<span class="ident">word</span>: <span class="ident">usize</span>, <span class="ident">shift</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">fn</span> <span class="ident">select_thread</span>(<span class="ident">word</span>: <span class="ident">usize</span>, <span class="ident">shift</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span> {
     ((<span class="ident">word</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">shift</span>) <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&amp;</span> <span class="ident">THREADS_MAX</span>
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">select_jec</span>(<span class="ident">word</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">fn</span> <span class="ident">select_jec</span>(<span class="ident">word</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span> {
     (<span class="ident">word</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">JEC_SHIFT</span>) <span class="kw">as</span> <span class="ident">usize</span>
 }
 
 <span class="kw">impl</span> <span class="ident">Counters</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">word</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Counters</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">word</span>: <span class="ident">usize</span>) -&gt; <span class="ident">Counters</span> {
         <span class="ident">Counters</span> { <span class="ident">word</span> }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">increment_jobs_counter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Counters</span> {
+    <span class="kw">fn</span> <span class="ident">increment_jobs_counter</span>(<span class="self">self</span>) -&gt; <span class="ident">Counters</span> {
         <span class="comment">// We can freely add to JEC because it occupies the most significant bits.</span>
         <span class="comment">// Thus it doesn&#39;t overflow into the other counters, just wraps itself.</span>
         <span class="ident">Counters</span> {
@@ -501,19 +501,19 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">jobs_counter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JobsEventCounter</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">jobs_counter</span>(<span class="self">self</span>) -&gt; <span class="ident">JobsEventCounter</span> {
         <span class="ident">JobsEventCounter</span>(<span class="ident">select_jec</span>(<span class="self">self</span>.<span class="ident">word</span>))
     }
 
     <span class="doccomment">/// The number of threads that are not actively</span>
     <span class="doccomment">/// executing work. They may be idle, sleepy, or asleep.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">inactive_threads</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">inactive_threads</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="ident">select_thread</span>(<span class="self">self</span>.<span class="ident">word</span>, <span class="ident">INACTIVE_SHIFT</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">awake_but_idle_threads</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">awake_but_idle_threads</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="macro">debug_assert!</span>(
             <span class="self">self</span>.<span class="ident">sleeping_threads</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">inactive_threads</span>(),
             <span class="string">&quot;sleeping threads: {} &gt; raw idle threads {}&quot;</span>,
@@ -524,13 +524,13 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">sleeping_threads</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">sleeping_threads</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="ident">select_thread</span>(<span class="self">self</span>.<span class="ident">word</span>, <span class="ident">SLEEPING_SHIFT</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">std::fmt::Debug</span> <span class="kw">for</span> <span class="ident">Counters</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std::fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
         <span class="kw">let</span> <span class="ident">word</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{:016x}&quot;</span>, <span class="self">self</span>.<span class="ident">word</span>);
         <span class="ident">fmt</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;Counters&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;word&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">word</span>)

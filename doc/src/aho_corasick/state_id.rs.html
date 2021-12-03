@@ -204,10 +204,10 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">premultiply_overflow_error</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span>(
     <span class="ident">last_state</span>: <span class="ident">S</span>,
     <span class="ident">alphabet_len</span>: <span class="ident">usize</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">requested</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">last_state</span>.<span class="ident">to_usize</span>().<span class="ident">checked_mul</span>(<span class="ident">alphabet_len</span>) {
-        <span class="prelude-val">Some</span>(<span class="ident">requested</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">requested</span>,
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::premultiply_overflow</span>(<span class="number">0</span>, <span class="number">0</span>)),
+        <span class="prelude-val">Some</span>(<span class="ident">requested</span>) =&gt; <span class="ident">requested</span>,
+        <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::premultiply_overflow</span>(<span class="number">0</span>, <span class="number">0</span>)),
     };
     <span class="kw">if</span> <span class="ident">requested</span> <span class="op">&gt;</span> <span class="ident">S::max_id</span>() {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::premultiply_overflow</span>(<span class="ident">S::max_id</span>(), <span class="ident">requested</span>));
@@ -218,7 +218,7 @@
 <span class="doccomment">/// Convert the given `usize` to the chosen state identifier</span>
 <span class="doccomment">/// representation. If the given value cannot fit in the chosen</span>
 <span class="doccomment">/// representation, then an error is returned.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">usize_to_state_id</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">usize_to_state_id</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="ident">value</span> <span class="op">&gt;</span> <span class="ident">S::max_id</span>() {
         <span class="prelude-val">Err</span>(<span class="ident">Error::state_id_overflow</span>(<span class="ident">S::max_id</span>()))
     } <span class="kw">else</span> {
@@ -228,13 +228,13 @@
 
 <span class="doccomment">/// Return the unique identifier for an automaton&#39;s fail state in the chosen</span>
 <span class="doccomment">/// representation indicated by `S`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fail_id</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">S</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fail_id</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span>() -&gt; <span class="ident">S</span> {
     <span class="ident">S::from_usize</span>(<span class="number">0</span>)
 }
 
 <span class="doccomment">/// Return the unique identifier for an automaton&#39;s fail state in the chosen</span>
 <span class="doccomment">/// representation indicated by `S`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dead_id</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">S</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dead_id</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span>() -&gt; <span class="ident">S</span> {
     <span class="ident">S::from_usize</span>(<span class="number">1</span>)
 }
 
@@ -277,7 +277,7 @@
     <span class="doccomment">/// Implementors may assume that `n &lt;= Self::max_id`. That is, implementors</span>
     <span class="doccomment">/// do not need to check whether `n` can fit inside this implementation&#39;s</span>
     <span class="doccomment">/// representation.</span>
-    <span class="kw">fn</span> <span class="ident">from_usize</span>(<span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">from_usize</span>(<span class="ident">n</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span>;
 
     <span class="doccomment">/// Convert this implementation&#39;s representation to a `usize`.</span>
     <span class="doccomment">///</span>
@@ -287,62 +287,62 @@
     <span class="doccomment">/// way for implementors to achieve this is to simply not provide</span>
     <span class="doccomment">/// implementations of `StateID` that cannot fit into the target platform&#39;s</span>
     <span class="doccomment">/// `usize`.</span>
-    <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span>;
+    <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span>;
 
     <span class="doccomment">/// Return the maximum state identifier supported by this representation.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Implementors must return a correct bound. Doing otherwise may result</span>
     <span class="doccomment">/// in unspecified behavior (but will not violate memory safety).</span>
-    <span class="kw">fn</span> <span class="ident">max_id</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span>;
+    <span class="kw">fn</span> <span class="ident">max_id</span>() -&gt; <span class="ident">usize</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">StateID</span> <span class="kw">for</span> <span class="ident">usize</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_usize</span>(<span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">from_usize</span>(<span class="ident">n</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span> {
         <span class="ident">n</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">max_id</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">max_id</span>() -&gt; <span class="ident">usize</span> {
         <span class="ident">::std::usize::MAX</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">StateID</span> <span class="kw">for</span> <span class="ident">u8</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_usize</span>(<span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span> {
+    <span class="kw">fn</span> <span class="ident">from_usize</span>(<span class="ident">n</span>: <span class="ident">usize</span>) -&gt; <span class="ident">u8</span> {
         <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u8</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span> <span class="kw">as</span> <span class="ident">usize</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">max_id</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">max_id</span>() -&gt; <span class="ident">usize</span> {
         <span class="ident">::std::u8::MAX</span> <span class="kw">as</span> <span class="ident">usize</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">StateID</span> <span class="kw">for</span> <span class="ident">u16</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_usize</span>(<span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u16</span> {
+    <span class="kw">fn</span> <span class="ident">from_usize</span>(<span class="ident">n</span>: <span class="ident">usize</span>) -&gt; <span class="ident">u16</span> {
         <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u16</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span> <span class="kw">as</span> <span class="ident">usize</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">max_id</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">max_id</span>() -&gt; <span class="ident">usize</span> {
         <span class="ident">::std::u16::MAX</span> <span class="kw">as</span> <span class="ident">usize</span>
     }
 }
@@ -350,17 +350,17 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;32&quot;</span>, <span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;64&quot;</span>))]</span>
 <span class="kw">impl</span> <span class="ident">StateID</span> <span class="kw">for</span> <span class="ident">u32</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_usize</span>(<span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">from_usize</span>(<span class="ident">n</span>: <span class="ident">usize</span>) -&gt; <span class="ident">u32</span> {
         <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u32</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span> <span class="kw">as</span> <span class="ident">usize</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">max_id</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">max_id</span>() -&gt; <span class="ident">usize</span> {
         <span class="ident">::std::u32::MAX</span> <span class="kw">as</span> <span class="ident">usize</span>
     }
 }
@@ -368,17 +368,17 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;64&quot;</span>)]</span>
 <span class="kw">impl</span> <span class="ident">StateID</span> <span class="kw">for</span> <span class="ident">u64</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_usize</span>(<span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
+    <span class="kw">fn</span> <span class="ident">from_usize</span>(<span class="ident">n</span>: <span class="ident">usize</span>) -&gt; <span class="ident">u64</span> {
         <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u64</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span> <span class="kw">as</span> <span class="ident">usize</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">max_id</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">max_id</span>() -&gt; <span class="ident">usize</span> {
         <span class="ident">::std::u64::MAX</span> <span class="kw">as</span> <span class="ident">usize</span>
     }
 }

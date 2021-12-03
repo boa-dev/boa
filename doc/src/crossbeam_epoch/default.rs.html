@@ -97,25 +97,25 @@
 
 <span class="doccomment">/// Pins the current thread.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pin</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Guard</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pin</span>() -&gt; <span class="ident">Guard</span> {
     <span class="ident">with_handle</span>(<span class="op">|</span><span class="ident">handle</span><span class="op">|</span> <span class="ident">handle</span>.<span class="ident">pin</span>())
 }
 
 <span class="doccomment">/// Returns `true` if the current thread is pinned.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_pinned</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_pinned</span>() -&gt; <span class="ident">bool</span> {
     <span class="ident">with_handle</span>(<span class="op">|</span><span class="ident">handle</span><span class="op">|</span> <span class="ident">handle</span>.<span class="ident">is_pinned</span>())
 }
 
 <span class="doccomment">/// Returns the default global collector.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default_collector</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Collector</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default_collector</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Collector</span> {
     <span class="kw-2">&amp;</span><span class="ident">COLLECTOR</span>
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">with_handle</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>
+<span class="kw">fn</span> <span class="ident">with_handle</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">R</span>
 <span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">LocalHandle</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>,
+    <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">LocalHandle</span>) -&gt; <span class="ident">R</span>,
 {
     <span class="ident">HANDLE</span>
         .<span class="ident">try_with</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> <span class="ident">f</span>(<span class="ident">h</span>))

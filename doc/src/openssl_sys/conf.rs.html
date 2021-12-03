@@ -8,8 +8,8 @@
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw-2">*</span>;
 
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">NCONF_new</span>(<span class="ident">meth</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">CONF_METHOD</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">CONF</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">NCONF_default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">CONF_METHOD</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">NCONF_new</span>(<span class="ident">meth</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">CONF_METHOD</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">CONF</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">NCONF_default</span>() -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">CONF_METHOD</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">NCONF_free</span>(<span class="ident">conf</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">CONF</span>);
 }
 </code></pre></div>

@@ -3419,7 +3419,7 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">integer_indexed_object</span>;
 
 <span class="macro">macro_rules!</span> <span class="ident">typed_array</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">literal</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">global_object_name</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">literal</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">global_object_name</span>:<span class="ident">ident</span>) =&gt; {
         <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="macro">concat!</span>(<span class="string">&quot;JavaScript `&quot;</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>, <span class="string">&quot;` built-in implementation.&quot;</span>)]</span>
         <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
         <span class="kw">pub</span> <span class="kw">struct</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>;
@@ -3431,7 +3431,7 @@
                 .<span class="ident">union</span>(<span class="ident">Attribute::NON_ENUMERABLE</span>)
                 .<span class="ident">union</span>(<span class="ident">Attribute::CONFIGURABLE</span>);
 
-            <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
+            <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsValue</span> {
                 <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="ident"><span class="self">Self</span>::NAME</span>, <span class="string">&quot;init&quot;</span>);
 
                 <span class="kw">let</span> <span class="ident">typed_array_constructor</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">typed_array_constructor</span>().<span class="ident">constructor</span>();
@@ -3485,7 +3485,7 @@
                 <span class="ident">new_target</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
                 <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
                 <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-            ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+            ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
                 <span class="comment">// 1. If NewTarget is undefined, throw a TypeError exception.</span>
                 <span class="kw">if</span> <span class="ident">new_target</span>.<span class="ident">is_undefined</span>() {
                     <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">concat!</span>(
@@ -3504,7 +3504,7 @@
                 <span class="kw">let</span> <span class="ident">number_of_args</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">len</span>();
 
                 <span class="comment">// 5. If numberOfArgs = 0, then</span>
-                <span class="kw">if</span> <span class="ident">number_of_args</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+                <span class="kw">if</span> <span class="ident">number_of_args</span> <span class="op">==</span> <span class="number">0</span> {
                     <span class="comment">// a. Return ? AllocateTypedArray(constructorName, NewTarget, proto, 0).</span>
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">TypedArray::allocate</span>(
                         <span class="ident">constructor_name</span>,
@@ -3620,7 +3620,7 @@
 
     <span class="kw">const</span> <span class="ident">LENGTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0</span>;
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsObject</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsObject</span> {
         <span class="kw">let</span> <span class="ident">get_species</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident"><span class="self">Self</span>::get_species</span>)
             .<span class="ident">name</span>(<span class="string">&quot;get [Symbol.species]&quot;</span>)
             .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
@@ -3755,7 +3755,7 @@
         <span class="ident">_new_target</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="ident">_args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Throw a TypeError exception.</span>
         <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;the TypedArray constructor should never be called directly&quot;</span>)
     }
@@ -3766,12 +3766,12 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.from</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let C be the this value.</span>
         <span class="comment">// 2. If IsConstructor(C) is false, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">constructor</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_constructor</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="ident">obj</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_constructor</span>() =&gt; <span class="ident">obj</span>,
+            <span class="kw">_</span> =&gt; {
                 <span class="kw">return</span> <span class="ident">context</span>
                     .<span class="ident">throw_type_error</span>(<span class="string">&quot;TypedArray.from called on non-constructable value&quot;</span>)
             }
@@ -3779,13 +3779,13 @@
 
         <span class="kw">let</span> <span class="ident">mapping</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>) {
             <span class="comment">// 3. If mapfn is undefined, let mapping be false.</span>
-            <span class="prelude-val">None</span> <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">JsValue::Undefined</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="prelude-val">None</span> <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">JsValue::Undefined</span>) =&gt; <span class="prelude-val">None</span>,
             <span class="comment">// 4. Else,</span>
-            <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">v</span>.<span class="ident">as_object</span>() {
+            <span class="prelude-val">Some</span>(<span class="ident">v</span>) =&gt; <span class="kw">match</span> <span class="ident">v</span>.<span class="ident">as_object</span>() {
                 <span class="comment">// b. Let mapping be true.</span>
-                <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>),
+                <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() =&gt; <span class="prelude-val">Some</span>(<span class="ident">obj</span>),
                 <span class="comment">// a. If IsCallable(mapfn) is false, throw a TypeError exception.</span>
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">_</span> =&gt; {
                     <span class="kw">return</span> <span class="ident">context</span>
                         .<span class="ident">throw_type_error</span>(<span class="string">&quot;TypedArray.from called with non-callable mapfn&quot;</span>)
                 }
@@ -3874,14 +3874,14 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.of</span>
-    <span class="kw">fn</span> <span class="ident">of</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">of</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let len be the number of elements in items.</span>
 
         <span class="comment">// 2. Let C be the this value.</span>
         <span class="comment">// 3. If IsConstructor(C) is false, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">constructor</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_constructor</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="ident">obj</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_constructor</span>() =&gt; <span class="ident">obj</span>,
+            <span class="kw">_</span> =&gt; {
                 <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;TypedArray.of called on non-constructable value&quot;</span>)
             }
         };
@@ -3908,7 +3908,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-%typedarray%-@@species</span>
-    <span class="kw">fn</span> <span class="ident">get_species</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">get_species</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Return the this value.</span>
         <span class="prelude-val">Ok</span>(<span class="ident">this</span>.<span class="ident">clone</span>())
     }
@@ -3919,7 +3919,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.at</span>
-    <span class="kw">fn</span> <span class="ident">at</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">at</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
@@ -3941,15 +3941,15 @@
 
         <span class="kw">let</span> <span class="ident">k</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">relative_index</span> {
             <span class="comment">// Note: Early undefined return on infinity.</span>
-            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> <span class="op">|</span> <span class="ident">IntegerOrInfinity::NegativeInfinity</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> <span class="op">|</span> <span class="ident">IntegerOrInfinity::NegativeInfinity</span> =&gt; {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
             }
             <span class="comment">// 5. If relativeIndex ≥ 0, then</span>
             <span class="comment">// a. Let k be relativeIndex.</span>
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i</span>,
+            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> =&gt; <span class="ident">i</span>,
             <span class="comment">// 6. Else,</span>
             <span class="comment">// a. Let k be len + relativeIndex.</span>
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">len</span> <span class="op">+</span> <span class="ident">i</span>,
+            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) =&gt; <span class="ident">len</span> <span class="op">+</span> <span class="ident">i</span>,
         };
 
         <span class="comment">// 7. If k &lt; 0 or k ≥ len, return undefined.</span>
@@ -3967,7 +3967,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-%typedarray%.prototype.buffer</span>
-    <span class="kw">fn</span> <span class="ident">buffer</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">buffer</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).</span>
         <span class="comment">// 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.</span>
@@ -3993,7 +3993,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-%typedarray%.prototype.bytelength</span>
-    <span class="kw">fn</span> <span class="ident">byte_length</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">byte_length</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).</span>
         <span class="comment">// 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.</span>
@@ -4022,7 +4022,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-%typedarray%.prototype.byteoffset</span>
-    <span class="kw">fn</span> <span class="ident">byte_offset</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">byte_offset</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).</span>
         <span class="comment">// 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.</span>
@@ -4051,7 +4051,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.copywithin</span>
-    <span class="kw">fn</span> <span class="ident">copy_within</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">copy_within</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
             .<span class="ident">as_object</span>()
@@ -4077,12 +4077,12 @@
 
         <span class="kw">let</span> <span class="ident">to</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">relative_target</span> {
             <span class="comment">// 5. If relativeTarget is -∞, let to be 0.</span>
-            <span class="ident">IntegerOrInfinity::NegativeInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
+            <span class="ident">IntegerOrInfinity::NegativeInfinity</span> =&gt; <span class="number">0</span>,
             <span class="comment">// 6. Else if relativeTarget &lt; 0, let to be max(len + relativeTarget, 0).</span>
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">std::cmp::max</span>(<span class="ident">len</span> <span class="op">+</span> <span class="ident">i</span>, <span class="number">0</span>),
+            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="number">0</span> =&gt; <span class="ident">std::cmp::max</span>(<span class="ident">len</span> <span class="op">+</span> <span class="ident">i</span>, <span class="number">0</span>),
             <span class="comment">// 7. Else, let to be min(relativeTarget, len).</span>
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">std::cmp::min</span>(<span class="ident">i</span>, <span class="ident">len</span>),
-            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">len</span>,
+            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) =&gt; <span class="ident">std::cmp::min</span>(<span class="ident">i</span>, <span class="ident">len</span>),
+            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; <span class="ident">len</span>,
         };
 
         <span class="comment">// 8. Let relativeStart be ? ToIntegerOrInfinity(start).</span>
@@ -4090,12 +4090,12 @@
 
         <span class="kw">let</span> <span class="ident">from</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">relative_start</span> {
             <span class="comment">// 9. If relativeStart is -∞, let from be 0.</span>
-            <span class="ident">IntegerOrInfinity::NegativeInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
+            <span class="ident">IntegerOrInfinity::NegativeInfinity</span> =&gt; <span class="number">0</span>,
             <span class="comment">// 10. Else if relativeStart &lt; 0, let from be max(len + relativeStart, 0).</span>
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">std::cmp::max</span>(<span class="ident">len</span> <span class="op">+</span> <span class="ident">i</span>, <span class="number">0</span>),
+            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="number">0</span> =&gt; <span class="ident">std::cmp::max</span>(<span class="ident">len</span> <span class="op">+</span> <span class="ident">i</span>, <span class="number">0</span>),
             <span class="comment">// 11. Else, let from be min(relativeStart, len).</span>
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">std::cmp::min</span>(<span class="ident">i</span>, <span class="ident">len</span>),
-            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">len</span>,
+            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) =&gt; <span class="ident">std::cmp::min</span>(<span class="ident">i</span>, <span class="ident">len</span>),
+            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; <span class="ident">len</span>,
         };
 
         <span class="comment">// 12. If end is undefined, let relativeEnd be len; else let relativeEnd be ? ToIntegerOrInfinity(end).</span>
@@ -4108,12 +4108,12 @@
 
         <span class="kw">let</span> <span class="ident">r#final</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">relative_end</span> {
             <span class="comment">// 13. If relativeEnd is -∞, let final be 0.</span>
-            <span class="ident">IntegerOrInfinity::NegativeInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
+            <span class="ident">IntegerOrInfinity::NegativeInfinity</span> =&gt; <span class="number">0</span>,
             <span class="comment">// 14. Else if relativeEnd &lt; 0, let final be max(len + relativeEnd, 0).</span>
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">std::cmp::max</span>(<span class="ident">len</span> <span class="op">+</span> <span class="ident">i</span>, <span class="number">0</span>),
+            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="number">0</span> =&gt; <span class="ident">std::cmp::max</span>(<span class="ident">len</span> <span class="op">+</span> <span class="ident">i</span>, <span class="number">0</span>),
             <span class="comment">// 15. Else, let final be min(relativeEnd, len).</span>
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">std::cmp::min</span>(<span class="ident">i</span>, <span class="ident">len</span>),
-            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">len</span>,
+            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) =&gt; <span class="ident">std::cmp::min</span>(<span class="ident">i</span>, <span class="ident">len</span>),
+            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; <span class="ident">len</span>,
         };
 
         <span class="comment">// 16. Let count be min(final - from, len - to).</span>
@@ -4220,7 +4220,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.entries</span>
-    <span class="kw">fn</span> <span class="ident">entries</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">entries</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
         <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>
@@ -4248,7 +4248,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.every</span>
-    <span class="kw">fn</span> <span class="ident">every</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">every</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
@@ -4267,8 +4267,8 @@
 
         <span class="comment">// 4. If IsCallable(callbackfn) is false, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">callback_fn</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_object</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="ident">obj</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() =&gt; <span class="ident">obj</span>,
+            <span class="kw">_</span> =&gt; {
                 <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
                     <span class="string">&quot;TypedArray.prototype.every called with non-callable callback function&quot;</span>,
                 )
@@ -4307,7 +4307,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.fill</span>
-    <span class="kw">fn</span> <span class="ident">fill</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fill</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
@@ -4325,7 +4325,7 @@
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">array_length</span>() <span class="kw">as</span> <span class="ident">i64</span>;
 
         <span class="comment">// 4. If O.[[ContentType]] is BigInt, set value to ? ToBigInt(value).</span>
-        <span class="kw">let</span> <span class="ident">value</span>: <span class="ident">JsValue</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">typed_array_name</span>().<span class="ident">content_type</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">ContentType::BigInt</span> {
+        <span class="kw">let</span> <span class="ident">value</span>: <span class="ident">JsValue</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">typed_array_name</span>().<span class="ident">content_type</span>() <span class="op">==</span> <span class="ident">ContentType::BigInt</span> {
             <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">to_bigint</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">into</span>()
         <span class="comment">// 5. Otherwise, set value to ? ToNumber(value).</span>
         } <span class="kw">else</span> {
@@ -4335,12 +4335,12 @@
         <span class="comment">// 6. Let relativeStart be ? ToIntegerOrInfinity(start).</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">k</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>).<span class="ident">to_integer_or_infinity</span>(<span class="ident">context</span>)<span class="question-mark">?</span> {
             <span class="comment">// 7. If relativeStart is -∞, let k be 0.</span>
-            <span class="ident">IntegerOrInfinity::NegativeInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
+            <span class="ident">IntegerOrInfinity::NegativeInfinity</span> =&gt; <span class="number">0</span>,
             <span class="comment">// 8. Else if relativeStart &lt; 0, let k be max(len + relativeStart, 0).</span>
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">std::cmp::max</span>(<span class="ident">len</span> <span class="op">+</span> <span class="ident">i</span>, <span class="number">0</span>),
+            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="number">0</span> =&gt; <span class="ident">std::cmp::max</span>(<span class="ident">len</span> <span class="op">+</span> <span class="ident">i</span>, <span class="number">0</span>),
             <span class="comment">// 9. Else, let k be min(relativeStart, len).</span>
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">std::cmp::min</span>(<span class="ident">i</span>, <span class="ident">len</span>),
-            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">len</span>,
+            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) =&gt; <span class="ident">std::cmp::min</span>(<span class="ident">i</span>, <span class="ident">len</span>),
+            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; <span class="ident">len</span>,
         };
 
         <span class="comment">// 10. If end is undefined, let relativeEnd be len; else let relativeEnd be ? ToIntegerOrInfinity(end).</span>
@@ -4353,12 +4353,12 @@
 
         <span class="kw">let</span> <span class="ident">r#final</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">relative_end</span> {
             <span class="comment">// 11. If relativeEnd is -∞, let final be 0.</span>
-            <span class="ident">IntegerOrInfinity::NegativeInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
+            <span class="ident">IntegerOrInfinity::NegativeInfinity</span> =&gt; <span class="number">0</span>,
             <span class="comment">// 12. Else if relativeEnd &lt; 0, let final be max(len + relativeEnd, 0).</span>
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">std::cmp::max</span>(<span class="ident">len</span> <span class="op">+</span> <span class="ident">i</span>, <span class="number">0</span>),
+            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="number">0</span> =&gt; <span class="ident">std::cmp::max</span>(<span class="ident">len</span> <span class="op">+</span> <span class="ident">i</span>, <span class="number">0</span>),
             <span class="comment">// 13. Else, let final be min(relativeEnd, len).</span>
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">std::cmp::min</span>(<span class="ident">i</span>, <span class="ident">len</span>),
-            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">len</span>,
+            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) =&gt; <span class="ident">std::cmp::min</span>(<span class="ident">i</span>, <span class="ident">len</span>),
+            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; <span class="ident">len</span>,
         };
 
         <span class="comment">// 14. If IsDetachedBuffer(O.[[ViewedArrayBuffer]]) is true, throw a TypeError exception.</span>
@@ -4387,7 +4387,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.filter</span>
-    <span class="kw">fn</span> <span class="ident">filter</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">filter</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
@@ -4406,8 +4406,8 @@
 
         <span class="comment">// 4. If IsCallable(callbackfn) is false, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">callback_fn</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_object</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="ident">obj</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() =&gt; <span class="ident">obj</span>,
+            <span class="kw">_</span> =&gt; {
                 <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
                     <span class="string">&quot;TypedArray.prototype.filter called with non-callable callback function&quot;</span>,
                 )
@@ -4468,7 +4468,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.find</span>
-    <span class="kw">fn</span> <span class="ident">find</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">find</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
@@ -4487,8 +4487,8 @@
 
         <span class="comment">// 4. If IsCallable(predicate) is false, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">predicate</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_object</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="ident">obj</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() =&gt; <span class="ident">obj</span>,
+            <span class="kw">_</span> =&gt; {
                 <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
                     <span class="string">&quot;TypedArray.prototype.find called with non-callable predicate function&quot;</span>,
                 )
@@ -4526,7 +4526,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.findindex</span>
-    <span class="kw">fn</span> <span class="ident">findindex</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">findindex</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
@@ -4546,8 +4546,8 @@
         <span class="comment">// 4. If IsCallable(predicate) is false, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">predicate</span> <span class="op">=</span>
             <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_object</span>() {
-                <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="ident">obj</span>,
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
+                <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() =&gt; <span class="ident">obj</span>,
+                <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
                     <span class="string">&quot;TypedArray.prototype.findindex called with non-callable predicate function&quot;</span>,
                 ),
             };
@@ -4583,7 +4583,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.foreach</span>
-    <span class="kw">fn</span> <span class="ident">foreach</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">foreach</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
@@ -4602,8 +4602,8 @@
 
         <span class="comment">// 4. If IsCallable(callbackfn) is false, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">callback_fn</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_object</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="ident">obj</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() =&gt; <span class="ident">obj</span>,
+            <span class="kw">_</span> =&gt; {
                 <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
                     <span class="string">&quot;TypedArray.prototype.foreach called with non-callable callback function&quot;</span>,
                 )
@@ -4635,7 +4635,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.includes</span>
-    <span class="kw">fn</span> <span class="ident">includes</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">includes</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
@@ -4653,7 +4653,7 @@
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">array_length</span>() <span class="kw">as</span> <span class="ident">i64</span>;
 
         <span class="comment">// 4. If len is 0, return false.</span>
-        <span class="kw">if</span> <span class="ident">len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">len</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>.<span class="ident">into</span>());
         }
 
@@ -4663,10 +4663,10 @@
 
         <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">n</span> {
             <span class="comment">// 7. If n is +∞, return false.</span>
-            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>.<span class="ident">into</span>()),
+            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>.<span class="ident">into</span>()),
             <span class="comment">// 8. Else if n is -∞, set n to 0.</span>
-            <span class="ident">IntegerOrInfinity::NegativeInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i</span>,
+            <span class="ident">IntegerOrInfinity::NegativeInfinity</span> =&gt; <span class="number">0</span>,
+            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) =&gt; <span class="ident">i</span>,
         };
 
         <span class="comment">// 9. If n ≥ 0, then</span>
@@ -4708,7 +4708,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.indexof</span>
-    <span class="kw">fn</span> <span class="ident">index_of</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">index_of</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
@@ -4726,7 +4726,7 @@
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">array_length</span>() <span class="kw">as</span> <span class="ident">i64</span>;
 
         <span class="comment">// 4. If len is 0, return -1𝔽.</span>
-        <span class="kw">if</span> <span class="ident">len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">len</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="op">-</span><span class="number">1</span>).<span class="ident">into</span>());
         }
 
@@ -4736,10 +4736,10 @@
 
         <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">n</span> {
             <span class="comment">// 7. If n is +∞, return -1𝔽.</span>
-            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="op">-</span><span class="number">1</span>).<span class="ident">into</span>()),
+            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="op">-</span><span class="number">1</span>).<span class="ident">into</span>()),
             <span class="comment">// 8. Else if n is -∞, set n to 0.</span>
-            <span class="ident">IntegerOrInfinity::NegativeInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i</span>,
+            <span class="ident">IntegerOrInfinity::NegativeInfinity</span> =&gt; <span class="number">0</span>,
+            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) =&gt; <span class="ident">i</span>,
         };
 
         <span class="comment">// 9. If n ≥ 0, then</span>
@@ -4790,7 +4790,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.join</span>
-    <span class="kw">fn</span> <span class="ident">join</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">join</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
@@ -4847,7 +4847,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.keys</span>
-    <span class="kw">fn</span> <span class="ident">keys</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">keys</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
         <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>
@@ -4875,7 +4875,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.lastindexof</span>
-    <span class="kw">fn</span> <span class="ident">last_index_of</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">last_index_of</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
@@ -4893,7 +4893,7 @@
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">array_length</span>() <span class="kw">as</span> <span class="ident">i64</span>;
 
         <span class="comment">// 4. If len is 0, return -1𝔽.</span>
-        <span class="kw">if</span> <span class="ident">len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">len</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="op">-</span><span class="number">1</span>).<span class="ident">into</span>());
         }
 
@@ -4906,14 +4906,14 @@
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">k</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">n</span> {
             <span class="comment">// 6. If n is -∞, return -1𝔽.</span>
-            <span class="ident">IntegerOrInfinity::NegativeInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="op">-</span><span class="number">1</span>).<span class="ident">into</span>()),
+            <span class="ident">IntegerOrInfinity::NegativeInfinity</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="op">-</span><span class="number">1</span>).<span class="ident">into</span>()),
             <span class="comment">// 7. If n ≥ 0, then</span>
             <span class="comment">// a. Let k be min(n, len - 1).</span>
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">std::cmp::min</span>(<span class="ident">i</span>, <span class="ident">len</span> <span class="op">-</span> <span class="number">1</span>),
-            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">len</span> <span class="op">-</span> <span class="number">1</span>,
+            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> =&gt; <span class="ident">std::cmp::min</span>(<span class="ident">i</span>, <span class="ident">len</span> <span class="op">-</span> <span class="number">1</span>),
+            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; <span class="ident">len</span> <span class="op">-</span> <span class="number">1</span>,
             <span class="comment">// 8. Else,</span>
             <span class="comment">// a. Let k be len + n.</span>
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">len</span> <span class="op">+</span> <span class="ident">i</span>,
+            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) =&gt; <span class="ident">len</span> <span class="op">+</span> <span class="ident">i</span>,
         };
 
         <span class="comment">// 9. Repeat, while k ≥ 0,</span>
@@ -4949,7 +4949,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-%typedarray%.prototype.length</span>
-    <span class="kw">fn</span> <span class="ident">length</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">length</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).</span>
         <span class="comment">// 3. Assert: O has [[ViewedArrayBuffer]] and [[ArrayLength]] internal slots.</span>
@@ -4978,7 +4978,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.map</span>
-    <span class="kw">fn</span> <span class="ident">map</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">map</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
@@ -4997,8 +4997,8 @@
 
         <span class="comment">// 4. If IsCallable(callbackfn) is false, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">callback_fn</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_object</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="ident">obj</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() =&gt; <span class="ident">obj</span>,
+            <span class="kw">_</span> =&gt; {
                 <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
                     <span class="string">&quot;TypedArray.prototype.map called with non-callable callback function&quot;</span>,
                 )
@@ -5036,7 +5036,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.reduce</span>
-    <span class="kw">fn</span> <span class="ident">reduce</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">reduce</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
@@ -5055,8 +5055,8 @@
 
         <span class="comment">// 4. If IsCallable(callbackfn) is false, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">callback_fn</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_object</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="ident">obj</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() =&gt; <span class="ident">obj</span>,
+            <span class="kw">_</span> =&gt; {
                 <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
                     <span class="string">&quot;TypedArray.prototype.reduce called with non-callable callback function&quot;</span>,
                 )
@@ -5064,7 +5064,7 @@
         };
 
         <span class="comment">// 5. If len = 0 and initialValue is not present, throw a TypeError exception.</span>
-        <span class="kw">if</span> <span class="ident">len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">is_none</span>() {
+        <span class="kw">if</span> <span class="ident">len</span> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">is_none</span>() {
             <span class="kw">return</span> <span class="ident">context</span>
                 .<span class="ident">throw_type_error</span>(<span class="string">&quot;Typed array length is 0 and initial value is not present&quot;</span>);
         }
@@ -5113,7 +5113,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.reduceright</span>
-    <span class="kw">fn</span> <span class="ident">reduceright</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">reduceright</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
@@ -5133,14 +5133,14 @@
         <span class="comment">// 4. If IsCallable(callbackfn) is false, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">callback_fn</span> <span class="op">=</span>
             <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_object</span>() {
-                <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="ident">obj</span>,
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
+                <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() =&gt; <span class="ident">obj</span>,
+                <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
                     <span class="string">&quot;TypedArray.prototype.reduceright called with non-callable callback function&quot;</span>,
                 ),
             };
 
         <span class="comment">// 5. If len = 0 and initialValue is not present, throw a TypeError exception.</span>
-        <span class="kw">if</span> <span class="ident">len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">is_none</span>() {
+        <span class="kw">if</span> <span class="ident">len</span> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">is_none</span>() {
             <span class="kw">return</span> <span class="ident">context</span>
                 .<span class="ident">throw_type_error</span>(<span class="string">&quot;Typed array length is 0 and initial value is not present&quot;</span>);
         }
@@ -5193,7 +5193,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.reverse</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::float_cmp</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">reverse</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">reverse</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
@@ -5248,7 +5248,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.set</span>
-    <span class="kw">fn</span> <span class="ident">set</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">set</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let target be the this value.</span>
         <span class="comment">// 2. Perform ? RequireInternalSlot(target, [[TypedArrayName]]).</span>
         <span class="comment">// 3. Assert: target has a [[ViewedArrayBuffer]] internal slot.</span>
@@ -5264,24 +5264,24 @@
 
         <span class="comment">// 5. If targetOffset &lt; 0, throw a RangeError exception.</span>
         <span class="kw">match</span> <span class="ident">target_offset</span> {
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="number">0</span> =&gt; {
                 <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;TypedArray.set called with negative offset&quot;</span>)
             }
-            <span class="ident">IntegerOrInfinity::NegativeInfinity</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">IntegerOrInfinity::NegativeInfinity</span> =&gt; {
                 <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;TypedArray.set called with negative offset&quot;</span>)
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="kw">_</span> =&gt; {}
         }
 
         <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
         <span class="kw">match</span> <span class="ident">source</span> {
             <span class="comment">// 6. If source is an Object that has a [[TypedArrayName]] internal slot, then</span>
-            <span class="ident">JsValue::Object</span>(<span class="ident">source</span>) <span class="kw">if</span> <span class="ident">source</span>.<span class="ident">is_typed_array</span>() <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">JsValue::Object</span>(<span class="ident">source</span>) <span class="kw">if</span> <span class="ident">source</span>.<span class="ident">is_typed_array</span>() =&gt; {
                 <span class="comment">// a. Perform ? SetTypedArrayFromTypedArray(target, targetOffset, source).</span>
                 <span class="ident"><span class="self">Self</span>::set_typed_array_from_typed_array</span>(<span class="ident">target</span>, <span class="ident">target_offset</span>, <span class="ident">source</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
             }
             <span class="comment">// 7. Else,</span>
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">_</span> =&gt; {
                 <span class="comment">// a. Perform ? SetTypedArrayFromArrayLike(target, targetOffset, source).</span>
                 <span class="ident"><span class="self">Self</span>::set_typed_array_from_array_like</span>(<span class="ident">target</span>, <span class="ident">target_offset</span>, <span class="ident">source</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
             }
@@ -5302,7 +5302,7 @@
         <span class="ident">target_offset</span>: <span class="ident">IntegerOrInfinity</span>,
         <span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">target_borrow</span> <span class="op">=</span> <span class="ident">target</span>.<span class="ident">borrow</span>();
         <span class="kw">let</span> <span class="ident">target_array</span> <span class="op">=</span> <span class="ident">target_borrow</span>
             .<span class="ident">as_typed_array</span>()
@@ -5360,11 +5360,11 @@
 
         <span class="comment">// 15. If targetOffset is +∞, throw a RangeError exception.</span>
         <span class="kw">let</span> <span class="ident">target_offset</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">target_offset</span> {
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>,
-            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> =&gt; <span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>,
+            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_range_error</span>(<span class="string">&quot;Target offset cannot be Infinity&quot;</span>))
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+            <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
         };
 
         <span class="comment">// 16. If srcLength + targetOffset &gt; targetLength, throw a RangeError exception.</span>
@@ -5433,7 +5433,7 @@
             .<span class="ident">expect</span>(<span class="string">&quot;Must be an array buffer&quot;</span>);
 
         <span class="comment">// 24. If srcType is the same as targetType, then</span>
-        <span class="kw">if</span> <span class="ident">src_name</span> <span class="op">=</span><span class="op">=</span> <span class="ident">target_name</span> {
+        <span class="kw">if</span> <span class="ident">src_name</span> <span class="op">==</span> <span class="ident">target_name</span> {
             <span class="comment">// a. NOTE: If srcType and targetType are the same, the transfer must be performed in a manner that preserves the bit-level encoding of the source data.</span>
             <span class="comment">// b. Repeat, while targetByteIndex &lt; limit,</span>
             <span class="kw">while</span> <span class="ident">target_byte_index</span> <span class="op">&lt;</span> <span class="ident">limit</span> {
@@ -5516,7 +5516,7 @@
         <span class="ident">target_offset</span>: <span class="ident">IntegerOrInfinity</span>,
         <span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">target_borrow</span> <span class="op">=</span> <span class="ident">target</span>.<span class="ident">borrow</span>();
         <span class="kw">let</span> <span class="ident">target_array</span> <span class="op">=</span> <span class="ident">target_borrow</span>
             .<span class="ident">as_typed_array</span>()
@@ -5549,11 +5549,11 @@
 
         <span class="kw">let</span> <span class="ident">target_offset</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">target_offset</span> {
             <span class="comment">// 10. If targetOffset is +∞, throw a RangeError exception.</span>
-            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_range_error</span>(<span class="string">&quot;Target offset cannot be Infinity&quot;</span>))
             }
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> =&gt; <span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>,
+            <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
         };
 
         <span class="comment">// 11. If srcLength + targetOffset &gt; targetLength, throw a RangeError exception.</span>
@@ -5580,7 +5580,7 @@
 
             <span class="comment">// c. If target.[[ContentType]] is BigInt, set value to ? ToBigInt(value).</span>
             <span class="comment">// d. Otherwise, set value to ? ToNumber(value).</span>
-            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">target_name</span>.<span class="ident">content_type</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">ContentType::BigInt</span> {
+            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">target_name</span>.<span class="ident">content_type</span>() <span class="op">==</span> <span class="ident">ContentType::BigInt</span> {
                 <span class="ident">value</span>.<span class="ident">to_bigint</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">into</span>()
             } <span class="kw">else</span> {
                 <span class="ident">value</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">into</span>()
@@ -5627,7 +5627,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.slice</span>
-    <span class="kw">fn</span> <span class="ident">slice</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">slice</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
@@ -5647,12 +5647,12 @@
         <span class="comment">// 4. Let relativeStart be ? ToIntegerOrInfinity(start).</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">k</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">to_integer_or_infinity</span>(<span class="ident">context</span>)<span class="question-mark">?</span> {
             <span class="comment">// 5. If relativeStart is -∞, let k be 0.</span>
-            <span class="ident">IntegerOrInfinity::NegativeInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
+            <span class="ident">IntegerOrInfinity::NegativeInfinity</span> =&gt; <span class="number">0</span>,
             <span class="comment">// 6. Else if relativeStart &lt; 0, let k be max(len + relativeStart, 0).</span>
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">std::cmp::max</span>(<span class="ident">len</span> <span class="op">+</span> <span class="ident">i</span>, <span class="number">0</span>),
+            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="number">0</span> =&gt; <span class="ident">std::cmp::max</span>(<span class="ident">len</span> <span class="op">+</span> <span class="ident">i</span>, <span class="number">0</span>),
             <span class="comment">// 7. Else, let k be min(relativeStart, len).</span>
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">std::cmp::min</span>(<span class="ident">i</span>, <span class="ident">len</span>),
-            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">len</span>,
+            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) =&gt; <span class="ident">std::cmp::min</span>(<span class="ident">i</span>, <span class="ident">len</span>),
+            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; <span class="ident">len</span>,
         };
 
         <span class="comment">// 8. If end is undefined, let relativeEnd be len; else let relativeEnd be ? ToIntegerOrInfinity(end).</span>
@@ -5665,12 +5665,12 @@
 
         <span class="kw">let</span> <span class="ident">r#final</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">relative_end</span> {
             <span class="comment">// 9. If relativeEnd is -∞, let final be 0.</span>
-            <span class="ident">IntegerOrInfinity::NegativeInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
+            <span class="ident">IntegerOrInfinity::NegativeInfinity</span> =&gt; <span class="number">0</span>,
             <span class="comment">// 10. Else if relativeEnd &lt; 0, let final be max(len + relativeEnd, 0).</span>
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">std::cmp::max</span>(<span class="ident">len</span> <span class="op">+</span> <span class="ident">i</span>, <span class="number">0</span>),
+            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="number">0</span> =&gt; <span class="ident">std::cmp::max</span>(<span class="ident">len</span> <span class="op">+</span> <span class="ident">i</span>, <span class="number">0</span>),
             <span class="comment">// 11. Else, let final be min(relativeEnd, len).</span>
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">std::cmp::min</span>(<span class="ident">i</span>, <span class="ident">len</span>),
-            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">len</span>,
+            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) =&gt; <span class="ident">std::cmp::min</span>(<span class="ident">i</span>, <span class="ident">len</span>),
+            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; <span class="ident">len</span>,
         };
 
         <span class="comment">// 12. Let count be max(final - k, 0).</span>
@@ -5791,7 +5791,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.some</span>
-    <span class="kw">fn</span> <span class="ident">some</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">some</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
@@ -5810,8 +5810,8 @@
 
         <span class="comment">// 4. If IsCallable(callbackfn) is false, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">callback_fn</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_object</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="ident">obj</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() =&gt; <span class="ident">obj</span>,
+            <span class="kw">_</span> =&gt; {
                 <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
                     <span class="string">&quot;TypedArray.prototype.some called with non-callable callback function&quot;</span>,
                 )
@@ -5849,12 +5849,12 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.sort</span>
-    <span class="kw">fn</span> <span class="ident">sort</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">sort</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. If comparefn is not undefined and IsCallable(comparefn) is false, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">compare_fn</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
-            <span class="prelude-val">None</span> <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">JsValue::Undefined</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="prelude-val">Some</span>(<span class="ident">JsValue::Object</span>(<span class="ident">obj</span>)) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">None</span> <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">JsValue::Undefined</span>) =&gt; <span class="prelude-val">None</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">JsValue::Object</span>(<span class="ident">obj</span>)) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() =&gt; <span class="prelude-val">Some</span>(<span class="ident">obj</span>),
+            <span class="kw">_</span> =&gt; {
                 <span class="kw">return</span> <span class="ident">context</span>
                     .<span class="ident">throw_type_error</span>(<span class="string">&quot;TypedArray.sort called with non-callable comparefn&quot;</span>)
             }
@@ -5912,7 +5912,7 @@
                             <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
                             <span class="ident">compare_fn</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">JsObject</span><span class="op">&gt;</span>,
                             <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">|</span>
-         <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">Ordering</span><span class="op">&gt;</span> {
+         -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">Ordering</span><span class="op">&gt;</span> {
             <span class="comment">// 1. Assert: Both Type(x) and Type(y) are Number or both are BigInt.</span>
             <span class="comment">// 2. If comparefn is not undefined, then</span>
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">compare_fn</span> {
@@ -6057,7 +6057,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.subarray</span>
-    <span class="kw">fn</span> <span class="ident">subarray</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">subarray</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).</span>
         <span class="comment">// 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.</span>
@@ -6080,12 +6080,12 @@
         <span class="comment">// 6. Let relativeBegin be ? ToIntegerOrInfinity(begin).</span>
         <span class="kw">let</span> <span class="ident">begin_index</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">to_integer_or_infinity</span>(<span class="ident">context</span>)<span class="question-mark">?</span> {
             <span class="comment">// 7. If relativeBegin is -∞, let beginIndex be 0.</span>
-            <span class="ident">IntegerOrInfinity::NegativeInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
+            <span class="ident">IntegerOrInfinity::NegativeInfinity</span> =&gt; <span class="number">0</span>,
             <span class="comment">// 8. Else if relativeBegin &lt; 0, let beginIndex be max(srcLength + relativeBegin, 0).</span>
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">std::cmp::max</span>(<span class="ident">src_length</span> <span class="op">+</span> <span class="ident">i</span>, <span class="number">0</span>),
+            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="number">0</span> =&gt; <span class="ident">std::cmp::max</span>(<span class="ident">src_length</span> <span class="op">+</span> <span class="ident">i</span>, <span class="number">0</span>),
             <span class="comment">// 9. Else, let beginIndex be min(relativeBegin, srcLength).</span>
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">std::cmp::min</span>(<span class="ident">i</span>, <span class="ident">src_length</span>),
-            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">src_length</span>,
+            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) =&gt; <span class="ident">std::cmp::min</span>(<span class="ident">i</span>, <span class="ident">src_length</span>),
+            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; <span class="ident">src_length</span>,
         };
 
         <span class="comment">// 10. If end is undefined, let relativeEnd be srcLength; else let relativeEnd be ? ToIntegerOrInfinity(end).</span>
@@ -6098,12 +6098,12 @@
 
         <span class="kw">let</span> <span class="ident">end_index</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">relative_end</span> {
             <span class="comment">// 11. If relativeEnd is -∞, let endIndex be 0.</span>
-            <span class="ident">IntegerOrInfinity::NegativeInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
+            <span class="ident">IntegerOrInfinity::NegativeInfinity</span> =&gt; <span class="number">0</span>,
             <span class="comment">// 12. Else if relativeEnd &lt; 0, let endIndex be max(srcLength + relativeEnd, 0).</span>
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">std::cmp::max</span>(<span class="ident">src_length</span> <span class="op">+</span> <span class="ident">i</span>, <span class="number">0</span>),
+            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="number">0</span> =&gt; <span class="ident">std::cmp::max</span>(<span class="ident">src_length</span> <span class="op">+</span> <span class="ident">i</span>, <span class="number">0</span>),
             <span class="comment">// 13. Else, let endIndex be min(relativeEnd, srcLength).</span>
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">std::cmp::min</span>(<span class="ident">i</span>, <span class="ident">src_length</span>),
-            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">src_length</span>,
+            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) =&gt; <span class="ident">std::cmp::min</span>(<span class="ident">i</span>, <span class="ident">src_length</span>),
+            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; <span class="ident">src_length</span>,
         };
 
         <span class="comment">// 14. Let newLength be max(endIndex - beginIndex, 0).</span>
@@ -6142,7 +6142,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.values</span>
-    <span class="kw">fn</span> <span class="ident">values</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">values</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
         <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>
@@ -6170,7 +6170,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-%typedarray%.prototype-@@tostringtag</span>
-    <span class="kw">fn</span> <span class="ident">to_string_tag</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">to_string_tag</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. If Type(O) is not Object, return undefined.</span>
         <span class="comment">// 3. If O does not have a [[TypedArrayName]] internal slot, return undefined.</span>
@@ -6199,20 +6199,20 @@
         <span class="ident">typed_array_name</span>: <span class="ident">TypedArrayName</span>,
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let defaultConstructor be the intrinsic object listed in column one of Table 73 for exemplar.[[TypedArrayName]].</span>
         <span class="kw">let</span> <span class="ident">default_constructor</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">typed_array_name</span> {
-            <span class="ident">TypedArrayName::Int8Array</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StandardObjects::typed_int8_array_object</span>,
-            <span class="ident">TypedArrayName::Uint8Array</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StandardObjects::typed_uint8_array_object</span>,
-            <span class="ident">TypedArrayName::Uint8ClampedArray</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StandardObjects::typed_uint8clamped_array_object</span>,
-            <span class="ident">TypedArrayName::Int16Array</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StandardObjects::typed_int16_array_object</span>,
-            <span class="ident">TypedArrayName::Uint16Array</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StandardObjects::typed_uint16_array_object</span>,
-            <span class="ident">TypedArrayName::Int32Array</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StandardObjects::typed_int32_array_object</span>,
-            <span class="ident">TypedArrayName::Uint32Array</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StandardObjects::typed_uint32_array_object</span>,
-            <span class="ident">TypedArrayName::BigInt64Array</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StandardObjects::typed_bigint64_array_object</span>,
-            <span class="ident">TypedArrayName::BigUint64Array</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StandardObjects::typed_biguint64_array_object</span>,
-            <span class="ident">TypedArrayName::Float32Array</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StandardObjects::typed_float32_array_object</span>,
-            <span class="ident">TypedArrayName::Float64Array</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StandardObjects::typed_float64_array_object</span>,
+            <span class="ident">TypedArrayName::Int8Array</span> =&gt; <span class="ident">StandardObjects::typed_int8_array_object</span>,
+            <span class="ident">TypedArrayName::Uint8Array</span> =&gt; <span class="ident">StandardObjects::typed_uint8_array_object</span>,
+            <span class="ident">TypedArrayName::Uint8ClampedArray</span> =&gt; <span class="ident">StandardObjects::typed_uint8clamped_array_object</span>,
+            <span class="ident">TypedArrayName::Int16Array</span> =&gt; <span class="ident">StandardObjects::typed_int16_array_object</span>,
+            <span class="ident">TypedArrayName::Uint16Array</span> =&gt; <span class="ident">StandardObjects::typed_uint16_array_object</span>,
+            <span class="ident">TypedArrayName::Int32Array</span> =&gt; <span class="ident">StandardObjects::typed_int32_array_object</span>,
+            <span class="ident">TypedArrayName::Uint32Array</span> =&gt; <span class="ident">StandardObjects::typed_uint32_array_object</span>,
+            <span class="ident">TypedArrayName::BigInt64Array</span> =&gt; <span class="ident">StandardObjects::typed_bigint64_array_object</span>,
+            <span class="ident">TypedArrayName::BigUint64Array</span> =&gt; <span class="ident">StandardObjects::typed_biguint64_array_object</span>,
+            <span class="ident">TypedArrayName::Float32Array</span> =&gt; <span class="ident">StandardObjects::typed_float32_array_object</span>,
+            <span class="ident">TypedArrayName::Float64Array</span> =&gt; <span class="ident">StandardObjects::typed_float64_array_object</span>,
         };
 
         <span class="comment">// 2. Let constructor be ? SpeciesConstructor(exemplar, defaultConstructor).</span>
@@ -6249,7 +6249,7 @@
         <span class="ident">constructor</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let newTypedArray be ? Construct(constructor, argumentList).</span>
         <span class="kw">let</span> <span class="ident">new_typed_array</span> <span class="op">=</span> <span class="ident">constructor</span>.<span class="ident">construct</span>(<span class="ident">args</span>, <span class="kw-2">&amp;</span><span class="ident">constructor</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
 
@@ -6266,7 +6266,7 @@
         }
 
         <span class="comment">// 3. If argumentList is a List of a single Number, then</span>
-        <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+        <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">number</span>) <span class="op">=</span> <span class="ident">args</span>[<span class="number">0</span>].<span class="ident">as_number</span>() {
                 <span class="comment">// a. If newTypedArray.[[ArrayLength]] &lt; ℝ(argumentList[0]), throw a TypeError exception.</span>
                 <span class="kw">if</span> (<span class="ident">o</span>.<span class="ident">array_length</span>() <span class="kw">as</span> <span class="ident">f64</span>) <span class="op">&lt;</span> <span class="ident">number</span> {
@@ -6285,7 +6285,7 @@
         <span class="ident">indexed</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">IntegerIndexed</span>,
         <span class="ident">length</span>: <span class="ident">usize</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="comment">// 1. Assert: O.[[ViewedArrayBuffer]] is undefined.</span>
         <span class="macro">assert!</span>(<span class="ident">indexed</span>.<span class="ident">viewed_array_buffer</span>().<span class="ident">is_none</span>());
 
@@ -6325,7 +6325,7 @@
         <span class="ident">o</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
         <span class="ident">values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="comment">// 1. Let len be the number of elements in values.</span>
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">values</span>.<span class="ident">len</span>();
         {
@@ -6367,9 +6367,9 @@
         <span class="ident">default_proto</span>: <span class="ident">P</span>,
         <span class="ident">length</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span>
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">P</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">StandardObjects</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span>,
+        <span class="ident">P</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">StandardObjects</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span>,
     {
         <span class="comment">// 1. Let proto be ? GetPrototypeFromConstructor(newTarget, defaultProto).</span>
         <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="ident">get_prototype_from_constructor</span>(<span class="ident">new_target</span>, <span class="ident">default_proto</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -6407,7 +6407,7 @@
         <span class="ident">o</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
         <span class="ident">src_array</span>: <span class="ident">JsObject</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">o_obj</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">borrow</span>();
         <span class="kw">let</span> <span class="ident">src_array_obj</span> <span class="op">=</span> <span class="ident">src_array</span>.<span class="ident">borrow</span>();
         <span class="kw">let</span> <span class="ident">o_array</span> <span class="op">=</span> <span class="ident">o_obj</span>.<span class="ident">as_typed_array</span>().<span class="ident">expect</span>(<span class="string">&quot;this must be a typed array&quot;</span>);
@@ -6459,7 +6459,7 @@
             .<span class="ident">expect</span>(<span class="string">&quot;Already checked for detached buffer&quot;</span>);
 
         <span class="comment">// 14. If elementType is the same as srcType, then</span>
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">constructor_name</span> <span class="op">=</span><span class="op">=</span> <span class="ident">src_name</span> {
+        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">constructor_name</span> <span class="op">==</span> <span class="ident">src_name</span> {
             <span class="comment">// a. Let data be ? CloneArrayBuffer(srcData, srcByteOffset, byteLength, bufferConstructor).</span>
             <span class="ident">src_data</span>.<span class="ident">clone_array_buffer</span>(
                 <span class="ident">src_byte_offset</span>,
@@ -6557,7 +6557,7 @@
         <span class="ident">byte_offset</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="ident">length</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="comment">// 1. Let constructorName be the String value of O.[[TypedArrayName]].</span>
         <span class="comment">// 2. Let elementSize be the Element Size value specified in Table 73 for constructorName.</span>
         <span class="kw">let</span> <span class="ident">constructor_name</span> <span class="op">=</span> <span class="ident">o</span>
@@ -6649,7 +6649,7 @@
         <span class="ident">o</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
         <span class="ident">array_like</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="comment">// 1. Let len be ? LengthOfArrayLike(arrayLike).</span>
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">array_like</span>.<span class="ident">length_of_array_like</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
@@ -6701,43 +6701,43 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#table-the-typedarray-constructors</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">element_size</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">element_size</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Int8Array</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Uint8Array</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Uint8ClampedArray</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,
-            <span class="ident"><span class="self">Self</span>::Int16Array</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Uint16Array</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">2</span>,
-            <span class="ident"><span class="self">Self</span>::Int32Array</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Uint32Array</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Float32Array</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">4</span>,
-            <span class="ident"><span class="self">Self</span>::BigInt64Array</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::BigUint64Array</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Float64Array</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">8</span>,
+            <span class="ident"><span class="self">Self</span>::Int8Array</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Uint8Array</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Uint8ClampedArray</span> =&gt; <span class="number">1</span>,
+            <span class="ident"><span class="self">Self</span>::Int16Array</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Uint16Array</span> =&gt; <span class="number">2</span>,
+            <span class="ident"><span class="self">Self</span>::Int32Array</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Uint32Array</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Float32Array</span> =&gt; <span class="number">4</span>,
+            <span class="ident"><span class="self">Self</span>::BigInt64Array</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::BigUint64Array</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Float64Array</span> =&gt; <span class="number">8</span>,
         }
     }
 
     <span class="doccomment">/// Gets the content type of this typed array name.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">content_type</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ContentType</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">content_type</span>(<span class="self">self</span>) -&gt; <span class="ident">ContentType</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::BigInt64Array</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::BigUint64Array</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ContentType::BigInt</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ContentType::Number</span>,
+            <span class="ident"><span class="self">Self</span>::BigInt64Array</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::BigUint64Array</span> =&gt; <span class="ident">ContentType::BigInt</span>,
+            <span class="kw">_</span> =&gt; <span class="ident">ContentType::Number</span>,
         }
     }
 
     <span class="doccomment">/// Gets the name of this typed array name.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TypedArrayName::Int8Array</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Int8Array&quot;</span>,
-            <span class="ident">TypedArrayName::Uint8Array</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Uint8Array&quot;</span>,
-            <span class="ident">TypedArrayName::Uint8ClampedArray</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Uint8ClampedArray&quot;</span>,
-            <span class="ident">TypedArrayName::Int16Array</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Int16Array&quot;</span>,
-            <span class="ident">TypedArrayName::Uint16Array</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Uint16Array&quot;</span>,
-            <span class="ident">TypedArrayName::Int32Array</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Int32Array&quot;</span>,
-            <span class="ident">TypedArrayName::Uint32Array</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Uint32Array&quot;</span>,
-            <span class="ident">TypedArrayName::BigInt64Array</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;BigInt64Array&quot;</span>,
-            <span class="ident">TypedArrayName::BigUint64Array</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;BigUint64Array&quot;</span>,
-            <span class="ident">TypedArrayName::Float32Array</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Float32Array&quot;</span>,
-            <span class="ident">TypedArrayName::Float64Array</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Float64Array&quot;</span>,
+            <span class="ident">TypedArrayName::Int8Array</span> =&gt; <span class="string">&quot;Int8Array&quot;</span>,
+            <span class="ident">TypedArrayName::Uint8Array</span> =&gt; <span class="string">&quot;Uint8Array&quot;</span>,
+            <span class="ident">TypedArrayName::Uint8ClampedArray</span> =&gt; <span class="string">&quot;Uint8ClampedArray&quot;</span>,
+            <span class="ident">TypedArrayName::Int16Array</span> =&gt; <span class="string">&quot;Int16Array&quot;</span>,
+            <span class="ident">TypedArrayName::Uint16Array</span> =&gt; <span class="string">&quot;Uint16Array&quot;</span>,
+            <span class="ident">TypedArrayName::Int32Array</span> =&gt; <span class="string">&quot;Int32Array&quot;</span>,
+            <span class="ident">TypedArrayName::Uint32Array</span> =&gt; <span class="string">&quot;Uint32Array&quot;</span>,
+            <span class="ident">TypedArrayName::BigInt64Array</span> =&gt; <span class="string">&quot;BigInt64Array&quot;</span>,
+            <span class="ident">TypedArrayName::BigUint64Array</span> =&gt; <span class="string">&quot;BigUint64Array&quot;</span>,
+            <span class="ident">TypedArrayName::Float32Array</span> =&gt; <span class="string">&quot;Float32Array&quot;</span>,
+            <span class="ident">TypedArrayName::Float64Array</span> =&gt; <span class="string">&quot;Float64Array&quot;</span>,
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_big_int_element_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_big_int_element_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="macro">matches!</span>(
             <span class="self">self</span>,
             <span class="ident">TypedArrayName::BigUint64Array</span> <span class="op">|</span> <span class="ident">TypedArrayName::BigInt64Array</span>

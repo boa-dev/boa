@@ -308,7 +308,7 @@
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="macro">macro_rules!</span> <span class="ident">_memoffset__let_base_ptr</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">ty</span>) =&gt; {
         <span class="comment">// No UB here, and the pointer does not dangle, either.</span>
         <span class="comment">// But we have to make sure that `uninit` lives long enough,</span>
         <span class="comment">// so it has to be in the same scope as `$name`. That&#39;s why</span>
@@ -322,7 +322,7 @@
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="macro">macro_rules!</span> <span class="ident">_memoffset__let_base_ptr</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">ty</span>) =&gt; {
         <span class="comment">// No UB right here, but we will later dereference this pointer to</span>
         <span class="comment">// offset into a field, and that is UB because the pointer is dangling.</span>
         <span class="kw">let</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__priv::mem::align_of</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="kw">type</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="macro-nonterminal">$</span><span class="kw">type</span>;
@@ -334,7 +334,7 @@
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="macro">macro_rules!</span> <span class="ident">_memoffset_offset_from_unsafe</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">field</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">base</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {{
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">field</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">base</span>:<span class="ident">expr</span>) =&gt; {{
         <span class="kw">let</span> <span class="ident">field</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">field</span>; <span class="comment">// evaluate $field outside the `unsafe` block</span>
         <span class="kw">let</span> <span class="ident">base</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">base</span>; <span class="comment">// evaluate $base outside the `unsafe` block</span>
         <span class="comment">// Compute offset, with unstable `offset_from` for const-compatibility.</span>
@@ -346,7 +346,7 @@
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="macro">macro_rules!</span> <span class="ident">_memoffset_offset_from_unsafe</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">field</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">base</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">field</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">base</span>:<span class="ident">expr</span>) =&gt; {
         <span class="comment">// Compute offset.</span>
         (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">field</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">-</span> (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">base</span> <span class="kw">as</span> <span class="ident">usize</span>)
     };
@@ -373,7 +373,7 @@
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">macro_export</span>(<span class="ident">local_inner_macros</span>)]</span>
 <span class="macro">macro_rules!</span> <span class="ident">offset_of</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">parent</span>:<span class="ident">path</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">field</span>:<span class="ident">tt</span>) <span class="op">=</span><span class="op">&gt;</span> {{
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">parent</span>:<span class="ident">path</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">field</span>:<span class="ident">tt</span>) =&gt; {{
         <span class="comment">// Get a base pointer (non-dangling if rustc supports `MaybeUninit`).</span>
         <span class="macro">_memoffset__let_base_ptr!</span>(<span class="ident">base_ptr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">parent</span>);
         <span class="comment">// Get field pointer.</span>
@@ -397,7 +397,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">tuple_ty</span>)]</span>
 <span class="attribute">#[<span class="ident">macro_export</span>(<span class="ident">local_inner_macros</span>)]</span>
 <span class="macro">macro_rules!</span> <span class="ident">offset_of_tuple</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">parent</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">field</span>:<span class="ident">tt</span>) <span class="op">=</span><span class="op">&gt;</span> {{
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">parent</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">field</span>:<span class="ident">tt</span>) =&gt; {{
         <span class="comment">// Get a base pointer (non-dangling if rustc supports `MaybeUninit`).</span>
         <span class="macro">_memoffset__let_base_ptr!</span>(<span class="ident">base_ptr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">parent</span>);
         <span class="comment">// Get field pointer.</span>
@@ -463,7 +463,7 @@
     <span class="kw">fn</span> <span class="ident">inside_generic_method</span>() {
         <span class="kw">struct</span> <span class="ident">Pair</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="ident">T</span>, <span class="ident">U</span>);
 
-        <span class="kw">fn</span> <span class="ident">foo</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="kw">_</span>: <span class="ident">Pair</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+        <span class="kw">fn</span> <span class="ident">foo</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="kw">_</span>: <span class="ident">Pair</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span>) -&gt; <span class="ident">usize</span> {
             <span class="macro">offset_of!</span>(<span class="ident">Pair</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span>, <span class="number">1</span>)
         }
 
@@ -552,7 +552,7 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable_const&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">const_fn_offset</span>() {
-        <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">test_fn</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+        <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">test_fn</span>() -&gt; <span class="ident">usize</span> {
             <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
             <span class="kw">struct</span> <span class="ident">Foo</span> {
                 <span class="ident">a</span>: <span class="ident">u32</span>,

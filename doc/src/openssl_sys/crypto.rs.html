@@ -155,8 +155,8 @@
 <span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl271</span>))]</span> {
         <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OpenSSL_version_num</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_ulong</span>;
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OpenSSL_version</span>(<span class="ident">key</span>: <span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OpenSSL_version_num</span>() -&gt; <span class="ident">c_ulong</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OpenSSL_version</span>(<span class="ident">key</span>: <span class="ident">c_int</span>) -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>;
         }
         <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">OPENSSL_VERSION</span>: <span class="ident">c_int</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">OPENSSL_CFLAGS</span>: <span class="ident">c_int</span> <span class="op">=</span> <span class="number">1</span>;
@@ -165,8 +165,8 @@
         <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">OPENSSL_DIR</span>: <span class="ident">c_int</span> <span class="op">=</span> <span class="number">4</span>;
     } <span class="kw">else</span> {
         <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SSLeay</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_ulong</span>;
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SSLeay_version</span>(<span class="ident">key</span>: <span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SSLeay</span>() -&gt; <span class="ident">c_ulong</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SSLeay_version</span>(<span class="ident">key</span>: <span class="ident">c_int</span>) -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>;
         }
         <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSLEAY_VERSION</span>: <span class="ident">c_int</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSLEAY_CFLAGS</span>: <span class="ident">c_int</span> <span class="op">=</span> <span class="number">2</span>;
@@ -184,7 +184,7 @@
     <span class="ident">idx</span>: <span class="ident">c_int</span>,
     <span class="ident">argl</span>: <span class="ident">c_long</span>,
     <span class="ident">argp</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_void</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+) -&gt; <span class="ident">c_int</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">CRYPTO_EX_dup</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(
     <span class="ident">to</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">CRYPTO_EX_DATA</span>,
     <span class="ident">from</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">CRYPTO_EX_DATA</span>,
@@ -192,7 +192,7 @@
     <span class="ident">idx</span>: <span class="ident">c_int</span>,
     <span class="ident">argl</span>: <span class="ident">c_long</span>,
     <span class="ident">argp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+) -&gt; <span class="ident">c_int</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">CRYPTO_EX_free</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(
     <span class="ident">parent</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
     <span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
@@ -210,21 +210,21 @@
         <span class="ident">new_func</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CRYPTO_EX_new</span><span class="op">&gt;</span>,
         <span class="ident">dup_func</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CRYPTO_EX_dup</span><span class="op">&gt;</span>,
         <span class="ident">free_func</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CRYPTO_EX_free</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
 }
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CRYPTO_LOCK</span>: <span class="ident">c_int</span> <span class="op">=</span> <span class="number">1</span>;
 
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">ossl110</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">CRYPTO_num_locks</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">CRYPTO_num_locks</span>() -&gt; <span class="ident">c_int</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">ossl110</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">CRYPTO_set_locking_callback</span>(
         <span class="ident">func</span>: <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="ident">mode</span>: <span class="ident">c_int</span>, <span class="ident">n</span>: <span class="ident">c_int</span>, <span class="ident">file</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>, <span class="ident">line</span>: <span class="ident">c_int</span>),
     );
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">ossl110</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">CRYPTO_set_id_callback</span>(<span class="ident">func</span>: <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_ulong</span>);
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">CRYPTO_set_id_callback</span>(<span class="ident">func</span>: <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>() -&gt; <span class="ident">c_ulong</span>);
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">ossl110</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">CRYPTO_add_lock</span>(
@@ -233,18 +233,18 @@
         <span class="ident">type_</span>: <span class="ident">c_int</span>,
         <span class="ident">file</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
         <span class="ident">line</span>: <span class="ident">c_int</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
 }
 
 <span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span> {
         <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">CRYPTO_malloc</span>(<span class="ident">num</span>: <span class="ident">size_t</span>, <span class="ident">file</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>, <span class="ident">line</span>: <span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">CRYPTO_malloc</span>(<span class="ident">num</span>: <span class="ident">size_t</span>, <span class="ident">file</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>, <span class="ident">line</span>: <span class="ident">c_int</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>;
             <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">CRYPTO_free</span>(<span class="ident">buf</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>, <span class="ident">file</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>, <span class="ident">line</span>: <span class="ident">c_int</span>);
         }
     } <span class="kw">else</span> {
         <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">CRYPTO_malloc</span>(<span class="ident">num</span>: <span class="ident">c_int</span>, <span class="ident">file</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>, <span class="ident">line</span>: <span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">CRYPTO_malloc</span>(<span class="ident">num</span>: <span class="ident">c_int</span>, <span class="ident">file</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>, <span class="ident">line</span>: <span class="ident">c_int</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>;
             <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">CRYPTO_free</span>(<span class="ident">buf</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>);
         }
     }
@@ -252,11 +252,11 @@
 
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">ossl101</span>, <span class="ident">not</span>(<span class="ident">ossl300</span>)))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">FIPS_mode</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">FIPS_mode</span>() -&gt; <span class="ident">c_int</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">ossl101</span>, <span class="ident">not</span>(<span class="ident">ossl300</span>)))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">FIPS_mode_set</span>(<span class="ident">onoff</span>: <span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">FIPS_mode_set</span>(<span class="ident">onoff</span>: <span class="ident">c_int</span>) -&gt; <span class="ident">c_int</span>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">CRYPTO_memcmp</span>(<span class="ident">a</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_void</span>, <span class="ident">b</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_void</span>, <span class="ident">len</span>: <span class="ident">size_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">CRYPTO_memcmp</span>(<span class="ident">a</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_void</span>, <span class="ident">b</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_void</span>, <span class="ident">len</span>: <span class="ident">size_t</span>) -&gt; <span class="ident">c_int</span>;
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl_sys" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>

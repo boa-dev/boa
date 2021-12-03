@@ -467,7 +467,7 @@
 <span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Send</span> <span class="kw">for</span> <span class="ident">Parker</span> {}
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Parker</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">unparker</span>: <span class="ident">Unparker</span> {
                 <span class="ident">inner</span>: <span class="ident">Arc::new</span>(<span class="ident">Inner</span> {
@@ -492,7 +492,7 @@
     <span class="doccomment">/// let p = Parker::new();</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Parker</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">Parker</span> {
         <span class="ident"><span class="self">Self</span>::default</span>()
     }
 
@@ -571,7 +571,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`park`]: Parker::park</span>
     <span class="doccomment">/// [`park_timeout`]: Parker::park_timeout</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unparker</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Unparker</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unparker</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Unparker</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">unparker</span>
     }
 
@@ -585,7 +585,7 @@
     <span class="doccomment">/// let p = Parker::new();</span>
     <span class="doccomment">/// let raw = Parker::into_raw(p);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_raw</span>(<span class="ident">this</span>: <span class="ident">Parker</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> () {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_raw</span>(<span class="ident">this</span>: <span class="ident">Parker</span>) -&gt; <span class="kw-2">*</span><span class="kw">const</span> () {
         <span class="ident">Unparker::into_raw</span>(<span class="ident">this</span>.<span class="ident">unparker</span>)
     }
 
@@ -604,7 +604,7 @@
     <span class="doccomment">/// let raw = Parker::into_raw(p);</span>
     <span class="doccomment">/// let p = unsafe { Parker::from_raw(raw) };</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> ()) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Parker</span> {
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> ()) -&gt; <span class="ident">Parker</span> {
         <span class="ident">Parker</span> {
             <span class="ident">unparker</span>: <span class="ident">Unparker::from_raw</span>(<span class="ident">ptr</span>),
             <span class="ident">_marker</span>: <span class="ident">PhantomData</span>,
@@ -613,7 +613,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Parker</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">pad</span>(<span class="string">&quot;Parker { .. }&quot;</span>)
     }
 }
@@ -668,7 +668,7 @@
     <span class="doccomment">/// let u = p.unparker().clone();</span>
     <span class="doccomment">/// let raw = Unparker::into_raw(u);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_raw</span>(<span class="ident">this</span>: <span class="ident">Unparker</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> () {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_raw</span>(<span class="ident">this</span>: <span class="ident">Unparker</span>) -&gt; <span class="kw-2">*</span><span class="kw">const</span> () {
         <span class="ident">Arc::into_raw</span>(<span class="ident">this</span>.<span class="ident">inner</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> ()
     }
 
@@ -689,7 +689,7 @@
     <span class="doccomment">/// let raw = Unparker::into_raw(u);</span>
     <span class="doccomment">/// let u = unsafe { Unparker::from_raw(raw) };</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> ()) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Unparker</span> {
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> ()) -&gt; <span class="ident">Unparker</span> {
         <span class="ident">Unparker</span> {
             <span class="ident">inner</span>: <span class="ident">Arc::from_raw</span>(<span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Inner</span>),
         }
@@ -697,13 +697,13 @@
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Unparker</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">pad</span>(<span class="string">&quot;Unparker { .. }&quot;</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Unparker</span> {
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Unparker</span> {
+    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Unparker</span> {
         <span class="ident">Unparker</span> {
             <span class="ident">inner</span>: <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>(),
         }
@@ -742,9 +742,9 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">m</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">lock</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
 
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">compare_exchange</span>(<span class="ident">EMPTY</span>, <span class="ident">PARKED</span>, <span class="ident">SeqCst</span>, <span class="ident">SeqCst</span>) {
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {}
             <span class="comment">// Consume this notification to avoid spurious wakeups in the next park.</span>
-            <span class="prelude-val">Err</span>(<span class="ident">NOTIFIED</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Err</span>(<span class="ident">NOTIFIED</span>) =&gt; {
                 <span class="comment">// We must read `state` here, even though we know it will be `NOTIFIED`. This is</span>
                 <span class="comment">// because `unpark` may have been called again since we read `NOTIFIED` in the</span>
                 <span class="comment">// `compare_exchange` above. We must perform an acquire operation that synchronizes</span>
@@ -754,14 +754,14 @@
                 <span class="macro">assert_eq!</span>(<span class="ident">old</span>, <span class="ident">NOTIFIED</span>, <span class="string">&quot;park state changed unexpectedly&quot;</span>);
                 <span class="kw">return</span>;
             }
-            <span class="prelude-val">Err</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;inconsistent park_timeout state: {}&quot;</span>, <span class="ident">n</span>),
+            <span class="prelude-val">Err</span>(<span class="ident">n</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;inconsistent park_timeout state: {}&quot;</span>, <span class="ident">n</span>),
         }
 
         <span class="kw">loop</span> {
             <span class="comment">// Block the current thread on the conditional variable.</span>
             <span class="ident">m</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">deadline</span> {
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">cvar</span>.<span class="ident">wait</span>(<span class="ident">m</span>).<span class="ident">unwrap</span>(),
-                <span class="prelude-val">Some</span>(<span class="ident">deadline</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">None</span> =&gt; <span class="self">self</span>.<span class="ident">cvar</span>.<span class="ident">wait</span>(<span class="ident">m</span>).<span class="ident">unwrap</span>(),
+                <span class="prelude-val">Some</span>(<span class="ident">deadline</span>) =&gt; {
                     <span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="ident">Instant::now</span>();
                     <span class="kw">if</span> <span class="ident">now</span> <span class="op">&lt;</span> <span class="ident">deadline</span> {
                         <span class="comment">// We could check for a timeout here, in the return value of wait_timeout,</span>
@@ -771,8 +771,8 @@
                     } <span class="kw">else</span> {
                         <span class="comment">// We&#39;ve timed out; swap out the state back to empty on our way out</span>
                         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">swap</span>(<span class="ident">EMPTY</span>, <span class="ident">SeqCst</span>) {
-                            <span class="ident">NOTIFIED</span> <span class="op">|</span> <span class="ident">PARKED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span>,
-                            <span class="ident">n</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;inconsistent park_timeout state: {}&quot;</span>, <span class="ident">n</span>),
+                            <span class="ident">NOTIFIED</span> <span class="op">|</span> <span class="ident">PARKED</span> =&gt; <span class="kw">return</span>,
+                            <span class="ident">n</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;inconsistent park_timeout state: {}&quot;</span>, <span class="ident">n</span>),
                         };
                     }
                 }
@@ -798,10 +798,10 @@
         <span class="comment">// `NOTIFIED` even if `state` is already `NOTIFIED`. That is why this must be a swap rather</span>
         <span class="comment">// than a compare-and-swap that returns if it reads `NOTIFIED` on failure.</span>
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">swap</span>(<span class="ident">NOTIFIED</span>, <span class="ident">SeqCst</span>) {
-            <span class="ident">EMPTY</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span>,    <span class="comment">// no one was waiting</span>
-            <span class="ident">NOTIFIED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span>, <span class="comment">// already unparked</span>
-            <span class="ident">PARKED</span> <span class="op">=</span><span class="op">&gt;</span> {}        <span class="comment">// gotta go wake someone up</span>
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;inconsistent state in unpark&quot;</span>),
+            <span class="ident">EMPTY</span> =&gt; <span class="kw">return</span>,    <span class="comment">// no one was waiting</span>
+            <span class="ident">NOTIFIED</span> =&gt; <span class="kw">return</span>, <span class="comment">// already unparked</span>
+            <span class="ident">PARKED</span> =&gt; {}        <span class="comment">// gotta go wake someone up</span>
+            <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;inconsistent state in unpark&quot;</span>),
         }
 
         <span class="comment">// There is a period between when the parked thread sets `state` to `PARKED` (or last</span>

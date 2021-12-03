@@ -718,19 +718,19 @@
 <span class="kw">impl</span> <span class="ident">IndexVec</span> {
     <span class="doccomment">/// Returns the number of indices</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">IndexVec::U32</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>.<span class="ident">len</span>(),
-            <span class="ident">IndexVec::USize</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>.<span class="ident">len</span>(),
+            <span class="ident">IndexVec::U32</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; <span class="ident">v</span>.<span class="ident">len</span>(),
+            <span class="ident">IndexVec::USize</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; <span class="ident">v</span>.<span class="ident">len</span>(),
         }
     }
 
     <span class="doccomment">/// Returns `true` if the length is 0.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">IndexVec::U32</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>.<span class="ident">is_empty</span>(),
-            <span class="ident">IndexVec::USize</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>.<span class="ident">is_empty</span>(),
+            <span class="ident">IndexVec::U32</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; <span class="ident">v</span>.<span class="ident">is_empty</span>(),
+            <span class="ident">IndexVec::USize</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; <span class="ident">v</span>.<span class="ident">is_empty</span>(),
         }
     }
 
@@ -739,28 +739,28 @@
     <span class="doccomment">/// (Note: we cannot implement [`std::ops::Index`] because of lifetime</span>
     <span class="doccomment">/// restrictions.)</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">IndexVec::U32</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>[<span class="ident">index</span>] <span class="kw">as</span> <span class="ident">usize</span>,
-            <span class="ident">IndexVec::USize</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>[<span class="ident">index</span>],
+            <span class="ident">IndexVec::U32</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; <span class="ident">v</span>[<span class="ident">index</span>] <span class="kw">as</span> <span class="ident">usize</span>,
+            <span class="ident">IndexVec::USize</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; <span class="ident">v</span>[<span class="ident">index</span>],
         }
     }
 
     <span class="doccomment">/// Return result as a `Vec&lt;usize&gt;`. Conversion may or may not be trivial.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_vec</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_vec</span>(<span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">IndexVec::U32</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">collect</span>(),
-            <span class="ident">IndexVec::USize</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>,
+            <span class="ident">IndexVec::U32</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">collect</span>(),
+            <span class="ident">IndexVec::USize</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span>,
         }
     }
 
     <span class="doccomment">/// Iterate over the indices as a sequence of `usize` values</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IndexVecIter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">IndexVecIter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">IndexVec::U32</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">IndexVecIter::U32</span>(<span class="ident">v</span>.<span class="ident">iter</span>()),
-            <span class="ident">IndexVec::USize</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">IndexVecIter::USize</span>(<span class="ident">v</span>.<span class="ident">iter</span>()),
+            <span class="ident">IndexVec::U32</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; <span class="ident">IndexVecIter::U32</span>(<span class="ident">v</span>.<span class="ident">iter</span>()),
+            <span class="ident">IndexVec::USize</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; <span class="ident">IndexVecIter::USize</span>(<span class="ident">v</span>.<span class="ident">iter</span>()),
         }
     }
 }
@@ -771,25 +771,25 @@
 
     <span class="doccomment">/// Convert into an iterator over the indices as a sequence of `usize` values</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IndexVecIntoIter</span> {
+    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) -&gt; <span class="ident">IndexVecIntoIter</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">IndexVec::U32</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">IndexVecIntoIter::U32</span>(<span class="ident">v</span>.<span class="ident">into_iter</span>()),
-            <span class="ident">IndexVec::USize</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">IndexVecIntoIter::USize</span>(<span class="ident">v</span>.<span class="ident">into_iter</span>()),
+            <span class="ident">IndexVec::U32</span>(<span class="ident">v</span>) =&gt; <span class="ident">IndexVecIntoIter::U32</span>(<span class="ident">v</span>.<span class="ident">into_iter</span>()),
+            <span class="ident">IndexVec::USize</span>(<span class="ident">v</span>) =&gt; <span class="ident">IndexVecIntoIter::USize</span>(<span class="ident">v</span>.<span class="ident">into_iter</span>()),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">IndexVec</span> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">IndexVec</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">IndexVec</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">use</span> <span class="ident"><span class="self">self</span>::IndexVec</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
-            (<span class="kw-2">&amp;</span><span class="ident">U32</span>(<span class="kw-2">ref</span> <span class="ident">v1</span>), <span class="kw-2">&amp;</span><span class="ident">U32</span>(<span class="kw-2">ref</span> <span class="ident">v2</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v1</span> <span class="op">=</span><span class="op">=</span> <span class="ident">v2</span>,
-            (<span class="kw-2">&amp;</span><span class="ident">USize</span>(<span class="kw-2">ref</span> <span class="ident">v1</span>), <span class="kw-2">&amp;</span><span class="ident">USize</span>(<span class="kw-2">ref</span> <span class="ident">v2</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v1</span> <span class="op">=</span><span class="op">=</span> <span class="ident">v2</span>,
-            (<span class="kw-2">&amp;</span><span class="ident">U32</span>(<span class="kw-2">ref</span> <span class="ident">v1</span>), <span class="kw-2">&amp;</span><span class="ident">USize</span>(<span class="kw-2">ref</span> <span class="ident">v2</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-                (<span class="ident">v1</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">v2</span>.<span class="ident">len</span>()) <span class="op">&amp;&amp;</span> (<span class="ident">v1</span>.<span class="ident">iter</span>().<span class="ident">zip</span>(<span class="ident">v2</span>.<span class="ident">iter</span>()).<span class="ident">all</span>(<span class="op">|</span>(<span class="ident">x</span>, <span class="ident">y</span>)<span class="op">|</span> <span class="kw-2">*</span><span class="ident">x</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">*</span><span class="ident">y</span>))
+            (<span class="kw-2">&amp;</span><span class="ident">U32</span>(<span class="kw-2">ref</span> <span class="ident">v1</span>), <span class="kw-2">&amp;</span><span class="ident">U32</span>(<span class="kw-2">ref</span> <span class="ident">v2</span>)) =&gt; <span class="ident">v1</span> <span class="op">==</span> <span class="ident">v2</span>,
+            (<span class="kw-2">&amp;</span><span class="ident">USize</span>(<span class="kw-2">ref</span> <span class="ident">v1</span>), <span class="kw-2">&amp;</span><span class="ident">USize</span>(<span class="kw-2">ref</span> <span class="ident">v2</span>)) =&gt; <span class="ident">v1</span> <span class="op">==</span> <span class="ident">v2</span>,
+            (<span class="kw-2">&amp;</span><span class="ident">U32</span>(<span class="kw-2">ref</span> <span class="ident">v1</span>), <span class="kw-2">&amp;</span><span class="ident">USize</span>(<span class="kw-2">ref</span> <span class="ident">v2</span>)) =&gt; {
+                (<span class="ident">v1</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="ident">v2</span>.<span class="ident">len</span>()) <span class="op">&amp;&amp;</span> (<span class="ident">v1</span>.<span class="ident">iter</span>().<span class="ident">zip</span>(<span class="ident">v2</span>.<span class="ident">iter</span>()).<span class="ident">all</span>(<span class="op">|</span>(<span class="ident">x</span>, <span class="ident">y</span>)<span class="op">|</span> <span class="kw-2">*</span><span class="ident">x</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">==</span> <span class="kw-2">*</span><span class="ident">y</span>))
             }
-            (<span class="kw-2">&amp;</span><span class="ident">USize</span>(<span class="kw-2">ref</span> <span class="ident">v1</span>), <span class="kw-2">&amp;</span><span class="ident">U32</span>(<span class="kw-2">ref</span> <span class="ident">v2</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-                (<span class="ident">v1</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">v2</span>.<span class="ident">len</span>()) <span class="op">&amp;&amp;</span> (<span class="ident">v1</span>.<span class="ident">iter</span>().<span class="ident">zip</span>(<span class="ident">v2</span>.<span class="ident">iter</span>()).<span class="ident">all</span>(<span class="op">|</span>(<span class="ident">x</span>, <span class="ident">y</span>)<span class="op">|</span> <span class="kw-2">*</span><span class="ident">x</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">*</span><span class="ident">y</span> <span class="kw">as</span> <span class="ident">usize</span>))
+            (<span class="kw-2">&amp;</span><span class="ident">USize</span>(<span class="kw-2">ref</span> <span class="ident">v1</span>), <span class="kw-2">&amp;</span><span class="ident">U32</span>(<span class="kw-2">ref</span> <span class="ident">v2</span>)) =&gt; {
+                (<span class="ident">v1</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="ident">v2</span>.<span class="ident">len</span>()) <span class="op">&amp;&amp;</span> (<span class="ident">v1</span>.<span class="ident">iter</span>().<span class="ident">zip</span>(<span class="ident">v2</span>.<span class="ident">iter</span>()).<span class="ident">all</span>(<span class="op">|</span>(<span class="ident">x</span>, <span class="ident">y</span>)<span class="op">|</span> <span class="kw-2">*</span><span class="ident">x</span> <span class="op">==</span> <span class="kw-2">*</span><span class="ident">y</span> <span class="kw">as</span> <span class="ident">usize</span>))
             }
         }
     }
@@ -797,14 +797,14 @@
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">IndexVec</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">v</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">v</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">IndexVec::U32</span>(<span class="ident">v</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">IndexVec</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">v</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">v</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">IndexVec::USize</span>(<span class="ident">v</span>)
     }
 }
@@ -822,19 +822,19 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">usize</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident"><span class="self">self</span>::IndexVecIter</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">U32</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">iter</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">iter</span>.<span class="ident">next</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>),
-            <span class="ident">USize</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">iter</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">iter</span>.<span class="ident">next</span>().<span class="ident">cloned</span>(),
+            <span class="ident">U32</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">iter</span>) =&gt; <span class="ident">iter</span>.<span class="ident">next</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>),
+            <span class="ident">USize</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">iter</span>) =&gt; <span class="ident">iter</span>.<span class="ident">next</span>().<span class="ident">cloned</span>(),
         }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
+    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">IndexVecIter::U32</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>.<span class="ident">size_hint</span>(),
-            <span class="ident">IndexVecIter::USize</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>.<span class="ident">size_hint</span>(),
+            <span class="ident">IndexVecIter::U32</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; <span class="ident">v</span>.<span class="ident">size_hint</span>(),
+            <span class="ident">IndexVecIter::USize</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; <span class="ident">v</span>.<span class="ident">size_hint</span>(),
         }
     }
 }
@@ -854,20 +854,20 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">usize</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident"><span class="self">self</span>::IndexVecIntoIter</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">U32</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>.<span class="ident">next</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>),
-            <span class="ident">USize</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>.<span class="ident">next</span>(),
+            <span class="ident">U32</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">v</span>) =&gt; <span class="ident">v</span>.<span class="ident">next</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>),
+            <span class="ident">USize</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">v</span>) =&gt; <span class="ident">v</span>.<span class="ident">next</span>(),
         }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
+    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
         <span class="kw">use</span> <span class="ident"><span class="self">self</span>::IndexVecIntoIter</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">U32</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>.<span class="ident">size_hint</span>(),
-            <span class="ident">USize</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>.<span class="ident">size_hint</span>(),
+            <span class="ident">U32</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; <span class="ident">v</span>.<span class="ident">size_hint</span>(),
+            <span class="ident">USize</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; <span class="ident">v</span>.<span class="ident">size_hint</span>(),
         }
     }
 }
@@ -897,7 +897,7 @@
 <span class="doccomment">/// to adapt the internal `sample_floyd` implementation.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Panics if `amount &gt; length`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sample</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>, <span class="ident">length</span>: <span class="ident">usize</span>, <span class="ident">amount</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IndexVec</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sample</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>, <span class="ident">length</span>: <span class="ident">usize</span>, <span class="ident">amount</span>: <span class="ident">usize</span>) -&gt; <span class="ident">IndexVec</span>
 <span class="kw">where</span> <span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span> {
     <span class="kw">if</span> <span class="ident">amount</span> <span class="op">&gt;</span> <span class="ident">length</span> {
         <span class="macro">panic!</span>(<span class="string">&quot;`amount` of samples must be less than or equal to `length`&quot;</span>);
@@ -954,10 +954,10 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)))]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sample_weighted</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">F</span>, <span class="ident">X</span><span class="op">&gt;</span>(
     <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>, <span class="ident">length</span>: <span class="ident">usize</span>, <span class="ident">weight</span>: <span class="ident">F</span>, <span class="ident">amount</span>: <span class="ident">usize</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">IndexVec</span>, <span class="ident">WeightedError</span><span class="op">&gt;</span>
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">IndexVec</span>, <span class="ident">WeightedError</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">X</span>,
+    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">usize</span>) -&gt; <span class="ident">X</span>,
     <span class="ident">X</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>,
 {
     <span class="kw">if</span> <span class="ident">length</span> <span class="op">&gt;</span> (<span class="ident">core::u32::MAX</span> <span class="kw">as</span> <span class="ident">usize</span>) {
@@ -986,15 +986,15 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
 <span class="kw">fn</span> <span class="ident">sample_efraimidis_spirakis</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">F</span>, <span class="ident">X</span>, <span class="ident">N</span><span class="op">&gt;</span>(
     <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>, <span class="ident">length</span>: <span class="ident">N</span>, <span class="ident">weight</span>: <span class="ident">F</span>, <span class="ident">amount</span>: <span class="ident">N</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">IndexVec</span>, <span class="ident">WeightedError</span><span class="op">&gt;</span>
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">IndexVec</span>, <span class="ident">WeightedError</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">X</span>,
+    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">usize</span>) -&gt; <span class="ident">X</span>,
     <span class="ident">X</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>,
     <span class="ident">N</span>: <span class="ident">UInt</span>,
     <span class="ident">IndexVec</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 {
-    <span class="kw">if</span> <span class="ident">amount</span> <span class="op">=</span><span class="op">=</span> <span class="ident">N::zero</span>() {
+    <span class="kw">if</span> <span class="ident">amount</span> <span class="op">==</span> <span class="ident">N::zero</span>() {
         <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">IndexVec::U32</span>(<span class="ident">Vec::new</span>()));
     }
 
@@ -1007,20 +1007,20 @@
         <span class="ident">key</span>: <span class="ident">f64</span>,
     }
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span> <span class="ident">PartialOrd</span> <span class="kw">for</span> <span class="ident">Element</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">core::cmp::Ordering</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">core::cmp::Ordering</span><span class="op">&gt;</span> {
             <span class="self">self</span>.<span class="ident">key</span>.<span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="ident">key</span>)
         }
     }
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span> <span class="ident">Ord</span> <span class="kw">for</span> <span class="ident">Element</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">core::cmp::Ordering</span> {
+        <span class="kw">fn</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">core::cmp::Ordering</span> {
              <span class="comment">// partial_cmp will always produce a value,</span>
              <span class="comment">// because we check that the weights are not nan</span>
             <span class="self">self</span>.<span class="ident">partial_cmp</span>(<span class="ident">other</span>).<span class="ident">unwrap</span>()
         }
     }
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">Element</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-            <span class="self">self</span>.<span class="ident">key</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">key</span>
+        <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
+            <span class="self">self</span>.<span class="ident">key</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">key</span>
         }
     }
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span> <span class="ident">Eq</span> <span class="kw">for</span> <span class="ident">Element</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span> {}
@@ -1090,7 +1090,7 @@
 <span class="doccomment">/// The output values are fully shuffled. (Overhead is under 50%.)</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This implementation uses `O(amount)` memory and `O(amount^2)` time.</span>
-<span class="kw">fn</span> <span class="ident">sample_floyd</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>, <span class="ident">length</span>: <span class="ident">u32</span>, <span class="ident">amount</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IndexVec</span>
+<span class="kw">fn</span> <span class="ident">sample_floyd</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>, <span class="ident">length</span>: <span class="ident">u32</span>, <span class="ident">amount</span>: <span class="ident">u32</span>) -&gt; <span class="ident">IndexVec</span>
 <span class="kw">where</span> <span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span> {
     <span class="comment">// For small amount we use Floyd&#39;s fully-shuffled variant. For larger</span>
     <span class="comment">// amounts this is slow due to Vec::insert performance, so we shuffle</span>
@@ -1102,7 +1102,7 @@
     <span class="kw">for</span> <span class="ident">j</span> <span class="kw">in</span> <span class="ident">length</span> <span class="op">-</span> <span class="ident">amount</span>..<span class="ident">length</span> {
         <span class="kw">let</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">gen_range</span>(<span class="number">0</span>..<span class="op">=</span><span class="ident">j</span>);
         <span class="kw">if</span> <span class="ident">floyd_shuffle</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pos</span>) <span class="op">=</span> <span class="ident">indices</span>.<span class="ident">iter</span>().<span class="ident">position</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span> <span class="op">=</span><span class="op">=</span> <span class="ident">t</span>) {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pos</span>) <span class="op">=</span> <span class="ident">indices</span>.<span class="ident">iter</span>().<span class="ident">position</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span> <span class="op">==</span> <span class="ident">t</span>) {
                 <span class="ident">indices</span>.<span class="ident">insert</span>(<span class="ident">pos</span>, <span class="ident">j</span>);
                 <span class="kw">continue</span>;
             }
@@ -1134,7 +1134,7 @@
 <span class="doccomment">/// performance in all cases).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Set-up is `O(length)` time and memory and shuffling is `O(amount)` time.</span>
-<span class="kw">fn</span> <span class="ident">sample_inplace</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>, <span class="ident">length</span>: <span class="ident">u32</span>, <span class="ident">amount</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IndexVec</span>
+<span class="kw">fn</span> <span class="ident">sample_inplace</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>, <span class="ident">length</span>: <span class="ident">u32</span>, <span class="ident">amount</span>: <span class="ident">u32</span>) -&gt; <span class="ident">IndexVec</span>
 <span class="kw">where</span> <span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span> {
     <span class="macro">debug_assert!</span>(<span class="ident">amount</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">length</span>);
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">indices</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">length</span> <span class="kw">as</span> <span class="ident">usize</span>);
@@ -1150,39 +1150,39 @@
 
 <span class="kw">trait</span> <span class="ident">UInt</span>: <span class="ident">Copy</span> <span class="op">+</span> <span class="ident">PartialOrd</span> <span class="op">+</span> <span class="ident">Ord</span> <span class="op">+</span> <span class="ident">PartialEq</span> <span class="op">+</span> <span class="ident">Eq</span> <span class="op">+</span> <span class="ident">SampleUniform</span>
     <span class="op">+</span> <span class="ident">core::hash::Hash</span> <span class="op">+</span> <span class="ident">core::ops::AddAssign</span> {
-    <span class="kw">fn</span> <span class="ident">zero</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
-    <span class="kw">fn</span> <span class="ident">one</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
-    <span class="kw">fn</span> <span class="ident">as_usize</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span>;
+    <span class="kw">fn</span> <span class="ident">zero</span>() -&gt; <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">one</span>() -&gt; <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">as_usize</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span>;
 }
 <span class="kw">impl</span> <span class="ident">UInt</span> <span class="kw">for</span> <span class="ident">u32</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">zero</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">zero</span>() -&gt; <span class="self">Self</span> {
         <span class="number">0</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">one</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">one</span>() -&gt; <span class="self">Self</span> {
         <span class="number">1</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">as_usize</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">as_usize</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span> <span class="kw">as</span> <span class="ident">usize</span>
     }
 }
 <span class="kw">impl</span> <span class="ident">UInt</span> <span class="kw">for</span> <span class="ident">usize</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">zero</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">zero</span>() -&gt; <span class="self">Self</span> {
         <span class="number">0</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">one</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">one</span>() -&gt; <span class="self">Self</span> {
         <span class="number">1</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">as_usize</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">as_usize</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span>
     }
 }
@@ -1196,7 +1196,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// This function  is generic over X primarily so that results are value-stable</span>
 <span class="doccomment">/// over 32-bit and 64-bit platforms.</span>
-<span class="kw">fn</span> <span class="ident">sample_rejection</span><span class="op">&lt;</span><span class="ident">X</span>: <span class="ident">UInt</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>, <span class="ident">length</span>: <span class="ident">X</span>, <span class="ident">amount</span>: <span class="ident">X</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IndexVec</span>
+<span class="kw">fn</span> <span class="ident">sample_rejection</span><span class="op">&lt;</span><span class="ident">X</span>: <span class="ident">UInt</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>, <span class="ident">length</span>: <span class="ident">X</span>, <span class="ident">amount</span>: <span class="ident">X</span>) -&gt; <span class="ident">IndexVec</span>
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
     <span class="ident">IndexVec</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span><span class="op">&gt;</span>,
@@ -1230,13 +1230,13 @@
         <span class="kw">let</span> <span class="ident">some_index_vec</span> <span class="op">=</span> <span class="ident">IndexVec::from</span>(<span class="macro">vec!</span>[<span class="number">254_usize</span>, <span class="number">234</span>, <span class="number">2</span>, <span class="number">1</span>]);
         <span class="kw">let</span> <span class="ident">de_some_index_vec</span>: <span class="ident">IndexVec</span> <span class="op">=</span> <span class="ident">bincode::deserialize</span>(<span class="kw-2">&amp;</span><span class="ident">bincode::serialize</span>(<span class="kw-2">&amp;</span><span class="ident">some_index_vec</span>).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>();
         <span class="kw">match</span> (<span class="ident">some_index_vec</span>, <span class="ident">de_some_index_vec</span>) {
-            (<span class="ident">IndexVec::U32</span>(<span class="ident">a</span>), <span class="ident">IndexVec::U32</span>(<span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            (<span class="ident">IndexVec::U32</span>(<span class="ident">a</span>), <span class="ident">IndexVec::U32</span>(<span class="ident">b</span>)) =&gt; {
                 <span class="macro">assert_eq!</span>(<span class="ident">a</span>, <span class="ident">b</span>);
             },
-            (<span class="ident">IndexVec::USize</span>(<span class="ident">a</span>), <span class="ident">IndexVec::USize</span>(<span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            (<span class="ident">IndexVec::USize</span>(<span class="ident">a</span>), <span class="ident">IndexVec::USize</span>(<span class="ident">b</span>)) =&gt; {
                 <span class="macro">assert_eq!</span>(<span class="ident">a</span>, <span class="ident">b</span>);
             },
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {<span class="macro">panic!</span>(<span class="string">&quot;failed to seralize/deserialize `IndexVec`&quot;</span>)}
+            <span class="kw">_</span> =&gt; {<span class="macro">panic!</span>(<span class="string">&quot;failed to seralize/deserialize `IndexVec`&quot;</span>)}
         }
     }
 
@@ -1306,7 +1306,7 @@
         <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">amount</span>, <span class="ident">len</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span>[(<span class="number">0</span>, <span class="number">10</span>), (<span class="number">5</span>, <span class="number">10</span>), (<span class="number">10</span>, <span class="number">10</span>)] {
             <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">sample_weighted</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">seed_rng</span>(<span class="number">423</span>), <span class="ident">len</span>, <span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">i</span> <span class="kw">as</span> <span class="ident">f64</span>, <span class="ident">amount</span>).<span class="ident">unwrap</span>();
             <span class="kw">match</span> <span class="ident">v</span> {
-                <span class="ident">IndexVec::U32</span>(<span class="kw-2">mut</span> <span class="ident">indices</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">IndexVec::U32</span>(<span class="kw-2">mut</span> <span class="ident">indices</span>) =&gt; {
                     <span class="macro">assert_eq!</span>(<span class="ident">indices</span>.<span class="ident">len</span>(), <span class="ident">amount</span>);
                     <span class="ident">indices</span>.<span class="ident">sort_unstable</span>();
                     <span class="ident">indices</span>.<span class="ident">dedup</span>();
@@ -1315,7 +1315,7 @@
                         <span class="macro">assert!</span>((<span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;</span> <span class="ident">len</span>);
                     }
                 },
-                <span class="ident">IndexVec::USize</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;expected `IndexVec::U32`&quot;</span>),
+                <span class="ident">IndexVec::USize</span>(<span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;expected `IndexVec::U32`&quot;</span>),
             }
         }
     }

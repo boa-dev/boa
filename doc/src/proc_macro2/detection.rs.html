@@ -79,11 +79,11 @@
 <span class="kw">static</span> <span class="ident">WORKS</span>: <span class="ident">AtomicUsize</span> <span class="op">=</span> <span class="ident">AtomicUsize::new</span>(<span class="number">0</span>);
 <span class="kw">static</span> <span class="ident">INIT</span>: <span class="ident">Once</span> <span class="op">=</span> <span class="ident">Once::new</span>();
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">inside_proc_macro</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">inside_proc_macro</span>() -&gt; <span class="ident">bool</span> {
     <span class="kw">match</span> <span class="ident">WORKS</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>) {
-        <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="bool-val">false</span>,
-        <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="bool-val">true</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+        <span class="number">1</span> =&gt; <span class="kw">return</span> <span class="bool-val">false</span>,
+        <span class="number">2</span> =&gt; <span class="kw">return</span> <span class="bool-val">true</span>,
+        <span class="kw">_</span> =&gt; {}
     }
 
     <span class="ident">INIT</span>.<span class="ident">call_once</span>(<span class="ident">initialize</span>);

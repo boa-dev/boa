@@ -77,7 +77,7 @@
 
 <span class="kw">impl</span> <span class="ident">Shell</span> {
     <span class="doccomment">/// A list of possible variants in `&amp;&#39;static str` form</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">variants</span>() <span class="op">-</span><span class="op">&gt;</span> [<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>; <span class="number">5</span>] {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">variants</span>() -&gt; [<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>; <span class="number">5</span>] {
         [<span class="string">&quot;zsh&quot;</span>, <span class="string">&quot;bash&quot;</span>, <span class="string">&quot;fish&quot;</span>, <span class="string">&quot;powershell&quot;</span>, <span class="string">&quot;elvish&quot;</span>]
     }
 }
@@ -85,14 +85,14 @@
 <span class="kw">impl</span> <span class="ident">FromStr</span> <span class="kw">for</span> <span class="ident">Shell</span> {
     <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">String</span>;
 
-    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">s</span> {
-            <span class="string">&quot;ZSH&quot;</span> <span class="op">|</span> <span class="kw">_</span> <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">eq_ignore_ascii_case</span>(<span class="string">&quot;zsh&quot;</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Shell::Zsh</span>),
-            <span class="string">&quot;FISH&quot;</span> <span class="op">|</span> <span class="kw">_</span> <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">eq_ignore_ascii_case</span>(<span class="string">&quot;fish&quot;</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Shell::Fish</span>),
-            <span class="string">&quot;BASH&quot;</span> <span class="op">|</span> <span class="kw">_</span> <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">eq_ignore_ascii_case</span>(<span class="string">&quot;bash&quot;</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Shell::Bash</span>),
-            <span class="string">&quot;POWERSHELL&quot;</span> <span class="op">|</span> <span class="kw">_</span> <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">eq_ignore_ascii_case</span>(<span class="string">&quot;powershell&quot;</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Shell::PowerShell</span>),
-            <span class="string">&quot;ELVISH&quot;</span> <span class="op">|</span> <span class="kw">_</span> <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">eq_ignore_ascii_case</span>(<span class="string">&quot;elvish&quot;</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Shell::Elvish</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">String::from</span>(
+            <span class="string">&quot;ZSH&quot;</span> <span class="op">|</span> <span class="kw">_</span> <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">eq_ignore_ascii_case</span>(<span class="string">&quot;zsh&quot;</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Shell::Zsh</span>),
+            <span class="string">&quot;FISH&quot;</span> <span class="op">|</span> <span class="kw">_</span> <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">eq_ignore_ascii_case</span>(<span class="string">&quot;fish&quot;</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Shell::Fish</span>),
+            <span class="string">&quot;BASH&quot;</span> <span class="op">|</span> <span class="kw">_</span> <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">eq_ignore_ascii_case</span>(<span class="string">&quot;bash&quot;</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Shell::Bash</span>),
+            <span class="string">&quot;POWERSHELL&quot;</span> <span class="op">|</span> <span class="kw">_</span> <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">eq_ignore_ascii_case</span>(<span class="string">&quot;powershell&quot;</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Shell::PowerShell</span>),
+            <span class="string">&quot;ELVISH&quot;</span> <span class="op">|</span> <span class="kw">_</span> <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">eq_ignore_ascii_case</span>(<span class="string">&quot;elvish&quot;</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Shell::Elvish</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">String::from</span>(
                 <span class="string">&quot;[valid values: bash, fish, zsh, powershell, elvish]&quot;</span>,
             )),
         }
@@ -100,13 +100,13 @@
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Shell</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Shell::Bash</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;BASH&quot;</span>),
-            <span class="ident">Shell::Fish</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;FISH&quot;</span>),
-            <span class="ident">Shell::Zsh</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;ZSH&quot;</span>),
-            <span class="ident">Shell::PowerShell</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;POWERSHELL&quot;</span>),
-            <span class="ident">Shell::Elvish</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;ELVISH&quot;</span>),
+            <span class="ident">Shell::Bash</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;BASH&quot;</span>),
+            <span class="ident">Shell::Fish</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;FISH&quot;</span>),
+            <span class="ident">Shell::Zsh</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;ZSH&quot;</span>),
+            <span class="ident">Shell::PowerShell</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;POWERSHELL&quot;</span>),
+            <span class="ident">Shell::Elvish</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;ELVISH&quot;</span>),
         }
     }
 }

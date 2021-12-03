@@ -267,7 +267,7 @@
 
 <span class="kw">impl</span> <span class="ident">Number</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_fast_path</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">Float</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">is_fast_path</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">Float</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="ident">F::MIN_EXPONENT_FAST_PATH</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">exponent</span>
             <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">exponent</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">F::MAX_EXPONENT_FAST_PATH</span>
             <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">mantissa</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">F::MAX_MANTISSA_FAST_PATH</span>
@@ -275,7 +275,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_fast_path</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">Float</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_fast_path</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">Float</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_fast_path</span>::<span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>() {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">F::from_u64</span>(<span class="self">self</span>.<span class="ident">mantissa</span>);
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">exponent</span> <span class="op">&lt;</span> <span class="number">0</span> {
@@ -294,7 +294,7 @@
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">parse_8digits_le</span>(<span class="kw-2">mut</span> <span class="ident">v</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
+<span class="kw">fn</span> <span class="ident">parse_8digits_le</span>(<span class="kw-2">mut</span> <span class="ident">v</span>: <span class="ident">u64</span>) -&gt; <span class="ident">u64</span> {
     <span class="kw">const</span> <span class="ident">MASK</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">0x0000_00FF_0000_00FF</span>;
     <span class="kw">const</span> <span class="ident">MUL1</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">0x000F_4240_0000_0064</span>;
     <span class="kw">const</span> <span class="ident">MUL2</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">0x0000_2710_0000_0001</span>;
@@ -345,7 +345,7 @@
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">parse_scientific</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">AsciiStr</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i64</span> {
+<span class="kw">fn</span> <span class="ident">parse_scientific</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">AsciiStr</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">i64</span> {
     <span class="comment">// the first character is &#39;e&#39;/&#39;E&#39; and scientific mode is enabled</span>
     <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">s</span>;
     <span class="ident">s</span>.<span class="ident">step</span>();
@@ -373,7 +373,7 @@
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_number</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">Number</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_number</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">Number</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
     <span class="macro">debug_assert!</span>(<span class="op">!</span><span class="ident">s</span>.<span class="ident">is_empty</span>());
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">AsciiStr::new</span>(<span class="ident">s</span>);
@@ -381,12 +381,12 @@
 
     <span class="comment">// handle optional +/- sign</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">negative</span> <span class="op">=</span> <span class="bool-val">false</span>;
-    <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">first</span>() <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;-&#39;</span> {
+    <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">first</span>() <span class="op">==</span> <span class="string">b&#39;-&#39;</span> {
         <span class="ident">negative</span> <span class="op">=</span> <span class="bool-val">true</span>;
         <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">step</span>().<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">first</span>() <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;+&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">s</span>.<span class="ident">step</span>().<span class="ident">is_empty</span>() {
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">first</span>() <span class="op">==</span> <span class="string">b&#39;+&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">s</span>.<span class="ident">step</span>().<span class="ident">is_empty</span>() {
         <span class="kw">return</span> <span class="prelude-val">None</span>;
     }
     <span class="macro">debug_assert!</span>(<span class="op">!</span><span class="ident">s</span>.<span class="ident">is_empty</span>());
@@ -411,7 +411,7 @@
     }
 
     <span class="ident">n_digits</span> <span class="op">+</span><span class="op">=</span> <span class="ident">n_after_dot</span>;
-    <span class="kw">if</span> <span class="ident">n_digits</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+    <span class="kw">if</span> <span class="ident">n_digits</span> <span class="op">==</span> <span class="number">0</span> {
         <span class="kw">return</span> <span class="prelude-val">None</span>;
     }
 
@@ -473,8 +473,8 @@
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_inf_nan</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">Float</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">F</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">parse_inf_rest</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_inf_nan</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">Float</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">F</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse_inf_rest</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">usize</span> {
         <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">8</span> <span class="op">&amp;&amp;</span> <span class="ident">s</span>[<span class="number">3</span>..].<span class="ident">eq_ignore_case</span>(<span class="string">b&quot;inity&quot;</span>) {
             <span class="number">8</span>
         } <span class="kw">else</span> {
@@ -487,14 +487,14 @@
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">eq_ignore_case</span>(<span class="string">b&quot;inf&quot;</span>) {
             <span class="kw">return</span> <span class="prelude-val">Some</span>((<span class="ident">F::INFINITY</span>, <span class="ident">parse_inf_rest</span>(<span class="ident">s</span>)));
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">4</span> {
-            <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">get_first</span>() <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;+&#39;</span> {
+            <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">get_first</span>() <span class="op">==</span> <span class="string">b&#39;+&#39;</span> {
                 <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">advance</span>(<span class="number">1</span>);
                 <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">eq_ignore_case</span>(<span class="string">b&quot;nan&quot;</span>) {
                     <span class="kw">return</span> <span class="prelude-val">Some</span>((<span class="ident">F::NAN</span>, <span class="number">4</span>));
                 } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">eq_ignore_case</span>(<span class="string">b&quot;inf&quot;</span>) {
                     <span class="kw">return</span> <span class="prelude-val">Some</span>((<span class="ident">F::INFINITY</span>, <span class="number">1</span> <span class="op">+</span> <span class="ident">parse_inf_rest</span>(<span class="ident">s</span>)));
                 }
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">get_first</span>() <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;-&#39;</span> {
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">get_first</span>() <span class="op">==</span> <span class="string">b&#39;-&#39;</span> {
                 <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">advance</span>(<span class="number">1</span>);
                 <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">eq_ignore_case</span>(<span class="string">b&quot;nan&quot;</span>) {
                     <span class="kw">return</span> <span class="prelude-val">Some</span>((<span class="ident">F::NEG_NAN</span>, <span class="number">4</span>));

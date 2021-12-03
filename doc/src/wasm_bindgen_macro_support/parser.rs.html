@@ -1598,7 +1598,7 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">attrgen</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mac</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mac</span>:<span class="ident">ident</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">mac!</span> {
             (<span class="macro-nonterminal">catch</span>, <span class="ident">Catch</span>(<span class="ident">Span</span>)),
             (<span class="ident">constructor</span>, <span class="ident">Constructor</span>(<span class="ident">Span</span>)),
@@ -1638,11 +1638,11 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">methods</span> {
-    ($((<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">contents</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)),)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    ($((<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">contents</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)),)<span class="kw-2">*</span>) =&gt; {
         $(<span class="macro">methods!</span>(@<span class="ident">method</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">contents</span>)<span class="kw-2">*</span>));)<span class="op">*</span>
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;strict-macro&quot;</span>)]</span>
-        <span class="kw">fn</span> <span class="ident">check_used</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">check_used</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
             <span class="comment">// Account for the fact this method was called</span>
             <span class="ident">ATTRS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">state</span><span class="op">|</span> <span class="ident">state</span>.<span class="ident">checks</span>.<span class="ident">set</span>(<span class="ident">state</span>.<span class="ident">checks</span>.<span class="ident">get</span>() <span class="op">+</span> <span class="number">1</span>));
 
@@ -1658,7 +1658,7 @@
                     continue
                 }*/</span>
                 <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">attr</span> {
-                    $(<span class="ident">BindgenAttr</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>(<span class="ident">span</span>, ..) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">span</span>,)<span class="op">*</span>
+                    $(<span class="ident">BindgenAttr</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>(<span class="ident">span</span>, ..) =&gt; <span class="ident">span</span>,)<span class="op">*</span>
                 };
                 <span class="ident">errors</span>.<span class="ident">push</span>(<span class="ident">Diagnostic::span_error</span>(<span class="kw-2">*</span><span class="ident">span</span>, <span class="string">&quot;unused #[wasm_bindgen] attribute&quot;</span>));
             }
@@ -1666,70 +1666,70 @@
         }
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;strict-macro&quot;</span>))]</span>
-        <span class="kw">fn</span> <span class="ident">check_used</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">check_used</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
             <span class="comment">// Account for the fact this method was called</span>
             <span class="ident">ATTRS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">state</span><span class="op">|</span> <span class="ident">state</span>.<span class="ident">checks</span>.<span class="ident">set</span>(<span class="ident">state</span>.<span class="ident">checks</span>.<span class="ident">get</span>() <span class="op">+</span> <span class="number">1</span>));
             <span class="prelude-val">Ok</span>(())
         }
     };
 
-    (@<span class="ident">method</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>:<span class="ident">ident</span>(<span class="ident">Span</span>, <span class="ident">String</span>, <span class="ident">Span</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">Span</span>)<span class="op">&gt;</span> {
+    (@<span class="ident">method</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>:<span class="ident">ident</span>(<span class="ident">Span</span>, <span class="ident">String</span>, <span class="ident">Span</span>)) =&gt; {
+        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">Span</span>)<span class="op">&gt;</span> {
             <span class="self">self</span>.<span class="ident">attrs</span>
                 .<span class="ident">iter</span>()
                 .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="number">1</span> {
-                    <span class="ident">BindgenAttr</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>(<span class="kw">_</span>, <span class="ident">s</span>, <span class="ident">span</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">BindgenAttr</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>(<span class="kw">_</span>, <span class="ident">s</span>, <span class="ident">span</span>) =&gt; {
                         <span class="ident">a</span>.<span class="number">0</span>.<span class="ident">set</span>(<span class="bool-val">true</span>);
                         <span class="prelude-val">Some</span>((<span class="kw-2">&amp;</span><span class="ident">s</span>[..], <span class="kw-2">*</span><span class="ident">span</span>))
                     }
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+                    <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
                 })
                 .<span class="ident">next</span>()
         }
     };
 
-    (@<span class="ident">method</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>:<span class="ident">ident</span>(<span class="ident">Span</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span>[<span class="ident">String</span>], <span class="kw-2">&amp;</span>[<span class="ident">Span</span>])<span class="op">&gt;</span> {
+    (@<span class="ident">method</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>:<span class="ident">ident</span>(<span class="ident">Span</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>)) =&gt; {
+        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span>[<span class="ident">String</span>], <span class="kw-2">&amp;</span>[<span class="ident">Span</span>])<span class="op">&gt;</span> {
             <span class="self">self</span>.<span class="ident">attrs</span>
                 .<span class="ident">iter</span>()
                 .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="number">1</span> {
-                    <span class="ident">BindgenAttr</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>(<span class="kw">_</span>, <span class="ident">ss</span>, <span class="ident">spans</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">BindgenAttr</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>(<span class="kw">_</span>, <span class="ident">ss</span>, <span class="ident">spans</span>) =&gt; {
                         <span class="ident">a</span>.<span class="number">0</span>.<span class="ident">set</span>(<span class="bool-val">true</span>);
                         <span class="prelude-val">Some</span>((<span class="kw-2">&amp;</span><span class="ident">ss</span>[..], <span class="kw-2">&amp;</span><span class="ident">spans</span>[..]))
                     }
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+                    <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
                 })
                 .<span class="ident">next</span>()
         }
     };
 
-    (@<span class="ident">method</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>:<span class="ident">ident</span>(<span class="ident">Span</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">other</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">method</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>:<span class="ident">ident</span>(<span class="ident">Span</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">other</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)) =&gt; {
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused</span>)]</span>
-        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">other</span>)<span class="kw-2">*</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">other</span>)<span class="kw-2">*</span><span class="op">&gt;</span> {
             <span class="self">self</span>.<span class="ident">attrs</span>
                 .<span class="ident">iter</span>()
                 .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="number">1</span> {
-                    <span class="ident">BindgenAttr</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>(<span class="kw">_</span>, <span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">BindgenAttr</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>(<span class="kw">_</span>, <span class="ident">s</span>) =&gt; {
                         <span class="ident">a</span>.<span class="number">0</span>.<span class="ident">set</span>(<span class="bool-val">true</span>);
                         <span class="prelude-val">Some</span>(<span class="ident">s</span>)
                     }
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+                    <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
                 })
                 .<span class="ident">next</span>()
         }
     };
 
-    (@<span class="ident">method</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">other</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">method</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">other</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)) =&gt; {
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused</span>)]</span>
-        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">other</span>)<span class="kw-2">*</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">other</span>)<span class="kw-2">*</span><span class="op">&gt;</span> {
             <span class="self">self</span>.<span class="ident">attrs</span>
                 .<span class="ident">iter</span>()
                 .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="number">1</span> {
-                    <span class="ident">BindgenAttr</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">BindgenAttr</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>(<span class="ident">s</span>) =&gt; {
                         <span class="ident">a</span>.<span class="number">0</span>.<span class="ident">set</span>(<span class="bool-val">true</span>);
                         <span class="prelude-val">Some</span>(<span class="ident">s</span>)
                     }
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+                    <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
                 })
                 .<span class="ident">next</span>()
         }
@@ -1738,24 +1738,24 @@
 
 <span class="kw">impl</span> <span class="ident">BindgenAttrs</span> {
     <span class="doccomment">/// Find and parse the wasm_bindgen attributes.</span>
-    <span class="kw">fn</span> <span class="ident">find</span>(<span class="ident">attrs</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">syn::Attribute</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BindgenAttrs</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">find</span>(<span class="ident">attrs</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">syn::Attribute</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BindgenAttrs</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">BindgenAttrs::default</span>();
         <span class="kw">loop</span> {
             <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">attrs</span>
                 .<span class="ident">iter</span>()
                 .<span class="ident">enumerate</span>()
-                .<span class="ident">find</span>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="kw">_</span>, <span class="kw-2">ref</span> <span class="ident">m</span>)<span class="op">|</span> <span class="ident">m</span>.<span class="ident">path</span>.<span class="ident">segments</span>[<span class="number">0</span>].<span class="ident">ident</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;wasm_bindgen&quot;</span>)
+                .<span class="ident">find</span>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="kw">_</span>, <span class="kw-2">ref</span> <span class="ident">m</span>)<span class="op">|</span> <span class="ident">m</span>.<span class="ident">path</span>.<span class="ident">segments</span>[<span class="number">0</span>].<span class="ident">ident</span> <span class="op">==</span> <span class="string">&quot;wasm_bindgen&quot;</span>)
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">a</span>.<span class="number">0</span>);
             <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">pos</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i</span>,
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">ret</span>),
+                <span class="prelude-val">Some</span>(<span class="ident">i</span>) =&gt; <span class="ident">i</span>,
+                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">ret</span>),
             };
             <span class="kw">let</span> <span class="ident">attr</span> <span class="op">=</span> <span class="ident">attrs</span>.<span class="ident">remove</span>(<span class="ident">pos</span>);
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tts</span> <span class="op">=</span> <span class="ident">attr</span>.<span class="ident">tokens</span>.<span class="ident">clone</span>().<span class="ident">into_iter</span>();
             <span class="kw">let</span> <span class="ident">group</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">tts</span>.<span class="ident">next</span>() {
-                <span class="prelude-val">Some</span>(<span class="ident">TokenTree::Group</span>(<span class="ident">d</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">d</span>,
-                <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">bail_span!</span>(<span class="ident">attr</span>, <span class="string">&quot;malformed #[wasm_bindgen] attribute&quot;</span>),
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">continue</span>,
+                <span class="prelude-val">Some</span>(<span class="ident">TokenTree::Group</span>(<span class="ident">d</span>)) =&gt; <span class="ident">d</span>,
+                <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="macro">bail_span!</span>(<span class="ident">attr</span>, <span class="string">&quot;malformed #[wasm_bindgen] attribute&quot;</span>),
+                <span class="prelude-val">None</span> =&gt; <span class="kw">continue</span>,
             };
             <span class="kw">if</span> <span class="ident">tts</span>.<span class="ident">next</span>().<span class="ident">is_some</span>() {
                 <span class="macro">bail_span!</span>(<span class="ident">attr</span>, <span class="string">&quot;malformed #[wasm_bindgen] attribute&quot;</span>);
@@ -1773,7 +1773,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">BindgenAttrs</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BindgenAttrs</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="ident">BindgenAttrs</span> {
         <span class="comment">// Add 1 to the list of parsed attribute sets. We&#39;ll use this counter to</span>
         <span class="comment">// sanity check that we call `check_used` an appropriate number of</span>
         <span class="comment">// times.</span>
@@ -1783,7 +1783,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">BindgenAttrs</span> {
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SynResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) -&gt; <span class="ident">SynResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">attrs</span> <span class="op">=</span> <span class="ident">BindgenAttrs::default</span>();
         <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">attrs</span>);
@@ -1796,7 +1796,7 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">gen_bindgen_attr</span> {
-    ($((<span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">variants</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>),)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    ($((<span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">variants</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>),)<span class="kw-2">*</span>) =&gt; {
         <span class="doccomment">/// The possible attributes in the `#[wasm_bindgen]`.</span>
         <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>, <span class="ident">derive</span>(<span class="ident">Debug</span>))]</span>
         <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">BindgenAttr</span> {
@@ -1807,7 +1807,7 @@
 <span class="macro">attrgen!</span>(<span class="ident">gen_bindgen_attr</span>);
 
 <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">BindgenAttr</span> {
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SynResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) -&gt; <span class="ident">SynResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">original</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">fork</span>();
         <span class="kw">let</span> <span class="ident">attr</span>: <span class="ident">AnyIdent</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">attr</span> <span class="op">=</span> <span class="ident">attr</span>.<span class="number">0</span>;
@@ -1816,9 +1816,9 @@
         <span class="kw">let</span> <span class="ident">raw_attr_string</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;r#{}&quot;</span>, <span class="ident">attr_string</span>);
 
         <span class="macro">macro_rules!</span> <span class="ident">parsers</span> {
-            ($((<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">contents</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>),)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            ($((<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">contents</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>),)<span class="kw-2">*</span>) =&gt; {
                 $(
-                    <span class="kw">if</span> <span class="ident">attr_string</span> <span class="op">=</span><span class="op">=</span> <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">raw_attr_string</span> <span class="op">=</span><span class="op">=</span> <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>) {
+                    <span class="kw">if</span> <span class="ident">attr_string</span> <span class="op">==</span> <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">raw_attr_string</span> <span class="op">==</span> <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>) {
                         <span class="macro">parsers!</span>(
                             @<span class="ident">parser</span>
                             $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">contents</span>)<span class="op">*</span>
@@ -1827,17 +1827,17 @@
                 )<span class="op">*</span>
             };
 
-            (@<span class="ident">parser</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>:<span class="ident">ident</span>(<span class="ident">Span</span>)) <span class="op">=</span><span class="op">&gt;</span> ({
+            (@<span class="ident">parser</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>:<span class="ident">ident</span>(<span class="ident">Span</span>)) =&gt; ({
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">BindgenAttr</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>(<span class="ident">attr_span</span>));
             });
 
-            (@<span class="ident">parser</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>:<span class="ident">ident</span>(<span class="ident">Span</span>, <span class="ident">Ident</span>)) <span class="op">=</span><span class="op">&gt;</span> ({
+            (@<span class="ident">parser</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>:<span class="ident">ident</span>(<span class="ident">Span</span>, <span class="ident">Ident</span>)) =&gt; ({
                 <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">Token!</span>[<span class="op">=</span>]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">AnyIdent</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>;
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">BindgenAttr</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>(<span class="ident">attr_span</span>, <span class="ident">ident</span>))
             });
 
-            (@<span class="ident">parser</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>:<span class="ident">ident</span>(<span class="ident">Span</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span>)) <span class="op">=</span><span class="op">&gt;</span> ({
+            (@<span class="ident">parser</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>:<span class="ident">ident</span>(<span class="ident">Span</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span>)) =&gt; ({
                 <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">Token!</span>[<span class="op">=</span>]<span class="op">&gt;</span>().<span class="ident">is_ok</span>() {
                     <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">AnyIdent</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>;
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">BindgenAttr</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>(<span class="ident">attr_span</span>, <span class="prelude-val">Some</span>(<span class="ident">ident</span>)))
@@ -1846,21 +1846,21 @@
                 }
             });
 
-            (@<span class="ident">parser</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>:<span class="ident">ident</span>(<span class="ident">Span</span>, <span class="ident">syn::Path</span>)) <span class="op">=</span><span class="op">&gt;</span> ({
+            (@<span class="ident">parser</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>:<span class="ident">ident</span>(<span class="ident">Span</span>, <span class="ident">syn::Path</span>)) =&gt; ({
                 <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">Token!</span>[<span class="op">=</span>]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">BindgenAttr</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>(<span class="ident">attr_span</span>, <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>));
             });
 
-            (@<span class="ident">parser</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>:<span class="ident">ident</span>(<span class="ident">Span</span>, <span class="ident">syn::Expr</span>)) <span class="op">=</span><span class="op">&gt;</span> ({
+            (@<span class="ident">parser</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>:<span class="ident">ident</span>(<span class="ident">Span</span>, <span class="ident">syn::Expr</span>)) =&gt; ({
                 <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">Token!</span>[<span class="op">=</span>]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">BindgenAttr</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>(<span class="ident">attr_span</span>, <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>));
             });
 
-            (@<span class="ident">parser</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>:<span class="ident">ident</span>(<span class="ident">Span</span>, <span class="ident">String</span>, <span class="ident">Span</span>)) <span class="op">=</span><span class="op">&gt;</span> ({
+            (@<span class="ident">parser</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>:<span class="ident">ident</span>(<span class="ident">Span</span>, <span class="ident">String</span>, <span class="ident">Span</span>)) =&gt; ({
                 <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">Token!</span>[<span class="op">=</span>]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
                 <span class="kw">let</span> (<span class="ident">val</span>, <span class="ident">span</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">syn::LitStr</span><span class="op">&gt;</span>() {
-                    <span class="prelude-val">Ok</span>(<span class="ident">str</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">str</span>.<span class="ident">value</span>(), <span class="ident">str</span>.<span class="ident">span</span>()),
-                    <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Ok</span>(<span class="ident">str</span>) =&gt; (<span class="ident">str</span>.<span class="ident">value</span>(), <span class="ident">str</span>.<span class="ident">span</span>()),
+                    <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
                         <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">AnyIdent</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>;
                         (<span class="ident">ident</span>.<span class="ident">to_string</span>(), <span class="ident">ident</span>.<span class="ident">span</span>())
                     }
@@ -1868,10 +1868,10 @@
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">BindgenAttr</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>(<span class="ident">attr_span</span>, <span class="ident">val</span>, <span class="ident">span</span>))
             });
 
-            (@<span class="ident">parser</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>:<span class="ident">ident</span>(<span class="ident">Span</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>)) <span class="op">=</span><span class="op">&gt;</span> ({
+            (@<span class="ident">parser</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>:<span class="ident">ident</span>(<span class="ident">Span</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>)) =&gt; ({
                 <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">Token!</span>[<span class="op">=</span>]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
                 <span class="kw">let</span> (<span class="ident">vals</span>, <span class="ident">spans</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">syn::ExprArray</span><span class="op">&gt;</span>() {
-                    <span class="prelude-val">Ok</span>(<span class="ident">exprs</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Ok</span>(<span class="ident">exprs</span>) =&gt; {
                         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vals</span> <span class="op">=</span> <span class="macro">vec!</span>[];
                         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">spans</span> <span class="op">=</span> <span class="macro">vec!</span>[];
 
@@ -1889,7 +1889,7 @@
 
                         (<span class="ident">vals</span>, <span class="ident">spans</span>)
                     },
-                    <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
                         <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">AnyIdent</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>;
                         (<span class="macro">vec!</span>[<span class="ident">ident</span>.<span class="ident">to_string</span>()], <span class="macro">vec!</span>[<span class="ident">ident</span>.<span class="ident">span</span>()])
                     }
@@ -1907,10 +1907,10 @@
 <span class="kw">struct</span> <span class="ident">AnyIdent</span>(<span class="ident">Ident</span>);
 
 <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">AnyIdent</span> {
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SynResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) -&gt; <span class="ident">SynResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="ident">input</span>.<span class="ident">step</span>(<span class="op">|</span><span class="ident">cursor</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">ident</span>() {
-            <span class="prelude-val">Some</span>((<span class="ident">ident</span>, <span class="ident">remaining</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>((<span class="ident">AnyIdent</span>(<span class="ident">ident</span>), <span class="ident">remaining</span>)),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">cursor</span>.<span class="ident">error</span>(<span class="string">&quot;expected an identifier&quot;</span>)),
+            <span class="prelude-val">Some</span>((<span class="ident">ident</span>, <span class="ident">remaining</span>)) =&gt; <span class="prelude-val">Ok</span>((<span class="ident">AnyIdent</span>(<span class="ident">ident</span>), <span class="ident">remaining</span>)),
+            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">cursor</span>.<span class="ident">error</span>(<span class="string">&quot;expected an identifier&quot;</span>)),
         })
     }
 }
@@ -1925,13 +1925,13 @@
     <span class="doccomment">/// Convert into our target.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Since this is used in a procedural macro, use panic to fail.</span>
-    <span class="kw">fn</span> <span class="ident">convert</span>(<span class="self">self</span>, <span class="ident">context</span>: <span class="ident">Ctx</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Target</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">convert</span>(<span class="self">self</span>, <span class="ident">context</span>: <span class="ident">Ctx</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Target</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span>;
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">ConvertToAst</span><span class="op">&lt;</span><span class="ident">BindgenAttrs</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">syn::ItemStruct</span> {
     <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">ast::Struct</span>;
 
-    <span class="kw">fn</span> <span class="ident">convert</span>(<span class="self">self</span>, <span class="ident">attrs</span>: <span class="ident">BindgenAttrs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Target</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">convert</span>(<span class="self">self</span>, <span class="ident">attrs</span>: <span class="ident">BindgenAttrs</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Target</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">generics</span>.<span class="ident">params</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">0</span> {
             <span class="macro">bail_span!</span>(
                 <span class="self">self</span>.<span class="ident">generics</span>,
@@ -1948,12 +1948,12 @@
         <span class="kw">let</span> <span class="ident">getter_with_clone</span> <span class="op">=</span> <span class="ident">attrs</span>.<span class="ident">getter_with_clone</span>().<span class="ident">is_some</span>();
         <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">field</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">fields</span>.<span class="ident">iter_mut</span>().<span class="ident">enumerate</span>() {
             <span class="kw">match</span> <span class="ident">field</span>.<span class="ident">vis</span> {
-                <span class="ident">syn::Visibility::Public</span>(..) <span class="op">=</span><span class="op">&gt;</span> {}
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">continue</span>,
+                <span class="ident">syn::Visibility::Public</span>(..) =&gt; {}
+                <span class="kw">_</span> =&gt; <span class="kw">continue</span>,
             }
             <span class="kw">let</span> (<span class="ident">js_field_name</span>, <span class="ident">member</span>) <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">field</span>.<span class="ident">ident</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">ident</span>.<span class="ident">to_string</span>(), <span class="ident">syn::Member::Named</span>(<span class="ident">ident</span>.<span class="ident">clone</span>())),
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">i</span>.<span class="ident">to_string</span>(), <span class="ident">syn::Member::Unnamed</span>(<span class="ident">i</span>.<span class="ident">into</span>())),
+                <span class="prelude-val">Some</span>(<span class="ident">ident</span>) =&gt; (<span class="ident">ident</span>.<span class="ident">to_string</span>(), <span class="ident">syn::Member::Named</span>(<span class="ident">ident</span>.<span class="ident">clone</span>())),
+                <span class="prelude-val">None</span> =&gt; (<span class="ident">i</span>.<span class="ident">to_string</span>(), <span class="ident">syn::Member::Unnamed</span>(<span class="ident">i</span>.<span class="ident">into</span>())),
             };
 
             <span class="kw">let</span> <span class="ident">attrs</span> <span class="op">=</span> <span class="ident">BindgenAttrs::find</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">field</span>.<span class="ident">attrs</span>)<span class="question-mark">?</span>;
@@ -1964,8 +1964,8 @@
             }
 
             <span class="kw">let</span> <span class="ident">js_field_name</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">attrs</span>.<span class="ident">js_name</span>() {
-                <span class="prelude-val">Some</span>((<span class="ident">name</span>, <span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">name</span>.<span class="ident">to_string</span>(),
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">js_field_name</span>,
+                <span class="prelude-val">Some</span>((<span class="ident">name</span>, <span class="kw">_</span>)) =&gt; <span class="ident">name</span>.<span class="ident">to_string</span>(),
+                <span class="prelude-val">None</span> =&gt; <span class="ident">js_field_name</span>,
             };
 
             <span class="kw">let</span> <span class="ident">comments</span> <span class="op">=</span> <span class="ident">extract_doc_comments</span>(<span class="kw-2">&amp;</span><span class="ident">field</span>.<span class="ident">attrs</span>);
@@ -2000,7 +2000,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">get_ty</span>(<span class="kw-2">mut</span> <span class="ident">ty</span>: <span class="kw-2">&amp;</span><span class="ident">syn::Type</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">syn::Type</span> {
+<span class="kw">fn</span> <span class="ident">get_ty</span>(<span class="kw-2">mut</span> <span class="ident">ty</span>: <span class="kw-2">&amp;</span><span class="ident">syn::Type</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">syn::Type</span> {
     <span class="kw">while</span> <span class="kw">let</span> <span class="ident">syn::Type::Group</span>(<span class="ident">g</span>) <span class="op">=</span> <span class="ident">ty</span> {
         <span class="ident">ty</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">g</span>.<span class="ident">elem</span>;
     }
@@ -2008,7 +2008,7 @@
     <span class="ident">ty</span>
 }
 
-<span class="kw">fn</span> <span class="ident">get_expr</span>(<span class="kw-2">mut</span> <span class="ident">expr</span>: <span class="kw-2">&amp;</span><span class="ident">syn::Expr</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">syn::Expr</span> {
+<span class="kw">fn</span> <span class="ident">get_expr</span>(<span class="kw-2">mut</span> <span class="ident">expr</span>: <span class="kw-2">&amp;</span><span class="ident">syn::Expr</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">syn::Expr</span> {
     <span class="kw">while</span> <span class="kw">let</span> <span class="ident">syn::Expr::Group</span>(<span class="ident">g</span>) <span class="op">=</span> <span class="ident">expr</span> {
         <span class="ident">expr</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">g</span>.<span class="ident">expr</span>;
     }
@@ -2022,7 +2022,7 @@
     <span class="kw">fn</span> <span class="ident">convert</span>(
         <span class="self">self</span>,
         (<span class="ident">opts</span>, <span class="ident">module</span>): (<span class="ident">BindgenAttrs</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::ImportModule</span>),
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Target</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Target</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">wasm</span> <span class="op">=</span> <span class="ident">function_from_decl</span>(
             <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">sig</span>.<span class="ident">ident</span>,
             <span class="kw-2">&amp;</span><span class="ident">opts</span>,
@@ -2059,8 +2059,8 @@
                     <span class="ident">mutability</span>: <span class="prelude-val">None</span>,
                     <span class="ident">elem</span>,
                     ..
-                }) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">elem</span>,
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">bail_span!</span>(
+                }) =&gt; <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">elem</span>,
+                <span class="kw">_</span> =&gt; <span class="macro">bail_span!</span>(
                     <span class="ident">class</span>.<span class="ident">ty</span>,
                     <span class="string">&quot;first argument of method must be a shared reference&quot;</span>
                 ),
@@ -2069,8 +2069,8 @@
                 <span class="ident">syn::Type::Path</span>(<span class="ident">syn::TypePath</span> {
                     <span class="ident">qself</span>: <span class="prelude-val">None</span>,
                     <span class="kw-2">ref</span> <span class="ident">path</span>,
-                }) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">path</span>,
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">bail_span!</span>(<span class="ident">class</span>, <span class="string">&quot;first argument of method must be a path&quot;</span>),
+                }) =&gt; <span class="ident">path</span>,
+                <span class="kw">_</span> =&gt; <span class="macro">bail_span!</span>(<span class="ident">class</span>, <span class="string">&quot;first argument of method must be a path&quot;</span>),
             };
             <span class="kw">let</span> <span class="ident">class_name</span> <span class="op">=</span> <span class="ident">extract_path_ident</span>(<span class="ident">class_name</span>)<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">class_name</span> <span class="op">=</span> <span class="ident">opts</span>
@@ -2103,15 +2103,15 @@
             <span class="ident">ast::ImportFunctionKind::Method</span> { <span class="ident">class</span>, <span class="ident">ty</span>, <span class="ident">kind</span> }
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">opts</span>.<span class="ident">constructor</span>().<span class="ident">is_some</span>() {
             <span class="kw">let</span> <span class="ident">class</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">js_ret</span> {
-                <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ty</span>,
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">bail_span!</span>(<span class="self">self</span>, <span class="string">&quot;constructor returns must be bare types&quot;</span>),
+                <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">ty</span>) =&gt; <span class="ident">ty</span>,
+                <span class="kw">_</span> =&gt; <span class="macro">bail_span!</span>(<span class="self">self</span>, <span class="string">&quot;constructor returns must be bare types&quot;</span>),
             };
             <span class="kw">let</span> <span class="ident">class_name</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">get_ty</span>(<span class="ident">class</span>) {
                 <span class="ident">syn::Type::Path</span>(<span class="ident">syn::TypePath</span> {
                     <span class="ident">qself</span>: <span class="prelude-val">None</span>,
                     <span class="kw-2">ref</span> <span class="ident">path</span>,
-                }) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">path</span>,
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">bail_span!</span>(<span class="self">self</span>, <span class="string">&quot;return value of constructor must be a bare path&quot;</span>),
+                }) =&gt; <span class="ident">path</span>,
+                <span class="kw">_</span> =&gt; <span class="macro">bail_span!</span>(<span class="self">self</span>, <span class="string">&quot;return value of constructor must be a bare path&quot;</span>),
             };
             <span class="kw">let</span> <span class="ident">class_name</span> <span class="op">=</span> <span class="ident">extract_path_ident</span>(<span class="ident">class_name</span>)<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">class_name</span> <span class="op">=</span> <span class="ident">opts</span>
@@ -2130,8 +2130,8 @@
 
         <span class="kw">let</span> <span class="ident">shim</span> <span class="op">=</span> {
             <span class="kw">let</span> <span class="ident">ns</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">kind</span> {
-                <span class="ident">ast::ImportFunctionKind::Normal</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="number">0</span>, <span class="string">&quot;n&quot;</span>),
-                <span class="ident">ast::ImportFunctionKind::Method</span> { <span class="kw-2">ref</span> <span class="ident">class</span>, .. } <span class="op">=</span><span class="op">&gt;</span> (<span class="number">1</span>, <span class="kw-2">&amp;</span><span class="ident">class</span>[..]),
+                <span class="ident">ast::ImportFunctionKind::Normal</span> =&gt; (<span class="number">0</span>, <span class="string">&quot;n&quot;</span>),
+                <span class="ident">ast::ImportFunctionKind::Method</span> { <span class="kw-2">ref</span> <span class="ident">class</span>, .. } =&gt; (<span class="number">1</span>, <span class="kw-2">&amp;</span><span class="ident">class</span>[..]),
             };
             <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> (<span class="ident">ns</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">sig</span>.<span class="ident">ident</span>, <span class="ident">module</span>);
             <span class="macro">format!</span>(
@@ -2171,7 +2171,7 @@
 <span class="kw">impl</span> <span class="ident">ConvertToAst</span><span class="op">&lt;</span><span class="ident">BindgenAttrs</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">syn::ForeignItemType</span> {
     <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">ast::ImportKind</span>;
 
-    <span class="kw">fn</span> <span class="ident">convert</span>(<span class="self">self</span>, <span class="ident">attrs</span>: <span class="ident">BindgenAttrs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Target</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">convert</span>(<span class="self">self</span>, <span class="ident">attrs</span>: <span class="ident">BindgenAttrs</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Target</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="ident">assert_not_variadic</span>(<span class="kw-2">&amp;</span><span class="ident">attrs</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">js_name</span> <span class="op">=</span> <span class="ident">attrs</span>
             .<span class="ident">js_name</span>()
@@ -2185,15 +2185,15 @@
         <span class="kw">let</span> <span class="ident">no_deref</span> <span class="op">=</span> <span class="ident">attrs</span>.<span class="ident">no_deref</span>().<span class="ident">is_some</span>();
         <span class="kw">for</span> (<span class="ident">used</span>, <span class="ident">attr</span>) <span class="kw">in</span> <span class="ident">attrs</span>.<span class="ident">attrs</span>.<span class="ident">iter</span>() {
             <span class="kw">match</span> <span class="ident">attr</span> {
-                <span class="ident">BindgenAttr::Extends</span>(<span class="kw">_</span>, <span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">BindgenAttr::Extends</span>(<span class="kw">_</span>, <span class="ident">e</span>) =&gt; {
                     <span class="ident">extends</span>.<span class="ident">push</span>(<span class="ident">e</span>.<span class="ident">clone</span>());
                     <span class="ident">used</span>.<span class="ident">set</span>(<span class="bool-val">true</span>);
                 }
-                <span class="ident">BindgenAttr::VendorPrefix</span>(<span class="kw">_</span>, <span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">BindgenAttr::VendorPrefix</span>(<span class="kw">_</span>, <span class="ident">e</span>) =&gt; {
                     <span class="ident">vendor_prefixes</span>.<span class="ident">push</span>(<span class="ident">e</span>.<span class="ident">clone</span>());
                     <span class="ident">used</span>.<span class="ident">set</span>(<span class="bool-val">true</span>);
                 }
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+                <span class="kw">_</span> =&gt; {}
             }
         }
         <span class="ident">attrs</span>.<span class="ident">check_used</span>()<span class="question-mark">?</span>;
@@ -2219,7 +2219,7 @@
     <span class="kw">fn</span> <span class="ident">convert</span>(
         <span class="self">self</span>,
         (<span class="ident">opts</span>, <span class="ident">module</span>): (<span class="ident">BindgenAttrs</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::ImportModule</span>),
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Target</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Target</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">mutability</span>.<span class="ident">is_some</span>() {
             <span class="macro">bail_span!</span>(<span class="self">self</span>.<span class="ident">mutability</span>, <span class="string">&quot;cannot import mutable globals yet&quot;</span>)
         }
@@ -2249,10 +2249,10 @@
 <span class="kw">impl</span> <span class="ident">ConvertToAst</span><span class="op">&lt;</span><span class="ident">BindgenAttrs</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">syn::ItemFn</span> {
     <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">ast::Function</span>;
 
-    <span class="kw">fn</span> <span class="ident">convert</span>(<span class="self">self</span>, <span class="ident">attrs</span>: <span class="ident">BindgenAttrs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Target</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">convert</span>(<span class="self">self</span>, <span class="ident">attrs</span>: <span class="ident">BindgenAttrs</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Target</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">vis</span> {
-            <span class="ident">syn::Visibility::Public</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">bail_span!</span>(<span class="self">self</span>, <span class="string">&quot;can only #[wasm_bindgen] public functions&quot;</span>),
+            <span class="ident">syn::Visibility::Public</span>(<span class="kw">_</span>) =&gt; {}
+            <span class="kw">_</span> =&gt; <span class="macro">bail_span!</span>(<span class="self">self</span>, <span class="string">&quot;can only #[wasm_bindgen] public functions&quot;</span>),
         }
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">sig</span>.<span class="ident">constness</span>.<span class="ident">is_some</span>() {
             <span class="macro">bail_span!</span>(
@@ -2288,7 +2288,7 @@
     <span class="ident">vis</span>: <span class="ident">syn::Visibility</span>,
     <span class="ident">allow_self</span>: <span class="ident">bool</span>,
     <span class="ident">self_ty</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Ident</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">ast::Function</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ast::MethodSelf</span><span class="op">&gt;</span>), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">ast::Function</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ast::MethodSelf</span><span class="op">&gt;</span>), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="ident">sig</span>.<span class="ident">variadic</span>.<span class="ident">is_some</span>() {
         <span class="macro">bail_span!</span>(<span class="ident">sig</span>.<span class="ident">variadic</span>, <span class="string">&quot;can&#39;t #[wasm_bindgen] variadic functions&quot;</span>);
     }
@@ -2305,14 +2305,14 @@
 
     <span class="kw">let</span> <span class="ident">replace_self</span> <span class="op">=</span> <span class="op">|</span><span class="ident">t</span>: <span class="ident">syn::Type</span><span class="op">|</span> {
         <span class="kw">let</span> <span class="ident">self_ty</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">self_ty</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i</span>,
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">t</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">i</span>) =&gt; <span class="ident">i</span>,
+            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="ident">t</span>,
         };
         <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">get_ty</span>(<span class="kw-2">&amp;</span><span class="ident">t</span>) {
-            <span class="ident">syn::Type::Path</span>(<span class="ident">syn::TypePath</span> { <span class="ident">qself</span>: <span class="prelude-val">None</span>, <span class="ident">path</span> }) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">path</span>.<span class="ident">clone</span>(),
-            <span class="ident">other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">other</span>.<span class="ident">clone</span>(),
+            <span class="ident">syn::Type::Path</span>(<span class="ident">syn::TypePath</span> { <span class="ident">qself</span>: <span class="prelude-val">None</span>, <span class="ident">path</span> }) =&gt; <span class="ident">path</span>.<span class="ident">clone</span>(),
+            <span class="ident">other</span> =&gt; <span class="kw">return</span> <span class="ident">other</span>.<span class="ident">clone</span>(),
         };
-        <span class="kw">let</span> <span class="ident">new_path</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">path</span>.<span class="ident">segments</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> <span class="op">&amp;&amp;</span> <span class="ident">path</span>.<span class="ident">segments</span>[<span class="number">0</span>].<span class="ident">ident</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;Self&quot;</span> {
+        <span class="kw">let</span> <span class="ident">new_path</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">path</span>.<span class="ident">segments</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> <span class="op">&amp;&amp;</span> <span class="ident">path</span>.<span class="ident">segments</span>[<span class="number">0</span>].<span class="ident">ident</span> <span class="op">==</span> <span class="string">&quot;Self&quot;</span> {
             <span class="ident">self_ty</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
         } <span class="kw">else</span> {
             <span class="ident">path</span>
@@ -2327,11 +2327,11 @@
     <span class="kw">let</span> <span class="ident">arguments</span> <span class="op">=</span> <span class="ident">inputs</span>
         .<span class="ident">into_iter</span>()
         .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">arg</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">arg</span> {
-            <span class="ident">syn::FnArg::Typed</span>(<span class="kw-2">mut</span> <span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">syn::FnArg::Typed</span>(<span class="kw-2">mut</span> <span class="ident">c</span>) =&gt; {
                 <span class="ident">c</span>.<span class="ident">ty</span> <span class="op">=</span> <span class="ident">Box::new</span>(<span class="ident">replace_self</span>(<span class="kw-2">*</span><span class="ident">c</span>.<span class="ident">ty</span>));
                 <span class="prelude-val">Some</span>(<span class="ident">c</span>)
             }
-            <span class="ident">syn::FnArg::Receiver</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">syn::FnArg::Receiver</span>(<span class="ident">r</span>) =&gt; {
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">allow_self</span> {
                     <span class="macro">panic!</span>(<span class="string">&quot;arguments cannot be `self`&quot;</span>)
                 }
@@ -2349,16 +2349,16 @@
         .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
 
     <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">output</span> {
-        <span class="ident">syn::ReturnType::Default</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-        <span class="ident">syn::ReturnType::Type</span>(<span class="kw">_</span>, <span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">replace_self</span>(<span class="kw-2">*</span><span class="ident">ty</span>)),
+        <span class="ident">syn::ReturnType::Default</span> =&gt; <span class="prelude-val">None</span>,
+        <span class="ident">syn::ReturnType::Type</span>(<span class="kw">_</span>, <span class="ident">ty</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">replace_self</span>(<span class="kw-2">*</span><span class="ident">ty</span>)),
     };
 
     <span class="kw">let</span> (<span class="ident">name</span>, <span class="ident">name_span</span>, <span class="ident">renamed_via_js_name</span>) <span class="op">=</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">js_name</span>, <span class="ident">js_name_span</span>)) <span class="op">=</span> <span class="ident">opts</span>.<span class="ident">js_name</span>() {
             <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="ident">operation_kind</span>(<span class="kw-2">&amp;</span><span class="ident">opts</span>);
             <span class="kw">let</span> <span class="ident">prefix</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">kind</span> {
-                <span class="ident">OperationKind::Setter</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;set_&quot;</span>,
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&quot;</span>,
+                <span class="ident">OperationKind::Setter</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;set_&quot;</span>,
+                <span class="kw">_</span> =&gt; <span class="string">&quot;&quot;</span>,
             };
             (
                 <span class="macro">format!</span>(<span class="string">&quot;{}{}&quot;</span>, <span class="ident">prefix</span>, <span class="ident">js_name</span>.<span class="ident">to_string</span>()),
@@ -2389,7 +2389,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// The context is used to have access to the attributes on `#[wasm_bindgen]`, and to allow</span>
     <span class="doccomment">/// writing to the output `TokenStream`.</span>
-    <span class="kw">fn</span> <span class="ident">macro_parse</span>(<span class="self">self</span>, <span class="ident">program</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ast::Program</span>, <span class="ident">context</span>: <span class="ident">Ctx</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">macro_parse</span>(<span class="self">self</span>, <span class="ident">program</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ast::Program</span>, <span class="ident">context</span>: <span class="ident">Ctx</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span>;
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">MacroParse</span><span class="op">&lt;</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BindgenAttrs</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">TokenStream</span>)<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">syn::Item</span> {
@@ -2397,9 +2397,9 @@
         <span class="self">self</span>,
         <span class="ident">program</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ast::Program</span>,
         (<span class="ident">opts</span>, <span class="ident">tokens</span>): (<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BindgenAttrs</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">TokenStream</span>),
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">syn::Item::Fn</span>(<span class="kw-2">mut</span> <span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">syn::Item::Fn</span>(<span class="kw-2">mut</span> <span class="ident">f</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">no_mangle</span> <span class="op">=</span> <span class="ident">f</span>
                     .<span class="ident">attrs</span>
                     .<span class="ident">iter</span>()
@@ -2407,10 +2407,10 @@
                     .<span class="ident">filter_map</span>(<span class="op">|</span>(<span class="ident">i</span>, <span class="ident">m</span>)<span class="op">|</span> <span class="ident">m</span>.<span class="ident">parse_meta</span>().<span class="ident">ok</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> (<span class="ident">i</span>, <span class="ident">m</span>)))
                     .<span class="ident">find</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">m</span>)<span class="op">|</span> <span class="ident">m</span>.<span class="ident">path</span>().<span class="ident">is_ident</span>(<span class="string">&quot;no_mangle&quot;</span>));
                 <span class="kw">match</span> <span class="ident">no_mangle</span> {
-                    <span class="prelude-val">Some</span>((<span class="ident">i</span>, <span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Some</span>((<span class="ident">i</span>, <span class="kw">_</span>)) =&gt; {
                         <span class="ident">f</span>.<span class="ident">attrs</span>.<span class="ident">remove</span>(<span class="ident">i</span>);
                     }
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+                    <span class="kw">_</span> =&gt; {}
                 }
                 <span class="kw">let</span> <span class="ident">comments</span> <span class="op">=</span> <span class="ident">extract_doc_comments</span>(<span class="kw-2">&amp;</span><span class="ident">f</span>.<span class="ident">attrs</span>);
                 <span class="ident">f</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
@@ -2440,38 +2440,38 @@
                     <span class="ident">start</span>,
                 });
             }
-            <span class="ident">syn::Item::Struct</span>(<span class="kw-2">mut</span> <span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">syn::Item::Struct</span>(<span class="kw-2">mut</span> <span class="ident">s</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">opts</span> <span class="op">=</span> <span class="ident">opts</span>.<span class="ident">unwrap_or_default</span>();
                 <span class="ident">program</span>.<span class="ident">structs</span>.<span class="ident">push</span>((<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>).<span class="ident">convert</span>(<span class="ident">opts</span>)<span class="question-mark">?</span>);
                 <span class="ident">s</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
             }
-            <span class="ident">syn::Item::Impl</span>(<span class="kw-2">mut</span> <span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">syn::Item::Impl</span>(<span class="kw-2">mut</span> <span class="ident">i</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">opts</span> <span class="op">=</span> <span class="ident">opts</span>.<span class="ident">unwrap_or_default</span>();
                 (<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">i</span>).<span class="ident">macro_parse</span>(<span class="ident">program</span>, <span class="ident">opts</span>)<span class="question-mark">?</span>;
                 <span class="ident">i</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
             }
-            <span class="ident">syn::Item::ForeignMod</span>(<span class="kw-2">mut</span> <span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">syn::Item::ForeignMod</span>(<span class="kw-2">mut</span> <span class="ident">f</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">opts</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">opts</span> {
-                    <span class="prelude-val">Some</span>(<span class="ident">opts</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">opts</span>,
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BindgenAttrs::find</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">f</span>.<span class="ident">attrs</span>)<span class="question-mark">?</span>,
+                    <span class="prelude-val">Some</span>(<span class="ident">opts</span>) =&gt; <span class="ident">opts</span>,
+                    <span class="prelude-val">None</span> =&gt; <span class="ident">BindgenAttrs::find</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">f</span>.<span class="ident">attrs</span>)<span class="question-mark">?</span>,
                 };
                 <span class="ident">f</span>.<span class="ident">macro_parse</span>(<span class="ident">program</span>, <span class="ident">opts</span>)<span class="question-mark">?</span>;
             }
-            <span class="ident">syn::Item::Enum</span>(<span class="kw-2">mut</span> <span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">syn::Item::Enum</span>(<span class="kw-2">mut</span> <span class="ident">e</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">opts</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">opts</span> {
-                    <span class="prelude-val">Some</span>(<span class="ident">opts</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">opts</span>,
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BindgenAttrs::find</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">e</span>.<span class="ident">attrs</span>)<span class="question-mark">?</span>,
+                    <span class="prelude-val">Some</span>(<span class="ident">opts</span>) =&gt; <span class="ident">opts</span>,
+                    <span class="prelude-val">None</span> =&gt; <span class="ident">BindgenAttrs::find</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">e</span>.<span class="ident">attrs</span>)<span class="question-mark">?</span>,
                 };
                 <span class="ident">e</span>.<span class="ident">macro_parse</span>(<span class="ident">program</span>, (<span class="ident">tokens</span>, <span class="ident">opts</span>))<span class="question-mark">?</span>;
             }
-            <span class="ident">syn::Item::Const</span>(<span class="kw-2">mut</span> <span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">syn::Item::Const</span>(<span class="kw-2">mut</span> <span class="ident">c</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">opts</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">opts</span> {
-                    <span class="prelude-val">Some</span>(<span class="ident">opts</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">opts</span>,
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BindgenAttrs::find</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">c</span>.<span class="ident">attrs</span>)<span class="question-mark">?</span>,
+                    <span class="prelude-val">Some</span>(<span class="ident">opts</span>) =&gt; <span class="ident">opts</span>,
+                    <span class="prelude-val">None</span> =&gt; <span class="ident">BindgenAttrs::find</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">c</span>.<span class="ident">attrs</span>)<span class="question-mark">?</span>,
                 };
                 <span class="ident">c</span>.<span class="ident">macro_parse</span>(<span class="ident">program</span>, <span class="ident">opts</span>)<span class="question-mark">?</span>;
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">_</span> =&gt; {
                 <span class="macro">bail_span!</span>(
                     <span class="self">self</span>,
                     <span class="string">&quot;#[wasm_bindgen] can only be applied to a function, \
@@ -2489,7 +2489,7 @@
         <span class="self">self</span>,
         <span class="ident">_program</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ast::Program</span>,
         <span class="ident">opts</span>: <span class="ident">BindgenAttrs</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">defaultness</span>.<span class="ident">is_some</span>() {
             <span class="macro">bail_span!</span>(
                 <span class="self">self</span>.<span class="ident">defaultness</span>,
@@ -2515,8 +2515,8 @@
             <span class="ident">syn::Type::Path</span>(<span class="ident">syn::TypePath</span> {
                 <span class="ident">qself</span>: <span class="prelude-val">None</span>,
                 <span class="kw-2">ref</span> <span class="ident">path</span>,
-            }) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">path</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">bail_span!</span>(
+            }) =&gt; <span class="ident">path</span>,
+            <span class="kw">_</span> =&gt; <span class="macro">bail_span!</span>(
                 <span class="self">self</span>.<span class="ident">self_ty</span>,
                 <span class="string">&quot;unsupported self type in #[wasm_bindgen] impl&quot;</span>
             ),
@@ -2545,28 +2545,28 @@
     <span class="ident">item</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">syn::ImplItem</span>,
     <span class="ident">class</span>: <span class="kw-2">&amp;</span><span class="ident">syn::Path</span>,
     <span class="ident">impl_opts</span>: <span class="kw-2">&amp;</span><span class="ident">BindgenAttrs</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">method</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">item</span> {
-        <span class="ident">syn::ImplItem::Method</span>(<span class="ident">m</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">m</span>,
-        <span class="ident">syn::ImplItem::Const</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">syn::ImplItem::Method</span>(<span class="ident">m</span>) =&gt; <span class="ident">m</span>,
+        <span class="ident">syn::ImplItem::Const</span>(<span class="kw">_</span>) =&gt; {
             <span class="macro">bail_span!</span>(
                 <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">item</span>,
                 <span class="string">&quot;const definitions aren&#39;t supported with #[wasm_bindgen]&quot;</span>
             );
         }
-        <span class="ident">syn::ImplItem::Type</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">bail_span!</span>(
+        <span class="ident">syn::ImplItem::Type</span>(<span class="kw">_</span>) =&gt; <span class="macro">bail_span!</span>(
             <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">item</span>,
             <span class="string">&quot;type definitions in impls aren&#39;t supported with #[wasm_bindgen]&quot;</span>
         ),
-        <span class="ident">syn::ImplItem::Macro</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">syn::ImplItem::Macro</span>(<span class="kw">_</span>) =&gt; {
             <span class="comment">// In theory we want to allow this, but we have no way of expanding</span>
             <span class="comment">// the macro and then placing our magical attributes on the expanded</span>
             <span class="comment">// functions. As a result, just disallow it for now to hopefully</span>
             <span class="comment">// ward off buggy results from this macro.</span>
             <span class="macro">bail_span!</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">item</span>, <span class="string">&quot;macros in impls aren&#39;t supported&quot;</span>);
         }
-        <span class="ident">syn::ImplItem::Verbatim</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;unparsed impl item?&quot;</span>),
-        <span class="ident">other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">bail_span!</span>(<span class="ident">other</span>, <span class="string">&quot;failed to parse this item as a known item&quot;</span>),
+        <span class="ident">syn::ImplItem::Verbatim</span>(<span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;unparsed impl item?&quot;</span>),
+        <span class="ident">other</span> =&gt; <span class="macro">bail_span!</span>(<span class="ident">other</span>, <span class="string">&quot;failed to parse this item as a known item&quot;</span>),
     };
 
     <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">extract_path_ident</span>(<span class="ident">class</span>)<span class="question-mark">?</span>;
@@ -2595,10 +2595,10 @@
         <span class="self">self</span>,
         <span class="ident">program</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ast::Program</span>,
         (<span class="ident">class</span>, <span class="ident">js_class</span>): (<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Ident</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>),
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">vis</span> {
-            <span class="ident">syn::Visibility::Public</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(()),
+            <span class="ident">syn::Visibility::Public</span>(<span class="kw">_</span>) =&gt; {}
+            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(()),
         }
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">defaultness</span>.<span class="ident">is_some</span>() {
             <span class="macro">panic!</span>(<span class="string">&quot;default methods are not supported&quot;</span>);
@@ -2646,19 +2646,19 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">import_enum</span>(<span class="ident">enum_</span>: <span class="ident">syn::ItemEnum</span>, <span class="ident">program</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ast::Program</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">import_enum</span>(<span class="ident">enum_</span>: <span class="ident">syn::ItemEnum</span>, <span class="ident">program</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ast::Program</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">variants</span> <span class="op">=</span> <span class="macro">vec!</span>[];
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">variant_values</span> <span class="op">=</span> <span class="macro">vec!</span>[];
 
     <span class="kw">for</span> <span class="ident">v</span> <span class="kw">in</span> <span class="ident">enum_</span>.<span class="ident">variants</span>.<span class="ident">iter</span>() {
         <span class="kw">match</span> <span class="ident">v</span>.<span class="ident">fields</span> {
-            <span class="ident">syn::Fields::Unit</span> <span class="op">=</span><span class="op">&gt;</span> (),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">bail_span!</span>(<span class="ident">v</span>.<span class="ident">fields</span>, <span class="string">&quot;only C-Style enums allowed with #[wasm_bindgen]&quot;</span>),
+            <span class="ident">syn::Fields::Unit</span> =&gt; (),
+            <span class="kw">_</span> =&gt; <span class="macro">bail_span!</span>(<span class="ident">v</span>.<span class="ident">fields</span>, <span class="string">&quot;only C-Style enums allowed with #[wasm_bindgen]&quot;</span>),
         }
 
         <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">expr</span>) <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">v</span>.<span class="ident">discriminant</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">pair</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">pair</span>,
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">pair</span>) =&gt; <span class="ident">pair</span>,
+            <span class="prelude-val">None</span> =&gt; {
                 <span class="macro">bail_span!</span>(<span class="ident">v</span>, <span class="string">&quot;all variants must have a value&quot;</span>);
             }
         };
@@ -2666,11 +2666,11 @@
             <span class="ident">syn::Expr::Lit</span>(<span class="ident">syn::ExprLit</span> {
                 <span class="ident">attrs</span>: <span class="kw">_</span>,
                 <span class="ident">lit</span>: <span class="ident">syn::Lit::Str</span>(<span class="ident">str_lit</span>),
-            }) <span class="op">=</span><span class="op">&gt;</span> {
+            }) =&gt; {
                 <span class="ident">variants</span>.<span class="ident">push</span>(<span class="ident">v</span>.<span class="ident">ident</span>.<span class="ident">clone</span>());
                 <span class="ident">variant_values</span>.<span class="ident">push</span>(<span class="ident">str_lit</span>.<span class="ident">value</span>());
             }
-            <span class="ident">expr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">bail_span!</span>(
+            <span class="ident">expr</span> =&gt; <span class="macro">bail_span!</span>(
                 <span class="ident">expr</span>,
                 <span class="string">&quot;enums with #[wasm_bindgen] cannot mix string and non-string values&quot;</span>,
             ),
@@ -2697,8 +2697,8 @@
         <span class="self">self</span>,
         <span class="ident">program</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ast::Program</span>,
         (<span class="ident">tokens</span>, <span class="ident">opts</span>): (<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">TokenStream</span>, <span class="ident">BindgenAttrs</span>),
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">variants</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">variants</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span> {
             <span class="macro">bail_span!</span>(<span class="self">self</span>, <span class="string">&quot;cannot export empty enums to JS&quot;</span>);
         }
         <span class="kw">let</span> <span class="ident">generate_typescript</span> <span class="op">=</span> <span class="ident">opts</span>.<span class="ident">skip_typescript</span>().<span class="ident">is_none</span>();
@@ -2709,11 +2709,11 @@
                 <span class="ident">syn::Expr::Lit</span>(<span class="ident">syn::ExprLit</span> {
                     <span class="ident">attrs</span>: <span class="kw">_</span>,
                     <span class="ident">lit</span>: <span class="ident">syn::Lit::Str</span>(<span class="kw">_</span>),
-                }) <span class="op">=</span><span class="op">&gt;</span> {
+                }) =&gt; {
                     <span class="ident">opts</span>.<span class="ident">check_used</span>()<span class="question-mark">?</span>;
                     <span class="kw">return</span> <span class="ident">import_enum</span>(<span class="self">self</span>, <span class="ident">program</span>);
                 }
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+                <span class="kw">_</span> =&gt; {}
             }
         }
         <span class="kw">let</span> <span class="ident">js_name</span> <span class="op">=</span> <span class="ident">opts</span>
@@ -2725,8 +2725,8 @@
         <span class="kw">let</span> <span class="ident">has_discriminant</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">variants</span>[<span class="number">0</span>].<span class="ident">discriminant</span>.<span class="ident">is_some</span>();
 
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">vis</span> {
-            <span class="ident">syn::Visibility::Public</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">bail_span!</span>(<span class="self">self</span>, <span class="string">&quot;only public enums are allowed with #[wasm_bindgen]&quot;</span>),
+            <span class="ident">syn::Visibility::Public</span>(<span class="kw">_</span>) =&gt; {}
+            <span class="kw">_</span> =&gt; <span class="macro">bail_span!</span>(<span class="self">self</span>, <span class="string">&quot;only public enums are allowed with #[wasm_bindgen]&quot;</span>),
         }
 
         <span class="kw">let</span> <span class="ident">variants</span> <span class="op">=</span> <span class="self">self</span>
@@ -2735,8 +2735,8 @@
             .<span class="ident">enumerate</span>()
             .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">i</span>, <span class="ident">v</span>)<span class="op">|</span> {
                 <span class="kw">match</span> <span class="ident">v</span>.<span class="ident">fields</span> {
-                    <span class="ident">syn::Fields::Unit</span> <span class="op">=</span><span class="op">&gt;</span> (),
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">bail_span!</span>(<span class="ident">v</span>.<span class="ident">fields</span>, <span class="string">&quot;only C-Style enums allowed with #[wasm_bindgen]&quot;</span>),
+                    <span class="ident">syn::Fields::Unit</span> =&gt; (),
+                    <span class="kw">_</span> =&gt; <span class="macro">bail_span!</span>(<span class="ident">v</span>.<span class="ident">fields</span>, <span class="string">&quot;only C-Style enums allowed with #[wasm_bindgen]&quot;</span>),
                 }
 
                 <span class="comment">// Require that everything either has a discriminant or doesn&#39;t.</span>
@@ -2750,13 +2750,13 @@
                 }
 
                 <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">v</span>.<span class="ident">discriminant</span> {
-                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">expr</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">get_expr</span>(<span class="ident">expr</span>) {
+                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">expr</span>)) =&gt; <span class="kw">match</span> <span class="ident">get_expr</span>(<span class="ident">expr</span>) {
                         <span class="ident">syn::Expr::Lit</span>(<span class="ident">syn::ExprLit</span> {
                             <span class="ident">attrs</span>: <span class="kw">_</span>,
                             <span class="ident">lit</span>: <span class="ident">syn::Lit::Int</span>(<span class="ident">int_lit</span>),
-                        }) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">int_lit</span>.<span class="ident">base10_digits</span>().<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>() {
-                            <span class="prelude-val">Ok</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>,
-                            <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        }) =&gt; <span class="kw">match</span> <span class="ident">int_lit</span>.<span class="ident">base10_digits</span>().<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>() {
+                            <span class="prelude-val">Ok</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span>,
+                            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
                                 <span class="macro">bail_span!</span>(
                                     <span class="ident">int_lit</span>,
                                     <span class="string">&quot;enums with #[wasm_bindgen] can only support \
@@ -2764,13 +2764,13 @@
                                 );
                             }
                         },
-                        <span class="ident">expr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">bail_span!</span>(
+                        <span class="ident">expr</span> =&gt; <span class="macro">bail_span!</span>(
                             <span class="ident">expr</span>,
                             <span class="string">&quot;enums with #[wasm_bindgen] may only have \
                              number literal values&quot;</span>,
                         ),
                     },
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i</span> <span class="kw">as</span> <span class="ident">u32</span>,
+                    <span class="prelude-val">None</span> =&gt; <span class="ident">i</span> <span class="kw">as</span> <span class="ident">u32</span>,
                 };
 
                 <span class="kw">let</span> <span class="ident">comments</span> <span class="op">=</span> <span class="ident">extract_doc_comments</span>(<span class="kw-2">&amp;</span><span class="ident">v</span>.<span class="ident">attrs</span>);
@@ -2816,7 +2816,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">MacroParse</span><span class="op">&lt;</span><span class="ident">BindgenAttrs</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">syn::ItemConst</span> {
-    <span class="kw">fn</span> <span class="ident">macro_parse</span>(<span class="self">self</span>, <span class="ident">program</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ast::Program</span>, <span class="ident">opts</span>: <span class="ident">BindgenAttrs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">macro_parse</span>(<span class="self">self</span>, <span class="ident">program</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ast::Program</span>, <span class="ident">opts</span>: <span class="ident">BindgenAttrs</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="comment">// Shortcut</span>
         <span class="kw">if</span> <span class="ident">opts</span>.<span class="ident">typescript_custom_section</span>().<span class="ident">is_none</span>() {
             <span class="macro">bail_span!</span>(<span class="self">self</span>, <span class="string">&quot;#[wasm_bindgen] will not work on constants unless you are defining a #[wasm_bindgen(typescript_custom_section)].&quot;</span>);
@@ -2826,10 +2826,10 @@
             <span class="ident">syn::Expr::Lit</span>(<span class="ident">syn::ExprLit</span> {
                 <span class="ident">lit</span>: <span class="ident">syn::Lit::Str</span>(<span class="ident">litstr</span>),
                 ..
-            }) <span class="op">=</span><span class="op">&gt;</span> {
+            }) =&gt; {
                 <span class="ident">program</span>.<span class="ident">typescript_custom_sections</span>.<span class="ident">push</span>(<span class="ident">litstr</span>.<span class="ident">value</span>());
             }
-            <span class="ident">expr</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">expr</span> =&gt; {
                 <span class="macro">bail_span!</span>(<span class="ident">expr</span>, <span class="string">&quot;Expected a string literal to be used with #[wasm_bindgen(typescript_custom_section)].&quot;</span>);
             }
         }
@@ -2841,12 +2841,12 @@
 }
 
 <span class="kw">impl</span> <span class="ident">MacroParse</span><span class="op">&lt;</span><span class="ident">BindgenAttrs</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">syn::ItemForeignMod</span> {
-    <span class="kw">fn</span> <span class="ident">macro_parse</span>(<span class="self">self</span>, <span class="ident">program</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ast::Program</span>, <span class="ident">opts</span>: <span class="ident">BindgenAttrs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">macro_parse</span>(<span class="self">self</span>, <span class="ident">program</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ast::Program</span>, <span class="ident">opts</span>: <span class="ident">BindgenAttrs</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">errors</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">abi</span>.<span class="ident">name</span> {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">l</span>) <span class="kw">if</span> <span class="ident">l</span>.<span class="ident">value</span>() <span class="op">=</span><span class="op">=</span> <span class="string">&quot;C&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">other</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">l</span>) <span class="kw">if</span> <span class="ident">l</span>.<span class="ident">value</span>() <span class="op">==</span> <span class="string">&quot;C&quot;</span> =&gt; {}
+            <span class="prelude-val">None</span> =&gt; {}
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">other</span>) =&gt; {
                 <span class="ident">errors</span>.<span class="ident">push</span>(<span class="macro">err_span!</span>(
                     <span class="ident">other</span>,
                     <span class="string">&quot;only foreign mods with the `C` ABI are allowed&quot;</span>
@@ -2892,22 +2892,22 @@
         <span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">program</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ast::Program</span>,
         <span class="ident">module</span>: <span class="ident">ast::ImportModule</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">item_opts</span> <span class="op">=</span> {
             <span class="kw">let</span> <span class="ident">attrs</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span> {
-                <span class="ident">syn::ForeignItem::Fn</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">f</span>.<span class="ident">attrs</span>,
-                <span class="ident">syn::ForeignItem::Type</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>.<span class="ident">attrs</span>,
-                <span class="ident">syn::ForeignItem::Static</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">attrs</span>,
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;only foreign functions/types allowed for now&quot;</span>),
+                <span class="ident">syn::ForeignItem::Fn</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">f</span>) =&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">f</span>.<span class="ident">attrs</span>,
+                <span class="ident">syn::ForeignItem::Type</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">t</span>) =&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>.<span class="ident">attrs</span>,
+                <span class="ident">syn::ForeignItem::Static</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">s</span>) =&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">attrs</span>,
+                <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;only foreign functions/types allowed for now&quot;</span>),
             };
             <span class="ident">BindgenAttrs::find</span>(<span class="ident">attrs</span>)<span class="question-mark">?</span>
         };
         <span class="kw">let</span> <span class="ident">js_namespace</span> <span class="op">=</span> <span class="ident">item_opts</span>.<span class="ident">js_namespace</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">s</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">s</span>.<span class="ident">to_owned</span>());
         <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">syn::ForeignItem::Fn</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">convert</span>((<span class="ident">item_opts</span>, <span class="kw-2">&amp;</span><span class="ident">module</span>))<span class="question-mark">?</span>,
-            <span class="ident">syn::ForeignItem::Type</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span>.<span class="ident">convert</span>(<span class="ident">item_opts</span>)<span class="question-mark">?</span>,
-            <span class="ident">syn::ForeignItem::Static</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>.<span class="ident">convert</span>((<span class="ident">item_opts</span>, <span class="kw-2">&amp;</span><span class="ident">module</span>))<span class="question-mark">?</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;only foreign functions/types allowed for now&quot;</span>),
+            <span class="ident">syn::ForeignItem::Fn</span>(<span class="ident">f</span>) =&gt; <span class="ident">f</span>.<span class="ident">convert</span>((<span class="ident">item_opts</span>, <span class="kw-2">&amp;</span><span class="ident">module</span>))<span class="question-mark">?</span>,
+            <span class="ident">syn::ForeignItem::Type</span>(<span class="ident">t</span>) =&gt; <span class="ident">t</span>.<span class="ident">convert</span>(<span class="ident">item_opts</span>)<span class="question-mark">?</span>,
+            <span class="ident">syn::ForeignItem::Static</span>(<span class="ident">s</span>) =&gt; <span class="ident">s</span>.<span class="ident">convert</span>((<span class="ident">item_opts</span>, <span class="kw-2">&amp;</span><span class="ident">module</span>))<span class="question-mark">?</span>,
+            <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;only foreign functions/types allowed for now&quot;</span>),
         };
 
         <span class="ident">program</span>.<span class="ident">imports</span>.<span class="ident">push</span>(<span class="ident">ast::Import</span> {
@@ -2921,57 +2921,57 @@
 }
 
 <span class="doccomment">/// Get the first type parameter of a generic type, errors on incorrect input.</span>
-<span class="kw">fn</span> <span class="ident">extract_first_ty_param</span>(<span class="ident">ty</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">syn::Type</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">syn::Type</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">extract_first_ty_param</span>(<span class="ident">ty</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">syn::Type</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">syn::Type</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">t</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">ty</span> {
-        <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span>,
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+        <span class="prelude-val">Some</span>(<span class="ident">t</span>) =&gt; <span class="ident">t</span>,
+        <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
     };
     <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">get_ty</span>(<span class="kw-2">&amp;</span><span class="ident">t</span>) {
         <span class="ident">syn::Type::Path</span>(<span class="ident">syn::TypePath</span> {
             <span class="ident">qself</span>: <span class="prelude-val">None</span>,
             <span class="kw-2">ref</span> <span class="ident">path</span>,
-        }) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">path</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">bail_span!</span>(<span class="ident">t</span>, <span class="string">&quot;must be Result&lt;...&gt;&quot;</span>),
+        }) =&gt; <span class="ident">path</span>,
+        <span class="kw">_</span> =&gt; <span class="macro">bail_span!</span>(<span class="ident">t</span>, <span class="string">&quot;must be Result&lt;...&gt;&quot;</span>),
     };
     <span class="kw">let</span> <span class="ident">seg</span> <span class="op">=</span> <span class="ident">path</span>
         .<span class="ident">segments</span>
         .<span class="ident">last</span>()
         .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">err_span!</span>(<span class="ident">t</span>, <span class="string">&quot;must have at least one segment&quot;</span>))<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">generics</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">seg</span>.<span class="ident">arguments</span> {
-        <span class="ident">syn::PathArguments::AngleBracketed</span>(<span class="kw-2">ref</span> <span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">bail_span!</span>(<span class="ident">t</span>, <span class="string">&quot;must be Result&lt;...&gt;&quot;</span>),
+        <span class="ident">syn::PathArguments::AngleBracketed</span>(<span class="kw-2">ref</span> <span class="ident">t</span>) =&gt; <span class="ident">t</span>,
+        <span class="kw">_</span> =&gt; <span class="macro">bail_span!</span>(<span class="ident">t</span>, <span class="string">&quot;must be Result&lt;...&gt;&quot;</span>),
     };
     <span class="kw">let</span> <span class="ident">generic</span> <span class="op">=</span> <span class="ident">generics</span>
         .<span class="ident">args</span>
         .<span class="ident">first</span>()
         .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">err_span!</span>(<span class="ident">t</span>, <span class="string">&quot;must have at least one generic parameter&quot;</span>))<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">generic</span> {
-        <span class="ident">syn::GenericArgument::Type</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span>,
-        <span class="ident">other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">bail_span!</span>(<span class="ident">other</span>, <span class="string">&quot;must be a type parameter&quot;</span>),
+        <span class="ident">syn::GenericArgument::Type</span>(<span class="ident">t</span>) =&gt; <span class="ident">t</span>,
+        <span class="ident">other</span> =&gt; <span class="macro">bail_span!</span>(<span class="ident">other</span>, <span class="string">&quot;must be a type parameter&quot;</span>),
     };
     <span class="kw">match</span> <span class="ident">get_ty</span>(<span class="kw-2">&amp;</span><span class="ident">ty</span>) {
-        <span class="ident">syn::Type::Tuple</span>(<span class="ident">t</span>) <span class="kw">if</span> <span class="ident">t</span>.<span class="ident">elems</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+        <span class="ident">syn::Type::Tuple</span>(<span class="ident">t</span>) <span class="kw">if</span> <span class="ident">t</span>.<span class="ident">elems</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+        <span class="kw">_</span> =&gt; {}
     }
     <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">ty</span>.<span class="ident">clone</span>()))
 }
 
 <span class="doccomment">/// Extract the documentation comments from a Vec of attributes</span>
-<span class="kw">fn</span> <span class="ident">extract_doc_comments</span>(<span class="ident">attrs</span>: <span class="kw-2">&amp;</span>[<span class="ident">syn::Attribute</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">extract_doc_comments</span>(<span class="ident">attrs</span>: <span class="kw-2">&amp;</span>[<span class="ident">syn::Attribute</span>]) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
     <span class="ident">attrs</span>
         .<span class="ident">iter</span>()
         .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> {
             <span class="comment">// if the path segments include an ident of &quot;doc&quot; we know this</span>
             <span class="comment">// this is a doc comment</span>
-            <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">path</span>.<span class="ident">segments</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">ident</span>.<span class="ident">to_string</span>() <span class="op">=</span><span class="op">=</span> <span class="string">&quot;doc&quot;</span>) {
+            <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">path</span>.<span class="ident">segments</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">ident</span>.<span class="ident">to_string</span>() <span class="op">==</span> <span class="string">&quot;doc&quot;</span>) {
                 <span class="prelude-val">Some</span>(
                     <span class="comment">// We want to filter out any Puncts so just grab the Literals</span>
                     <span class="ident">a</span>.<span class="ident">tokens</span>.<span class="ident">clone</span>().<span class="ident">into_iter</span>().<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">t</span> {
-                        <span class="ident">TokenTree::Literal</span>(<span class="ident">lit</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">TokenTree::Literal</span>(<span class="ident">lit</span>) =&gt; {
                             <span class="kw">let</span> <span class="ident">quoted</span> <span class="op">=</span> <span class="ident">lit</span>.<span class="ident">to_string</span>();
                             <span class="prelude-val">Some</span>(<span class="ident">try_unescape</span>(<span class="kw-2">&amp;</span><span class="ident">quoted</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">quoted</span>))
                         }
-                        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+                        <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
                     }),
                 )
             } <span class="kw">else</span> {
@@ -2986,7 +2986,7 @@
 }
 
 <span class="comment">// Unescapes a quoted string. char::escape_debug() was used to escape the text.</span>
-<span class="kw">fn</span> <span class="ident">try_unescape</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">try_unescape</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">is_empty</span>() {
         <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">String::new</span>());
     }
@@ -2994,24 +2994,24 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">chars</span>();
     <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>.. {
         <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">chars</span>.<span class="ident">next</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span>,
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">c</span>) =&gt; <span class="ident">c</span>,
+            <span class="prelude-val">None</span> =&gt; {
                 <span class="kw">if</span> <span class="ident">result</span>.<span class="ident">ends_with</span>(<span class="string">&#39;&quot;&#39;</span>) {
                     <span class="ident">result</span>.<span class="ident">pop</span>();
                 }
                 <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">result</span>);
             }
         };
-        <span class="kw">if</span> <span class="ident">i</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;&quot;&#39;</span> {
+        <span class="kw">if</span> <span class="ident">i</span> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;&quot;&#39;</span> {
             <span class="comment">// ignore it</span>
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;\\&#39;</span> {
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;\\&#39;</span> {
             <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">chars</span>.<span class="ident">next</span>()<span class="question-mark">?</span>;
             <span class="kw">match</span> <span class="ident">c</span> {
-                <span class="string">&#39;t&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">result</span>.<span class="ident">push</span>(<span class="string">&#39;\t&#39;</span>),
-                <span class="string">&#39;r&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">result</span>.<span class="ident">push</span>(<span class="string">&#39;\r&#39;</span>),
-                <span class="string">&#39;n&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">result</span>.<span class="ident">push</span>(<span class="string">&#39;\n&#39;</span>),
-                <span class="string">&#39;\\&#39;</span> <span class="op">|</span> <span class="string">&#39;\&#39;&#39;</span> <span class="op">|</span> <span class="string">&#39;&quot;&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">result</span>.<span class="ident">push</span>(<span class="ident">c</span>),
-                <span class="string">&#39;u&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="string">&#39;t&#39;</span> =&gt; <span class="ident">result</span>.<span class="ident">push</span>(<span class="string">&#39;\t&#39;</span>),
+                <span class="string">&#39;r&#39;</span> =&gt; <span class="ident">result</span>.<span class="ident">push</span>(<span class="string">&#39;\r&#39;</span>),
+                <span class="string">&#39;n&#39;</span> =&gt; <span class="ident">result</span>.<span class="ident">push</span>(<span class="string">&#39;\n&#39;</span>),
+                <span class="string">&#39;\\&#39;</span> <span class="op">|</span> <span class="string">&#39;\&#39;&#39;</span> <span class="op">|</span> <span class="string">&#39;&quot;&#39;</span> =&gt; <span class="ident">result</span>.<span class="ident">push</span>(<span class="ident">c</span>),
+                <span class="string">&#39;u&#39;</span> =&gt; {
                     <span class="kw">if</span> <span class="ident">chars</span>.<span class="ident">next</span>() <span class="op">!</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="string">&#39;{&#39;</span>) {
                         <span class="kw">return</span> <span class="prelude-val">None</span>;
                     }
@@ -3021,7 +3021,7 @@
                         <span class="kw">return</span> <span class="prelude-val">None</span>;
                     }
                 }
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
+                <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
             }
         } <span class="kw">else</span> {
             <span class="ident">result</span>.<span class="ident">push</span>(<span class="ident">c</span>);
@@ -3030,7 +3030,7 @@
     <span class="prelude-val">None</span>
 }
 
-<span class="kw">fn</span> <span class="ident">unescape_unicode</span>(<span class="ident">chars</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Chars</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">char</span>, <span class="ident">char</span>)<span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">unescape_unicode</span>(<span class="ident">chars</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Chars</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">char</span>, <span class="ident">char</span>)<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">7</span> {
         <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">chars</span>.<span class="ident">next</span>()<span class="question-mark">?</span>;
@@ -3041,7 +3041,7 @@
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">c</span> <span class="op">&gt;</span><span class="op">=</span> <span class="string">&#39;A&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">c</span> <span class="op">&lt;</span><span class="op">=</span> <span class="string">&#39;F&#39;</span> {
             <span class="ident">c</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="op">-</span> <span class="string">&#39;A&#39;</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="op">+</span> <span class="number">10</span>
         } <span class="kw">else</span> {
-            <span class="kw">if</span> <span class="ident">i</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">if</span> <span class="ident">i</span> <span class="op">==</span> <span class="number">0</span> {
                 <span class="kw">return</span> <span class="prelude-val">None</span>;
             }
             <span class="kw">let</span> <span class="ident">decoded</span> <span class="op">=</span> <span class="ident">char::from_u32</span>(<span class="ident">value</span>)<span class="question-mark">?</span>;
@@ -3056,7 +3056,7 @@
 }
 
 <span class="doccomment">/// Check there are no lifetimes on the function.</span>
-<span class="kw">fn</span> <span class="ident">assert_no_lifetimes</span>(<span class="ident">sig</span>: <span class="kw-2">&amp;</span><span class="ident">syn::Signature</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">assert_no_lifetimes</span>(<span class="ident">sig</span>: <span class="kw-2">&amp;</span><span class="ident">syn::Signature</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">struct</span> <span class="ident">Walk</span> {
         <span class="ident">diagnostics</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Diagnostic</span><span class="op">&gt;</span>,
     }
@@ -3078,7 +3078,7 @@
 }
 
 <span class="doccomment">/// This method always fails if the BindgenAttrs contain variadic</span>
-<span class="kw">fn</span> <span class="ident">assert_not_variadic</span>(<span class="ident">attrs</span>: <span class="kw-2">&amp;</span><span class="ident">BindgenAttrs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">assert_not_variadic</span>(<span class="ident">attrs</span>: <span class="kw-2">&amp;</span><span class="ident">BindgenAttrs</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">span</span>) <span class="op">=</span> <span class="ident">attrs</span>.<span class="ident">variadic</span>() {
         <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="string">&quot;the `variadic` attribute can only be applied to imported \
                    (`extern`) functions&quot;</span>;
@@ -3088,17 +3088,17 @@
 }
 
 <span class="doccomment">/// Extracts the last ident from the path</span>
-<span class="kw">fn</span> <span class="ident">extract_path_ident</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">syn::Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Ident</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">extract_path_ident</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">syn::Path</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Ident</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">for</span> <span class="ident">segment</span> <span class="kw">in</span> <span class="ident">path</span>.<span class="ident">segments</span>.<span class="ident">iter</span>() {
         <span class="kw">match</span> <span class="ident">segment</span>.<span class="ident">arguments</span> {
-            <span class="ident">syn::PathArguments::None</span> <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">bail_span!</span>(<span class="ident">path</span>, <span class="string">&quot;paths with type parameters are not supported yet&quot;</span>),
+            <span class="ident">syn::PathArguments::None</span> =&gt; {}
+            <span class="kw">_</span> =&gt; <span class="macro">bail_span!</span>(<span class="ident">path</span>, <span class="string">&quot;paths with type parameters are not supported yet&quot;</span>),
         }
     }
 
     <span class="kw">match</span> <span class="ident">path</span>.<span class="ident">segments</span>.<span class="ident">last</span>() {
-        <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">value</span>.<span class="ident">ident</span>.<span class="ident">clone</span>()),
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">value</span>.<span class="ident">ident</span>.<span class="ident">clone</span>()),
+        <span class="prelude-val">None</span> =&gt; {
             <span class="macro">bail_span!</span>(<span class="ident">path</span>, <span class="string">&quot;empty idents are not supported&quot;</span>);
         }
     }
@@ -3117,7 +3117,7 @@
     })
 }
 
-<span class="kw">fn</span> <span class="ident">operation_kind</span>(<span class="ident">opts</span>: <span class="kw-2">&amp;</span><span class="ident">BindgenAttrs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ast::OperationKind</span> {
+<span class="kw">fn</span> <span class="ident">operation_kind</span>(<span class="ident">opts</span>: <span class="kw-2">&amp;</span><span class="ident">BindgenAttrs</span>) -&gt; <span class="ident">ast::OperationKind</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">operation_kind</span> <span class="op">=</span> <span class="ident">ast::OperationKind::Regular</span>;
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">g</span>) <span class="op">=</span> <span class="ident">opts</span>.<span class="ident">getter</span>() {
         <span class="ident">operation_kind</span> <span class="op">=</span> <span class="ident">ast::OperationKind::Getter</span>(<span class="ident">g</span>.<span class="ident">clone</span>());

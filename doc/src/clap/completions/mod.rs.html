@@ -209,17 +209,17 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> <span class="ident">ComplGen</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">p</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">Parser</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">p</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">Parser</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">ComplGen</span> { <span class="ident">p</span>: <span class="ident">p</span> }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">for_shell</span>: <span class="ident">Shell</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">W</span>) {
         <span class="kw">match</span> <span class="ident">for_shell</span> {
-            <span class="ident">Shell::Bash</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BashGen::new</span>(<span class="self">self</span>.<span class="ident">p</span>).<span class="ident">generate_to</span>(<span class="ident">buf</span>),
-            <span class="ident">Shell::Fish</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FishGen::new</span>(<span class="self">self</span>.<span class="ident">p</span>).<span class="ident">generate_to</span>(<span class="ident">buf</span>),
-            <span class="ident">Shell::Zsh</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ZshGen::new</span>(<span class="self">self</span>.<span class="ident">p</span>).<span class="ident">generate_to</span>(<span class="ident">buf</span>),
-            <span class="ident">Shell::PowerShell</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PowerShellGen::new</span>(<span class="self">self</span>.<span class="ident">p</span>).<span class="ident">generate_to</span>(<span class="ident">buf</span>),
-            <span class="ident">Shell::Elvish</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ElvishGen::new</span>(<span class="self">self</span>.<span class="ident">p</span>).<span class="ident">generate_to</span>(<span class="ident">buf</span>),
+            <span class="ident">Shell::Bash</span> =&gt; <span class="ident">BashGen::new</span>(<span class="self">self</span>.<span class="ident">p</span>).<span class="ident">generate_to</span>(<span class="ident">buf</span>),
+            <span class="ident">Shell::Fish</span> =&gt; <span class="ident">FishGen::new</span>(<span class="self">self</span>.<span class="ident">p</span>).<span class="ident">generate_to</span>(<span class="ident">buf</span>),
+            <span class="ident">Shell::Zsh</span> =&gt; <span class="ident">ZshGen::new</span>(<span class="self">self</span>.<span class="ident">p</span>).<span class="ident">generate_to</span>(<span class="ident">buf</span>),
+            <span class="ident">Shell::PowerShell</span> =&gt; <span class="ident">PowerShellGen::new</span>(<span class="self">self</span>.<span class="ident">p</span>).<span class="ident">generate_to</span>(<span class="ident">buf</span>),
+            <span class="ident">Shell::Elvish</span> =&gt; <span class="ident">ElvishGen::new</span>(<span class="self">self</span>.<span class="ident">p</span>).<span class="ident">generate_to</span>(<span class="ident">buf</span>),
         }
     }
 }
@@ -230,7 +230,7 @@
 <span class="comment">//</span>
 <span class="comment">// Also note, aliases are treated as their own subcommands but duplicates of whatever they&#39;re</span>
 <span class="comment">// aliasing.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">all_subcommand_names</span>(<span class="ident">p</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">all_subcommand_names</span>(<span class="ident">p</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
     <span class="macro">debugln!</span>(<span class="string">&quot;all_subcommand_names;&quot;</span>);
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">subcmds</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">subcommands_of</span>(<span class="ident">p</span>)
         .<span class="ident">iter</span>()
@@ -250,7 +250,7 @@
 <span class="comment">//</span>
 <span class="comment">// Also note, aliases are treated as their own subcommands but duplicates of whatever they&#39;re</span>
 <span class="comment">// aliasing.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">all_subcommands</span>(<span class="ident">p</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">String</span>, <span class="ident">String</span>)<span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">all_subcommands</span>(<span class="ident">p</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">String</span>, <span class="ident">String</span>)<span class="op">&gt;</span> {
     <span class="macro">debugln!</span>(<span class="string">&quot;all_subcommands;&quot;</span>);
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">subcmds</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">subcommands_of</span>(<span class="ident">p</span>);
     <span class="kw">for</span> <span class="ident">sc_v</span> <span class="kw">in</span> <span class="ident">p</span>.<span class="ident">subcommands</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">all_subcommands</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>.<span class="ident">p</span>)) {
@@ -265,7 +265,7 @@
 <span class="comment">//</span>
 <span class="comment">// Also note, aliases are treated as their own subcommands but duplicates of whatever they&#39;re</span>
 <span class="comment">// aliasing.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">subcommands_of</span>(<span class="ident">p</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">String</span>, <span class="ident">String</span>)<span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">subcommands_of</span>(<span class="ident">p</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">String</span>, <span class="ident">String</span>)<span class="op">&gt;</span> {
     <span class="macro">debugln!</span>(
         <span class="string">&quot;subcommands_of: name={}, bin_name={}&quot;</span>,
         <span class="ident">p</span>.<span class="ident">meta</span>.<span class="ident">name</span>,
@@ -320,7 +320,7 @@
     <span class="ident">subcmds</span>
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_all_subcommand_paths</span>(<span class="ident">p</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>, <span class="ident">first</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_all_subcommand_paths</span>(<span class="ident">p</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>, <span class="ident">first</span>: <span class="ident">bool</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
     <span class="macro">debugln!</span>(<span class="string">&quot;get_all_subcommand_paths;&quot;</span>);
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">subcmds</span> <span class="op">=</span> <span class="macro">vec!</span>[];
     <span class="kw">if</span> <span class="op">!</span><span class="ident">p</span>.<span class="ident">has_subcommands</span>() {

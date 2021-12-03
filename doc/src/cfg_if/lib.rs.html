@@ -213,7 +213,7 @@
         <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">meta</span>:<span class="ident">meta</span>)]</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">tt</span>)<span class="op">*</span> }
     ) <span class="kw">else</span> <span class="op">*</span> <span class="kw">else</span> {
         $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens2</span>:<span class="ident">tt</span>)<span class="op">*</span>
-    }) <span class="op">=</span><span class="op">&gt;</span> {
+    }) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::cfg_if!</span> {
             @<span class="macro-nonterminal">__items</span>
             () ;
@@ -228,7 +228,7 @@
         $(
             <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e_met</span>:<span class="ident">meta</span>)]</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e_tokens</span>:<span class="ident">tt</span>)<span class="op">*</span> }
         )<span class="op">*</span>
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::cfg_if!</span> {
             @<span class="macro-nonterminal">__items</span>
             () ;
@@ -242,8 +242,8 @@
     <span class="comment">//</span>
     <span class="comment">// Collects all the negated cfgs in a list at the beginning and after the</span>
     <span class="comment">// semicolon is all the remaining items</span>
-    (@<span class="ident">__items</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">not</span>:<span class="ident">meta</span>,)<span class="kw-2">*</span>) ; ) <span class="op">=</span><span class="op">&gt;</span> {};
-    (@<span class="ident">__items</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">not</span>:<span class="ident">meta</span>,)<span class="kw-2">*</span>) ; ( ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>:<span class="ident">meta</span>),<span class="kw-2">*</span>) ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) ), $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">__items</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">not</span>:<span class="ident">meta</span>,)<span class="kw-2">*</span>) ; ) =&gt; {};
+    (@<span class="ident">__items</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">not</span>:<span class="ident">meta</span>,)<span class="kw-2">*</span>) ; ( ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>:<span class="ident">meta</span>),<span class="kw-2">*</span>) ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) ), $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="comment">// Emit all items within one block, applying an appropriate #[cfg]. The</span>
         <span class="comment">// #[cfg] will require all `$m` matchers specified and must also negate</span>
         <span class="comment">// all previous matchers.</span>
@@ -257,7 +257,7 @@
 
     <span class="comment">// Internal macro to make __apply work out right for different match types,</span>
     <span class="comment">// because of how macros matching/expand stuff.</span>
-    (@<span class="ident">__identity</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">__identity</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {
         $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>)<span class="op">*</span>
     };
 }
@@ -267,42 +267,42 @@
     <span class="macro">cfg_if!</span> {
         <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span> {
             <span class="kw">use</span> <span class="ident">core::option::Option</span> <span class="kw">as</span> <span class="ident">Option2</span>;
-            <span class="kw">fn</span> <span class="ident">works1</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Option2</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> { <span class="prelude-val">Some</span>(<span class="number">1</span>) }
+            <span class="kw">fn</span> <span class="ident">works1</span>() -&gt; <span class="ident">Option2</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> { <span class="prelude-val">Some</span>(<span class="number">1</span>) }
         } <span class="kw">else</span> {
-            <span class="kw">fn</span> <span class="ident">works1</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> { <span class="prelude-val">None</span> }
+            <span class="kw">fn</span> <span class="ident">works1</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> { <span class="prelude-val">None</span> }
         }
     }
 
     <span class="macro">cfg_if!</span> {
         <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">foo</span>)]</span> {
-            <span class="kw">fn</span> <span class="ident">works2</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> { <span class="bool-val">false</span> }
+            <span class="kw">fn</span> <span class="ident">works2</span>() -&gt; <span class="ident">bool</span> { <span class="bool-val">false</span> }
         } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span> {
-            <span class="kw">fn</span> <span class="ident">works2</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> { <span class="bool-val">true</span> }
+            <span class="kw">fn</span> <span class="ident">works2</span>() -&gt; <span class="ident">bool</span> { <span class="bool-val">true</span> }
         } <span class="kw">else</span> {
-            <span class="kw">fn</span> <span class="ident">works2</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> { <span class="bool-val">false</span> }
+            <span class="kw">fn</span> <span class="ident">works2</span>() -&gt; <span class="ident">bool</span> { <span class="bool-val">false</span> }
         }
     }
 
     <span class="macro">cfg_if!</span> {
         <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">foo</span>)]</span> {
-            <span class="kw">fn</span> <span class="ident">works3</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> { <span class="bool-val">false</span> }
+            <span class="kw">fn</span> <span class="ident">works3</span>() -&gt; <span class="ident">bool</span> { <span class="bool-val">false</span> }
         } <span class="kw">else</span> {
-            <span class="kw">fn</span> <span class="ident">works3</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> { <span class="bool-val">true</span> }
+            <span class="kw">fn</span> <span class="ident">works3</span>() -&gt; <span class="ident">bool</span> { <span class="bool-val">true</span> }
         }
     }
 
     <span class="macro">cfg_if!</span> {
         <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span> {
             <span class="kw">use</span> <span class="ident">core::option::Option</span> <span class="kw">as</span> <span class="ident">Option3</span>;
-            <span class="kw">fn</span> <span class="ident">works4</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Option3</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> { <span class="prelude-val">Some</span>(<span class="number">1</span>) }
+            <span class="kw">fn</span> <span class="ident">works4</span>() -&gt; <span class="ident">Option3</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> { <span class="prelude-val">Some</span>(<span class="number">1</span>) }
         }
     }
 
     <span class="macro">cfg_if!</span> {
         <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">foo</span>)]</span> {
-            <span class="kw">fn</span> <span class="ident">works5</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> { <span class="bool-val">false</span> }
+            <span class="kw">fn</span> <span class="ident">works5</span>() -&gt; <span class="ident">bool</span> { <span class="bool-val">false</span> }
         } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span> {
-            <span class="kw">fn</span> <span class="ident">works5</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> { <span class="bool-val">true</span> }
+            <span class="kw">fn</span> <span class="ident">works5</span>() -&gt; <span class="ident">bool</span> { <span class="bool-val">true</span> }
         }
     }
 

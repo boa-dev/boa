@@ -808,13 +808,13 @@
 <span class="doccomment">///     Err(why) =&gt; panic!(&quot;{:?}&quot;, why)</span>
 <span class="doccomment">/// }</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hamming</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">HammingResult</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hamming</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">HammingResult</span> {
     <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">ita</span>, <span class="kw-2">mut</span> <span class="ident">itb</span>, <span class="kw-2">mut</span> <span class="ident">count</span>) <span class="op">=</span> (<span class="ident">a</span>.<span class="ident">chars</span>(), <span class="ident">b</span>.<span class="ident">chars</span>(), <span class="number">0</span>);
     <span class="kw">loop</span> {
         <span class="kw">match</span> (<span class="ident">ita</span>.<span class="ident">next</span>(), <span class="ident">itb</span>.<span class="ident">next</span>()){
-            (<span class="prelude-val">Some</span>(<span class="ident">x</span>), <span class="prelude-val">Some</span>(<span class="ident">y</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">if</span> <span class="ident">x</span> <span class="op">!</span><span class="op">=</span> <span class="ident">y</span> { <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span> },
-            (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">count</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">StrSimError::DifferentLengthArgs</span>),
+            (<span class="prelude-val">Some</span>(<span class="ident">x</span>), <span class="prelude-val">Some</span>(<span class="ident">y</span>)) =&gt; <span class="kw">if</span> <span class="ident">x</span> <span class="op">!</span><span class="op">=</span> <span class="ident">y</span> { <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span> },
+            (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">count</span>),
+            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">StrSimError::DifferentLengthArgs</span>),
         }
     }
 }
@@ -828,15 +828,15 @@
 <span class="doccomment">/// assert!((0.392 - jaro(&quot;Friedrich Nietzsche&quot;, &quot;Jean-Paul Sartre&quot;)).abs() &lt;</span>
 <span class="doccomment">///         0.001);</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">jaro</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span> {
-    <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b</span> { <span class="kw">return</span> <span class="number">1.0</span>; }
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">jaro</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">f64</span> {
+    <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">b</span> { <span class="kw">return</span> <span class="number">1.0</span>; }
 
     <span class="kw">let</span> <span class="ident">a_len</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">chars</span>().<span class="ident">count</span>();
     <span class="kw">let</span> <span class="ident">b_len</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">chars</span>().<span class="ident">count</span>();
 
     <span class="comment">// The check for lengths of one here is to prevent integer overflow when</span>
     <span class="comment">// calculating the search range.</span>
-    <span class="kw">if</span> <span class="ident">a_len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">b_len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> (<span class="ident">a_len</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span> <span class="op">&amp;&amp;</span> <span class="ident">b_len</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span>) {
+    <span class="kw">if</span> <span class="ident">a_len</span> <span class="op">==</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">b_len</span> <span class="op">==</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> (<span class="ident">a_len</span> <span class="op">==</span> <span class="number">1</span> <span class="op">&amp;&amp;</span> <span class="ident">b_len</span> <span class="op">==</span> <span class="number">1</span>) {
         <span class="kw">return</span> <span class="number">0.0</span>;
     }
 
@@ -867,7 +867,7 @@
         }
 
         <span class="kw">for</span> (<span class="ident">j</span>, <span class="ident">b_char</span>) <span class="kw">in</span> <span class="ident">b</span>.<span class="ident">chars</span>().<span class="ident">enumerate</span>() {
-            <span class="kw">if</span> <span class="ident">min_bound</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">j</span> <span class="op">&amp;&amp;</span> <span class="ident">j</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">max_bound</span> <span class="op">&amp;&amp;</span> <span class="ident">a_char</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b_char</span> <span class="op">&amp;&amp;</span>
+            <span class="kw">if</span> <span class="ident">min_bound</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">j</span> <span class="op">&amp;&amp;</span> <span class="ident">j</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">max_bound</span> <span class="op">&amp;&amp;</span> <span class="ident">a_char</span> <span class="op">==</span> <span class="ident">b_char</span> <span class="op">&amp;&amp;</span>
                <span class="op">!</span><span class="ident">b_consumed</span>[<span class="ident">j</span>] {
                 <span class="ident">b_consumed</span>[<span class="ident">j</span>] <span class="op">=</span> <span class="bool-val">true</span>;
                 <span class="ident">matches</span> <span class="op">+</span><span class="op">=</span> <span class="number">1.0</span>;
@@ -882,7 +882,7 @@
         }
     }
 
-    <span class="kw">if</span> <span class="ident">matches</span> <span class="op">=</span><span class="op">=</span> <span class="number">0.0</span> {
+    <span class="kw">if</span> <span class="ident">matches</span> <span class="op">==</span> <span class="number">0.0</span> {
         <span class="number">0.0</span>
     } <span class="kw">else</span> {
         (<span class="number">1.0</span> <span class="op">/</span> <span class="number">3.0</span>) <span class="op">*</span> ((<span class="ident">matches</span> <span class="op">/</span> <span class="ident">a_len</span> <span class="kw">as</span> <span class="ident">f64</span>) <span class="op">+</span>
@@ -899,13 +899,13 @@
 <span class="doccomment">/// assert!((0.911 - jaro_winkler(&quot;cheeseburger&quot;, &quot;cheese fries&quot;)).abs() &lt;</span>
 <span class="doccomment">///         0.001);</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">jaro_winkler</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">jaro_winkler</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">f64</span> {
     <span class="kw">let</span> <span class="ident">jaro_distance</span> <span class="op">=</span> <span class="ident">jaro</span>(<span class="ident">a</span>, <span class="ident">b</span>);
 
     <span class="comment">// Don&#39;t limit the length of the common prefix</span>
     <span class="kw">let</span> <span class="ident">prefix_length</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">chars</span>()
                          .<span class="ident">zip</span>(<span class="ident">b</span>.<span class="ident">chars</span>())
-                         .<span class="ident">take_while</span>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="ident">a_char</span>, <span class="ident">b_char</span>)<span class="op">|</span> <span class="ident">a_char</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b_char</span>)
+                         .<span class="ident">take_while</span>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="ident">a_char</span>, <span class="ident">b_char</span>)<span class="op">|</span> <span class="ident">a_char</span> <span class="op">==</span> <span class="ident">b_char</span>)
                          .<span class="ident">count</span>();
 
     <span class="kw">let</span> <span class="ident">jaro_winkler_distance</span> <span class="op">=</span>
@@ -926,14 +926,14 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// assert_eq!(3, levenshtein(&quot;kitten&quot;, &quot;sitting&quot;));</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">levenshtein</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
-    <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b</span> { <span class="kw">return</span> <span class="number">0</span>; }
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">levenshtein</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">usize</span> {
+    <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">b</span> { <span class="kw">return</span> <span class="number">0</span>; }
 
     <span class="kw">let</span> <span class="ident">a_len</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">chars</span>().<span class="ident">count</span>();
     <span class="kw">let</span> <span class="ident">b_len</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">chars</span>().<span class="ident">count</span>();
 
-    <span class="kw">if</span> <span class="ident">a_len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> { <span class="kw">return</span> <span class="ident">b_len</span>; }
-    <span class="kw">if</span> <span class="ident">b_len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> { <span class="kw">return</span> <span class="ident">a_len</span>; }
+    <span class="kw">if</span> <span class="ident">a_len</span> <span class="op">==</span> <span class="number">0</span> { <span class="kw">return</span> <span class="ident">b_len</span>; }
+    <span class="kw">if</span> <span class="ident">b_len</span> <span class="op">==</span> <span class="number">0</span> { <span class="kw">return</span> <span class="ident">a_len</span>; }
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cache</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">=</span> (<span class="number">1</span>..<span class="ident">b_len</span><span class="op">+</span><span class="number">1</span>).<span class="ident">collect</span>();
 
@@ -946,7 +946,7 @@
         <span class="ident">distance_b</span> <span class="op">=</span> <span class="ident">i</span>;
 
         <span class="kw">for</span> (<span class="ident">j</span>, <span class="ident">b_char</span>) <span class="kw">in</span> <span class="ident">b</span>.<span class="ident">chars</span>().<span class="ident">enumerate</span>() {
-            <span class="kw">let</span> <span class="ident">cost</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">a_char</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b_char</span> { <span class="number">0</span> } <span class="kw">else</span> { <span class="number">1</span> };
+            <span class="kw">let</span> <span class="ident">cost</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">a_char</span> <span class="op">==</span> <span class="ident">b_char</span> { <span class="number">0</span> } <span class="kw">else</span> { <span class="number">1</span> };
             <span class="ident">distance_a</span> <span class="op">=</span> <span class="ident">distance_b</span> <span class="op">+</span> <span class="ident">cost</span>;
             <span class="ident">distance_b</span> <span class="op">=</span> <span class="ident">cache</span>[<span class="ident">j</span>];
             <span class="ident">result</span> <span class="op">=</span> <span class="ident">min</span>(<span class="ident">result</span> <span class="op">+</span> <span class="number">1</span>, <span class="ident">min</span>(<span class="ident">distance_a</span>, <span class="ident">distance_b</span> <span class="op">+</span> <span class="number">1</span>));
@@ -969,7 +969,7 @@
 <span class="doccomment">/// assert!(normalized_levenshtein(&quot;first&quot;, &quot;&quot;).abs() &lt; 0.00001);</span>
 <span class="doccomment">/// assert!((normalized_levenshtein(&quot;string&quot;, &quot;string&quot;) - 1.0).abs() &lt; 0.00001);</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">normalized_levenshtein</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">normalized_levenshtein</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">f64</span> {
     <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="ident">b</span>.<span class="ident">is_empty</span>() {
         <span class="kw">return</span> <span class="number">1.0</span>;
     }
@@ -984,12 +984,12 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// assert_eq!(3, osa_distance(&quot;ab&quot;, &quot;bca&quot;));</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">osa_distance</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">osa_distance</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">usize</span> {
     <span class="kw">let</span> <span class="ident">a_len</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">chars</span>().<span class="ident">count</span>();
     <span class="kw">let</span> <span class="ident">b_len</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">chars</span>().<span class="ident">count</span>();
-    <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b</span> { <span class="kw">return</span> <span class="number">0</span>; }
-    <span class="kw">else</span> <span class="kw">if</span> <span class="ident">a_len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> { <span class="kw">return</span> <span class="ident">b_len</span>; }
-    <span class="kw">else</span> <span class="kw">if</span> <span class="ident">b_len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> { <span class="kw">return</span> <span class="ident">a_len</span>; }
+    <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">b</span> { <span class="kw">return</span> <span class="number">0</span>; }
+    <span class="kw">else</span> <span class="kw">if</span> <span class="ident">a_len</span> <span class="op">==</span> <span class="number">0</span> { <span class="kw">return</span> <span class="ident">b_len</span>; }
+    <span class="kw">else</span> <span class="kw">if</span> <span class="ident">b_len</span> <span class="op">==</span> <span class="number">0</span> { <span class="kw">return</span> <span class="ident">a_len</span>; }
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev_two_distances</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">b_len</span> <span class="op">+</span> <span class="number">1</span>);
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev_distances</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">b_len</span> <span class="op">+</span> <span class="number">1</span>);
@@ -1008,12 +1008,12 @@
         <span class="ident">curr_distances</span>[<span class="number">0</span>] <span class="op">=</span> <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>;
 
         <span class="kw">for</span> (<span class="ident">j</span>, <span class="ident">b_char</span>) <span class="kw">in</span> <span class="ident">b</span>.<span class="ident">chars</span>().<span class="ident">enumerate</span>() {
-            <span class="kw">let</span> <span class="ident">cost</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">a_char</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b_char</span> { <span class="number">0</span> } <span class="kw">else</span> { <span class="number">1</span> };
+            <span class="kw">let</span> <span class="ident">cost</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">a_char</span> <span class="op">==</span> <span class="ident">b_char</span> { <span class="number">0</span> } <span class="kw">else</span> { <span class="number">1</span> };
             <span class="ident">curr_distances</span>[<span class="ident">j</span> <span class="op">+</span> <span class="number">1</span>] <span class="op">=</span> <span class="ident">min</span>(<span class="ident">curr_distances</span>[<span class="ident">j</span>] <span class="op">+</span> <span class="number">1</span>,
                                         <span class="ident">min</span>(<span class="ident">prev_distances</span>[<span class="ident">j</span> <span class="op">+</span> <span class="number">1</span>] <span class="op">+</span> <span class="number">1</span>,
                                             <span class="ident">prev_distances</span>[<span class="ident">j</span>] <span class="op">+</span> <span class="ident">cost</span>));
             <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">j</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">a_char</span> <span class="op">!</span><span class="op">=</span> <span class="ident">b_char</span> <span class="op">&amp;&amp;</span>
-               <span class="ident">a_char</span> <span class="op">=</span><span class="op">=</span> <span class="ident">prev_b_char</span> <span class="op">&amp;&amp;</span> <span class="ident">b_char</span> <span class="op">=</span><span class="op">=</span> <span class="ident">prev_a_char</span> {
+               <span class="ident">a_char</span> <span class="op">==</span> <span class="ident">prev_b_char</span> <span class="op">&amp;&amp;</span> <span class="ident">b_char</span> <span class="op">==</span> <span class="ident">prev_a_char</span> {
                 <span class="ident">curr_distances</span>[<span class="ident">j</span> <span class="op">+</span> <span class="number">1</span>] <span class="op">=</span> <span class="ident">min</span>(<span class="ident">curr_distances</span>[<span class="ident">j</span> <span class="op">+</span> <span class="number">1</span>],
                                             <span class="ident">prev_two_distances</span>[<span class="ident">j</span> <span class="op">-</span> <span class="number">1</span>] <span class="op">+</span> <span class="number">1</span>);
             }
@@ -1038,16 +1038,16 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// assert_eq!(2, damerau_levenshtein(&quot;ab&quot;, &quot;bca&quot;));</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">damerau_levenshtein</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
-    <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b</span> { <span class="kw">return</span> <span class="number">0</span>; }
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">damerau_levenshtein</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">usize</span> {
+    <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">b</span> { <span class="kw">return</span> <span class="number">0</span>; }
 
     <span class="kw">let</span> <span class="ident">a_chars</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">chars</span>().<span class="ident">collect</span>();
     <span class="kw">let</span> <span class="ident">b_chars</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">chars</span>().<span class="ident">collect</span>();
     <span class="kw">let</span> <span class="ident">a_len</span> <span class="op">=</span> <span class="ident">a_chars</span>.<span class="ident">len</span>();
     <span class="kw">let</span> <span class="ident">b_len</span> <span class="op">=</span> <span class="ident">b_chars</span>.<span class="ident">len</span>();
 
-    <span class="kw">if</span> <span class="ident">a_len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> { <span class="kw">return</span> <span class="ident">b_len</span>; }
-    <span class="kw">if</span> <span class="ident">b_len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> { <span class="kw">return</span> <span class="ident">a_len</span>; }
+    <span class="kw">if</span> <span class="ident">a_len</span> <span class="op">==</span> <span class="number">0</span> { <span class="kw">return</span> <span class="ident">b_len</span>; }
+    <span class="kw">if</span> <span class="ident">b_len</span> <span class="op">==</span> <span class="number">0</span> { <span class="kw">return</span> <span class="ident">a_len</span>; }
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">distances</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="macro">vec!</span>[<span class="number">0</span>; <span class="ident">b_len</span> <span class="op">+</span> <span class="number">2</span>]; <span class="ident">a_len</span> <span class="op">+</span> <span class="number">2</span>];
     <span class="kw">let</span> <span class="ident">max_distance</span> <span class="op">=</span> <span class="ident">a_len</span> <span class="op">+</span> <span class="ident">b_len</span>;
@@ -1070,14 +1070,14 @@
 
         <span class="kw">for</span> <span class="ident">j</span> <span class="kw">in</span> <span class="number">1</span>..(<span class="ident">b_len</span> <span class="op">+</span> <span class="number">1</span>) {
             <span class="kw">let</span> <span class="ident">k</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">chars</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">b_chars</span>[<span class="ident">j</span> <span class="op">-</span> <span class="number">1</span>]) {
-                <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span>.<span class="ident">clone</span>(),
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>
+                <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; <span class="ident">value</span>.<span class="ident">clone</span>(),
+                <span class="prelude-val">None</span> =&gt; <span class="number">0</span>
             };
 
             <span class="kw">let</span> <span class="ident">l</span> <span class="op">=</span> <span class="ident">db</span>;
 
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cost</span> <span class="op">=</span> <span class="number">1</span>;
-            <span class="kw">if</span> <span class="ident">a_chars</span>[<span class="ident">i</span> <span class="op">-</span> <span class="number">1</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">b_chars</span>[<span class="ident">j</span> <span class="op">-</span> <span class="number">1</span>] {
+            <span class="kw">if</span> <span class="ident">a_chars</span>[<span class="ident">i</span> <span class="op">-</span> <span class="number">1</span>] <span class="op">==</span> <span class="ident">b_chars</span>[<span class="ident">j</span> <span class="op">-</span> <span class="number">1</span>] {
                 <span class="ident">cost</span> <span class="op">=</span> <span class="number">0</span>;
                 <span class="ident">db</span> <span class="op">=</span> <span class="ident">j</span>;
             }
@@ -1112,7 +1112,7 @@
 <span class="doccomment">/// assert!(normalized_damerau_levenshtein(&quot;tree&quot;, &quot;&quot;).abs() &lt; 0.00001);</span>
 <span class="doccomment">/// assert!((normalized_damerau_levenshtein(&quot;sunglasses&quot;, &quot;sunglasses&quot;) - 1.0).abs() &lt; 0.00001);</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">normalized_damerau_levenshtein</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">normalized_damerau_levenshtein</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">f64</span> {
     <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="ident">b</span>.<span class="ident">is_empty</span>() {
         <span class="kw">return</span> <span class="number">1.0</span>;
     }
@@ -1126,48 +1126,48 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">hamming_empty</span>() {
         <span class="kw">match</span> <span class="ident">hamming</span>(<span class="string">&quot;&quot;</span>, <span class="string">&quot;&quot;</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">distance</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="macro">assert_eq!</span>(<span class="number">0</span>, <span class="ident">distance</span>); },
-            <span class="prelude-val">Err</span>(<span class="ident">why</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="macro">panic!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">why</span>); }
+            <span class="prelude-val">Ok</span>(<span class="ident">distance</span>) =&gt; { <span class="macro">assert_eq!</span>(<span class="number">0</span>, <span class="ident">distance</span>); },
+            <span class="prelude-val">Err</span>(<span class="ident">why</span>) =&gt; { <span class="macro">panic!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">why</span>); }
         }
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">hamming_same</span>() {
         <span class="kw">match</span> <span class="ident">hamming</span>(<span class="string">&quot;hamming&quot;</span>, <span class="string">&quot;hamming&quot;</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">distance</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="macro">assert_eq!</span>(<span class="number">0</span>, <span class="ident">distance</span>); },
-            <span class="prelude-val">Err</span>(<span class="ident">why</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="macro">panic!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">why</span>); }
+            <span class="prelude-val">Ok</span>(<span class="ident">distance</span>) =&gt; { <span class="macro">assert_eq!</span>(<span class="number">0</span>, <span class="ident">distance</span>); },
+            <span class="prelude-val">Err</span>(<span class="ident">why</span>) =&gt; { <span class="macro">panic!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">why</span>); }
         }
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">hamming_diff</span>() {
         <span class="kw">match</span> <span class="ident">hamming</span>(<span class="string">&quot;hamming&quot;</span>, <span class="string">&quot;hammers&quot;</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">distance</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="macro">assert_eq!</span>(<span class="number">3</span>, <span class="ident">distance</span>); },
-            <span class="prelude-val">Err</span>(<span class="ident">why</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="macro">panic!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">why</span>); }
+            <span class="prelude-val">Ok</span>(<span class="ident">distance</span>) =&gt; { <span class="macro">assert_eq!</span>(<span class="number">3</span>, <span class="ident">distance</span>); },
+            <span class="prelude-val">Err</span>(<span class="ident">why</span>) =&gt; { <span class="macro">panic!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">why</span>); }
         }
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">hamming_diff_multibyte</span>() {
         <span class="kw">match</span> <span class="ident">hamming</span>(<span class="string">&quot;hamming&quot;</span>, <span class="string">&quot;h香mmüng&quot;</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">distance</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="macro">assert_eq!</span>(<span class="number">2</span>, <span class="ident">distance</span>); },
-            <span class="prelude-val">Err</span>(<span class="ident">why</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="macro">panic!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">why</span>); }
+            <span class="prelude-val">Ok</span>(<span class="ident">distance</span>) =&gt; { <span class="macro">assert_eq!</span>(<span class="number">2</span>, <span class="ident">distance</span>); },
+            <span class="prelude-val">Err</span>(<span class="ident">why</span>) =&gt; { <span class="macro">panic!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">why</span>); }
         }
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">hamming_unequal_length</span>() {
         <span class="kw">match</span> <span class="ident">hamming</span>(<span class="string">&quot;ham&quot;</span>, <span class="string">&quot;hamming&quot;</span>) {
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="macro">panic!</span>(); },
-            <span class="prelude-val">Err</span>(<span class="ident">why</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="macro">assert_eq!</span>(<span class="ident">why</span>, <span class="ident">StrSimError::DifferentLengthArgs</span>); }
+            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; { <span class="macro">panic!</span>(); },
+            <span class="prelude-val">Err</span>(<span class="ident">why</span>) =&gt; { <span class="macro">assert_eq!</span>(<span class="ident">why</span>, <span class="ident">StrSimError::DifferentLengthArgs</span>); }
         }
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">hamming_names</span>() {
         <span class="kw">match</span> <span class="ident">hamming</span>(<span class="string">&quot;Friedrich Nietzs&quot;</span>, <span class="string">&quot;Jean-Paul Sartre&quot;</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">distance</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="macro">assert_eq!</span>(<span class="number">14</span>, <span class="ident">distance</span>); },
-            <span class="prelude-val">Err</span>(<span class="ident">why</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="macro">panic!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">why</span>); }
+            <span class="prelude-val">Ok</span>(<span class="ident">distance</span>) =&gt; { <span class="macro">assert_eq!</span>(<span class="number">14</span>, <span class="ident">distance</span>); },
+            <span class="prelude-val">Err</span>(<span class="ident">why</span>) =&gt; { <span class="macro">panic!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">why</span>); }
         }
     }
 

@@ -91,24 +91,24 @@
 <span class="doccomment">/// ```</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">SnakeCase</span>: <span class="ident">ToOwned</span> {
     <span class="doccomment">/// Convert this type to snake case.</span>
-    <span class="kw">fn</span> <span class="ident">to_snake_case</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Owned</span>;
+    <span class="kw">fn</span> <span class="ident">to_snake_case</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Owned</span>;
 }
 
 <span class="doccomment">/// Oh heck, SnekCase is an alias for SnakeCase. See SnakeCase for</span>
 <span class="doccomment">/// more documentation.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">SnekCase</span>: <span class="ident">ToOwned</span> {
     <span class="doccomment">/// Convert this type to snek case.</span>
-    <span class="kw">fn</span> <span class="ident">to_snek_case</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Owned</span>;
+    <span class="kw">fn</span> <span class="ident">to_snek_case</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Owned</span>;
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">SnakeCase</span><span class="op">&gt;</span> <span class="ident">SnekCase</span> <span class="kw">for</span> <span class="ident">T</span> {
-    <span class="kw">fn</span> <span class="ident">to_snek_case</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Owned</span> {
+    <span class="kw">fn</span> <span class="ident">to_snek_case</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Owned</span> {
         <span class="self">self</span>.<span class="ident">to_snake_case</span>()
     }
 }
 
 <span class="kw">impl</span> <span class="ident">SnakeCase</span> <span class="kw">for</span> <span class="ident">str</span> {
-    <span class="kw">fn</span> <span class="ident">to_snake_case</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+    <span class="kw">fn</span> <span class="ident">to_snake_case</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">String</span> {
         <span class="ident">transform</span>(<span class="self">self</span>, <span class="ident">lowercase</span>, <span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">push</span>(<span class="string">&#39;_&#39;</span>))
     }
 }
@@ -118,7 +118,7 @@
     <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::SnakeCase</span>;
 
     <span class="macro">macro_rules!</span> <span class="ident">t</span> {
-        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ident</span> : <span class="macro-nonterminal">$</span><span class="macro-nonterminal">s1</span>:<span class="ident">expr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">s2</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ident</span> : <span class="macro-nonterminal">$</span><span class="macro-nonterminal">s1</span>:<span class="ident">expr</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">s2</span>:<span class="ident">expr</span>) =&gt; {
             <span class="attribute">#[<span class="ident">test</span>]</span>
             <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>() {
                 <span class="macro">assert_eq!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s1</span>.<span class="ident">to_snake_case</span>(), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">s2</span>)
@@ -126,31 +126,31 @@
         };
     }
 
-    <span class="macro">t!</span>(<span class="ident">test1</span>: <span class="string">&quot;CamelCase&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;camel_case&quot;</span>);
-    <span class="macro">t!</span>(<span class="ident">test2</span>: <span class="string">&quot;This is Human case.&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;this_is_human_case&quot;</span>);
-    <span class="macro">t!</span>(<span class="ident">test3</span>: <span class="string">&quot;MixedUP CamelCase, with some Spaces&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;mixed_up_camel_case_with_some_spaces&quot;</span>);
-    <span class="macro">t!</span>(<span class="ident">test4</span>: <span class="string">&quot;mixed_up_ snake_case with some _spaces&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;mixed_up_snake_case_with_some_spaces&quot;</span>);
-    <span class="macro">t!</span>(<span class="ident">test5</span>: <span class="string">&quot;kebab-case&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;kebab_case&quot;</span>);
-    <span class="macro">t!</span>(<span class="ident">test6</span>: <span class="string">&quot;SHOUTY_SNAKE_CASE&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;shouty_snake_case&quot;</span>);
-    <span class="macro">t!</span>(<span class="ident">test7</span>: <span class="string">&quot;snake_case&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;snake_case&quot;</span>);
-    <span class="macro">t!</span>(<span class="ident">test8</span>: <span class="string">&quot;this-contains_ ALLKinds OfWord_Boundaries&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;this_contains_all_kinds_of_word_boundaries&quot;</span>);
-    <span class="macro">t!</span>(<span class="ident">test9</span>: <span class="string">&quot;XΣXΣ baﬄe&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;xσxς_baﬄe&quot;</span>);
-    <span class="macro">t!</span>(<span class="ident">test10</span>: <span class="string">&quot;XMLHttpRequest&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;xml_http_request&quot;</span>);
-    <span class="macro">t!</span>(<span class="ident">test11</span>: <span class="string">&quot;FIELD_NAME11&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;field_name11&quot;</span>);
-    <span class="macro">t!</span>(<span class="ident">test12</span>: <span class="string">&quot;99BOTTLES&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;99bottles&quot;</span>);
-    <span class="macro">t!</span>(<span class="ident">test13</span>: <span class="string">&quot;FieldNamE11&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;field_nam_e11&quot;</span>);
+    <span class="macro">t!</span>(<span class="ident">test1</span>: <span class="string">&quot;CamelCase&quot;</span> =&gt; <span class="string">&quot;camel_case&quot;</span>);
+    <span class="macro">t!</span>(<span class="ident">test2</span>: <span class="string">&quot;This is Human case.&quot;</span> =&gt; <span class="string">&quot;this_is_human_case&quot;</span>);
+    <span class="macro">t!</span>(<span class="ident">test3</span>: <span class="string">&quot;MixedUP CamelCase, with some Spaces&quot;</span> =&gt; <span class="string">&quot;mixed_up_camel_case_with_some_spaces&quot;</span>);
+    <span class="macro">t!</span>(<span class="ident">test4</span>: <span class="string">&quot;mixed_up_ snake_case with some _spaces&quot;</span> =&gt; <span class="string">&quot;mixed_up_snake_case_with_some_spaces&quot;</span>);
+    <span class="macro">t!</span>(<span class="ident">test5</span>: <span class="string">&quot;kebab-case&quot;</span> =&gt; <span class="string">&quot;kebab_case&quot;</span>);
+    <span class="macro">t!</span>(<span class="ident">test6</span>: <span class="string">&quot;SHOUTY_SNAKE_CASE&quot;</span> =&gt; <span class="string">&quot;shouty_snake_case&quot;</span>);
+    <span class="macro">t!</span>(<span class="ident">test7</span>: <span class="string">&quot;snake_case&quot;</span> =&gt; <span class="string">&quot;snake_case&quot;</span>);
+    <span class="macro">t!</span>(<span class="ident">test8</span>: <span class="string">&quot;this-contains_ ALLKinds OfWord_Boundaries&quot;</span> =&gt; <span class="string">&quot;this_contains_all_kinds_of_word_boundaries&quot;</span>);
+    <span class="macro">t!</span>(<span class="ident">test9</span>: <span class="string">&quot;XΣXΣ baﬄe&quot;</span> =&gt; <span class="string">&quot;xσxς_baﬄe&quot;</span>);
+    <span class="macro">t!</span>(<span class="ident">test10</span>: <span class="string">&quot;XMLHttpRequest&quot;</span> =&gt; <span class="string">&quot;xml_http_request&quot;</span>);
+    <span class="macro">t!</span>(<span class="ident">test11</span>: <span class="string">&quot;FIELD_NAME11&quot;</span> =&gt; <span class="string">&quot;field_name11&quot;</span>);
+    <span class="macro">t!</span>(<span class="ident">test12</span>: <span class="string">&quot;99BOTTLES&quot;</span> =&gt; <span class="string">&quot;99bottles&quot;</span>);
+    <span class="macro">t!</span>(<span class="ident">test13</span>: <span class="string">&quot;FieldNamE11&quot;</span> =&gt; <span class="string">&quot;field_nam_e11&quot;</span>);
 
-    <span class="macro">t!</span>(<span class="ident">test14</span>: <span class="string">&quot;abc123def456&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;abc123def456&quot;</span>);
-    <span class="macro">t!</span>(<span class="ident">test16</span>: <span class="string">&quot;abc123DEF456&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;abc123_def456&quot;</span>);
-    <span class="macro">t!</span>(<span class="ident">test17</span>: <span class="string">&quot;abc123Def456&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;abc123_def456&quot;</span>);
-    <span class="macro">t!</span>(<span class="ident">test18</span>: <span class="string">&quot;abc123DEf456&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;abc123_d_ef456&quot;</span>);
-    <span class="macro">t!</span>(<span class="ident">test19</span>: <span class="string">&quot;ABC123def456&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;abc123def456&quot;</span>);
-    <span class="macro">t!</span>(<span class="ident">test20</span>: <span class="string">&quot;ABC123DEF456&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;abc123def456&quot;</span>);
-    <span class="macro">t!</span>(<span class="ident">test21</span>: <span class="string">&quot;ABC123Def456&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;abc123_def456&quot;</span>);
-    <span class="macro">t!</span>(<span class="ident">test22</span>: <span class="string">&quot;ABC123DEf456&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;abc123d_ef456&quot;</span>);
-    <span class="macro">t!</span>(<span class="ident">test23</span>: <span class="string">&quot;ABC123dEEf456FOO&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;abc123d_e_ef456_foo&quot;</span>);
-    <span class="macro">t!</span>(<span class="ident">test24</span>: <span class="string">&quot;abcDEF&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;abc_def&quot;</span>);
-    <span class="macro">t!</span>(<span class="ident">test25</span>: <span class="string">&quot;ABcDE&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;a_bc_de&quot;</span>);
+    <span class="macro">t!</span>(<span class="ident">test14</span>: <span class="string">&quot;abc123def456&quot;</span> =&gt; <span class="string">&quot;abc123def456&quot;</span>);
+    <span class="macro">t!</span>(<span class="ident">test16</span>: <span class="string">&quot;abc123DEF456&quot;</span> =&gt; <span class="string">&quot;abc123_def456&quot;</span>);
+    <span class="macro">t!</span>(<span class="ident">test17</span>: <span class="string">&quot;abc123Def456&quot;</span> =&gt; <span class="string">&quot;abc123_def456&quot;</span>);
+    <span class="macro">t!</span>(<span class="ident">test18</span>: <span class="string">&quot;abc123DEf456&quot;</span> =&gt; <span class="string">&quot;abc123_d_ef456&quot;</span>);
+    <span class="macro">t!</span>(<span class="ident">test19</span>: <span class="string">&quot;ABC123def456&quot;</span> =&gt; <span class="string">&quot;abc123def456&quot;</span>);
+    <span class="macro">t!</span>(<span class="ident">test20</span>: <span class="string">&quot;ABC123DEF456&quot;</span> =&gt; <span class="string">&quot;abc123def456&quot;</span>);
+    <span class="macro">t!</span>(<span class="ident">test21</span>: <span class="string">&quot;ABC123Def456&quot;</span> =&gt; <span class="string">&quot;abc123_def456&quot;</span>);
+    <span class="macro">t!</span>(<span class="ident">test22</span>: <span class="string">&quot;ABC123DEf456&quot;</span> =&gt; <span class="string">&quot;abc123d_ef456&quot;</span>);
+    <span class="macro">t!</span>(<span class="ident">test23</span>: <span class="string">&quot;ABC123dEEf456FOO&quot;</span> =&gt; <span class="string">&quot;abc123d_e_ef456_foo&quot;</span>);
+    <span class="macro">t!</span>(<span class="ident">test24</span>: <span class="string">&quot;abcDEF&quot;</span> =&gt; <span class="string">&quot;abc_def&quot;</span>);
+    <span class="macro">t!</span>(<span class="ident">test25</span>: <span class="string">&quot;ABcDE&quot;</span> =&gt; <span class="string">&quot;a_bc_de&quot;</span>);
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="heck" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>

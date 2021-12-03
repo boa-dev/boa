@@ -1055,12 +1055,12 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;wrap_help&quot;</span>))]</span>
 <span class="kw">mod</span> <span class="ident">term_size</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dimensions</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dimensions</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
         <span class="prelude-val">None</span>
     }
 }
 
-<span class="kw">fn</span> <span class="ident">str_width</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">fn</span> <span class="ident">str_width</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">usize</span> {
     <span class="ident">UnicodeWidthStr::width</span>(<span class="ident">s</span>)
 }
 
@@ -1071,36 +1071,36 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">ArgWithDisplay</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">T</span> <span class="kw">where</span> <span class="ident">T</span>: <span class="ident">AnyArg</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Display</span> {}
 
 <span class="kw">trait</span> <span class="ident">ArgWithOrder</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span>: <span class="ident">ArgWithDisplay</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">DispOrder</span> {
-    <span class="kw">fn</span> <span class="ident">as_base</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">ArgWithDisplay</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">as_base</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">ArgWithDisplay</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span>;
 }
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">ArgWithOrder</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">T</span>
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">ArgWithDisplay</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">DispOrder</span>,
 {
-    <span class="kw">fn</span> <span class="ident">as_base</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">ArgWithDisplay</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">as_base</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">ArgWithDisplay</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span> {
         <span class="self">self</span>
     }
 }
 
-<span class="kw">fn</span> <span class="ident">as_arg_trait</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">T</span>: <span class="ident">ArgWithOrder</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">ArgWithOrder</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">as_arg_trait</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">T</span>: <span class="ident">ArgWithOrder</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">ArgWithOrder</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
     <span class="ident">x</span>
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span> <span class="ident">DispOrder</span> <span class="kw">for</span> <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">disp_ord</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">disp_ord</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="number">999</span>
     }
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">color</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">_self</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">c</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">_self</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">c</span>:<span class="ident">ident</span>) =&gt; {
         <span class="kw">if</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">_self</span>.<span class="ident">color</span> {
             <span class="macro">write!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">_self</span>.<span class="ident">writer</span>, <span class="string">&quot;{}&quot;</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">_self</span>.<span class="ident">cizer</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">c</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>))
         } <span class="kw">else</span> {
             <span class="macro">write!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">_self</span>.<span class="ident">writer</span>, <span class="string">&quot;{}&quot;</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>)
         }
     };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">_self</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fmt_s</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">c</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">_self</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fmt_s</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">c</span>:<span class="ident">ident</span>) =&gt; {
         <span class="kw">if</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">_self</span>.<span class="ident">color</span> {
             <span class="macro">write!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">_self</span>.<span class="ident">writer</span>, <span class="string">&quot;{}&quot;</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">_self</span>.<span class="ident">cizer</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">c</span>(<span class="macro">format!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fmt_s</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>)))
         } <span class="kw">else</span> {
@@ -1137,25 +1137,25 @@
         <span class="ident">term_w</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
         <span class="ident">max_w</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
         <span class="ident">use_long</span>: <span class="ident">bool</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    ) -&gt; <span class="self">Self</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;Help::new;&quot;</span>);
         <span class="ident">Help</span> {
             <span class="ident">writer</span>: <span class="ident">w</span>,
             <span class="ident">next_line_help</span>: <span class="ident">next_line_help</span>,
             <span class="ident">hide_pv</span>: <span class="ident">hide_pv</span>,
             <span class="ident">term_w</span>: <span class="kw">match</span> <span class="ident">term_w</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">width</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="kw">if</span> <span class="ident">width</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">width</span>) =&gt; {
+                    <span class="kw">if</span> <span class="ident">width</span> <span class="op">==</span> <span class="number">0</span> {
                         <span class="ident">usize::MAX</span>
                     } <span class="kw">else</span> {
                         <span class="ident">width</span>
                     }
                 }
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">cmp::min</span>(
+                <span class="prelude-val">None</span> =&gt; <span class="ident">cmp::min</span>(
                     <span class="ident">term_size::dimensions</span>().<span class="ident">map_or</span>(<span class="number">120</span>, <span class="op">|</span>(<span class="ident">w</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">w</span>),
                     <span class="kw">match</span> <span class="ident">max_w</span> {
-                        <span class="prelude-val">None</span> <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="number">0</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">usize::MAX</span>,
-                        <span class="prelude-val">Some</span>(<span class="ident">mw</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mw</span>,
+                        <span class="prelude-val">None</span> <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="number">0</span>) =&gt; <span class="ident">usize::MAX</span>,
+                        <span class="prelude-val">Some</span>(<span class="ident">mw</span>) =&gt; <span class="ident">mw</span>,
                     },
                 ),
             },
@@ -1169,14 +1169,14 @@
 
     <span class="doccomment">/// Reads help settings from an App</span>
     <span class="doccomment">/// and write its help to the wrapped stream.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_app_help</span>(<span class="ident">w</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Write</span>, <span class="ident">app</span>: <span class="kw-2">&amp;</span><span class="ident">App</span>, <span class="ident">use_long</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_app_help</span>(<span class="ident">w</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Write</span>, <span class="ident">app</span>: <span class="kw-2">&amp;</span><span class="ident">App</span>, <span class="ident">use_long</span>: <span class="ident">bool</span>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;Help::write_app_help;&quot;</span>);
         <span class="ident"><span class="self">Self</span>::write_parser_help</span>(<span class="ident">w</span>, <span class="kw-2">&amp;</span><span class="ident">app</span>.<span class="ident">p</span>, <span class="ident">use_long</span>)
     }
 
     <span class="doccomment">/// Reads help settings from a Parser</span>
     <span class="doccomment">/// and write its help to the wrapped stream.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_parser_help</span>(<span class="ident">w</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Write</span>, <span class="ident">parser</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>, <span class="ident">use_long</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_parser_help</span>(<span class="ident">w</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Write</span>, <span class="ident">parser</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>, <span class="ident">use_long</span>: <span class="ident">bool</span>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;Help::write_parser_help;&quot;</span>);
         <span class="ident"><span class="self">Self</span>::_write_parser_help</span>(<span class="ident">w</span>, <span class="ident">parser</span>, <span class="bool-val">false</span>, <span class="ident">use_long</span>)
     }
@@ -1184,7 +1184,7 @@
     <span class="doccomment">/// Reads help settings from a Parser</span>
     <span class="doccomment">/// and write its help to the wrapped stream which will be stderr. This method prevents</span>
     <span class="doccomment">/// formatting when required.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_parser_help_to_stderr</span>(<span class="ident">w</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Write</span>, <span class="ident">parser</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_parser_help_to_stderr</span>(<span class="ident">w</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Write</span>, <span class="ident">parser</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;Help::write_parser_help;&quot;</span>);
         <span class="ident"><span class="self">Self</span>::_write_parser_help</span>(<span class="ident">w</span>, <span class="ident">parser</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>)
     }
@@ -1195,7 +1195,7 @@
         <span class="ident">parser</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>,
         <span class="ident">stderr</span>: <span class="ident">bool</span>,
         <span class="ident">use_long</span>: <span class="ident">bool</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;Help::write_parser_help;&quot;</span>);
         <span class="kw">let</span> <span class="ident">nlh</span> <span class="op">=</span> <span class="ident">parser</span>.<span class="ident">is_set</span>(<span class="ident">AppSettings::NextLineHelp</span>);
         <span class="kw">let</span> <span class="ident">hide_v</span> <span class="op">=</span> <span class="ident">parser</span>.<span class="ident">is_set</span>(<span class="ident">AppSettings::HidePossibleValuesInHelp</span>);
@@ -1218,7 +1218,7 @@
     }
 
     <span class="doccomment">/// Writes the parser help to the wrapped stream.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_help</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">parser</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_help</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">parser</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;Help::write_help;&quot;</span>);
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">h</span>) <span class="op">=</span> <span class="ident">parser</span>.<span class="ident">meta</span>.<span class="ident">help_str</span> {
             <span class="macro">write!</span>(<span class="self">self</span>.<span class="ident">writer</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">h</span>).<span class="ident">map_err</span>(<span class="ident">Error::from</span>)<span class="question-mark">?</span>;
@@ -1234,7 +1234,7 @@
 <span class="comment">// Methods to write AnyArg help.</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Help</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Writes help for each argument in the order they were declared to the wrapped stream.</span>
-    <span class="kw">fn</span> <span class="ident">write_args_unsorted</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;d</span>, <span class="lifetime">&#39;c</span>: <span class="lifetime">&#39;d</span>, <span class="lifetime">&#39;d</span>, <span class="ident">I</span>: <span class="lifetime">&#39;d</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">args</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">write_args_unsorted</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;d</span>, <span class="lifetime">&#39;c</span>: <span class="lifetime">&#39;d</span>, <span class="lifetime">&#39;d</span>, <span class="ident">I</span>: <span class="lifetime">&#39;d</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">args</span>: <span class="ident">I</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;d</span> <span class="ident">ArgWithOrder</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
@@ -1262,7 +1262,7 @@
     }
 
     <span class="doccomment">/// Sorts arguments by length and display order and write their help to the wrapped stream.</span>
-    <span class="kw">fn</span> <span class="ident">write_args</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;d</span>, <span class="lifetime">&#39;c</span>: <span class="lifetime">&#39;d</span>, <span class="lifetime">&#39;d</span>, <span class="ident">I</span>: <span class="lifetime">&#39;d</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">args</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">write_args</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;d</span>, <span class="lifetime">&#39;c</span>: <span class="lifetime">&#39;d</span>, <span class="lifetime">&#39;d</span>, <span class="ident">I</span>: <span class="lifetime">&#39;d</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">args</span>: <span class="ident">I</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;d</span> <span class="ident">ArgWithOrder</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
@@ -1301,7 +1301,7 @@
     }
 
     <span class="doccomment">/// Writes help for an argument to the wrapped stream.</span>
-    <span class="kw">fn</span> <span class="ident">write_arg</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="ident">ArgWithDisplay</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">write_arg</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="ident">ArgWithDisplay</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;Help::write_arg;&quot;</span>);
         <span class="self">self</span>.<span class="ident">short</span>(<span class="ident">arg</span>)<span class="question-mark">?</span>;
         <span class="self">self</span>.<span class="ident">long</span>(<span class="ident">arg</span>)<span class="question-mark">?</span>;
@@ -1311,7 +1311,7 @@
     }
 
     <span class="doccomment">/// Writes argument&#39;s short command to the wrapped stream.</span>
-    <span class="kw">fn</span> <span class="ident">short</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="ident">ArgWithDisplay</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">short</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="ident">ArgWithDisplay</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;Help::short;&quot;</span>);
         <span class="macro">write!</span>(<span class="self">self</span>.<span class="ident">writer</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">TAB</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">short</span>() {
@@ -1324,7 +1324,7 @@
     }
 
     <span class="doccomment">/// Writes argument&#39;s long command to the wrapped stream.</span>
-    <span class="kw">fn</span> <span class="ident">long</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="ident">ArgWithDisplay</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">long</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="ident">ArgWithDisplay</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;Help::long;&quot;</span>);
         <span class="kw">if</span> <span class="op">!</span><span class="ident">arg</span>.<span class="ident">has_switch</span>() {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
@@ -1353,7 +1353,7 @@
     }
 
     <span class="doccomment">/// Writes argument&#39;s possible values to the wrapped stream.</span>
-    <span class="kw">fn</span> <span class="ident">val</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="ident">ArgWithDisplay</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">io::Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">val</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="ident">ArgWithDisplay</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">io::Error</span><span class="op">&gt;</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;Help::val: arg={}&quot;</span>, <span class="ident">arg</span>);
         <span class="kw">if</span> <span class="ident">arg</span>.<span class="ident">takes_value</span>() {
             <span class="kw">let</span> <span class="ident">delim</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">arg</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::RequireDelimiter</span>) {
@@ -1370,7 +1370,7 @@
                     }
                 }
                 <span class="kw">let</span> <span class="ident">num</span> <span class="op">=</span> <span class="ident">vec</span>.<span class="ident">len</span>();
-                <span class="kw">if</span> <span class="ident">arg</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Multiple</span>) <span class="op">&amp;&amp;</span> <span class="ident">num</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+                <span class="kw">if</span> <span class="ident">arg</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Multiple</span>) <span class="op">&amp;&amp;</span> <span class="ident">num</span> <span class="op">==</span> <span class="number">1</span> {
                     <span class="macro">color!</span>(<span class="self">self</span>, <span class="string">&quot;...&quot;</span>, <span class="ident">good</span>)<span class="question-mark">?</span>;
                 }
             } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">num</span>) <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">num_vals</span>() {
@@ -1381,7 +1381,7 @@
                         <span class="macro">write!</span>(<span class="self">self</span>.<span class="ident">writer</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">delim</span>)<span class="question-mark">?</span>;
                     }
                 }
-                <span class="kw">if</span> <span class="ident">arg</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Multiple</span>) <span class="op">&amp;&amp;</span> <span class="ident">num</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+                <span class="kw">if</span> <span class="ident">arg</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Multiple</span>) <span class="op">&amp;&amp;</span> <span class="ident">num</span> <span class="op">==</span> <span class="number">1</span> {
                     <span class="macro">color!</span>(<span class="self">self</span>, <span class="string">&quot;...&quot;</span>, <span class="ident">good</span>)<span class="question-mark">?</span>;
                 }
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">arg</span>.<span class="ident">has_switch</span>() {
@@ -1449,7 +1449,7 @@
         <span class="prelude-val">Ok</span>(<span class="ident">spec_vals</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">write_before_after_help</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">h</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">write_before_after_help</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">h</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;Help::write_before_after_help;&quot;</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">help</span> <span class="op">=</span> <span class="ident">String::from</span>(<span class="ident">h</span>);
         <span class="comment">// determine if our help fits or needs to wrap</span>
@@ -1481,7 +1481,7 @@
     }
 
     <span class="doccomment">/// Writes argument&#39;s help to the wrapped stream.</span>
-    <span class="kw">fn</span> <span class="ident">help</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="ident">ArgWithDisplay</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span>, <span class="ident">spec_vals</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">help</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="ident">ArgWithDisplay</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span>, <span class="ident">spec_vals</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;Help::help;&quot;</span>);
         <span class="kw">let</span> <span class="ident">h</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">use_long</span> <span class="op">&amp;&amp;</span> <span class="ident">arg</span>.<span class="ident">name</span>() <span class="op">!</span><span class="op">=</span> <span class="string">&quot;&quot;</span> {
             <span class="ident">arg</span>.<span class="ident">long_help</span>().<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">arg</span>.<span class="ident">help</span>().<span class="ident">unwrap_or</span>(<span class="string">&quot;&quot;</span>))
@@ -1539,7 +1539,7 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">spec_vals</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ArgWithDisplay</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+    <span class="kw">fn</span> <span class="ident">spec_vals</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ArgWithDisplay</span>) -&gt; <span class="ident">String</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;Help::spec_vals: a={}&quot;</span>, <span class="ident">a</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">spec_vals</span> <span class="op">=</span> <span class="macro">vec!</span>[];
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">env</span>) <span class="op">=</span> <span class="ident">a</span>.<span class="ident">env</span>() {
@@ -1607,7 +1607,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">should_show_arg</span>(<span class="ident">use_long</span>: <span class="ident">bool</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="ident">ArgWithOrder</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">fn</span> <span class="ident">should_show_arg</span>(<span class="ident">use_long</span>: <span class="ident">bool</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="ident">ArgWithOrder</span>) -&gt; <span class="ident">bool</span> {
     <span class="kw">if</span> <span class="ident">arg</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Hidden</span>) {
         <span class="kw">return</span> <span class="bool-val">false</span>;
     }
@@ -1623,7 +1623,7 @@
     <span class="doccomment">/// including titles of a Parser Object to the wrapped stream.</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;lints&quot;</span>, <span class="ident">allow</span>(<span class="ident">useless_let_if_seq</span>))]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;cargo-clippy&quot;</span>, <span class="ident">allow</span>(<span class="ident">useless_let_if_seq</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_all_args</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">parser</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_all_args</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">parser</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;Help::write_all_args;&quot;</span>);
         <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">parser</span>.<span class="ident">has_flags</span>();
         <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">parser</span>
@@ -1683,7 +1683,7 @@
     }
 
     <span class="doccomment">/// Writes help for subcommands of a Parser Object to the wrapped stream.</span>
-    <span class="kw">fn</span> <span class="ident">write_subcommands</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">parser</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">write_subcommands</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">parser</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;Help::write_subcommands;&quot;</span>);
         <span class="comment">// The shortest an arg can legally be is 2 (i.e. &#39;-x&#39;)</span>
         <span class="self">self</span>.<span class="ident">longest</span> <span class="op">=</span> <span class="number">2</span>;
@@ -1714,17 +1714,17 @@
     }
 
     <span class="doccomment">/// Writes version of a Parser Object to the wrapped stream.</span>
-    <span class="kw">fn</span> <span class="ident">write_version</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">parser</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">write_version</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">parser</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;Help::write_version;&quot;</span>);
         <span class="macro">write!</span>(<span class="self">self</span>.<span class="ident">writer</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">parser</span>.<span class="ident">meta</span>.<span class="ident">version</span>.<span class="ident">unwrap_or</span>(<span class="string">&quot;&quot;</span>))<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Writes binary name of a Parser Object to the wrapped stream.</span>
-    <span class="kw">fn</span> <span class="ident">write_bin_name</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">parser</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">write_bin_name</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">parser</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;Help::write_bin_name;&quot;</span>);
         <span class="macro">macro_rules!</span> <span class="ident">write_name</span> {
-            () <span class="op">=</span><span class="op">&gt;</span> {{
+            () =&gt; {{
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">parser</span>.<span class="ident">meta</span>.<span class="ident">name</span>.<span class="ident">clone</span>();
                 <span class="ident">name</span> <span class="op">=</span> <span class="ident">name</span>.<span class="ident">replace</span>(<span class="string">&quot;{n}&quot;</span>, <span class="string">&quot;\n&quot;</span>);
                 <span class="macro">color!</span>(<span class="self">self</span>, <span class="ident">wrap_help</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>, <span class="self">self</span>.<span class="ident">term_w</span>), <span class="ident">good</span>)<span class="question-mark">?</span>;
@@ -1744,7 +1744,7 @@
     }
 
     <span class="doccomment">/// Writes default help for a Parser Object to the wrapped stream.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_default_help</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">parser</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_default_help</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">parser</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;Help::write_default_help;&quot;</span>);
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">h</span>) <span class="op">=</span> <span class="ident">parser</span>.<span class="ident">meta</span>.<span class="ident">pre_help</span> {
             <span class="self">self</span>.<span class="ident">write_before_after_help</span>(<span class="ident">h</span>)<span class="question-mark">?</span>;
@@ -1752,7 +1752,7 @@
         }
 
         <span class="macro">macro_rules!</span> <span class="ident">write_thing</span> {
-            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">thing</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {{
+            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">thing</span>:<span class="ident">expr</span>) =&gt; {{
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">owned_thing</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">thing</span>.<span class="ident">to_owned</span>();
                 <span class="ident">owned_thing</span> <span class="op">=</span> <span class="ident">owned_thing</span>.<span class="ident">replace</span>(<span class="string">&quot;{n}&quot;</span>, <span class="string">&quot;\n&quot;</span>);
                 <span class="macro">write!</span>(<span class="self">self</span>.<span class="ident">writer</span>, <span class="string">&quot;{}\n&quot;</span>, <span class="ident">wrap_help</span>(<span class="kw-2">&amp;</span><span class="ident">owned_thing</span>, <span class="self">self</span>.<span class="ident">term_w</span>))<span class="question-mark">?</span>
@@ -1824,22 +1824,22 @@
 <span class="doccomment">/// Copies the contents of a reader into a writer until a delimiter byte is found.</span>
 <span class="doccomment">/// On success, the total number of bytes that were</span>
 <span class="doccomment">/// copied from reader to writer is returned.</span>
-<span class="kw">fn</span> <span class="ident">copy_until</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span>, <span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(<span class="ident">r</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>, <span class="ident">w</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">W</span>, <span class="ident">delimiter_byte</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CopyUntilResult</span> {
+<span class="kw">fn</span> <span class="ident">copy_until</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span>, <span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(<span class="ident">r</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>, <span class="ident">w</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">W</span>, <span class="ident">delimiter_byte</span>: <span class="ident">u8</span>) -&gt; <span class="ident">CopyUntilResult</span> {
     <span class="macro">debugln!</span>(<span class="string">&quot;copy_until;&quot;</span>);
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">count</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">for</span> <span class="ident">wb</span> <span class="kw">in</span> <span class="ident">r</span>.<span class="ident">bytes</span>() {
         <span class="kw">match</span> <span class="ident">wb</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <span class="ident">b</span> <span class="op">=</span><span class="op">=</span> <span class="ident">delimiter_byte</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">b</span>) =&gt; {
+                <span class="kw">if</span> <span class="ident">b</span> <span class="op">==</span> <span class="ident">delimiter_byte</span> {
                     <span class="kw">return</span> <span class="ident">CopyUntilResult::DelimiterFound</span>(<span class="ident">count</span>);
                 }
                 <span class="kw">match</span> <span class="ident">w</span>.<span class="ident">write</span>(<span class="kw-2">&amp;</span>[<span class="ident">b</span>]) {
-                    <span class="prelude-val">Ok</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="ident">c</span>,
-                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">CopyUntilResult::WriteError</span>(<span class="ident">e</span>),
+                    <span class="prelude-val">Ok</span>(<span class="ident">c</span>) =&gt; <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="ident">c</span>,
+                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="kw">return</span> <span class="ident">CopyUntilResult::WriteError</span>(<span class="ident">e</span>),
                 }
             }
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">CopyUntilResult::ReadError</span>(<span class="ident">e</span>),
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="kw">return</span> <span class="ident">CopyUntilResult::ReadError</span>(<span class="ident">e</span>),
         }
     }
     <span class="kw">if</span> <span class="ident">count</span> <span class="op">&gt;</span> <span class="number">0</span> {
@@ -1859,7 +1859,7 @@
     <span class="ident">r</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>,
     <span class="ident">w</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">W</span>,
     <span class="ident">tag_buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">use</span> <span class="ident"><span class="self">self</span>::CopyUntilResult</span>::<span class="kw-2">*</span>;
     <span class="macro">debugln!</span>(<span class="string">&quot;copy_and_capture;&quot;</span>);
 
@@ -1868,14 +1868,14 @@
         <span class="comment">// The end of the reader was reached without finding the opening tag.</span>
         <span class="comment">// (either with or without having copied data to the writer)</span>
         <span class="comment">// Return None indicating that we are done.</span>
-        <span class="ident">ReaderEmpty</span> <span class="op">|</span> <span class="ident">DelimiterNotFound</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+        <span class="ident">ReaderEmpty</span> <span class="op">|</span> <span class="ident">DelimiterNotFound</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
 
         <span class="comment">// Something went wrong.</span>
-        <span class="ident">ReadError</span>(<span class="ident">e</span>) <span class="op">|</span> <span class="ident">WriteError</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)),
+        <span class="ident">ReadError</span>(<span class="ident">e</span>) <span class="op">|</span> <span class="ident">WriteError</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)),
 
         <span class="comment">// The opening byte was found.</span>
         <span class="comment">// (either with or without having copied data to the writer)</span>
-        <span class="ident">DelimiterFound</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">DelimiterFound</span>(<span class="kw">_</span>) =&gt; {
             <span class="comment">// Lets reset the buffer first and find out how long it is.</span>
             <span class="ident">tag_buffer</span>.<span class="ident">set_position</span>(<span class="number">0</span>);
             <span class="kw">let</span> <span class="ident">buffer_size</span> <span class="op">=</span> <span class="ident">tag_buffer</span>.<span class="ident">get_ref</span>().<span class="ident">len</span>();
@@ -1885,24 +1885,24 @@
             <span class="kw">match</span> <span class="ident">copy_until</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rb</span>, <span class="ident">tag_buffer</span>, <span class="string">b&#39;}&#39;</span>) {
                 <span class="comment">// We were already at the end of the reader.</span>
                 <span class="comment">// Return None indicating that we are done.</span>
-                <span class="ident">ReaderEmpty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+                <span class="ident">ReaderEmpty</span> =&gt; <span class="prelude-val">None</span>,
 
                 <span class="comment">// The closing tag was found.</span>
                 <span class="comment">// Return the tag_length.</span>
-                <span class="ident">DelimiterFound</span>(<span class="ident">tag_length</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">tag_length</span>)),
+                <span class="ident">DelimiterFound</span>(<span class="ident">tag_length</span>) =&gt; <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">tag_length</span>)),
 
                 <span class="comment">// The end of the reader was found without finding the closing tag.</span>
                 <span class="comment">// Write the opening byte and captured text to the writer.</span>
                 <span class="comment">// Return 0 indicating that nothing was captured but the reader still contains data.</span>
-                <span class="ident">DelimiterNotFound</span>(<span class="ident">not_tag_length</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">w</span>.<span class="ident">write</span>(<span class="string">b&quot;{&quot;</span>) {
-                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)),
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">w</span>.<span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="ident">tag_buffer</span>.<span class="ident">get_ref</span>()[<span class="number">0</span>..<span class="ident">not_tag_length</span>]) {
-                        <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)),
-                        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="number">0</span>)),
+                <span class="ident">DelimiterNotFound</span>(<span class="ident">not_tag_length</span>) =&gt; <span class="kw">match</span> <span class="ident">w</span>.<span class="ident">write</span>(<span class="string">b&quot;{&quot;</span>) {
+                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)),
+                    <span class="kw">_</span> =&gt; <span class="kw">match</span> <span class="ident">w</span>.<span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="ident">tag_buffer</span>.<span class="ident">get_ref</span>()[<span class="number">0</span>..<span class="ident">not_tag_length</span>]) {
+                        <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)),
+                        <span class="kw">_</span> =&gt; <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="number">0</span>)),
                     },
                 },
 
-                <span class="ident">ReadError</span>(<span class="ident">e</span>) <span class="op">|</span> <span class="ident">WriteError</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)),
+                <span class="ident">ReadError</span>(<span class="ident">e</span>) <span class="op">|</span> <span class="ident">WriteError</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)),
             }
         }
     }
@@ -1930,7 +1930,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// The template system is, on purpose, very simple. Therefore the tags have to written</span>
     <span class="doccomment">/// in the lowercase and without spacing.</span>
-    <span class="kw">fn</span> <span class="ident">write_templated_help</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">parser</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>, <span class="ident">template</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">write_templated_help</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">parser</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>, <span class="ident">template</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;Help::write_templated_help;&quot;</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmplr</span> <span class="op">=</span> <span class="ident">Cursor::new</span>(<span class="kw-2">&amp;</span><span class="ident">template</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tag_buf</span> <span class="op">=</span> <span class="ident">Cursor::new</span>(<span class="macro">vec!</span>[<span class="number">0u8</span>; <span class="number">15</span>]);
@@ -1943,10 +1943,10 @@
 
         <span class="kw">loop</span> {
             <span class="kw">let</span> <span class="ident">tag_length</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">copy_and_capture</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">tmplr</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">writer</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">tag_buf</span>) {
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(()),
-                <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::from</span>(<span class="ident">e</span>)),
-                <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">val</span>)) <span class="kw">if</span> <span class="ident">val</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">val</span>,
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">continue</span>,
+                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(()),
+                <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::from</span>(<span class="ident">e</span>)),
+                <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">val</span>)) <span class="kw">if</span> <span class="ident">val</span> <span class="op">&gt;</span> <span class="number">0</span> =&gt; <span class="ident">val</span>,
+                <span class="kw">_</span> =&gt; <span class="kw">continue</span>,
             };
 
             <span class="macro">debugln!</span>(<span class="string">&quot;Help::write_template_help:iter: tag_buf={};&quot;</span>, <span class="kw">unsafe</span> {
@@ -1958,73 +1958,73 @@
                 )
             });
             <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">tag_buf</span>.<span class="ident">get_ref</span>()[<span class="number">0</span>..<span class="ident">tag_length</span>] {
-                <span class="string">b&quot;?&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="string">b&quot;?&quot;</span> =&gt; {
                     <span class="self">self</span>.<span class="ident">writer</span>.<span class="ident">write_all</span>(<span class="string">b&quot;Could not decode tag name&quot;</span>)<span class="question-mark">?</span>;
                 }
-                <span class="string">b&quot;bin&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="string">b&quot;bin&quot;</span> =&gt; {
                     <span class="self">self</span>.<span class="ident">write_bin_name</span>(<span class="ident">parser</span>)<span class="question-mark">?</span>;
                 }
-                <span class="string">b&quot;version&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="string">b&quot;version&quot;</span> =&gt; {
                     <span class="macro">write!</span>(
                         <span class="self">self</span>.<span class="ident">writer</span>,
                         <span class="string">&quot;{}&quot;</span>,
                         <span class="ident">parser</span>.<span class="ident">meta</span>.<span class="ident">version</span>.<span class="ident">unwrap_or</span>(<span class="string">&quot;unknown version&quot;</span>)
                     )<span class="question-mark">?</span>;
                 }
-                <span class="string">b&quot;author&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="string">b&quot;author&quot;</span> =&gt; {
                     <span class="macro">write!</span>(
                         <span class="self">self</span>.<span class="ident">writer</span>,
                         <span class="string">&quot;{}&quot;</span>,
                         <span class="ident">parser</span>.<span class="ident">meta</span>.<span class="ident">author</span>.<span class="ident">unwrap_or</span>(<span class="string">&quot;unknown author&quot;</span>)
                     )<span class="question-mark">?</span>;
                 }
-                <span class="string">b&quot;about&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="string">b&quot;about&quot;</span> =&gt; {
                     <span class="macro">write!</span>(
                         <span class="self">self</span>.<span class="ident">writer</span>,
                         <span class="string">&quot;{}&quot;</span>,
                         <span class="ident">parser</span>.<span class="ident">meta</span>.<span class="ident">about</span>.<span class="ident">unwrap_or</span>(<span class="string">&quot;unknown about&quot;</span>)
                     )<span class="question-mark">?</span>;
                 }
-                <span class="string">b&quot;long-about&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="string">b&quot;long-about&quot;</span> =&gt; {
                     <span class="macro">write!</span>(
                         <span class="self">self</span>.<span class="ident">writer</span>,
                         <span class="string">&quot;{}&quot;</span>,
                         <span class="ident">parser</span>.<span class="ident">meta</span>.<span class="ident">long_about</span>.<span class="ident">unwrap_or</span>(<span class="string">&quot;unknown about&quot;</span>)
                     )<span class="question-mark">?</span>;
                 }
-                <span class="string">b&quot;usage&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="string">b&quot;usage&quot;</span> =&gt; {
                     <span class="macro">write!</span>(<span class="self">self</span>.<span class="ident">writer</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">usage::create_usage_no_title</span>(<span class="ident">parser</span>, <span class="kw-2">&amp;</span>[]))<span class="question-mark">?</span>;
                 }
-                <span class="string">b&quot;all-args&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="string">b&quot;all-args&quot;</span> =&gt; {
                     <span class="self">self</span>.<span class="ident">write_all_args</span>(<span class="ident">parser</span>)<span class="question-mark">?</span>;
                 }
-                <span class="string">b&quot;unified&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="string">b&quot;unified&quot;</span> =&gt; {
                     <span class="kw">let</span> <span class="ident">opts_flags</span> <span class="op">=</span> <span class="ident">parser</span>
                         .<span class="ident">flags</span>()
                         .<span class="ident">map</span>(<span class="ident">as_arg_trait</span>)
                         .<span class="ident">chain</span>(<span class="ident">parser</span>.<span class="ident">opts</span>().<span class="ident">map</span>(<span class="ident">as_arg_trait</span>));
                     <span class="self">self</span>.<span class="ident">write_args</span>(<span class="ident">opts_flags</span>)<span class="question-mark">?</span>;
                 }
-                <span class="string">b&quot;flags&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="string">b&quot;flags&quot;</span> =&gt; {
                     <span class="self">self</span>.<span class="ident">write_args</span>(<span class="ident">parser</span>.<span class="ident">flags</span>().<span class="ident">map</span>(<span class="ident">as_arg_trait</span>))<span class="question-mark">?</span>;
                 }
-                <span class="string">b&quot;options&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="string">b&quot;options&quot;</span> =&gt; {
                     <span class="self">self</span>.<span class="ident">write_args</span>(<span class="ident">parser</span>.<span class="ident">opts</span>().<span class="ident">map</span>(<span class="ident">as_arg_trait</span>))<span class="question-mark">?</span>;
                 }
-                <span class="string">b&quot;positionals&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="string">b&quot;positionals&quot;</span> =&gt; {
                     <span class="self">self</span>.<span class="ident">write_args</span>(<span class="ident">parser</span>.<span class="ident">positionals</span>().<span class="ident">map</span>(<span class="ident">as_arg_trait</span>))<span class="question-mark">?</span>;
                 }
-                <span class="string">b&quot;subcommands&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="string">b&quot;subcommands&quot;</span> =&gt; {
                     <span class="self">self</span>.<span class="ident">write_subcommands</span>(<span class="ident">parser</span>)<span class="question-mark">?</span>;
                 }
-                <span class="string">b&quot;after-help&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="string">b&quot;after-help&quot;</span> =&gt; {
                     <span class="macro">write!</span>(
                         <span class="self">self</span>.<span class="ident">writer</span>,
                         <span class="string">&quot;{}&quot;</span>,
                         <span class="ident">parser</span>.<span class="ident">meta</span>.<span class="ident">more_help</span>.<span class="ident">unwrap_or</span>(<span class="string">&quot;unknown after-help&quot;</span>)
                     )<span class="question-mark">?</span>;
                 }
-                <span class="string">b&quot;before-help&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="string">b&quot;before-help&quot;</span> =&gt; {
                     <span class="macro">write!</span>(
                         <span class="self">self</span>.<span class="ident">writer</span>,
                         <span class="string">&quot;{}&quot;</span>,
@@ -2032,7 +2032,7 @@
                     )<span class="question-mark">?</span>;
                 }
                 <span class="comment">// Unknown tag, write it back.</span>
-                <span class="ident">r</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">r</span> =&gt; {
                     <span class="self">self</span>.<span class="ident">writer</span>.<span class="ident">write_all</span>(<span class="string">b&quot;{&quot;</span>)<span class="question-mark">?</span>;
                     <span class="self">self</span>.<span class="ident">writer</span>.<span class="ident">write_all</span>(<span class="ident">r</span>)<span class="question-mark">?</span>;
                     <span class="self">self</span>.<span class="ident">writer</span>.<span class="ident">write_all</span>(<span class="string">b&quot;}&quot;</span>)<span class="question-mark">?</span>;
@@ -2042,7 +2042,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">wrap_help</span>(<span class="ident">help</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">avail_chars</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+<span class="kw">fn</span> <span class="ident">wrap_help</span>(<span class="ident">help</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">avail_chars</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
     <span class="kw">let</span> <span class="ident">wrapper</span> <span class="op">=</span> <span class="ident">textwrap::Wrapper::new</span>(<span class="ident">avail_chars</span>).<span class="ident">break_words</span>(<span class="bool-val">false</span>);
     <span class="ident">help</span>.<span class="ident">lines</span>()
         .<span class="ident">map</span>(<span class="op">|</span><span class="ident">line</span><span class="op">|</span> <span class="ident">wrapper</span>.<span class="ident">fill</span>(<span class="ident">line</span>))

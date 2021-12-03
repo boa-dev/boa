@@ -390,7 +390,7 @@
 <span class="doccomment">/// Use this for marking types as not containing any `Trace` types.</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">unsafe_empty_trace</span> {
-    () <span class="op">=</span><span class="op">&gt;</span> {
+    () =&gt; {
         <span class="attribute">#[<span class="ident">inline</span>]</span>
         <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">trace</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {}
         <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -411,7 +411,7 @@
 <span class="doccomment">/// correct method on the argument.</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">custom_trace</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">expr</span>) =&gt; {
         <span class="attribute">#[<span class="ident">inline</span>]</span>
         <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">trace</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
             <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -458,7 +458,7 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">simple_empty_finalize_trace</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:<span class="ident">ty</span>),<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:<span class="ident">ty</span>),<span class="kw-2">*</span>) =&gt; {
         $(
             <span class="kw">impl</span> <span class="ident">Finalize</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {}
             <span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> { <span class="macro">unsafe_empty_trace!</span>(); }
@@ -524,31 +524,31 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">fn_finalize_trace_one</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ty</span> $(,<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">ident</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ty</span> $(,<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">ident</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Ret</span> $(,<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>)<span class="kw-2">*</span><span class="op">&gt;</span> <span class="ident">Finalize</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> {}
         <span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Ret</span> $(,<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>)<span class="kw-2">*</span><span class="op">&gt;</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> { <span class="macro">unsafe_empty_trace!</span>(); }
     }
 }
 <span class="macro">macro_rules!</span> <span class="ident">fn_finalize_trace_group</span> {
-    () <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="macro">fn_finalize_trace_one!</span>(<span class="kw">extern</span> <span class="string">&quot;Rust&quot;</span> <span class="kw">fn</span> () <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ret</span>);
-        <span class="macro">fn_finalize_trace_one!</span>(<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> () <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ret</span>);
-        <span class="macro">fn_finalize_trace_one!</span>(<span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;Rust&quot;</span> <span class="kw">fn</span> () <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ret</span>);
-        <span class="macro">fn_finalize_trace_one!</span>(<span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> () <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ret</span>);
+    () =&gt; {
+        <span class="macro">fn_finalize_trace_one!</span>(<span class="kw">extern</span> <span class="string">&quot;Rust&quot;</span> <span class="kw">fn</span> () -&gt; <span class="ident">Ret</span>);
+        <span class="macro">fn_finalize_trace_one!</span>(<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> () -&gt; <span class="ident">Ret</span>);
+        <span class="macro">fn_finalize_trace_one!</span>(<span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;Rust&quot;</span> <span class="kw">fn</span> () -&gt; <span class="ident">Ret</span>);
+        <span class="macro">fn_finalize_trace_one!</span>(<span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> () -&gt; <span class="ident">Ret</span>);
     };
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">ident</span>),<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="macro">fn_finalize_trace_one!</span>(<span class="kw">extern</span> <span class="string">&quot;Rust&quot;</span> <span class="kw">fn</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>),<span class="kw-2">*</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ret</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>),<span class="kw-2">*</span>);
-        <span class="macro">fn_finalize_trace_one!</span>(<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>),<span class="kw-2">*</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ret</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>),<span class="kw-2">*</span>);
-        <span class="macro">fn_finalize_trace_one!</span>(<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>),<span class="kw-2">*</span>, ...) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ret</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>),<span class="kw-2">*</span>);
-        <span class="macro">fn_finalize_trace_one!</span>(<span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;Rust&quot;</span> <span class="kw">fn</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>),<span class="kw-2">*</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ret</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>),<span class="kw-2">*</span>);
-        <span class="macro">fn_finalize_trace_one!</span>(<span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>),<span class="kw-2">*</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ret</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>),<span class="kw-2">*</span>);
-        <span class="macro">fn_finalize_trace_one!</span>(<span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>),<span class="kw-2">*</span>, ...) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ret</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>),<span class="kw-2">*</span>);
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">ident</span>),<span class="kw-2">*</span>) =&gt; {
+        <span class="macro">fn_finalize_trace_one!</span>(<span class="kw">extern</span> <span class="string">&quot;Rust&quot;</span> <span class="kw">fn</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>),<span class="kw-2">*</span>) -&gt; <span class="ident">Ret</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>),<span class="kw-2">*</span>);
+        <span class="macro">fn_finalize_trace_one!</span>(<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>),<span class="kw-2">*</span>) -&gt; <span class="ident">Ret</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>),<span class="kw-2">*</span>);
+        <span class="macro">fn_finalize_trace_one!</span>(<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>),<span class="kw-2">*</span>, ...) -&gt; <span class="ident">Ret</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>),<span class="kw-2">*</span>);
+        <span class="macro">fn_finalize_trace_one!</span>(<span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;Rust&quot;</span> <span class="kw">fn</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>),<span class="kw-2">*</span>) -&gt; <span class="ident">Ret</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>),<span class="kw-2">*</span>);
+        <span class="macro">fn_finalize_trace_one!</span>(<span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>),<span class="kw-2">*</span>) -&gt; <span class="ident">Ret</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>),<span class="kw-2">*</span>);
+        <span class="macro">fn_finalize_trace_one!</span>(<span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>),<span class="kw-2">*</span>, ...) -&gt; <span class="ident">Ret</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>),<span class="kw-2">*</span>);
     }
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">tuple_finalize_trace</span> {
-    () <span class="op">=</span><span class="op">&gt;</span> {}; <span class="comment">// This case is handled above, by simple_finalize_empty_trace!().</span>
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">ident</span>),<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    () =&gt; {}; <span class="comment">// This case is handled above, by simple_finalize_empty_trace!().</span>
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">ident</span>),<span class="kw-2">*</span>) =&gt; {
         <span class="kw">impl</span><span class="op">&lt;</span>$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>),<span class="kw-2">*</span><span class="op">&gt;</span> <span class="ident">Finalize</span> <span class="kw">for</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>,)<span class="kw-2">*</span>) {}
         <span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span>$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Trace</span>),<span class="kw-2">*</span><span class="op">&gt;</span> <span class="ident">Trace</span> <span class="kw">for</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>,)<span class="kw-2">*</span>) {
             <span class="macro">custom_trace!</span>(<span class="ident">this</span>, {
@@ -563,7 +563,7 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">type_arg_tuple_based_finalized_trace_impls</span> {
-    ($(($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">ident</span>),<span class="kw-2">*</span>);)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    ($(($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">ident</span>),<span class="kw-2">*</span>);)<span class="kw-2">*</span>) =&gt; {
         $(
             <span class="macro">fn_finalize_trace_group!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>),<span class="kw-2">*</span>);
             <span class="macro">tuple_finalize_trace!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>),<span class="kw-2">*</span>);
@@ -632,8 +632,8 @@
 <span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Trace</span>, <span class="ident">E</span>: <span class="ident">Trace</span><span class="op">&gt;</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span> {
     <span class="macro">custom_trace!</span>(<span class="ident">this</span>, {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">this</span> {
-            <span class="prelude-val">Ok</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mark</span>(<span class="ident">v</span>),
-            <span class="prelude-val">Err</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mark</span>(<span class="ident">v</span>),
+            <span class="prelude-val">Ok</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; <span class="ident">mark</span>(<span class="ident">v</span>),
+            <span class="prelude-val">Err</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; <span class="ident">mark</span>(<span class="ident">v</span>),
         }
     });
 }

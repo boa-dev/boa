@@ -221,25 +221,25 @@
 
     <span class="doccomment">/// All implementors of `Visitor` must provide a `finish` method, which</span>
     <span class="doccomment">/// yields the result of visiting the HIR or an error.</span>
-    <span class="kw">fn</span> <span class="ident">finish</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">finish</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// This method is called before beginning traversal of the HIR.</span>
     <span class="kw">fn</span> <span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {}
 
     <span class="doccomment">/// This method is called on an `Hir` before descending into child `Hir`</span>
     <span class="doccomment">/// nodes.</span>
-    <span class="kw">fn</span> <span class="ident">visit_pre</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">_hir</span>: <span class="kw-2">&amp;</span><span class="ident">Hir</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">visit_pre</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">_hir</span>: <span class="kw-2">&amp;</span><span class="ident">Hir</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// This method is called on an `Hir` after descending all of its child</span>
     <span class="doccomment">/// `Hir` nodes.</span>
-    <span class="kw">fn</span> <span class="ident">visit_post</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">_hir</span>: <span class="kw-2">&amp;</span><span class="ident">Hir</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">visit_post</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">_hir</span>: <span class="kw-2">&amp;</span><span class="ident">Hir</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// This method is called between child nodes of an alternation.</span>
-    <span class="kw">fn</span> <span class="ident">visit_alternation_in</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">visit_alternation_in</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(())
     }
 }
@@ -259,7 +259,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// If the visitor returns an error at any point, then visiting is stopped and</span>
 <span class="doccomment">/// the error is returned.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visit</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&gt;</span>(<span class="ident">hir</span>: <span class="kw-2">&amp;</span><span class="ident">Hir</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Output</span>, <span class="ident">V::Err</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visit</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&gt;</span>(<span class="ident">hir</span>: <span class="kw-2">&amp;</span><span class="ident">Hir</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Output</span>, <span class="ident">V::Err</span><span class="op">&gt;</span> {
     <span class="ident">HeapVisitor::new</span>().<span class="ident">visit</span>(<span class="ident">hir</span>, <span class="ident">visitor</span>)
 }
 
@@ -299,7 +299,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">HeapVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">HeapVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">HeapVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="ident">HeapVisitor</span> { <span class="ident">stack</span>: <span class="macro">vec!</span>[] }
     }
 
@@ -307,7 +307,7 @@
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="kw-2">mut</span> <span class="ident">hir</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Hir</span>,
         <span class="kw-2">mut</span> <span class="ident">visitor</span>: <span class="ident">V</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Output</span>, <span class="ident">V::Err</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Output</span>, <span class="ident">V::Err</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">stack</span>.<span class="ident">clear</span>();
 
         <span class="ident">visitor</span>.<span class="ident">start</span>();
@@ -327,8 +327,8 @@
             <span class="comment">// either empty or we hit another inductive case.</span>
             <span class="kw">loop</span> {
                 <span class="kw">let</span> (<span class="ident">post_hir</span>, <span class="ident">frame</span>) <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">stack</span>.<span class="ident">pop</span>() {
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">visitor</span>.<span class="ident">finish</span>(),
-                    <span class="prelude-val">Some</span>((<span class="ident">post_hir</span>, <span class="ident">frame</span>)) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">post_hir</span>, <span class="ident">frame</span>),
+                    <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="ident">visitor</span>.<span class="ident">finish</span>(),
+                    <span class="prelude-val">Some</span>((<span class="ident">post_hir</span>, <span class="ident">frame</span>)) =&gt; (<span class="ident">post_hir</span>, <span class="ident">frame</span>),
                 };
                 <span class="comment">// If this is a concat/alternate, then we might have additional</span>
                 <span class="comment">// inductive steps to process.</span>
@@ -349,36 +349,36 @@
 
     <span class="doccomment">/// Build a stack frame for the given HIR if one is needed (which occurs if</span>
     <span class="doccomment">/// and only if there are child nodes in the HIR). Otherwise, return None.</span>
-    <span class="kw">fn</span> <span class="ident">induct</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">hir</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Hir</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">induct</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">hir</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Hir</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">hir</span>.<span class="ident">kind</span>() {
-            <span class="ident">HirKind::Repetition</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Frame::Repetition</span>(<span class="ident">x</span>)),
-            <span class="ident">HirKind::Group</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Frame::Group</span>(<span class="ident">x</span>)),
-            <span class="ident">HirKind::Concat</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">is_empty</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="ident">HirKind::Concat</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">HirKind::Repetition</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Frame::Repetition</span>(<span class="ident">x</span>)),
+            <span class="ident">HirKind::Group</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Frame::Group</span>(<span class="ident">x</span>)),
+            <span class="ident">HirKind::Concat</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">is_empty</span>() =&gt; <span class="prelude-val">None</span>,
+            <span class="ident">HirKind::Concat</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) =&gt; {
                 <span class="prelude-val">Some</span>(<span class="ident">Frame::Concat</span> { <span class="ident">head</span>: <span class="kw-2">&amp;</span><span class="ident">x</span>[<span class="number">0</span>], <span class="ident">tail</span>: <span class="kw-2">&amp;</span><span class="ident">x</span>[<span class="number">1</span>..] })
             }
-            <span class="ident">HirKind::Alternation</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">is_empty</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="ident">HirKind::Alternation</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">HirKind::Alternation</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">is_empty</span>() =&gt; <span class="prelude-val">None</span>,
+            <span class="ident">HirKind::Alternation</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) =&gt; {
                 <span class="prelude-val">Some</span>(<span class="ident">Frame::Alternation</span> { <span class="ident">head</span>: <span class="kw-2">&amp;</span><span class="ident">x</span>[<span class="number">0</span>], <span class="ident">tail</span>: <span class="kw-2">&amp;</span><span class="ident">x</span>[<span class="number">1</span>..] })
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 
     <span class="doccomment">/// Pops the given frame. If the frame has an additional inductive step,</span>
     <span class="doccomment">/// then return it, otherwise return `None`.</span>
-    <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">induct</span>: <span class="ident">Frame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">induct</span>: <span class="ident">Frame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">induct</span> {
-            <span class="ident">Frame::Repetition</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="ident">Frame::Group</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="ident">Frame::Concat</span> { <span class="ident">tail</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Frame::Repetition</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+            <span class="ident">Frame::Group</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+            <span class="ident">Frame::Concat</span> { <span class="ident">tail</span>, .. } =&gt; {
                 <span class="kw">if</span> <span class="ident">tail</span>.<span class="ident">is_empty</span>() {
                     <span class="prelude-val">None</span>
                 } <span class="kw">else</span> {
                     <span class="prelude-val">Some</span>(<span class="ident">Frame::Concat</span> { <span class="ident">head</span>: <span class="kw-2">&amp;</span><span class="ident">tail</span>[<span class="number">0</span>], <span class="ident">tail</span>: <span class="kw-2">&amp;</span><span class="ident">tail</span>[<span class="number">1</span>..] })
                 }
             }
-            <span class="ident">Frame::Alternation</span> { <span class="ident">tail</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Frame::Alternation</span> { <span class="ident">tail</span>, .. } =&gt; {
                 <span class="kw">if</span> <span class="ident">tail</span>.<span class="ident">is_empty</span>() {
                     <span class="prelude-val">None</span>
                 } <span class="kw">else</span> {
@@ -395,12 +395,12 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Frame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Perform the next inductive step on this frame and return the next</span>
     <span class="doccomment">/// child HIR node to visit.</span>
-    <span class="kw">fn</span> <span class="ident">child</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Hir</span> {
+    <span class="kw">fn</span> <span class="ident">child</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Hir</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Frame::Repetition</span>(<span class="ident">rep</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">rep</span>.<span class="ident">hir</span>,
-            <span class="ident">Frame::Group</span>(<span class="ident">group</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">group</span>.<span class="ident">hir</span>,
-            <span class="ident">Frame::Concat</span> { <span class="ident">head</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">head</span>,
-            <span class="ident">Frame::Alternation</span> { <span class="ident">head</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">head</span>,
+            <span class="ident">Frame::Repetition</span>(<span class="ident">rep</span>) =&gt; <span class="kw-2">&amp;</span><span class="ident">rep</span>.<span class="ident">hir</span>,
+            <span class="ident">Frame::Group</span>(<span class="ident">group</span>) =&gt; <span class="kw-2">&amp;</span><span class="ident">group</span>.<span class="ident">hir</span>,
+            <span class="ident">Frame::Concat</span> { <span class="ident">head</span>, .. } =&gt; <span class="ident">head</span>,
+            <span class="ident">Frame::Alternation</span> { <span class="ident">head</span>, .. } =&gt; <span class="ident">head</span>,
         }
     }
 }

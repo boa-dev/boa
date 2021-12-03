@@ -316,23 +316,23 @@
 
 <span class="kw">impl</span> <span class="ident">Location</span> {
     <span class="doccomment">/// The byte index of the error</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="ident">index</span>
     }
 
     <span class="doccomment">/// The line of the error</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">line</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">line</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="ident">line</span>
     }
 
     <span class="doccomment">/// The column of the error</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">column</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">column</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="ident">column</span>
     }
 
     <span class="comment">// This is to keep decoupled with the yaml crate</span>
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">from_marker</span>(<span class="ident">marker</span>: <span class="kw-2">&amp;</span><span class="ident">Marker</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from_marker</span>(<span class="ident">marker</span>: <span class="kw-2">&amp;</span><span class="ident">Marker</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">Location</span> {
             <span class="comment">// `col` returned from the `yaml` crate is 0-indexed but all error messages add + 1 to this value</span>
             <span class="ident">column</span>: <span class="ident">marker</span>.<span class="ident">col</span>() <span class="op">+</span> <span class="number">1</span>,
@@ -360,52 +360,52 @@
     <span class="doccomment">/// assert_eq!(location.line(), 1);</span>
     <span class="doccomment">/// assert_eq!(location.column(), 1);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">location</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Location</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">location</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Location</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">as_ref</span>() {
-            <span class="ident">ErrorImpl::Message</span>(<span class="kw">_</span>, <span class="prelude-val">Some</span>(<span class="ident">pos</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Location::from_marker</span>(<span class="kw-2">&amp;</span><span class="ident">pos</span>.<span class="ident">marker</span>)),
-            <span class="ident">ErrorImpl::Scan</span>(<span class="ident">scan</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Location::from_marker</span>(<span class="ident">scan</span>.<span class="ident">marker</span>())),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">ErrorImpl::Message</span>(<span class="kw">_</span>, <span class="prelude-val">Some</span>(<span class="ident">pos</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Location::from_marker</span>(<span class="kw-2">&amp;</span><span class="ident">pos</span>.<span class="ident">marker</span>)),
+            <span class="ident">ErrorImpl::Scan</span>(<span class="ident">scan</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Location::from_marker</span>(<span class="ident">scan</span>.<span class="ident">marker</span>())),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">end_of_stream</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">end_of_stream</span>() -&gt; <span class="ident">Error</span> {
     <span class="ident">Error</span>(<span class="ident">Box::new</span>(<span class="ident">ErrorImpl::EndOfStream</span>))
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">more_than_one_document</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">more_than_one_document</span>() -&gt; <span class="ident">Error</span> {
     <span class="ident">Error</span>(<span class="ident">Box::new</span>(<span class="ident">ErrorImpl::MoreThanOneDocument</span>))
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">io</span>(<span class="ident">err</span>: <span class="ident">io::Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">io</span>(<span class="ident">err</span>: <span class="ident">io::Error</span>) -&gt; <span class="ident">Error</span> {
     <span class="ident">Error</span>(<span class="ident">Box::new</span>(<span class="ident">ErrorImpl::Io</span>(<span class="ident">err</span>)))
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">emitter</span>(<span class="ident">err</span>: <span class="ident">emitter::EmitError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">emitter</span>(<span class="ident">err</span>: <span class="ident">emitter::EmitError</span>) -&gt; <span class="ident">Error</span> {
     <span class="ident">Error</span>(<span class="ident">Box::new</span>(<span class="ident">ErrorImpl::Emit</span>(<span class="ident">err</span>)))
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">scanner</span>(<span class="ident">err</span>: <span class="ident">scanner::ScanError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">scanner</span>(<span class="ident">err</span>: <span class="ident">scanner::ScanError</span>) -&gt; <span class="ident">Error</span> {
     <span class="ident">Error</span>(<span class="ident">Box::new</span>(<span class="ident">ErrorImpl::Scan</span>(<span class="ident">err</span>)))
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">str_utf8</span>(<span class="ident">err</span>: <span class="ident">str::Utf8Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">str_utf8</span>(<span class="ident">err</span>: <span class="ident">str::Utf8Error</span>) -&gt; <span class="ident">Error</span> {
     <span class="ident">Error</span>(<span class="ident">Box::new</span>(<span class="ident">ErrorImpl::Utf8</span>(<span class="ident">err</span>)))
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">string_utf8</span>(<span class="ident">err</span>: <span class="ident">string::FromUtf8Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">string_utf8</span>(<span class="ident">err</span>: <span class="ident">string::FromUtf8Error</span>) -&gt; <span class="ident">Error</span> {
     <span class="ident">Error</span>(<span class="ident">Box::new</span>(<span class="ident">ErrorImpl::FromUtf8</span>(<span class="ident">err</span>)))
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">recursion_limit_exceeded</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">recursion_limit_exceeded</span>() -&gt; <span class="ident">Error</span> {
     <span class="ident">Error</span>(<span class="ident">Box::new</span>(<span class="ident">ErrorImpl::RecursionLimitExceeded</span>))
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">shared</span>(<span class="ident">shared</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">ErrorImpl</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">shared</span>(<span class="ident">shared</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">ErrorImpl</span><span class="op">&gt;</span>) -&gt; <span class="ident">Error</span> {
     <span class="ident">Error</span>(<span class="ident">Box::new</span>(<span class="ident">ErrorImpl::Shared</span>(<span class="ident">shared</span>)))
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">fix_marker</span>(<span class="kw-2">mut</span> <span class="ident">error</span>: <span class="ident">Error</span>, <span class="ident">marker</span>: <span class="ident">Marker</span>, <span class="ident">path</span>: <span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">fix_marker</span>(<span class="kw-2">mut</span> <span class="ident">error</span>: <span class="ident">Error</span>, <span class="ident">marker</span>: <span class="ident">Marker</span>, <span class="ident">path</span>: <span class="ident">Path</span>) -&gt; <span class="ident">Error</span> {
     <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ErrorImpl::Message</span>(<span class="kw">_</span>, <span class="ident">none</span> @ <span class="prelude-val">None</span>) <span class="op">=</span> <span class="ident">error</span>.<span class="number">0</span>.<span class="ident">as_mut</span>() {
         <span class="kw-2">*</span><span class="ident">none</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Pos</span> {
             <span class="ident">marker</span>,
@@ -416,7 +416,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Error</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">shared</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">ErrorImpl</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">shared</span>(<span class="self">self</span>) -&gt; <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">ErrorImpl</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ErrorImpl::Shared</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span> {
             <span class="ident">err</span>
         } <span class="kw">else</span> {
@@ -427,17 +427,17 @@
 
 <span class="kw">impl</span> <span class="ident">error::Error</span> <span class="kw">for</span> <span class="ident">Error</span> {
     <span class="comment">// TODO: deprecated, remove in next major version.</span>
-    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">description</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">error::Error</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">error::Error</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">source</span>()
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">display</span>(<span class="ident">f</span>)
     }
 }
@@ -445,90 +445,90 @@
 <span class="comment">// Remove two layers of verbosity from the debug representation. Humans often</span>
 <span class="comment">// end up seeing this representation because it is what unwrap() shows.</span>
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">debug</span>(<span class="ident">f</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">ser::Error</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">custom</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Display</span><span class="op">&gt;</span>(<span class="ident">msg</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">custom</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Display</span><span class="op">&gt;</span>(<span class="ident">msg</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">Error</span>(<span class="ident">Box::new</span>(<span class="ident">ErrorImpl::Message</span>(<span class="ident">msg</span>.<span class="ident">to_string</span>(), <span class="prelude-val">None</span>)))
     }
 }
 
 <span class="kw">impl</span> <span class="ident">de::Error</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">custom</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Display</span><span class="op">&gt;</span>(<span class="ident">msg</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">custom</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Display</span><span class="op">&gt;</span>(<span class="ident">msg</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">Error</span>(<span class="ident">Box::new</span>(<span class="ident">ErrorImpl::Message</span>(<span class="ident">msg</span>.<span class="ident">to_string</span>(), <span class="prelude-val">None</span>)))
     }
 }
 
 <span class="kw">impl</span> <span class="ident">ErrorImpl</span> {
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ErrorImpl::Message</span>(<span class="ident">msg</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">msg</span>,
-            <span class="ident">ErrorImpl::Emit</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;emit error&quot;</span>,
-            <span class="ident">ErrorImpl::Scan</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;scan error&quot;</span>,
-            <span class="ident">ErrorImpl::Io</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">error::Error::description</span>(<span class="ident">err</span>),
-            <span class="ident">ErrorImpl::Utf8</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">error::Error::description</span>(<span class="ident">err</span>),
-            <span class="ident">ErrorImpl::FromUtf8</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">error::Error::description</span>(<span class="ident">err</span>),
-            <span class="ident">ErrorImpl::EndOfStream</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;EOF while parsing a value&quot;</span>,
-            <span class="ident">ErrorImpl::MoreThanOneDocument</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ErrorImpl::Message</span>(<span class="ident">msg</span>, <span class="kw">_</span>) =&gt; <span class="ident">msg</span>,
+            <span class="ident">ErrorImpl::Emit</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;emit error&quot;</span>,
+            <span class="ident">ErrorImpl::Scan</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;scan error&quot;</span>,
+            <span class="ident">ErrorImpl::Io</span>(<span class="ident">err</span>) =&gt; <span class="ident">error::Error::description</span>(<span class="ident">err</span>),
+            <span class="ident">ErrorImpl::Utf8</span>(<span class="ident">err</span>) =&gt; <span class="ident">error::Error::description</span>(<span class="ident">err</span>),
+            <span class="ident">ErrorImpl::FromUtf8</span>(<span class="ident">err</span>) =&gt; <span class="ident">error::Error::description</span>(<span class="ident">err</span>),
+            <span class="ident">ErrorImpl::EndOfStream</span> =&gt; <span class="string">&quot;EOF while parsing a value&quot;</span>,
+            <span class="ident">ErrorImpl::MoreThanOneDocument</span> =&gt; {
                 <span class="string">&quot;deserializing from YAML containing more than one document is not supported&quot;</span>
             }
-            <span class="ident">ErrorImpl::RecursionLimitExceeded</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;recursion limit exceeded&quot;</span>,
-            <span class="ident">ErrorImpl::Shared</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">err</span>.<span class="ident">description</span>(),
+            <span class="ident">ErrorImpl::RecursionLimitExceeded</span> =&gt; <span class="string">&quot;recursion limit exceeded&quot;</span>,
+            <span class="ident">ErrorImpl::Shared</span>(<span class="ident">err</span>) =&gt; <span class="ident">err</span>.<span class="ident">description</span>(),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">error::Error</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">error::Error</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ErrorImpl::Scan</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">err</span>),
-            <span class="ident">ErrorImpl::Io</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">err</span>),
-            <span class="ident">ErrorImpl::Utf8</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">err</span>),
-            <span class="ident">ErrorImpl::FromUtf8</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">err</span>),
-            <span class="ident">ErrorImpl::Shared</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">err</span>.<span class="ident">source</span>(),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">ErrorImpl::Scan</span>(<span class="ident">err</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">err</span>),
+            <span class="ident">ErrorImpl::Io</span>(<span class="ident">err</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">err</span>),
+            <span class="ident">ErrorImpl::Utf8</span>(<span class="ident">err</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">err</span>),
+            <span class="ident">ErrorImpl::FromUtf8</span>(<span class="ident">err</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">err</span>),
+            <span class="ident">ErrorImpl::Shared</span>(<span class="ident">err</span>) =&gt; <span class="ident">err</span>.<span class="ident">source</span>(),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">display</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">display</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ErrorImpl::Message</span>(<span class="ident">msg</span>, <span class="prelude-val">None</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">msg</span>, <span class="ident">f</span>),
-            <span class="ident">ErrorImpl::Message</span>(<span class="ident">msg</span>, <span class="prelude-val">Some</span>(<span class="ident">Pos</span> { <span class="ident">marker</span>, <span class="ident">path</span> })) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <span class="ident">path</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;.&quot;</span> {
+            <span class="ident">ErrorImpl::Message</span>(<span class="ident">msg</span>, <span class="prelude-val">None</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">msg</span>, <span class="ident">f</span>),
+            <span class="ident">ErrorImpl::Message</span>(<span class="ident">msg</span>, <span class="prelude-val">Some</span>(<span class="ident">Pos</span> { <span class="ident">marker</span>, <span class="ident">path</span> })) =&gt; {
+                <span class="kw">if</span> <span class="ident">path</span> <span class="op">==</span> <span class="string">&quot;.&quot;</span> {
                     <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">ScanError::new</span>(<span class="kw-2">*</span><span class="ident">marker</span>, <span class="ident">msg</span>))
                 } <span class="kw">else</span> {
                     <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}: {}&quot;</span>, <span class="ident">path</span>, <span class="ident">ScanError::new</span>(<span class="kw-2">*</span><span class="ident">marker</span>, <span class="ident">msg</span>))
                 }
             }
-            <span class="ident">ErrorImpl::Emit</span>(<span class="ident">emitter::EmitError::FmtError</span>(<span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;yaml-rust fmt error&quot;</span>),
-            <span class="ident">ErrorImpl::Emit</span>(<span class="ident">emitter::EmitError::BadHashmapKey</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;bad hash map key&quot;</span>),
-            <span class="ident">ErrorImpl::Scan</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">err</span>, <span class="ident">f</span>),
-            <span class="ident">ErrorImpl::Io</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">err</span>, <span class="ident">f</span>),
-            <span class="ident">ErrorImpl::Utf8</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">err</span>, <span class="ident">f</span>),
-            <span class="ident">ErrorImpl::FromUtf8</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">err</span>, <span class="ident">f</span>),
-            <span class="ident">ErrorImpl::EndOfStream</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;EOF while parsing a value&quot;</span>),
-            <span class="ident">ErrorImpl::MoreThanOneDocument</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(
+            <span class="ident">ErrorImpl::Emit</span>(<span class="ident">emitter::EmitError::FmtError</span>(<span class="kw">_</span>)) =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;yaml-rust fmt error&quot;</span>),
+            <span class="ident">ErrorImpl::Emit</span>(<span class="ident">emitter::EmitError::BadHashmapKey</span>) =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;bad hash map key&quot;</span>),
+            <span class="ident">ErrorImpl::Scan</span>(<span class="ident">err</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">err</span>, <span class="ident">f</span>),
+            <span class="ident">ErrorImpl::Io</span>(<span class="ident">err</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">err</span>, <span class="ident">f</span>),
+            <span class="ident">ErrorImpl::Utf8</span>(<span class="ident">err</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">err</span>, <span class="ident">f</span>),
+            <span class="ident">ErrorImpl::FromUtf8</span>(<span class="ident">err</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">err</span>, <span class="ident">f</span>),
+            <span class="ident">ErrorImpl::EndOfStream</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;EOF while parsing a value&quot;</span>),
+            <span class="ident">ErrorImpl::MoreThanOneDocument</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(
                 <span class="string">&quot;deserializing from YAML containing more than one document is not supported&quot;</span>,
             ),
-            <span class="ident">ErrorImpl::RecursionLimitExceeded</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;recursion limit exceeded&quot;</span>),
-            <span class="ident">ErrorImpl::Shared</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">err</span>.<span class="ident">display</span>(<span class="ident">f</span>),
+            <span class="ident">ErrorImpl::RecursionLimitExceeded</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;recursion limit exceeded&quot;</span>),
+            <span class="ident">ErrorImpl::Shared</span>(<span class="ident">err</span>) =&gt; <span class="ident">err</span>.<span class="ident">display</span>(<span class="ident">f</span>),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">debug</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">debug</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ErrorImpl::Message</span>(<span class="ident">msg</span>, <span class="ident">pos</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Message&quot;</span>).<span class="ident">field</span>(<span class="ident">msg</span>).<span class="ident">field</span>(<span class="ident">pos</span>).<span class="ident">finish</span>(),
-            <span class="ident">ErrorImpl::Emit</span>(<span class="ident">emit</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Emit&quot;</span>).<span class="ident">field</span>(<span class="ident">emit</span>).<span class="ident">finish</span>(),
-            <span class="ident">ErrorImpl::Scan</span>(<span class="ident">scan</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Scan&quot;</span>).<span class="ident">field</span>(<span class="ident">scan</span>).<span class="ident">finish</span>(),
-            <span class="ident">ErrorImpl::Io</span>(<span class="ident">io</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Io&quot;</span>).<span class="ident">field</span>(<span class="ident">io</span>).<span class="ident">finish</span>(),
-            <span class="ident">ErrorImpl::Utf8</span>(<span class="ident">utf8</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Utf8&quot;</span>).<span class="ident">field</span>(<span class="ident">utf8</span>).<span class="ident">finish</span>(),
-            <span class="ident">ErrorImpl::FromUtf8</span>(<span class="ident">from_utf8</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;FromUtf8&quot;</span>).<span class="ident">field</span>(<span class="ident">from_utf8</span>).<span class="ident">finish</span>(),
-            <span class="ident">ErrorImpl::EndOfStream</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;EndOfStream&quot;</span>).<span class="ident">finish</span>(),
-            <span class="ident">ErrorImpl::MoreThanOneDocument</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;MoreThanOneDocument&quot;</span>).<span class="ident">finish</span>(),
-            <span class="ident">ErrorImpl::RecursionLimitExceeded</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;RecursionLimitExceeded&quot;</span>).<span class="ident">finish</span>(),
-            <span class="ident">ErrorImpl::Shared</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">err</span>.<span class="ident">debug</span>(<span class="ident">f</span>),
+            <span class="ident">ErrorImpl::Message</span>(<span class="ident">msg</span>, <span class="ident">pos</span>) =&gt; <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Message&quot;</span>).<span class="ident">field</span>(<span class="ident">msg</span>).<span class="ident">field</span>(<span class="ident">pos</span>).<span class="ident">finish</span>(),
+            <span class="ident">ErrorImpl::Emit</span>(<span class="ident">emit</span>) =&gt; <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Emit&quot;</span>).<span class="ident">field</span>(<span class="ident">emit</span>).<span class="ident">finish</span>(),
+            <span class="ident">ErrorImpl::Scan</span>(<span class="ident">scan</span>) =&gt; <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Scan&quot;</span>).<span class="ident">field</span>(<span class="ident">scan</span>).<span class="ident">finish</span>(),
+            <span class="ident">ErrorImpl::Io</span>(<span class="ident">io</span>) =&gt; <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Io&quot;</span>).<span class="ident">field</span>(<span class="ident">io</span>).<span class="ident">finish</span>(),
+            <span class="ident">ErrorImpl::Utf8</span>(<span class="ident">utf8</span>) =&gt; <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Utf8&quot;</span>).<span class="ident">field</span>(<span class="ident">utf8</span>).<span class="ident">finish</span>(),
+            <span class="ident">ErrorImpl::FromUtf8</span>(<span class="ident">from_utf8</span>) =&gt; <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;FromUtf8&quot;</span>).<span class="ident">field</span>(<span class="ident">from_utf8</span>).<span class="ident">finish</span>(),
+            <span class="ident">ErrorImpl::EndOfStream</span> =&gt; <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;EndOfStream&quot;</span>).<span class="ident">finish</span>(),
+            <span class="ident">ErrorImpl::MoreThanOneDocument</span> =&gt; <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;MoreThanOneDocument&quot;</span>).<span class="ident">finish</span>(),
+            <span class="ident">ErrorImpl::RecursionLimitExceeded</span> =&gt; <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;RecursionLimitExceeded&quot;</span>).<span class="ident">finish</span>(),
+            <span class="ident">ErrorImpl::Shared</span>(<span class="ident">err</span>) =&gt; <span class="ident">err</span>.<span class="ident">debug</span>(<span class="ident">f</span>),
         }
     }
 }

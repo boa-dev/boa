@@ -2327,19 +2327,19 @@ Defines a high-level intermediate representation for regular expressions.
 
 <span class="kw">impl</span> <span class="ident">Error</span> {
     <span class="doccomment">/// Return the type of this error.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">ErrorKind</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">ErrorKind</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">kind</span>
     }
 
     <span class="doccomment">/// The original pattern string in which this error occurred.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Every span reported by this error is reported in terms of this string.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pattern</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pattern</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">pattern</span>
     }
 
     <span class="doccomment">/// Return the span at which this error occurred.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Span</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Span</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">span</span>
     }
 }
@@ -2385,23 +2385,23 @@ Defines a high-level intermediate representation for regular expressions.
 <span class="kw">impl</span> <span class="ident">ErrorKind</span> {
     <span class="comment">// TODO: Remove this method entirely on the next breaking semver release.</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="kw">use</span> <span class="ident"><span class="self">self</span>::ErrorKind</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">UnicodeNotAllowed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Unicode not allowed here&quot;</span>,
-            <span class="ident">InvalidUtf8</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;pattern can match invalid UTF-8&quot;</span>,
-            <span class="ident">UnicodePropertyNotFound</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Unicode property not found&quot;</span>,
-            <span class="ident">UnicodePropertyValueNotFound</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Unicode property value not found&quot;</span>,
-            <span class="ident">UnicodePerlClassNotFound</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">UnicodeNotAllowed</span> =&gt; <span class="string">&quot;Unicode not allowed here&quot;</span>,
+            <span class="ident">InvalidUtf8</span> =&gt; <span class="string">&quot;pattern can match invalid UTF-8&quot;</span>,
+            <span class="ident">UnicodePropertyNotFound</span> =&gt; <span class="string">&quot;Unicode property not found&quot;</span>,
+            <span class="ident">UnicodePropertyValueNotFound</span> =&gt; <span class="string">&quot;Unicode property value not found&quot;</span>,
+            <span class="ident">UnicodePerlClassNotFound</span> =&gt; {
                 <span class="string">&quot;Unicode-aware Perl class not found \
                  (make sure the unicode-perl feature is enabled)&quot;</span>
             }
-            <span class="ident">UnicodeCaseUnavailable</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">UnicodeCaseUnavailable</span> =&gt; {
                 <span class="string">&quot;Unicode-aware case insensitivity matching is not available \
                  (make sure the unicode-case feature is enabled)&quot;</span>
             }
-            <span class="ident">EmptyClassNotAllowed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;empty character classes are not allowed&quot;</span>,
-            <span class="ident">__Nonexhaustive</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+            <span class="ident">EmptyClassNotAllowed</span> =&gt; <span class="string">&quot;empty character classes are not allowed&quot;</span>,
+            <span class="ident">__Nonexhaustive</span> =&gt; <span class="macro">unreachable!</span>(),
         }
     }
 }
@@ -2409,19 +2409,19 @@ Defines a high-level intermediate representation for regular expressions.
 <span class="kw">impl</span> <span class="ident">error::Error</span> <span class="kw">for</span> <span class="ident">Error</span> {
     <span class="comment">// TODO: Remove this method entirely on the next breaking semver release.</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="self">self</span>.<span class="ident">kind</span>.<span class="ident">description</span>()
     }
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="ident"><span class="kw">crate</span>::error::Formatter::from</span>(<span class="self">self</span>).<span class="ident">fmt</span>(<span class="ident">f</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">ErrorKind</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="comment">// TODO: Remove this on the next breaking semver release.</span>
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
         <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="self">self</span>.<span class="ident">description</span>())
@@ -2508,13 +2508,13 @@ Defines a high-level intermediate representation for regular expressions.
 
 <span class="kw">impl</span> <span class="ident">Hir</span> {
     <span class="doccomment">/// Returns a reference to the underlying HIR kind.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">HirKind</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">HirKind</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">kind</span>
     }
 
     <span class="doccomment">/// Consumes ownership of this HIR expression and returns its underlying</span>
     <span class="doccomment">/// `HirKind`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_kind</span>(<span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">HirKind</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_kind</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">HirKind</span> {
         <span class="kw">use</span> <span class="ident">std::mem</span>;
         <span class="ident">mem::replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">kind</span>, <span class="ident">HirKind::Empty</span>)
     }
@@ -2522,7 +2522,7 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">/// Returns an empty HIR expression.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// An empty HIR expression always matches, including the empty string.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">empty</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">empty</span>() -&gt; <span class="ident">Hir</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">info</span> <span class="op">=</span> <span class="ident">HirInfo::new</span>();
         <span class="ident">info</span>.<span class="ident">set_always_utf8</span>(<span class="bool-val">true</span>);
         <span class="ident">info</span>.<span class="ident">set_all_assertions</span>(<span class="bool-val">true</span>);
@@ -2543,7 +2543,7 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">/// If the given literal has a `Byte` variant with an ASCII byte, then this</span>
     <span class="doccomment">/// method panics. This enforces the invariant that `Byte` variants are</span>
     <span class="doccomment">/// only used to express matching of invalid UTF-8.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">literal</span>(<span class="ident">lit</span>: <span class="ident">Literal</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">literal</span>(<span class="ident">lit</span>: <span class="ident">Literal</span>) -&gt; <span class="ident">Hir</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Literal::Byte</span>(<span class="ident">b</span>) <span class="op">=</span> <span class="ident">lit</span> {
             <span class="macro">assert!</span>(<span class="ident">b</span> <span class="op">&gt;</span> <span class="number">0x7F</span>);
         }
@@ -2564,7 +2564,7 @@ Defines a high-level intermediate representation for regular expressions.
     }
 
     <span class="doccomment">/// Creates a class HIR expression.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">class</span>(<span class="ident">class</span>: <span class="ident">Class</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">class</span>(<span class="ident">class</span>: <span class="ident">Class</span>) -&gt; <span class="ident">Hir</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">info</span> <span class="op">=</span> <span class="ident">HirInfo::new</span>();
         <span class="ident">info</span>.<span class="ident">set_always_utf8</span>(<span class="ident">class</span>.<span class="ident">is_always_utf8</span>());
         <span class="ident">info</span>.<span class="ident">set_all_assertions</span>(<span class="bool-val">false</span>);
@@ -2581,7 +2581,7 @@ Defines a high-level intermediate representation for regular expressions.
     }
 
     <span class="doccomment">/// Creates an anchor assertion HIR expression.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">anchor</span>(<span class="ident">anchor</span>: <span class="ident">Anchor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">anchor</span>(<span class="ident">anchor</span>: <span class="ident">Anchor</span>) -&gt; <span class="ident">Hir</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">info</span> <span class="op">=</span> <span class="ident">HirInfo::new</span>();
         <span class="ident">info</span>.<span class="ident">set_always_utf8</span>(<span class="bool-val">true</span>);
         <span class="ident">info</span>.<span class="ident">set_all_assertions</span>(<span class="bool-val">true</span>);
@@ -2614,7 +2614,7 @@ Defines a high-level intermediate representation for regular expressions.
     }
 
     <span class="doccomment">/// Creates a word boundary assertion HIR expression.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">word_boundary</span>(<span class="ident">word_boundary</span>: <span class="ident">WordBoundary</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">word_boundary</span>(<span class="ident">word_boundary</span>: <span class="ident">WordBoundary</span>) -&gt; <span class="ident">Hir</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">info</span> <span class="op">=</span> <span class="ident">HirInfo::new</span>();
         <span class="ident">info</span>.<span class="ident">set_always_utf8</span>(<span class="bool-val">true</span>);
         <span class="ident">info</span>.<span class="ident">set_all_assertions</span>(<span class="bool-val">true</span>);
@@ -2637,7 +2637,7 @@ Defines a high-level intermediate representation for regular expressions.
     }
 
     <span class="doccomment">/// Creates a repetition HIR expression.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">repetition</span>(<span class="ident">rep</span>: <span class="ident">Repetition</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">repetition</span>(<span class="ident">rep</span>: <span class="ident">Repetition</span>) -&gt; <span class="ident">Hir</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">info</span> <span class="op">=</span> <span class="ident">HirInfo::new</span>();
         <span class="ident">info</span>.<span class="ident">set_always_utf8</span>(<span class="ident">rep</span>.<span class="ident">hir</span>.<span class="ident">is_always_utf8</span>());
         <span class="ident">info</span>.<span class="ident">set_all_assertions</span>(<span class="ident">rep</span>.<span class="ident">hir</span>.<span class="ident">is_all_assertions</span>());
@@ -2664,7 +2664,7 @@ Defines a high-level intermediate representation for regular expressions.
     }
 
     <span class="doccomment">/// Creates a group HIR expression.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">group</span>(<span class="ident">group</span>: <span class="ident">Group</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">group</span>(<span class="ident">group</span>: <span class="ident">Group</span>) -&gt; <span class="ident">Hir</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">info</span> <span class="op">=</span> <span class="ident">HirInfo::new</span>();
         <span class="ident">info</span>.<span class="ident">set_always_utf8</span>(<span class="ident">group</span>.<span class="ident">hir</span>.<span class="ident">is_always_utf8</span>());
         <span class="ident">info</span>.<span class="ident">set_all_assertions</span>(<span class="ident">group</span>.<span class="ident">hir</span>.<span class="ident">is_all_assertions</span>());
@@ -2683,11 +2683,11 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">/// Returns the concatenation of the given expressions.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This flattens the concatenation as appropriate.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">concat</span>(<span class="kw-2">mut</span> <span class="ident">exprs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Hir</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">concat</span>(<span class="kw-2">mut</span> <span class="ident">exprs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Hir</span><span class="op">&gt;</span>) -&gt; <span class="ident">Hir</span> {
         <span class="kw">match</span> <span class="ident">exprs</span>.<span class="ident">len</span>() {
-            <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Hir::empty</span>(),
-            <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">exprs</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>(),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="number">0</span> =&gt; <span class="ident">Hir::empty</span>(),
+            <span class="number">1</span> =&gt; <span class="ident">exprs</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>(),
+            <span class="kw">_</span> =&gt; {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">info</span> <span class="op">=</span> <span class="ident">HirInfo::new</span>();
                 <span class="ident">info</span>.<span class="ident">set_always_utf8</span>(<span class="bool-val">true</span>);
                 <span class="ident">info</span>.<span class="ident">set_all_assertions</span>(<span class="bool-val">true</span>);
@@ -2776,11 +2776,11 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">/// Returns the alternation of the given expressions.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This flattens the alternation as appropriate.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">alternation</span>(<span class="kw-2">mut</span> <span class="ident">exprs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Hir</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">alternation</span>(<span class="kw-2">mut</span> <span class="ident">exprs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Hir</span><span class="op">&gt;</span>) -&gt; <span class="ident">Hir</span> {
         <span class="kw">match</span> <span class="ident">exprs</span>.<span class="ident">len</span>() {
-            <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Hir::empty</span>(),
-            <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">exprs</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>(),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="number">0</span> =&gt; <span class="ident">Hir::empty</span>(),
+            <span class="number">1</span> =&gt; <span class="ident">exprs</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>(),
+            <span class="kw">_</span> =&gt; {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">info</span> <span class="op">=</span> <span class="ident">HirInfo::new</span>();
                 <span class="ident">info</span>.<span class="ident">set_always_utf8</span>(<span class="bool-val">true</span>);
                 <span class="ident">info</span>.<span class="ident">set_all_assertions</span>(<span class="bool-val">true</span>);
@@ -2843,7 +2843,7 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">///</span>
     <span class="doccomment">/// If `bytes` is `true`, then this assumes characters are limited to a</span>
     <span class="doccomment">/// single byte.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dot</span>(<span class="ident">bytes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dot</span>(<span class="ident">bytes</span>: <span class="ident">bool</span>) -&gt; <span class="ident">Hir</span> {
         <span class="kw">if</span> <span class="ident">bytes</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cls</span> <span class="op">=</span> <span class="ident">ClassBytes::empty</span>();
             <span class="ident">cls</span>.<span class="ident">push</span>(<span class="ident">ClassBytesRange::new</span>(<span class="string">b&#39;\0&#39;</span>, <span class="string">b&#39;\x09&#39;</span>));
@@ -2865,7 +2865,7 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">///</span>
     <span class="doccomment">/// If `bytes` is `true`, then this assumes characters are limited to a</span>
     <span class="doccomment">/// single byte.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">any</span>(<span class="ident">bytes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">any</span>(<span class="ident">bytes</span>: <span class="ident">bool</span>) -&gt; <span class="ident">Hir</span> {
         <span class="kw">if</span> <span class="ident">bytes</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cls</span> <span class="op">=</span> <span class="ident">ClassBytes::empty</span>();
             <span class="ident">cls</span>.<span class="ident">push</span>(<span class="ident">ClassBytesRange::new</span>(<span class="string">b&#39;\0&#39;</span>, <span class="string">b&#39;\xFF&#39;</span>));
@@ -2881,7 +2881,7 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">///</span>
     <span class="doccomment">/// When this returns false, then it is possible for this HIR expression</span>
     <span class="doccomment">/// to match invalid UTF-8.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_always_utf8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_always_utf8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">info</span>.<span class="ident">is_always_utf8</span>()
     }
 
@@ -2890,21 +2890,21 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">///</span>
     <span class="doccomment">/// This includes expressions like `^$\b\A\z` and even `((\b)+())*^`, but</span>
     <span class="doccomment">/// not `^a`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_all_assertions</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_all_assertions</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">info</span>.<span class="ident">is_all_assertions</span>()
     }
 
     <span class="doccomment">/// Return true if and only if this HIR is required to match from the</span>
     <span class="doccomment">/// beginning of text. This includes expressions like `^foo`, `^(foo|bar)`,</span>
     <span class="doccomment">/// `^foo|^bar` but not `^foo|bar`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_anchored_start</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_anchored_start</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">info</span>.<span class="ident">is_anchored_start</span>()
     }
 
     <span class="doccomment">/// Return true if and only if this HIR is required to match at the end</span>
     <span class="doccomment">/// of text. This includes expressions like `foo$`, `(foo|bar)$`,</span>
     <span class="doccomment">/// `foo$|bar$` but not `foo$|bar`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_anchored_end</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_anchored_end</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">info</span>.<span class="ident">is_anchored_end</span>()
     }
 
@@ -2917,7 +2917,7 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">/// `is_line_anchored_start` will also be `true`. The reverse implication</span>
     <span class="doccomment">/// is not true. For example, `(?m)^foo` is line anchored, but not</span>
     <span class="doccomment">/// `is_anchored_start`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_line_anchored_start</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_line_anchored_start</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">info</span>.<span class="ident">is_line_anchored_start</span>()
     }
 
@@ -2930,7 +2930,7 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">/// `is_line_anchored_end` will also be `true`. The reverse implication</span>
     <span class="doccomment">/// is not true. For example, `(?m)foo$` is line anchored, but not</span>
     <span class="doccomment">/// `is_anchored_end`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_line_anchored_end</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_line_anchored_end</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">info</span>.<span class="ident">is_line_anchored_end</span>()
     }
 
@@ -2938,7 +2938,7 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">/// is required to match at the beginning of text. Specifically, this</span>
     <span class="doccomment">/// returns true if the `^` symbol (when multiline mode is disabled) or the</span>
     <span class="doccomment">/// `\A` escape appear anywhere in the regex.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_any_anchored_start</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_any_anchored_start</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">info</span>.<span class="ident">is_any_anchored_start</span>()
     }
 
@@ -2946,7 +2946,7 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">/// required to match at the end of text. Specifically, this returns true</span>
     <span class="doccomment">/// if the `$` symbol (when multiline mode is disabled) or the `\z` escape</span>
     <span class="doccomment">/// appear anywhere in the regex.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_any_anchored_end</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_any_anchored_end</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">info</span>.<span class="ident">is_any_anchored_end</span>()
     }
 
@@ -2955,7 +2955,7 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">///</span>
     <span class="doccomment">/// This includes `a*`, `a?b*`, `a{0}`, `()`, `()+`, `^$`, `a|b?`, `\B`,</span>
     <span class="doccomment">/// but not `a`, `a+` or `\b`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_match_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_match_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">info</span>.<span class="ident">is_match_empty</span>()
     }
 
@@ -2965,7 +2965,7 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">///</span>
     <span class="doccomment">/// For example, `f` and `foo` are literals, but `f+`, `(foo)`, `foo()`,</span>
     <span class="doccomment">/// `` are not (even though that contain sub-expressions that are literals).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_literal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_literal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">info</span>.<span class="ident">is_literal</span>()
     }
 
@@ -2977,7 +2977,7 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">/// For example, `f`, `foo`, `a|b|c`, and `foo|bar|baz` are alternation</span>
     <span class="doccomment">/// literals, but `f+`, `(foo)`, `foo()`, ``</span>
     <span class="doccomment">/// are not (even though that contain sub-expressions that are literals).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_alternation_literal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_alternation_literal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">info</span>.<span class="ident">is_alternation_literal</span>()
     }
 }
@@ -2988,26 +2988,26 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">/// Note that this is not defined inductively. That is, it only tests if</span>
     <span class="doccomment">/// this kind is the `Empty` variant. To get the inductive definition,</span>
     <span class="doccomment">/// use the `is_match_empty` method on [`Hir`](struct.Hir.html).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">HirKind::Empty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident">HirKind::Empty</span> =&gt; <span class="bool-val">true</span>,
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
 
     <span class="doccomment">/// Returns true if and only if this kind has any (including possibly</span>
     <span class="doccomment">/// empty) subexpressions.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_subexprs</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_subexprs</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="ident">HirKind::Empty</span>
             <span class="op">|</span> <span class="ident">HirKind::Literal</span>(<span class="kw">_</span>)
             <span class="op">|</span> <span class="ident">HirKind::Class</span>(<span class="kw">_</span>)
             <span class="op">|</span> <span class="ident">HirKind::Anchor</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident">HirKind::WordBoundary</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="op">|</span> <span class="ident">HirKind::WordBoundary</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
             <span class="ident">HirKind::Group</span>(<span class="kw">_</span>)
             <span class="op">|</span> <span class="ident">HirKind::Repetition</span>(<span class="kw">_</span>)
             <span class="op">|</span> <span class="ident">HirKind::Concat</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident">HirKind::Alternation</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+            <span class="op">|</span> <span class="ident">HirKind::Alternation</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
         }
     }
 }
@@ -3019,7 +3019,7 @@ Defines a high-level intermediate representation for regular expressions.
 <span class="doccomment">/// This implementation uses constant stack space and heap space proportional</span>
 <span class="doccomment">/// to the size of the `Hir`.</span>
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Hir</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::hir::print::Printer</span>;
         <span class="ident">Printer::new</span>().<span class="ident">print</span>(<span class="self">self</span>, <span class="ident">f</span>)
     }
@@ -3042,11 +3042,11 @@ Defines a high-level intermediate representation for regular expressions.
 <span class="kw">impl</span> <span class="ident">Literal</span> {
     <span class="doccomment">/// Returns true if and only if this literal corresponds to a Unicode</span>
     <span class="doccomment">/// scalar value.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_unicode</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_unicode</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Literal::Unicode</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="ident">Literal::Byte</span>(<span class="ident">b</span>) <span class="kw">if</span> <span class="ident">b</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0x7F</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="ident">Literal::Byte</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident">Literal::Unicode</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+            <span class="ident">Literal::Byte</span>(<span class="ident">b</span>) <span class="kw">if</span> <span class="ident">b</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0x7F</span> =&gt; <span class="bool-val">true</span>,
+            <span class="ident">Literal::Byte</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
         }
     }
 }
@@ -3085,8 +3085,8 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">/// to the ASCII ranges `A-Z` and `a-z`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">case_fold_simple</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Class::Unicode</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">case_fold_simple</span>(),
-            <span class="ident">Class::Bytes</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">case_fold_simple</span>(),
+            <span class="ident">Class::Unicode</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">case_fold_simple</span>(),
+            <span class="ident">Class::Bytes</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">case_fold_simple</span>(),
         }
     }
 
@@ -3096,8 +3096,8 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">/// characters that weren&#39;t previously in the class.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">negate</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Class::Unicode</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">negate</span>(),
-            <span class="ident">Class::Bytes</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">negate</span>(),
+            <span class="ident">Class::Unicode</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">negate</span>(),
+            <span class="ident">Class::Bytes</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">negate</span>(),
         }
     }
 
@@ -3112,10 +3112,10 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">/// 2. Unicode mode (via the `u` flag) was disabled either in the concrete</span>
     <span class="doccomment">///    syntax or in the parser builder. By default, Unicode mode is</span>
     <span class="doccomment">///    enabled.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_always_utf8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_always_utf8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Class::Unicode</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="ident">Class::Bytes</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">is_all_ascii</span>(),
+            <span class="ident">Class::Unicode</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+            <span class="ident">Class::Bytes</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">is_all_ascii</span>(),
         }
     }
 }
@@ -3131,7 +3131,7 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">///</span>
     <span class="doccomment">/// The given ranges do not need to be in any specific order, and ranges</span>
     <span class="doccomment">/// may overlap.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">ranges</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClassUnicode</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">ranges</span>: <span class="ident">I</span>) -&gt; <span class="ident">ClassUnicode</span>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">ClassUnicodeRange</span><span class="op">&gt;</span>,
     {
@@ -3139,7 +3139,7 @@ Defines a high-level intermediate representation for regular expressions.
     }
 
     <span class="doccomment">/// Create a new class with no ranges.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">empty</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClassUnicode</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">empty</span>() -&gt; <span class="ident">ClassUnicode</span> {
         <span class="ident">ClassUnicode::new</span>(<span class="macro">vec!</span>[])
     }
 
@@ -3151,12 +3151,12 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">/// Return an iterator over all ranges in this class.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The iterator yields ranges in ascending order.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClassUnicodeIter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">ClassUnicodeIter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
         <span class="ident">ClassUnicodeIter</span>(<span class="self">self</span>.<span class="ident">set</span>.<span class="ident">iter</span>())
     }
 
     <span class="doccomment">/// Return the underlying ranges as a slice.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ranges</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">ClassUnicodeRange</span>] {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ranges</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">ClassUnicodeRange</span>] {
         <span class="self">self</span>.<span class="ident">set</span>.<span class="ident">intervals</span>()
     }
 
@@ -3191,7 +3191,7 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">/// `unicode-case` feature is not enabled.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_case_fold_simple</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">result::Result</span><span class="op">&lt;</span>(), <span class="ident">CaseFoldError</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">result::Result</span><span class="op">&lt;</span>(), <span class="ident">CaseFoldError</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">set</span>.<span class="ident">case_fold_simple</span>()
     }
 
@@ -3234,7 +3234,7 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">/// Returns true if and only if this character class will either match</span>
     <span class="doccomment">/// nothing or only ASCII bytes. Stated differently, this returns false</span>
     <span class="doccomment">/// if and only if this class contains a non-ASCII codepoint.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_all_ascii</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_all_ascii</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">set</span>.<span class="ident">intervals</span>().<span class="ident">last</span>().<span class="ident">map_or</span>(<span class="bool-val">true</span>, <span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span>.<span class="ident">end</span> <span class="op">&lt;</span><span class="op">=</span> <span class="string">&#39;\x7F&#39;</span>)
     }
 }
@@ -3248,7 +3248,7 @@ Defines a high-level intermediate representation for regular expressions.
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">ClassUnicodeIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ClassUnicodeRange</span>;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ClassUnicodeRange</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ClassUnicodeRange</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">next</span>()
     }
 }
@@ -3264,7 +3264,7 @@ Defines a high-level intermediate representation for regular expressions.
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">ClassUnicodeRange</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">start</span>.<span class="ident">is_whitespace</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">start</span>.<span class="ident">is_control</span>()
         {
             <span class="self">self</span>.<span class="ident">start</span>.<span class="ident">to_string</span>()
@@ -3287,11 +3287,11 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="kw">type</span> <span class="ident">Bound</span> <span class="op">=</span> <span class="ident">char</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">lower</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">char</span> {
+    <span class="kw">fn</span> <span class="ident">lower</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">char</span> {
         <span class="self">self</span>.<span class="ident">start</span>
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">upper</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">char</span> {
+    <span class="kw">fn</span> <span class="ident">upper</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">char</span> {
         <span class="self">self</span>.<span class="ident">end</span>
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -3310,7 +3310,7 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="kw">fn</span> <span class="ident">case_fold_simple</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">ranges</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ClassUnicodeRange</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">unicode::CaseFoldError</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">unicode::CaseFoldError</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="op">!</span><span class="ident">unicode::contains_simple_case_mapping</span>(<span class="self">self</span>.<span class="ident">start</span>, <span class="self">self</span>.<span class="ident">end</span>)<span class="question-mark">?</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
         }
@@ -3322,8 +3322,8 @@ Defines a high-level intermediate representation for regular expressions.
                 <span class="kw">continue</span>;
             }
             <span class="kw">let</span> <span class="ident">it</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">unicode::simple_fold</span>(<span class="ident">cp</span>)<span class="question-mark">?</span> {
-                <span class="prelude-val">Ok</span>(<span class="ident">it</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">it</span>,
-                <span class="prelude-val">Err</span>(<span class="ident">next</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Ok</span>(<span class="ident">it</span>) =&gt; <span class="ident">it</span>,
+                <span class="prelude-val">Err</span>(<span class="ident">next</span>) =&gt; {
                     <span class="ident">next_simple_cp</span> <span class="op">=</span> <span class="ident">next</span>;
                     <span class="kw">continue</span>;
                 }
@@ -3341,7 +3341,7 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">///</span>
     <span class="doccomment">/// The returned range is always in a canonical form. That is, the range</span>
     <span class="doccomment">/// returned always satisfies the invariant that `start &lt;= end`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">start</span>: <span class="ident">char</span>, <span class="ident">end</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClassUnicodeRange</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">start</span>: <span class="ident">char</span>, <span class="ident">end</span>: <span class="ident">char</span>) -&gt; <span class="ident">ClassUnicodeRange</span> {
         <span class="ident">ClassUnicodeRange::create</span>(<span class="ident">start</span>, <span class="ident">end</span>)
     }
 
@@ -3349,7 +3349,7 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">///</span>
     <span class="doccomment">/// The start of a range is always less than or equal to the end of the</span>
     <span class="doccomment">/// range.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">char</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">char</span> {
         <span class="self">self</span>.<span class="ident">start</span>
     }
 
@@ -3357,7 +3357,7 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">///</span>
     <span class="doccomment">/// The end of a range is always greater than or equal to the start of the</span>
     <span class="doccomment">/// range.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">end</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">char</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">end</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">char</span> {
         <span class="self">self</span>.<span class="ident">end</span>
     }
 }
@@ -3374,7 +3374,7 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">///</span>
     <span class="doccomment">/// The given ranges do not need to be in any specific order, and ranges</span>
     <span class="doccomment">/// may overlap.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">ranges</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClassBytes</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">ranges</span>: <span class="ident">I</span>) -&gt; <span class="ident">ClassBytes</span>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">ClassBytesRange</span><span class="op">&gt;</span>,
     {
@@ -3382,7 +3382,7 @@ Defines a high-level intermediate representation for regular expressions.
     }
 
     <span class="doccomment">/// Create a new class with no ranges.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">empty</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClassBytes</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">empty</span>() -&gt; <span class="ident">ClassBytes</span> {
         <span class="ident">ClassBytes::new</span>(<span class="macro">vec!</span>[])
     }
 
@@ -3394,12 +3394,12 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">/// Return an iterator over all ranges in this class.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The iterator yields ranges in ascending order.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClassBytesIter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">ClassBytesIter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
         <span class="ident">ClassBytesIter</span>(<span class="self">self</span>.<span class="ident">set</span>.<span class="ident">iter</span>())
     }
 
     <span class="doccomment">/// Return the underlying ranges as a slice.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ranges</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">ClassBytesRange</span>] {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ranges</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">ClassBytesRange</span>] {
         <span class="self">self</span>.<span class="ident">set</span>.<span class="ident">intervals</span>()
     }
 
@@ -3451,7 +3451,7 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">/// Returns true if and only if this character class will either match</span>
     <span class="doccomment">/// nothing or only ASCII bytes. Stated differently, this returns false</span>
     <span class="doccomment">/// if and only if this class contains a non-ASCII byte.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_all_ascii</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_all_ascii</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">set</span>.<span class="ident">intervals</span>().<span class="ident">last</span>().<span class="ident">map_or</span>(<span class="bool-val">true</span>, <span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span>.<span class="ident">end</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0x7F</span>)
     }
 }
@@ -3465,7 +3465,7 @@ Defines a high-level intermediate representation for regular expressions.
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">ClassBytesIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ClassBytesRange</span>;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ClassBytesRange</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ClassBytesRange</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">next</span>()
     }
 }
@@ -3484,11 +3484,11 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="kw">type</span> <span class="ident">Bound</span> <span class="op">=</span> <span class="ident">u8</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">lower</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span> {
+    <span class="kw">fn</span> <span class="ident">lower</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u8</span> {
         <span class="self">self</span>.<span class="ident">start</span>
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">upper</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span> {
+    <span class="kw">fn</span> <span class="ident">upper</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u8</span> {
         <span class="self">self</span>.<span class="ident">end</span>
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -3508,7 +3508,7 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="kw">fn</span> <span class="ident">case_fold_simple</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">ranges</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ClassBytesRange</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">unicode::CaseFoldError</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">unicode::CaseFoldError</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="op">!</span><span class="ident">ClassBytesRange::new</span>(<span class="string">b&#39;a&#39;</span>, <span class="string">b&#39;z&#39;</span>).<span class="ident">is_intersection_empty</span>(<span class="self">self</span>) {
             <span class="kw">let</span> <span class="ident">lower</span> <span class="op">=</span> <span class="ident">cmp::max</span>(<span class="self">self</span>.<span class="ident">start</span>, <span class="string">b&#39;a&#39;</span>);
             <span class="kw">let</span> <span class="ident">upper</span> <span class="op">=</span> <span class="ident">cmp::min</span>(<span class="self">self</span>.<span class="ident">end</span>, <span class="string">b&#39;z&#39;</span>);
@@ -3528,7 +3528,7 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">///</span>
     <span class="doccomment">/// The returned range is always in a canonical form. That is, the range</span>
     <span class="doccomment">/// returned always satisfies the invariant that `start &lt;= end`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">start</span>: <span class="ident">u8</span>, <span class="ident">end</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClassBytesRange</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">start</span>: <span class="ident">u8</span>, <span class="ident">end</span>: <span class="ident">u8</span>) -&gt; <span class="ident">ClassBytesRange</span> {
         <span class="ident">ClassBytesRange::create</span>(<span class="ident">start</span>, <span class="ident">end</span>)
     }
 
@@ -3536,7 +3536,7 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">///</span>
     <span class="doccomment">/// The start of a range is always less than or equal to the end of the</span>
     <span class="doccomment">/// range.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u8</span> {
         <span class="self">self</span>.<span class="ident">start</span>
     }
 
@@ -3544,13 +3544,13 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">///</span>
     <span class="doccomment">/// The end of a range is always greater than or equal to the start of the</span>
     <span class="doccomment">/// range.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">end</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">end</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u8</span> {
         <span class="self">self</span>.<span class="ident">end</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">ClassBytesRange</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">debug</span> <span class="op">=</span> <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;ClassBytesRange&quot;</span>);
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">start</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0x7F</span> {
             <span class="ident">debug</span>.<span class="ident">field</span>(<span class="string">&quot;start&quot;</span>, <span class="kw-2">&amp;</span>(<span class="self">self</span>.<span class="ident">start</span> <span class="kw">as</span> <span class="ident">char</span>));
@@ -3608,10 +3608,10 @@ Defines a high-level intermediate representation for regular expressions.
 
 <span class="kw">impl</span> <span class="ident">WordBoundary</span> {
     <span class="doccomment">/// Returns true if and only if this word boundary assertion is negated.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_negated</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_negated</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">WordBoundary::Unicode</span> <span class="op">|</span> <span class="ident">WordBoundary::Ascii</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-            <span class="ident">WordBoundary::UnicodeNegate</span> <span class="op">|</span> <span class="ident">WordBoundary::AsciiNegate</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+            <span class="ident">WordBoundary::Unicode</span> <span class="op">|</span> <span class="ident">WordBoundary::Ascii</span> =&gt; <span class="bool-val">false</span>,
+            <span class="ident">WordBoundary::UnicodeNegate</span> <span class="op">|</span> <span class="ident">WordBoundary::AsciiNegate</span> =&gt; <span class="bool-val">true</span>,
         }
     }
 }
@@ -3681,14 +3681,14 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">/// string will always match the empty string. In order to get the</span>
     <span class="doccomment">/// inductive definition, see the corresponding method on</span>
     <span class="doccomment">/// [`Hir`](struct.Hir.html).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_match_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_match_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">kind</span> {
-            <span class="ident">RepetitionKind::ZeroOrOne</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="ident">RepetitionKind::ZeroOrMore</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="ident">RepetitionKind::OneOrMore</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-            <span class="ident">RepetitionKind::Range</span>(<span class="ident">RepetitionRange::Exactly</span>(<span class="ident">m</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">m</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>,
-            <span class="ident">RepetitionKind::Range</span>(<span class="ident">RepetitionRange::AtLeast</span>(<span class="ident">m</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">m</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>,
-            <span class="ident">RepetitionKind::Range</span>(<span class="ident">RepetitionRange::Bounded</span>(<span class="ident">m</span>, <span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">m</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>,
+            <span class="ident">RepetitionKind::ZeroOrOne</span> =&gt; <span class="bool-val">true</span>,
+            <span class="ident">RepetitionKind::ZeroOrMore</span> =&gt; <span class="bool-val">true</span>,
+            <span class="ident">RepetitionKind::OneOrMore</span> =&gt; <span class="bool-val">false</span>,
+            <span class="ident">RepetitionKind::Range</span>(<span class="ident">RepetitionRange::Exactly</span>(<span class="ident">m</span>)) =&gt; <span class="ident">m</span> <span class="op">==</span> <span class="number">0</span>,
+            <span class="ident">RepetitionKind::Range</span>(<span class="ident">RepetitionRange::AtLeast</span>(<span class="ident">m</span>)) =&gt; <span class="ident">m</span> <span class="op">==</span> <span class="number">0</span>,
+            <span class="ident">RepetitionKind::Range</span>(<span class="ident">RepetitionRange::Bounded</span>(<span class="ident">m</span>, <span class="kw">_</span>)) =&gt; <span class="ident">m</span> <span class="op">==</span> <span class="number">0</span>,
         }
     }
 }
@@ -3728,12 +3728,12 @@ Defines a high-level intermediate representation for regular expressions.
             <span class="op">|</span> <span class="ident">HirKind::Literal</span>(<span class="kw">_</span>)
             <span class="op">|</span> <span class="ident">HirKind::Class</span>(<span class="kw">_</span>)
             <span class="op">|</span> <span class="ident">HirKind::Anchor</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident">HirKind::WordBoundary</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span>,
-            <span class="ident">HirKind::Group</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">x</span>.<span class="ident">hir</span>.<span class="ident">kind</span>.<span class="ident">has_subexprs</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span>,
-            <span class="ident">HirKind::Repetition</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">x</span>.<span class="ident">hir</span>.<span class="ident">kind</span>.<span class="ident">has_subexprs</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span>,
-            <span class="ident">HirKind::Concat</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">is_empty</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span>,
-            <span class="ident">HirKind::Alternation</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">is_empty</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="op">|</span> <span class="ident">HirKind::WordBoundary</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span>,
+            <span class="ident">HirKind::Group</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">x</span>.<span class="ident">hir</span>.<span class="ident">kind</span>.<span class="ident">has_subexprs</span>() =&gt; <span class="kw">return</span>,
+            <span class="ident">HirKind::Repetition</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">x</span>.<span class="ident">hir</span>.<span class="ident">kind</span>.<span class="ident">has_subexprs</span>() =&gt; <span class="kw">return</span>,
+            <span class="ident">HirKind::Concat</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">is_empty</span>() =&gt; <span class="kw">return</span>,
+            <span class="ident">HirKind::Alternation</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">is_empty</span>() =&gt; <span class="kw">return</span>,
+            <span class="kw">_</span> =&gt; {}
         }
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stack</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">mem::replace</span>(<span class="self">self</span>, <span class="ident">Hir::empty</span>())];
@@ -3743,17 +3743,17 @@ Defines a high-level intermediate representation for regular expressions.
                 <span class="op">|</span> <span class="ident">HirKind::Literal</span>(<span class="kw">_</span>)
                 <span class="op">|</span> <span class="ident">HirKind::Class</span>(<span class="kw">_</span>)
                 <span class="op">|</span> <span class="ident">HirKind::Anchor</span>(<span class="kw">_</span>)
-                <span class="op">|</span> <span class="ident">HirKind::WordBoundary</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
-                <span class="ident">HirKind::Group</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="op">|</span> <span class="ident">HirKind::WordBoundary</span>(<span class="kw">_</span>) =&gt; {}
+                <span class="ident">HirKind::Group</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">x</span>) =&gt; {
                     <span class="ident">stack</span>.<span class="ident">push</span>(<span class="ident">mem::replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">x</span>.<span class="ident">hir</span>, <span class="ident">Hir::empty</span>()));
                 }
-                <span class="ident">HirKind::Repetition</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">HirKind::Repetition</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">x</span>) =&gt; {
                     <span class="ident">stack</span>.<span class="ident">push</span>(<span class="ident">mem::replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">x</span>.<span class="ident">hir</span>, <span class="ident">Hir::empty</span>()));
                 }
-                <span class="ident">HirKind::Concat</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">HirKind::Concat</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">x</span>) =&gt; {
                     <span class="ident">stack</span>.<span class="ident">extend</span>(<span class="ident">x</span>.<span class="ident">drain</span>(..));
                 }
-                <span class="ident">HirKind::Alternation</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">HirKind::Alternation</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">x</span>) =&gt; {
                     <span class="ident">stack</span>.<span class="ident">extend</span>(<span class="ident">x</span>.<span class="ident">drain</span>(..));
                 }
             }
@@ -3776,8 +3776,8 @@ Defines a high-level intermediate representation for regular expressions.
 
 <span class="comment">// A simple macro for defining bitfield accessors/mutators.</span>
 <span class="macro">macro_rules!</span> <span class="ident">define_bool</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">bit</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">is_fn_name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">set_fn_name</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">is_fn_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">bit</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">is_fn_name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">set_fn_name</span>:<span class="ident">ident</span>) =&gt; {
+        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">is_fn_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
             <span class="self">self</span>.<span class="ident">bools</span> <span class="op">&amp;</span> (<span class="number">0b1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bit</span>) <span class="op">&gt;</span> <span class="number">0</span>
         }
 
@@ -3792,7 +3792,7 @@ Defines a high-level intermediate representation for regular expressions.
 }
 
 <span class="kw">impl</span> <span class="ident">HirInfo</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">HirInfo</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">HirInfo</span> {
         <span class="ident">HirInfo</span> { <span class="ident">bools</span>: <span class="number">0</span> }
     }
 
@@ -3813,7 +3813,7 @@ Defines a high-level intermediate representation for regular expressions.
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
-    <span class="kw">fn</span> <span class="ident">uclass</span>(<span class="ident">ranges</span>: <span class="kw-2">&amp;</span>[(<span class="ident">char</span>, <span class="ident">char</span>)]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClassUnicode</span> {
+    <span class="kw">fn</span> <span class="ident">uclass</span>(<span class="ident">ranges</span>: <span class="kw-2">&amp;</span>[(<span class="ident">char</span>, <span class="ident">char</span>)]) -&gt; <span class="ident">ClassUnicode</span> {
         <span class="kw">let</span> <span class="ident">ranges</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ClassUnicodeRange</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">ranges</span>
             .<span class="ident">iter</span>()
             .<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="ident">s</span>, <span class="ident">e</span>)<span class="op">|</span> <span class="ident">ClassUnicodeRange::new</span>(<span class="ident">s</span>, <span class="ident">e</span>))
@@ -3821,36 +3821,36 @@ Defines a high-level intermediate representation for regular expressions.
         <span class="ident">ClassUnicode::new</span>(<span class="ident">ranges</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">bclass</span>(<span class="ident">ranges</span>: <span class="kw-2">&amp;</span>[(<span class="ident">u8</span>, <span class="ident">u8</span>)]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClassBytes</span> {
+    <span class="kw">fn</span> <span class="ident">bclass</span>(<span class="ident">ranges</span>: <span class="kw-2">&amp;</span>[(<span class="ident">u8</span>, <span class="ident">u8</span>)]) -&gt; <span class="ident">ClassBytes</span> {
         <span class="kw">let</span> <span class="ident">ranges</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ClassBytesRange</span><span class="op">&gt;</span> <span class="op">=</span>
             <span class="ident">ranges</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="ident">s</span>, <span class="ident">e</span>)<span class="op">|</span> <span class="ident">ClassBytesRange::new</span>(<span class="ident">s</span>, <span class="ident">e</span>)).<span class="ident">collect</span>();
         <span class="ident">ClassBytes::new</span>(<span class="ident">ranges</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">uranges</span>(<span class="ident">cls</span>: <span class="kw-2">&amp;</span><span class="ident">ClassUnicode</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">char</span>, <span class="ident">char</span>)<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">uranges</span>(<span class="ident">cls</span>: <span class="kw-2">&amp;</span><span class="ident">ClassUnicode</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">char</span>, <span class="ident">char</span>)<span class="op">&gt;</span> {
         <span class="ident">cls</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> (<span class="ident">x</span>.<span class="ident">start</span>(), <span class="ident">x</span>.<span class="ident">end</span>())).<span class="ident">collect</span>()
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unicode-case&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">ucasefold</span>(<span class="ident">cls</span>: <span class="kw-2">&amp;</span><span class="ident">ClassUnicode</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClassUnicode</span> {
+    <span class="kw">fn</span> <span class="ident">ucasefold</span>(<span class="ident">cls</span>: <span class="kw-2">&amp;</span><span class="ident">ClassUnicode</span>) -&gt; <span class="ident">ClassUnicode</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cls_</span> <span class="op">=</span> <span class="ident">cls</span>.<span class="ident">clone</span>();
         <span class="ident">cls_</span>.<span class="ident">case_fold_simple</span>();
         <span class="ident">cls_</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">uunion</span>(<span class="ident">cls1</span>: <span class="kw-2">&amp;</span><span class="ident">ClassUnicode</span>, <span class="ident">cls2</span>: <span class="kw-2">&amp;</span><span class="ident">ClassUnicode</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClassUnicode</span> {
+    <span class="kw">fn</span> <span class="ident">uunion</span>(<span class="ident">cls1</span>: <span class="kw-2">&amp;</span><span class="ident">ClassUnicode</span>, <span class="ident">cls2</span>: <span class="kw-2">&amp;</span><span class="ident">ClassUnicode</span>) -&gt; <span class="ident">ClassUnicode</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cls_</span> <span class="op">=</span> <span class="ident">cls1</span>.<span class="ident">clone</span>();
         <span class="ident">cls_</span>.<span class="ident">union</span>(<span class="ident">cls2</span>);
         <span class="ident">cls_</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">uintersect</span>(<span class="ident">cls1</span>: <span class="kw-2">&amp;</span><span class="ident">ClassUnicode</span>, <span class="ident">cls2</span>: <span class="kw-2">&amp;</span><span class="ident">ClassUnicode</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClassUnicode</span> {
+    <span class="kw">fn</span> <span class="ident">uintersect</span>(<span class="ident">cls1</span>: <span class="kw-2">&amp;</span><span class="ident">ClassUnicode</span>, <span class="ident">cls2</span>: <span class="kw-2">&amp;</span><span class="ident">ClassUnicode</span>) -&gt; <span class="ident">ClassUnicode</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cls_</span> <span class="op">=</span> <span class="ident">cls1</span>.<span class="ident">clone</span>();
         <span class="ident">cls_</span>.<span class="ident">intersect</span>(<span class="ident">cls2</span>);
         <span class="ident">cls_</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">udifference</span>(<span class="ident">cls1</span>: <span class="kw-2">&amp;</span><span class="ident">ClassUnicode</span>, <span class="ident">cls2</span>: <span class="kw-2">&amp;</span><span class="ident">ClassUnicode</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClassUnicode</span> {
+    <span class="kw">fn</span> <span class="ident">udifference</span>(<span class="ident">cls1</span>: <span class="kw-2">&amp;</span><span class="ident">ClassUnicode</span>, <span class="ident">cls2</span>: <span class="kw-2">&amp;</span><span class="ident">ClassUnicode</span>) -&gt; <span class="ident">ClassUnicode</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cls_</span> <span class="op">=</span> <span class="ident">cls1</span>.<span class="ident">clone</span>();
         <span class="ident">cls_</span>.<span class="ident">difference</span>(<span class="ident">cls2</span>);
         <span class="ident">cls_</span>
@@ -3859,53 +3859,53 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="kw">fn</span> <span class="ident">usymdifference</span>(
         <span class="ident">cls1</span>: <span class="kw-2">&amp;</span><span class="ident">ClassUnicode</span>,
         <span class="ident">cls2</span>: <span class="kw-2">&amp;</span><span class="ident">ClassUnicode</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClassUnicode</span> {
+    ) -&gt; <span class="ident">ClassUnicode</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cls_</span> <span class="op">=</span> <span class="ident">cls1</span>.<span class="ident">clone</span>();
         <span class="ident">cls_</span>.<span class="ident">symmetric_difference</span>(<span class="ident">cls2</span>);
         <span class="ident">cls_</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">unegate</span>(<span class="ident">cls</span>: <span class="kw-2">&amp;</span><span class="ident">ClassUnicode</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClassUnicode</span> {
+    <span class="kw">fn</span> <span class="ident">unegate</span>(<span class="ident">cls</span>: <span class="kw-2">&amp;</span><span class="ident">ClassUnicode</span>) -&gt; <span class="ident">ClassUnicode</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cls_</span> <span class="op">=</span> <span class="ident">cls</span>.<span class="ident">clone</span>();
         <span class="ident">cls_</span>.<span class="ident">negate</span>();
         <span class="ident">cls_</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">branges</span>(<span class="ident">cls</span>: <span class="kw-2">&amp;</span><span class="ident">ClassBytes</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">u8</span>, <span class="ident">u8</span>)<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">branges</span>(<span class="ident">cls</span>: <span class="kw-2">&amp;</span><span class="ident">ClassBytes</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">u8</span>, <span class="ident">u8</span>)<span class="op">&gt;</span> {
         <span class="ident">cls</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> (<span class="ident">x</span>.<span class="ident">start</span>(), <span class="ident">x</span>.<span class="ident">end</span>())).<span class="ident">collect</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">bcasefold</span>(<span class="ident">cls</span>: <span class="kw-2">&amp;</span><span class="ident">ClassBytes</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClassBytes</span> {
+    <span class="kw">fn</span> <span class="ident">bcasefold</span>(<span class="ident">cls</span>: <span class="kw-2">&amp;</span><span class="ident">ClassBytes</span>) -&gt; <span class="ident">ClassBytes</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cls_</span> <span class="op">=</span> <span class="ident">cls</span>.<span class="ident">clone</span>();
         <span class="ident">cls_</span>.<span class="ident">case_fold_simple</span>();
         <span class="ident">cls_</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">bunion</span>(<span class="ident">cls1</span>: <span class="kw-2">&amp;</span><span class="ident">ClassBytes</span>, <span class="ident">cls2</span>: <span class="kw-2">&amp;</span><span class="ident">ClassBytes</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClassBytes</span> {
+    <span class="kw">fn</span> <span class="ident">bunion</span>(<span class="ident">cls1</span>: <span class="kw-2">&amp;</span><span class="ident">ClassBytes</span>, <span class="ident">cls2</span>: <span class="kw-2">&amp;</span><span class="ident">ClassBytes</span>) -&gt; <span class="ident">ClassBytes</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cls_</span> <span class="op">=</span> <span class="ident">cls1</span>.<span class="ident">clone</span>();
         <span class="ident">cls_</span>.<span class="ident">union</span>(<span class="ident">cls2</span>);
         <span class="ident">cls_</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">bintersect</span>(<span class="ident">cls1</span>: <span class="kw-2">&amp;</span><span class="ident">ClassBytes</span>, <span class="ident">cls2</span>: <span class="kw-2">&amp;</span><span class="ident">ClassBytes</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClassBytes</span> {
+    <span class="kw">fn</span> <span class="ident">bintersect</span>(<span class="ident">cls1</span>: <span class="kw-2">&amp;</span><span class="ident">ClassBytes</span>, <span class="ident">cls2</span>: <span class="kw-2">&amp;</span><span class="ident">ClassBytes</span>) -&gt; <span class="ident">ClassBytes</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cls_</span> <span class="op">=</span> <span class="ident">cls1</span>.<span class="ident">clone</span>();
         <span class="ident">cls_</span>.<span class="ident">intersect</span>(<span class="ident">cls2</span>);
         <span class="ident">cls_</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">bdifference</span>(<span class="ident">cls1</span>: <span class="kw-2">&amp;</span><span class="ident">ClassBytes</span>, <span class="ident">cls2</span>: <span class="kw-2">&amp;</span><span class="ident">ClassBytes</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClassBytes</span> {
+    <span class="kw">fn</span> <span class="ident">bdifference</span>(<span class="ident">cls1</span>: <span class="kw-2">&amp;</span><span class="ident">ClassBytes</span>, <span class="ident">cls2</span>: <span class="kw-2">&amp;</span><span class="ident">ClassBytes</span>) -&gt; <span class="ident">ClassBytes</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cls_</span> <span class="op">=</span> <span class="ident">cls1</span>.<span class="ident">clone</span>();
         <span class="ident">cls_</span>.<span class="ident">difference</span>(<span class="ident">cls2</span>);
         <span class="ident">cls_</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">bsymdifference</span>(<span class="ident">cls1</span>: <span class="kw-2">&amp;</span><span class="ident">ClassBytes</span>, <span class="ident">cls2</span>: <span class="kw-2">&amp;</span><span class="ident">ClassBytes</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClassBytes</span> {
+    <span class="kw">fn</span> <span class="ident">bsymdifference</span>(<span class="ident">cls1</span>: <span class="kw-2">&amp;</span><span class="ident">ClassBytes</span>, <span class="ident">cls2</span>: <span class="kw-2">&amp;</span><span class="ident">ClassBytes</span>) -&gt; <span class="ident">ClassBytes</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cls_</span> <span class="op">=</span> <span class="ident">cls1</span>.<span class="ident">clone</span>();
         <span class="ident">cls_</span>.<span class="ident">symmetric_difference</span>(<span class="ident">cls2</span>);
         <span class="ident">cls_</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">bnegate</span>(<span class="ident">cls</span>: <span class="kw-2">&amp;</span><span class="ident">ClassBytes</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClassBytes</span> {
+    <span class="kw">fn</span> <span class="ident">bnegate</span>(<span class="ident">cls</span>: <span class="kw-2">&amp;</span><span class="ident">ClassBytes</span>) -&gt; <span class="ident">ClassBytes</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cls_</span> <span class="op">=</span> <span class="ident">cls</span>.<span class="ident">clone</span>();
         <span class="ident">cls_</span>.<span class="ident">negate</span>();
         <span class="ident">cls_</span>

@@ -80,9 +80,9 @@
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">quote::quote</span>;
 <span class="kw">use</span> <span class="ident">synstructure</span>::{<span class="ident">decl_derive</span>, <span class="ident">AddBounds</span>, <span class="ident">Structure</span>};
 
-<span class="macro">decl_derive!</span>([<span class="ident">Trace</span>, <span class="ident">attributes</span>(<span class="ident">unsafe_ignore_trace</span>)] <span class="op">=</span><span class="op">&gt;</span> <span class="ident">derive_trace</span>);
+<span class="macro">decl_derive!</span>([<span class="ident">Trace</span>, <span class="ident">attributes</span>(<span class="ident">unsafe_ignore_trace</span>)] =&gt; <span class="ident">derive_trace</span>);
 
-<span class="kw">fn</span> <span class="ident">derive_trace</span>(<span class="kw-2">mut</span> <span class="ident">s</span>: <span class="ident">Structure</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">proc_macro2::TokenStream</span> {
+<span class="kw">fn</span> <span class="ident">derive_trace</span>(<span class="kw-2">mut</span> <span class="ident">s</span>: <span class="ident">Structure</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">proc_macro2::TokenStream</span> {
     <span class="ident">s</span>.<span class="ident">filter</span>(<span class="op">|</span><span class="ident">bi</span><span class="op">|</span> {
         <span class="op">!</span><span class="ident">bi</span>.<span class="ident">ast</span>()
             .<span class="ident">attrs</span>
@@ -151,9 +151,9 @@
     }
 }
 
-<span class="macro">decl_derive!</span>([<span class="ident">Finalize</span>] <span class="op">=</span><span class="op">&gt;</span> <span class="ident">derive_finalize</span>);
+<span class="macro">decl_derive!</span>([<span class="ident">Finalize</span>] =&gt; <span class="ident">derive_finalize</span>);
 
-<span class="kw">fn</span> <span class="ident">derive_finalize</span>(<span class="ident">s</span>: <span class="ident">Structure</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">proc_macro2::TokenStream</span> {
+<span class="kw">fn</span> <span class="ident">derive_finalize</span>(<span class="ident">s</span>: <span class="ident">Structure</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">proc_macro2::TokenStream</span> {
     <span class="ident">s</span>.<span class="ident">unbound_impl</span>(<span class="macro">quote!</span>(<span class="ident">::gc::Finalize</span>), <span class="macro">quote!</span>())
 }
 </code></pre></div>

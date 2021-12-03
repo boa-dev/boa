@@ -45,12 +45,12 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">cleanup</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">cleanup</span>() -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="ident">ERR_STORAGE</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">storage</span><span class="op">|</span> <span class="ident">storage</span>.<span class="ident">replace</span>(<span class="ident">Vec::new</span>()))
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">emit_diagnostic</span>(<span class="ident">diag</span>: <span class="ident">Diagnostic</span>) {
-    <span class="kw">if</span> <span class="ident">diag</span>.<span class="ident">level</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Level::Error</span> {
+    <span class="kw">if</span> <span class="ident">diag</span>.<span class="ident">level</span> <span class="op">==</span> <span class="ident">Level::Error</span> {
         <span class="ident">ERR_STORAGE</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">storage</span><span class="op">|</span> <span class="ident">storage</span>.<span class="ident">borrow_mut</span>().<span class="ident">push</span>(<span class="ident">diag</span>));
     }
 }

@@ -417,7 +417,7 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">trait</span> <span class="ident">AsCoreLatch</span> {
-    <span class="kw">fn</span> <span class="ident">as_core_latch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">CoreLatch</span>;
+    <span class="kw">fn</span> <span class="ident">as_core_latch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">CoreLatch</span>;
 }
 
 <span class="doccomment">/// Latch is not set, owning thread is awake</span>
@@ -444,7 +444,7 @@
 
 <span class="kw">impl</span> <span class="ident">CoreLatch</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">state</span>: <span class="ident">AtomicUsize::new</span>(<span class="number">0</span>),
         }
@@ -453,7 +453,7 @@
     <span class="doccomment">/// Returns the address of this core latch as an integer. Used</span>
     <span class="doccomment">/// for logging.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">addr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">addr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">CoreLatch</span> <span class="kw">as</span> <span class="ident">usize</span>
     }
 
@@ -461,7 +461,7 @@
     <span class="doccomment">/// if the owning thread may proceed to fall asleep, false if the</span>
     <span class="doccomment">/// latch was set in the meantime.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">get_sleepy</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">get_sleepy</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">state</span>
             .<span class="ident">compare_exchange</span>(<span class="ident">UNSET</span>, <span class="ident">SLEEPY</span>, <span class="ident">Ordering::SeqCst</span>, <span class="ident">Ordering::Relaxed</span>)
             .<span class="ident">is_ok</span>()
@@ -471,7 +471,7 @@
     <span class="doccomment">/// true if the owning thread should block, or false if the latch</span>
     <span class="doccomment">/// was set in the meantime.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">fall_asleep</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">fall_asleep</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">state</span>
             .<span class="ident">compare_exchange</span>(<span class="ident">SLEEPY</span>, <span class="ident">SLEEPING</span>, <span class="ident">Ordering::SeqCst</span>, <span class="ident">Ordering::Relaxed</span>)
             .<span class="ident">is_ok</span>()
@@ -496,15 +496,15 @@
     <span class="doccomment">/// doing some wakeups; those are encapsulated in the surrounding</span>
     <span class="doccomment">/// latch code.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="ident">old_state</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">swap</span>(<span class="ident">SET</span>, <span class="ident">Ordering::AcqRel</span>);
-        <span class="ident">old_state</span> <span class="op">=</span><span class="op">=</span> <span class="ident">SLEEPING</span>
+        <span class="ident">old_state</span> <span class="op">==</span> <span class="ident">SLEEPING</span>
     }
 
     <span class="doccomment">/// Test if this latch has been set.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">probe</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">SET</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">probe</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>) <span class="op">==</span> <span class="ident">SET</span>
     }
 }
 
@@ -524,7 +524,7 @@
     <span class="doccomment">/// this latch -- it also means that when the latch is set, we</span>
     <span class="doccomment">/// will wake `thread` if it is sleeping.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">thread</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r</span> <span class="ident">WorkerThread</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SpinLatch</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">thread</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r</span> <span class="ident">WorkerThread</span>) -&gt; <span class="ident">SpinLatch</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span><span class="op">&gt;</span> {
         <span class="ident">SpinLatch</span> {
             <span class="ident">core_latch</span>: <span class="ident">CoreLatch::new</span>(),
             <span class="ident">registry</span>: <span class="ident">thread</span>.<span class="ident">registry</span>(),
@@ -537,7 +537,7 @@
     <span class="doccomment">/// need to make sure the registry is kept alive after setting, so we can</span>
     <span class="doccomment">/// safely call the notification.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">cross</span>(<span class="ident">thread</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r</span> <span class="ident">WorkerThread</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SpinLatch</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">cross</span>(<span class="ident">thread</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r</span> <span class="ident">WorkerThread</span>) -&gt; <span class="ident">SpinLatch</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span><span class="op">&gt;</span> {
         <span class="ident">SpinLatch</span> {
             <span class="ident">cross</span>: <span class="bool-val">true</span>,
             ..<span class="ident">SpinLatch::new</span>(<span class="ident">thread</span>)
@@ -545,14 +545,14 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">probe</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">probe</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">core_latch</span>.<span class="ident">probe</span>()
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span><span class="op">&gt;</span> <span class="ident">AsCoreLatch</span> <span class="kw">for</span> <span class="ident">SpinLatch</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">as_core_latch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">CoreLatch</span> {
+    <span class="kw">fn</span> <span class="ident">as_core_latch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">CoreLatch</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">core_latch</span>
     }
 }
@@ -599,7 +599,7 @@
 
 <span class="kw">impl</span> <span class="ident">LockLatch</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LockLatch</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">LockLatch</span> {
         <span class="ident">LockLatch</span> {
             <span class="ident">m</span>: <span class="ident">Mutex::new</span>(<span class="bool-val">false</span>),
             <span class="ident">v</span>: <span class="ident">Condvar::new</span>(),
@@ -656,7 +656,7 @@
 
 <span class="kw">impl</span> <span class="ident">CountLatch</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CountLatch</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">CountLatch</span> {
         <span class="ident">CountLatch</span> {
             <span class="ident">core_latch</span>: <span class="ident">CoreLatch::new</span>(),
             <span class="ident">counter</span>: <span class="ident">AtomicUsize::new</span>(<span class="number">1</span>),
@@ -673,8 +673,8 @@
     <span class="doccomment">/// count, then the latch is **set**, and calls to `probe()` will</span>
     <span class="doccomment">/// return true. Returns whether the latch was set.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">counter</span>.<span class="ident">fetch_sub</span>(<span class="number">1</span>, <span class="ident">Ordering::SeqCst</span>) <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">counter</span>.<span class="ident">fetch_sub</span>(<span class="number">1</span>, <span class="ident">Ordering::SeqCst</span>) <span class="op">==</span> <span class="number">1</span> {
             <span class="self">self</span>.<span class="ident">core_latch</span>.<span class="ident">set</span>();
             <span class="bool-val">true</span>
         } <span class="kw">else</span> {
@@ -695,7 +695,7 @@
 
 <span class="kw">impl</span> <span class="ident">AsCoreLatch</span> <span class="kw">for</span> <span class="ident">CountLatch</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">as_core_latch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">CoreLatch</span> {
+    <span class="kw">fn</span> <span class="ident">as_core_latch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">CoreLatch</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">core_latch</span>
     }
 }
@@ -708,7 +708,7 @@
 
 <span class="kw">impl</span> <span class="ident">CountLockLatch</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CountLockLatch</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">CountLockLatch</span> {
         <span class="ident">CountLockLatch</span> {
             <span class="ident">lock_latch</span>: <span class="ident">LockLatch::new</span>(),
             <span class="ident">counter</span>: <span class="ident">AtomicUsize::new</span>(<span class="number">1</span>),
@@ -729,7 +729,7 @@
 <span class="kw">impl</span> <span class="ident">Latch</span> <span class="kw">for</span> <span class="ident">CountLockLatch</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">counter</span>.<span class="ident">fetch_sub</span>(<span class="number">1</span>, <span class="ident">Ordering::SeqCst</span>) <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">counter</span>.<span class="ident">fetch_sub</span>(<span class="number">1</span>, <span class="ident">Ordering::SeqCst</span>) <span class="op">==</span> <span class="number">1</span> {
             <span class="self">self</span>.<span class="ident">lock_latch</span>.<span class="ident">set</span>();
         }
     }

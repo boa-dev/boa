@@ -700,43 +700,43 @@ which uses it for executing automata on their term index.
     <span class="doccomment">/// range.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This assumes that `start` and `end` have the same length.</span>
-    <span class="kw">fn</span> <span class="ident">from_encoded_range</span>(<span class="ident">start</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">end</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from_encoded_range</span>(<span class="ident">start</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">end</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="self">Self</span> {
         <span class="macro">assert_eq!</span>(<span class="ident">start</span>.<span class="ident">len</span>(), <span class="ident">end</span>.<span class="ident">len</span>());
         <span class="kw">match</span> <span class="ident">start</span>.<span class="ident">len</span>() {
-            <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Utf8Sequence::Two</span>([
+            <span class="number">2</span> =&gt; <span class="ident">Utf8Sequence::Two</span>([
                 <span class="ident">Utf8Range::new</span>(<span class="ident">start</span>[<span class="number">0</span>], <span class="ident">end</span>[<span class="number">0</span>]),
                 <span class="ident">Utf8Range::new</span>(<span class="ident">start</span>[<span class="number">1</span>], <span class="ident">end</span>[<span class="number">1</span>]),
             ]),
-            <span class="number">3</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Utf8Sequence::Three</span>([
+            <span class="number">3</span> =&gt; <span class="ident">Utf8Sequence::Three</span>([
                 <span class="ident">Utf8Range::new</span>(<span class="ident">start</span>[<span class="number">0</span>], <span class="ident">end</span>[<span class="number">0</span>]),
                 <span class="ident">Utf8Range::new</span>(<span class="ident">start</span>[<span class="number">1</span>], <span class="ident">end</span>[<span class="number">1</span>]),
                 <span class="ident">Utf8Range::new</span>(<span class="ident">start</span>[<span class="number">2</span>], <span class="ident">end</span>[<span class="number">2</span>]),
             ]),
-            <span class="number">4</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Utf8Sequence::Four</span>([
+            <span class="number">4</span> =&gt; <span class="ident">Utf8Sequence::Four</span>([
                 <span class="ident">Utf8Range::new</span>(<span class="ident">start</span>[<span class="number">0</span>], <span class="ident">end</span>[<span class="number">0</span>]),
                 <span class="ident">Utf8Range::new</span>(<span class="ident">start</span>[<span class="number">1</span>], <span class="ident">end</span>[<span class="number">1</span>]),
                 <span class="ident">Utf8Range::new</span>(<span class="ident">start</span>[<span class="number">2</span>], <span class="ident">end</span>[<span class="number">2</span>]),
                 <span class="ident">Utf8Range::new</span>(<span class="ident">start</span>[<span class="number">3</span>], <span class="ident">end</span>[<span class="number">3</span>]),
             ]),
-            <span class="ident">n</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(<span class="string">&quot;invalid encoded length: {}&quot;</span>, <span class="ident">n</span>),
+            <span class="ident">n</span> =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;invalid encoded length: {}&quot;</span>, <span class="ident">n</span>),
         }
     }
 
     <span class="doccomment">/// Returns the underlying sequence of byte ranges as a slice.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_slice</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">Utf8Range</span>] {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_slice</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">Utf8Range</span>] {
         <span class="kw">use</span> <span class="ident"><span class="self">self</span>::Utf8Sequence</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">One</span>(<span class="kw-2">ref</span> <span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">slice::from_ref</span>(<span class="ident">r</span>),
-            <span class="ident">Two</span>(<span class="kw-2">ref</span> <span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">r</span>[..],
-            <span class="ident">Three</span>(<span class="kw-2">ref</span> <span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">r</span>[..],
-            <span class="ident">Four</span>(<span class="kw-2">ref</span> <span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">r</span>[..],
+            <span class="ident">One</span>(<span class="kw-2">ref</span> <span class="ident">r</span>) =&gt; <span class="ident">slice::from_ref</span>(<span class="ident">r</span>),
+            <span class="ident">Two</span>(<span class="kw-2">ref</span> <span class="ident">r</span>) =&gt; <span class="kw-2">&amp;</span><span class="ident">r</span>[..],
+            <span class="ident">Three</span>(<span class="kw-2">ref</span> <span class="ident">r</span>) =&gt; <span class="kw-2">&amp;</span><span class="ident">r</span>[..],
+            <span class="ident">Four</span>(<span class="kw-2">ref</span> <span class="ident">r</span>) =&gt; <span class="kw-2">&amp;</span><span class="ident">r</span>[..],
         }
     }
 
     <span class="doccomment">/// Returns the number of byte ranges in this sequence.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The length is guaranteed to be in the closed interval `[1, 4]`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="ident">as_slice</span>().<span class="ident">len</span>()
     }
 
@@ -758,16 +758,16 @@ which uses it for executing automata on their term index.
     <span class="doccomment">/// character classes in reverse.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reverse</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Utf8Sequence::One</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="ident">Utf8Sequence::Two</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">reverse</span>(),
-            <span class="ident">Utf8Sequence::Three</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">reverse</span>(),
-            <span class="ident">Utf8Sequence::Four</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">reverse</span>(),
+            <span class="ident">Utf8Sequence::One</span>(<span class="kw">_</span>) =&gt; {}
+            <span class="ident">Utf8Sequence::Two</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">reverse</span>(),
+            <span class="ident">Utf8Sequence::Three</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">reverse</span>(),
+            <span class="ident">Utf8Sequence::Four</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">reverse</span>(),
         }
     }
 
     <span class="doccomment">/// Returns true if and only if a prefix of `bytes` matches this sequence</span>
     <span class="doccomment">/// of byte ranges.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="ident">bytes</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">len</span>() {
             <span class="kw">return</span> <span class="bool-val">false</span>;
         }
@@ -784,19 +784,19 @@ which uses it for executing automata on their term index.
     <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">slice::Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Utf8Range</span><span class="op">&gt;</span>;
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Utf8Range</span>;
 
-    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::IntoIter</span> {
+    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::IntoIter</span> {
         <span class="self">self</span>.<span class="ident">as_slice</span>().<span class="ident">into_iter</span>()
     }
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Utf8Sequence</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">use</span> <span class="ident"><span class="self">self</span>::Utf8Sequence</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">One</span>(<span class="kw-2">ref</span> <span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?}&quot;</span>, <span class="ident">r</span>),
-            <span class="ident">Two</span>(<span class="kw-2">ref</span> <span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?}{:?}&quot;</span>, <span class="ident">r</span>[<span class="number">0</span>], <span class="ident">r</span>[<span class="number">1</span>]),
-            <span class="ident">Three</span>(<span class="kw-2">ref</span> <span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?}{:?}{:?}&quot;</span>, <span class="ident">r</span>[<span class="number">0</span>], <span class="ident">r</span>[<span class="number">1</span>], <span class="ident">r</span>[<span class="number">2</span>]),
-            <span class="ident">Four</span>(<span class="kw-2">ref</span> <span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">One</span>(<span class="kw-2">ref</span> <span class="ident">r</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?}&quot;</span>, <span class="ident">r</span>),
+            <span class="ident">Two</span>(<span class="kw-2">ref</span> <span class="ident">r</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?}{:?}&quot;</span>, <span class="ident">r</span>[<span class="number">0</span>], <span class="ident">r</span>[<span class="number">1</span>]),
+            <span class="ident">Three</span>(<span class="kw-2">ref</span> <span class="ident">r</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?}{:?}{:?}&quot;</span>, <span class="ident">r</span>[<span class="number">0</span>], <span class="ident">r</span>[<span class="number">1</span>], <span class="ident">r</span>[<span class="number">2</span>]),
+            <span class="ident">Four</span>(<span class="kw-2">ref</span> <span class="ident">r</span>) =&gt; {
                 <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?}{:?}{:?}{:?}&quot;</span>, <span class="ident">r</span>[<span class="number">0</span>], <span class="ident">r</span>[<span class="number">1</span>], <span class="ident">r</span>[<span class="number">2</span>], <span class="ident">r</span>[<span class="number">3</span>])
             }
         }
@@ -813,19 +813,19 @@ which uses it for executing automata on their term index.
 }
 
 <span class="kw">impl</span> <span class="ident">Utf8Range</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">start</span>: <span class="ident">u8</span>, <span class="ident">end</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">start</span>: <span class="ident">u8</span>, <span class="ident">end</span>: <span class="ident">u8</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">Utf8Range</span> { <span class="ident">start</span>, <span class="ident">end</span> }
     }
 
     <span class="doccomment">/// Returns true if and only if the given byte is in this range.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">b</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">b</span>: <span class="ident">u8</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">start</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">b</span> <span class="op">&amp;&amp;</span> <span class="ident">b</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">end</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Utf8Range</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">start</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">end</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">start</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">end</span> {
             <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;[{:X}]&quot;</span>, <span class="self">self</span>.<span class="ident">start</span>)
         } <span class="kw">else</span> {
             <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;[{:X}-{:X}]&quot;</span>, <span class="self">self</span>.<span class="ident">start</span>, <span class="self">self</span>.<span class="ident">end</span>)
@@ -891,7 +891,7 @@ which uses it for executing automata on their term index.
 <span class="kw">impl</span> <span class="ident">Utf8Sequences</span> {
     <span class="doccomment">/// Create a new iterator over UTF-8 byte ranges for the scalar value range</span>
     <span class="doccomment">/// given.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">start</span>: <span class="ident">char</span>, <span class="ident">end</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">start</span>: <span class="ident">char</span>, <span class="ident">end</span>: <span class="ident">char</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">it</span> <span class="op">=</span> <span class="ident">Utf8Sequences</span> { <span class="ident">range_stack</span>: <span class="macro">vec!</span>[] };
         <span class="ident">it</span>.<span class="ident">push</span>(<span class="ident">start</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">end</span> <span class="kw">as</span> <span class="ident">u32</span>);
         <span class="ident">it</span>
@@ -918,7 +918,7 @@ which uses it for executing automata on their term index.
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">ScalarRange</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;ScalarRange({:X}, {:X})&quot;</span>, <span class="self">self</span>.<span class="ident">start</span>, <span class="self">self</span>.<span class="ident">end</span>)
     }
 }
@@ -926,7 +926,7 @@ which uses it for executing automata on their term index.
 <span class="kw">impl</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">Utf8Sequences</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">Utf8Sequence</span>;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
         <span class="lifetime">&#39;TOP</span>: <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">r</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">range_stack</span>.<span class="ident">pop</span>() {
             <span class="lifetime">&#39;INNER</span>: <span class="kw">loop</span> {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">r1</span>, <span class="ident">r2</span>)) <span class="op">=</span> <span class="ident">r</span>.<span class="ident">split</span>() {
@@ -983,7 +983,7 @@ which uses it for executing automata on their term index.
     <span class="doccomment">/// split splits this range if it overlaps with a surrogate codepoint.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Either or both ranges may be invalid.</span>
-    <span class="kw">fn</span> <span class="ident">split</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">ScalarRange</span>, <span class="ident">ScalarRange</span>)<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">split</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">ScalarRange</span>, <span class="ident">ScalarRange</span>)<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">start</span> <span class="op">&lt;</span> <span class="number">0xE000</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">end</span> <span class="op">&gt;</span> <span class="number">0xD7FF</span> {
             <span class="prelude-val">Some</span>((
                 <span class="ident">ScalarRange</span> { <span class="ident">start</span>: <span class="self">self</span>.<span class="ident">start</span>, <span class="ident">end</span>: <span class="number">0xD7FF</span> },
@@ -995,13 +995,13 @@ which uses it for executing automata on their term index.
     }
 
     <span class="doccomment">/// is_valid returns true if and only if start &lt;= end.</span>
-    <span class="kw">fn</span> <span class="ident">is_valid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">is_valid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">start</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">end</span>
     }
 
     <span class="doccomment">/// as_ascii returns this range as a Utf8Range if and only if all scalar</span>
     <span class="doccomment">/// values in this range can be encoded as a single byte.</span>
-    <span class="kw">fn</span> <span class="ident">as_ascii</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Utf8Range</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">as_ascii</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Utf8Range</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_ascii</span>() {
             <span class="prelude-val">Some</span>(<span class="ident">Utf8Range::new</span>(<span class="self">self</span>.<span class="ident">start</span> <span class="kw">as</span> <span class="ident">u8</span>, <span class="self">self</span>.<span class="ident">end</span> <span class="kw">as</span> <span class="ident">u8</span>))
         } <span class="kw">else</span> {
@@ -1011,7 +1011,7 @@ which uses it for executing automata on their term index.
 
     <span class="doccomment">/// is_ascii returns true if the range is ASCII only (i.e., takes a single</span>
     <span class="doccomment">/// byte to encode any scalar value).</span>
-    <span class="kw">fn</span> <span class="ident">is_ascii</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">is_ascii</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">is_valid</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">end</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0x7f</span>
     }
 
@@ -1020,7 +1020,7 @@ which uses it for executing automata on their term index.
     <span class="doccomment">/// bytes written.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The slices should have room for at least `MAX_UTF8_BYTES`.</span>
-    <span class="kw">fn</span> <span class="ident">encode</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">start</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">end</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">encode</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">start</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">end</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">usize</span> {
         <span class="kw">let</span> <span class="ident">cs</span> <span class="op">=</span> <span class="ident">char::from_u32</span>(<span class="self">self</span>.<span class="ident">start</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">ce</span> <span class="op">=</span> <span class="ident">char::from_u32</span>(<span class="self">self</span>.<span class="ident">end</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">ss</span> <span class="op">=</span> <span class="ident">cs</span>.<span class="ident">encode_utf8</span>(<span class="ident">start</span>);
@@ -1030,13 +1030,13 @@ which uses it for executing automata on their term index.
     }
 }
 
-<span class="kw">fn</span> <span class="ident">max_scalar_value</span>(<span class="ident">nbytes</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+<span class="kw">fn</span> <span class="ident">max_scalar_value</span>(<span class="ident">nbytes</span>: <span class="ident">usize</span>) -&gt; <span class="ident">u32</span> {
     <span class="kw">match</span> <span class="ident">nbytes</span> {
-        <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0x007F</span>,
-        <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0x07FF</span>,
-        <span class="number">3</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0xFFFF</span>,
-        <span class="number">4</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0x10FFFF</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(<span class="string">&quot;invalid UTF-8 byte sequence size&quot;</span>),
+        <span class="number">1</span> =&gt; <span class="number">0x007F</span>,
+        <span class="number">2</span> =&gt; <span class="number">0x07FF</span>,
+        <span class="number">3</span> =&gt; <span class="number">0xFFFF</span>,
+        <span class="number">4</span> =&gt; <span class="number">0x10FFFF</span>,
+        <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;invalid UTF-8 byte sequence size&quot;</span>),
     }
 }
 
@@ -1046,7 +1046,7 @@ which uses it for executing automata on their term index.
 
     <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utf8</span>::{<span class="ident">Utf8Range</span>, <span class="ident">Utf8Sequences</span>};
 
-    <span class="kw">fn</span> <span class="ident">rutf8</span>(<span class="ident">s</span>: <span class="ident">u8</span>, <span class="ident">e</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Utf8Range</span> {
+    <span class="kw">fn</span> <span class="ident">rutf8</span>(<span class="ident">s</span>: <span class="ident">u8</span>, <span class="ident">e</span>: <span class="ident">u8</span>) -&gt; <span class="ident">Utf8Range</span> {
         <span class="ident">Utf8Range::new</span>(<span class="ident">s</span>, <span class="ident">e</span>)
     }
 
@@ -1081,8 +1081,8 @@ which uses it for executing automata on their term index.
         <span class="comment">// scalar value is recognized by one sequence of byte ranges.</span>
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0x0</span>..(<span class="number">0x10FFFF</span> <span class="op">+</span> <span class="number">1</span>) {
             <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">char::from_u32</span>(<span class="ident">i</span>) {
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">continue</span>,
-                <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span>,
+                <span class="prelude-val">None</span> =&gt; <span class="kw">continue</span>,
+                <span class="prelude-val">Some</span>(<span class="ident">c</span>) =&gt; <span class="ident">c</span>,
             };
             <span class="kw">let</span> <span class="ident">seqs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Utf8Sequences::new</span>(<span class="ident">c</span>, <span class="ident">c</span>).<span class="ident">collect</span>();
             <span class="macro">assert_eq!</span>(<span class="ident">seqs</span>.<span class="ident">len</span>(), <span class="number">1</span>);
@@ -1160,7 +1160,7 @@ which uses it for executing automata on their term index.
         );
     }
 
-    <span class="kw">fn</span> <span class="ident">encode_surrogate</span>(<span class="ident">cp</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> [<span class="ident">u8</span>; <span class="number">3</span>] {
+    <span class="kw">fn</span> <span class="ident">encode_surrogate</span>(<span class="ident">cp</span>: <span class="ident">u32</span>) -&gt; [<span class="ident">u8</span>; <span class="number">3</span>] {
         <span class="kw">const</span> <span class="ident">TAG_CONT</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">0b1000_0000</span>;
         <span class="kw">const</span> <span class="ident">TAG_THREE_B</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">0b1110_0000</span>;
 

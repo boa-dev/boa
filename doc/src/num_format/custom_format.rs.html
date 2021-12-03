@@ -226,101 +226,101 @@
     <span class="doccomment">/// Constructs a [`CustomFormatBuilder`].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`CustomFormatBuilder`]: struct.CustomFormatBuilder.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">builder</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CustomFormatBuilder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">builder</span>() -&gt; <span class="ident">CustomFormatBuilder</span> {
         <span class="ident">CustomFormatBuilder::new</span>()
     }
 
     <span class="doccomment">/// Turns `self` into a [`CustomFormatBuilder`].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`CustomFormatBuilder`]: struct.CustomFormatBuilder.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_builder</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CustomFormatBuilder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_builder</span>(<span class="self">self</span>) -&gt; <span class="ident">CustomFormatBuilder</span> {
         <span class="self">self</span>.<span class="ident">into</span>()
     }
 
     <span class="doccomment">/// Returns this format&#39;s representation of decimal points.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decimal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decimal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">dec</span>
     }
 
     <span class="doccomment">/// Returns this format&#39;s [`Grouping`], which governs how digits are separated (see [`Grouping`]).</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`Grouping`]: enum.Grouping.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">grouping</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Grouping</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">grouping</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Grouping</span> {
         <span class="self">self</span>.<span class="ident">grp</span>
     }
 
     <span class="doccomment">/// Returns this format&#39;s representation of infinity.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">infinity</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">infinity</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inf</span>
     }
 
     <span class="doccomment">/// Returns this format&#39;s representation of minus signs.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">minus_sign</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">minus_sign</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">min</span>
     }
 
     <span class="doccomment">/// Returns this format&#39;s representation of NaN.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nan</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nan</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">nan</span>
     }
 
     <span class="doccomment">/// Returns this format&#39;s representation of plus signs.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">plus_sign</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">plus_sign</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">plus</span>
     }
 
     <span class="doccomment">/// Returns this format&#39;s representation of separators.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">separator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">separator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">sep</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">CustomFormat</span> {
     <span class="doccomment">/// Returns a `CustomFormat` with settings equal to `Locale::en`.</span>
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="ident">Locale::en</span>.<span class="ident">into</span>()
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Format</span> <span class="kw">for</span> <span class="ident">CustomFormat</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">decimal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DecimalStr</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">decimal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">DecimalStr</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
         <span class="ident">DecimalStr::new</span>(<span class="self">self</span>.<span class="ident">decimal</span>()).<span class="ident">unwrap</span>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">grouping</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Grouping</span> {
+    <span class="kw">fn</span> <span class="ident">grouping</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Grouping</span> {
         <span class="self">self</span>.<span class="ident">grouping</span>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">infinity</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">InfinityStr</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">infinity</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">InfinityStr</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
         <span class="ident">InfinityStr::new</span>(<span class="self">self</span>.<span class="ident">infinity</span>()).<span class="ident">unwrap</span>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">minus_sign</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MinusSignStr</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">minus_sign</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">MinusSignStr</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
         <span class="ident">MinusSignStr::new</span>(<span class="self">self</span>.<span class="ident">minus_sign</span>()).<span class="ident">unwrap</span>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">nan</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NanStr</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">nan</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">NanStr</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
         <span class="ident">NanStr::new</span>(<span class="self">self</span>.<span class="ident">nan</span>()).<span class="ident">unwrap</span>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">plus_sign</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PlusSignStr</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">plus_sign</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">PlusSignStr</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
         <span class="ident">PlusSignStr::new</span>(<span class="self">self</span>.<span class="ident">plus_sign</span>()).<span class="ident">unwrap</span>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">separator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SeparatorStr</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">separator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">SeparatorStr</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
         <span class="ident">SeparatorStr::new</span>(<span class="self">self</span>.<span class="ident">separator</span>()).<span class="ident">unwrap</span>()
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Locale</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CustomFormat</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">locale</span>: <span class="ident">Locale</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">locale</span>: <span class="ident">Locale</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">dec</span>: <span class="ident">DecString::new</span>(<span class="ident">locale</span>.<span class="ident">decimal</span>()).<span class="ident">unwrap</span>(),
             <span class="ident">grp</span>: <span class="ident">locale</span>.<span class="ident">grouping</span>(),
@@ -339,7 +339,7 @@
     <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::SystemLocale</span>;
 
     <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">SystemLocale</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CustomFormat</span> {
-        <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">locale</span>: <span class="ident">SystemLocale</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">locale</span>: <span class="ident">SystemLocale</span>) -&gt; <span class="self">Self</span> {
             <span class="self">Self</span> {
                 <span class="ident">dec</span>: <span class="ident">DecString::new</span>(<span class="ident">locale</span>.<span class="ident">decimal</span>()).<span class="ident">unwrap</span>(),
                 <span class="ident">grp</span>: <span class="ident">locale</span>.<span class="ident">grouping</span>(),

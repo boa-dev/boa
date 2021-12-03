@@ -61,10 +61,10 @@
 <span class="kw">use</span> <span class="kw-2">*</span>;
 
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">DSA_new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">DSA</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">DSA_new</span>() -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">DSA</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">DSA_free</span>(<span class="ident">dsa</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">DSA</span>);
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">DSA_up_ref</span>(<span class="ident">dsa</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">DSA</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">DSA_size</span>(<span class="ident">dsa</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">DSA</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">DSA_up_ref</span>(<span class="ident">dsa</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">DSA</span>) -&gt; <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">DSA_size</span>(<span class="ident">dsa</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">DSA</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">DSA_sign</span>(
         <span class="ident">dummy</span>: <span class="ident">c_int</span>,
         <span class="ident">dgst</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>,
@@ -72,7 +72,7 @@
         <span class="ident">sigret</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>,
         <span class="ident">siglen</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uint</span>,
         <span class="ident">dsa</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">DSA</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">DSA_verify</span>(
         <span class="ident">dummy</span>: <span class="ident">c_int</span>,
         <span class="ident">dgst</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>,
@@ -80,11 +80,11 @@
         <span class="ident">sigbuf</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>,
         <span class="ident">siglen</span>: <span class="ident">c_int</span>,
         <span class="ident">dsa</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">DSA</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">d2i_DSAPublicKey</span>(<span class="ident">a</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">DSA</span>, <span class="ident">pp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>, <span class="ident">length</span>: <span class="ident">c_long</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">DSA</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">d2i_DSAPublicKey</span>(<span class="ident">a</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">DSA</span>, <span class="ident">pp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>, <span class="ident">length</span>: <span class="ident">c_long</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">DSA</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">d2i_DSAPrivateKey</span>(<span class="ident">a</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">DSA</span>, <span class="ident">pp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>, <span class="ident">length</span>: <span class="ident">c_long</span>)
-        <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">DSA</span>;
+        -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">DSA</span>;
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">DSA_generate_parameters_ex</span>(
         <span class="ident">dsa</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">DSA</span>,
@@ -94,11 +94,11 @@
         <span class="ident">counter_ref</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_int</span>,
         <span class="ident">h_ret</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_ulong</span>,
         <span class="ident">cb</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BN_GENCB</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">DSA_generate_key</span>(<span class="ident">dsa</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">DSA</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">i2d_DSAPublicKey</span>(<span class="ident">a</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">DSA</span>, <span class="ident">pp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">i2d_DSAPrivateKey</span>(<span class="ident">a</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">DSA</span>, <span class="ident">pp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">DSA_generate_key</span>(<span class="ident">dsa</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">DSA</span>) -&gt; <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">i2d_DSAPublicKey</span>(<span class="ident">a</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">DSA</span>, <span class="ident">pp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>) -&gt; <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">i2d_DSAPrivateKey</span>(<span class="ident">a</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">DSA</span>, <span class="ident">pp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>) -&gt; <span class="ident">c_int</span>;
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl273</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">DSA_get0_pqg</span>(
@@ -108,11 +108,11 @@
         <span class="ident">q</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">BIGNUM</span>,
     );
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl273</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">DSA_set0_pqg</span>(<span class="ident">d</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">DSA</span>, <span class="ident">p</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIGNUM</span>, <span class="ident">q</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIGNUM</span>, <span class="ident">q</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIGNUM</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">DSA_set0_pqg</span>(<span class="ident">d</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">DSA</span>, <span class="ident">p</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIGNUM</span>, <span class="ident">q</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIGNUM</span>, <span class="ident">q</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIGNUM</span>) -&gt; <span class="ident">c_int</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl273</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">DSA_get0_key</span>(<span class="ident">d</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">DSA</span>, <span class="ident">pub_key</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">BIGNUM</span>, <span class="ident">priv_key</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">BIGNUM</span>);
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl273</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">DSA_set0_key</span>(<span class="ident">d</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">DSA</span>, <span class="ident">pub_key</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIGNUM</span>, <span class="ident">priv_key</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIGNUM</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">DSA_set0_key</span>(<span class="ident">d</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">DSA</span>, <span class="ident">pub_key</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIGNUM</span>, <span class="ident">priv_key</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIGNUM</span>) -&gt; <span class="ident">c_int</span>;
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl_sys" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>

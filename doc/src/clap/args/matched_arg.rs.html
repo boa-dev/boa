@@ -42,7 +42,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">MatchedArg</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="ident">MatchedArg</span> {
             <span class="ident">occurs</span>: <span class="number">1</span>,
             <span class="ident">indices</span>: <span class="ident">Vec::new</span>(),
@@ -52,7 +52,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">MatchedArg</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
         <span class="ident">MatchedArg::default</span>()
     }
 }

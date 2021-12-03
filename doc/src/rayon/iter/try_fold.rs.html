@@ -302,11 +302,11 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">U</span>, <span class="ident">I</span>, <span class="ident">ID</span>, <span class="ident">F</span><span class="op">&gt;</span> <span class="ident">TryFold</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">U</span>, <span class="ident">ID</span>, <span class="ident">F</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">I</span>: <span class="ident">ParallelIterator</span>,
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">U::Ok</span>, <span class="ident">I::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">U</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
-    <span class="ident">ID</span>: <span class="ident">Fn</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">U::Ok</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">U::Ok</span>, <span class="ident">I::Item</span>) -&gt; <span class="ident">U</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+    <span class="ident">ID</span>: <span class="ident">Fn</span>() -&gt; <span class="ident">U::Ok</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
     <span class="ident">U</span>: <span class="ident">Try</span> <span class="op">+</span> <span class="ident">Send</span>,
 {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">base</span>: <span class="ident">I</span>, <span class="ident">identity</span>: <span class="ident">ID</span>, <span class="ident">fold_op</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">base</span>: <span class="ident">I</span>, <span class="ident">identity</span>: <span class="ident">ID</span>, <span class="ident">fold_op</span>: <span class="ident">F</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">TryFold</span> {
             <span class="ident">base</span>,
             <span class="ident">identity</span>,
@@ -331,7 +331,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">U</span>, <span class="ident">I</span>: <span class="ident">ParallelIterator</span> <span class="op">+</span> <span class="ident">Debug</span>, <span class="ident">ID</span>, <span class="ident">F</span><span class="op">&gt;</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">TryFold</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">U</span>, <span class="ident">ID</span>, <span class="ident">F</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;TryFold&quot;</span>).<span class="ident">field</span>(<span class="string">&quot;base&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">base</span>).<span class="ident">finish</span>()
     }
 }
@@ -339,13 +339,13 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">U</span>, <span class="ident">I</span>, <span class="ident">ID</span>, <span class="ident">F</span><span class="op">&gt;</span> <span class="ident">ParallelIterator</span> <span class="kw">for</span> <span class="ident">TryFold</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">U</span>, <span class="ident">ID</span>, <span class="ident">F</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">I</span>: <span class="ident">ParallelIterator</span>,
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">U::Ok</span>, <span class="ident">I::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">U</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
-    <span class="ident">ID</span>: <span class="ident">Fn</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">U::Ok</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">U::Ok</span>, <span class="ident">I::Item</span>) -&gt; <span class="ident">U</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+    <span class="ident">ID</span>: <span class="ident">Fn</span>() -&gt; <span class="ident">U::Ok</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
     <span class="ident">U</span>: <span class="ident">Try</span> <span class="op">+</span> <span class="ident">Send</span>,
 {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">U</span>;
 
-    <span class="kw">fn</span> <span class="ident">drive_unindexed</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">C::Result</span>
+    <span class="kw">fn</span> <span class="ident">drive_unindexed</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) -&gt; <span class="ident">C::Result</span>
     <span class="kw">where</span>
         <span class="ident">C</span>: <span class="ident">UnindexedConsumer</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
@@ -369,15 +369,15 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span>, <span class="ident">U</span>, <span class="ident">T</span>, <span class="ident">C</span>, <span class="ident">ID</span>, <span class="ident">F</span><span class="op">&gt;</span> <span class="ident">Consumer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TryFoldConsumer</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span>, <span class="ident">U</span>, <span class="ident">C</span>, <span class="ident">ID</span>, <span class="ident">F</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">C</span>: <span class="ident">Consumer</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span>,
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">U::Ok</span>, <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">U</span> <span class="op">+</span> <span class="ident">Sync</span>,
-    <span class="ident">ID</span>: <span class="ident">Fn</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">U::Ok</span> <span class="op">+</span> <span class="ident">Sync</span>,
+    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">U::Ok</span>, <span class="ident">T</span>) -&gt; <span class="ident">U</span> <span class="op">+</span> <span class="ident">Sync</span>,
+    <span class="ident">ID</span>: <span class="ident">Fn</span>() -&gt; <span class="ident">U::Ok</span> <span class="op">+</span> <span class="ident">Sync</span>,
     <span class="ident">U</span>: <span class="ident">Try</span> <span class="op">+</span> <span class="ident">Send</span>,
 {
     <span class="kw">type</span> <span class="ident">Folder</span> <span class="op">=</span> <span class="ident">TryFoldFolder</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span>, <span class="ident">C::Folder</span>, <span class="ident">U</span>, <span class="ident">F</span><span class="op">&gt;</span>;
     <span class="kw">type</span> <span class="ident">Reducer</span> <span class="op">=</span> <span class="ident">C::Reducer</span>;
     <span class="kw">type</span> <span class="prelude-ty">Result</span> <span class="op">=</span> <span class="ident">C::Result</span>;
 
-    <span class="kw">fn</span> <span class="ident">split_at</span>(<span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="self">Self</span>, <span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Reducer</span>) {
+    <span class="kw">fn</span> <span class="ident">split_at</span>(<span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; (<span class="self">Self</span>, <span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Reducer</span>) {
         <span class="kw">let</span> (<span class="ident">left</span>, <span class="ident">right</span>, <span class="ident">reducer</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">base</span>.<span class="ident">split_at</span>(<span class="ident">index</span>);
         (
             <span class="ident">TryFoldConsumer</span> { <span class="ident">base</span>: <span class="ident">left</span>, ..<span class="self">self</span> },
@@ -389,7 +389,7 @@
         )
     }
 
-    <span class="kw">fn</span> <span class="ident">into_folder</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Folder</span> {
+    <span class="kw">fn</span> <span class="ident">into_folder</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Folder</span> {
         <span class="ident">TryFoldFolder</span> {
             <span class="ident">base</span>: <span class="self">self</span>.<span class="ident">base</span>.<span class="ident">into_folder</span>(),
             <span class="ident">result</span>: <span class="prelude-val">Ok</span>((<span class="self">self</span>.<span class="ident">identity</span>)()),
@@ -397,7 +397,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">full</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">full</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">base</span>.<span class="ident">full</span>()
     }
 }
@@ -405,18 +405,18 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span>, <span class="ident">U</span>, <span class="ident">T</span>, <span class="ident">C</span>, <span class="ident">ID</span>, <span class="ident">F</span><span class="op">&gt;</span> <span class="ident">UnindexedConsumer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TryFoldConsumer</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span>, <span class="ident">U</span>, <span class="ident">C</span>, <span class="ident">ID</span>, <span class="ident">F</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">C</span>: <span class="ident">UnindexedConsumer</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span>,
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">U::Ok</span>, <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">U</span> <span class="op">+</span> <span class="ident">Sync</span>,
-    <span class="ident">ID</span>: <span class="ident">Fn</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">U::Ok</span> <span class="op">+</span> <span class="ident">Sync</span>,
+    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">U::Ok</span>, <span class="ident">T</span>) -&gt; <span class="ident">U</span> <span class="op">+</span> <span class="ident">Sync</span>,
+    <span class="ident">ID</span>: <span class="ident">Fn</span>() -&gt; <span class="ident">U::Ok</span> <span class="op">+</span> <span class="ident">Sync</span>,
     <span class="ident">U</span>: <span class="ident">Try</span> <span class="op">+</span> <span class="ident">Send</span>,
 {
-    <span class="kw">fn</span> <span class="ident">split_off_left</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">split_off_left</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">TryFoldConsumer</span> {
             <span class="ident">base</span>: <span class="self">self</span>.<span class="ident">base</span>.<span class="ident">split_off_left</span>(),
             ..<span class="kw-2">*</span><span class="self">self</span>
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">to_reducer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Reducer</span> {
+    <span class="kw">fn</span> <span class="ident">to_reducer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Reducer</span> {
         <span class="self">self</span>.<span class="ident">base</span>.<span class="ident">to_reducer</span>()
     }
 }
@@ -430,12 +430,12 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span>, <span class="ident">C</span>, <span class="ident">U</span>, <span class="ident">F</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Folder</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TryFoldFolder</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span>, <span class="ident">C</span>, <span class="ident">U</span>, <span class="ident">F</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">C</span>: <span class="ident">Folder</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span>,
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">U::Ok</span>, <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">U</span> <span class="op">+</span> <span class="ident">Sync</span>,
+    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">U::Ok</span>, <span class="ident">T</span>) -&gt; <span class="ident">U</span> <span class="op">+</span> <span class="ident">Sync</span>,
     <span class="ident">U</span>: <span class="ident">Try</span>,
 {
     <span class="kw">type</span> <span class="prelude-ty">Result</span> <span class="op">=</span> <span class="ident">C::Result</span>;
 
-    <span class="kw">fn</span> <span class="ident">consume</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">item</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">consume</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">item</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">fold_op</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">fold_op</span>;
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">acc</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">result</span> {
             <span class="self">self</span>.<span class="ident">result</span> <span class="op">=</span> <span class="ident">fold_op</span>(<span class="ident">acc</span>, <span class="ident">item</span>).<span class="ident">into_result</span>();
@@ -443,15 +443,15 @@
         <span class="self">self</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">complete</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">C::Result</span> {
+    <span class="kw">fn</span> <span class="ident">complete</span>(<span class="self">self</span>) -&gt; <span class="ident">C::Result</span> {
         <span class="kw">let</span> <span class="ident">item</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">result</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">ok</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">U::from_ok</span>(<span class="ident">ok</span>),
-            <span class="prelude-val">Err</span>(<span class="ident">error</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">U::from_error</span>(<span class="ident">error</span>),
+            <span class="prelude-val">Ok</span>(<span class="ident">ok</span>) =&gt; <span class="ident">U::from_ok</span>(<span class="ident">ok</span>),
+            <span class="prelude-val">Err</span>(<span class="ident">error</span>) =&gt; <span class="ident">U::from_error</span>(<span class="ident">error</span>),
         };
         <span class="self">self</span>.<span class="ident">base</span>.<span class="ident">consume</span>(<span class="ident">item</span>).<span class="ident">complete</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">full</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">full</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">result</span>.<span class="ident">is_err</span>() <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">base</span>.<span class="ident">full</span>()
     }
 }
@@ -461,11 +461,11 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">U</span>, <span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span> <span class="ident">TryFoldWith</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">U</span>, <span class="ident">F</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">I</span>: <span class="ident">ParallelIterator</span>,
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">U::Ok</span>, <span class="ident">I::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">U</span> <span class="op">+</span> <span class="ident">Sync</span>,
+    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">U::Ok</span>, <span class="ident">I::Item</span>) -&gt; <span class="ident">U</span> <span class="op">+</span> <span class="ident">Sync</span>,
     <span class="ident">U</span>: <span class="ident">Try</span> <span class="op">+</span> <span class="ident">Send</span>,
     <span class="ident">U::Ok</span>: <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Send</span>,
 {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">base</span>: <span class="ident">I</span>, <span class="ident">item</span>: <span class="ident">U::Ok</span>, <span class="ident">fold_op</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">base</span>: <span class="ident">I</span>, <span class="ident">item</span>: <span class="ident">U::Ok</span>, <span class="ident">fold_op</span>: <span class="ident">F</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">TryFoldWith</span> {
             <span class="ident">base</span>,
             <span class="ident">item</span>,
@@ -491,7 +491,7 @@
 <span class="kw">where</span>
     <span class="ident">U::Ok</span>: <span class="ident">Debug</span>,
 {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;TryFoldWith&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;base&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">base</span>)
             .<span class="ident">field</span>(<span class="string">&quot;item&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">item</span>)
@@ -502,13 +502,13 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">U</span>, <span class="ident">I</span>, <span class="ident">F</span><span class="op">&gt;</span> <span class="ident">ParallelIterator</span> <span class="kw">for</span> <span class="ident">TryFoldWith</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">U</span>, <span class="ident">F</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">I</span>: <span class="ident">ParallelIterator</span>,
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">U::Ok</span>, <span class="ident">I::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">U</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">U::Ok</span>, <span class="ident">I::Item</span>) -&gt; <span class="ident">U</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
     <span class="ident">U</span>: <span class="ident">Try</span> <span class="op">+</span> <span class="ident">Send</span>,
     <span class="ident">U::Ok</span>: <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Send</span>,
 {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">U</span>;
 
-    <span class="kw">fn</span> <span class="ident">drive_unindexed</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">C::Result</span>
+    <span class="kw">fn</span> <span class="ident">drive_unindexed</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) -&gt; <span class="ident">C::Result</span>
     <span class="kw">where</span>
         <span class="ident">C</span>: <span class="ident">UnindexedConsumer</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
@@ -530,7 +530,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span>, <span class="ident">U</span>, <span class="ident">T</span>, <span class="ident">C</span>, <span class="ident">F</span><span class="op">&gt;</span> <span class="ident">Consumer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TryFoldWithConsumer</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span>, <span class="ident">C</span>, <span class="ident">U</span>, <span class="ident">F</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">C</span>: <span class="ident">Consumer</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span>,
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">U::Ok</span>, <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">U</span> <span class="op">+</span> <span class="ident">Sync</span>,
+    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">U::Ok</span>, <span class="ident">T</span>) -&gt; <span class="ident">U</span> <span class="op">+</span> <span class="ident">Sync</span>,
     <span class="ident">U</span>: <span class="ident">Try</span> <span class="op">+</span> <span class="ident">Send</span>,
     <span class="ident">U::Ok</span>: <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Send</span>,
 {
@@ -538,7 +538,7 @@
     <span class="kw">type</span> <span class="ident">Reducer</span> <span class="op">=</span> <span class="ident">C::Reducer</span>;
     <span class="kw">type</span> <span class="prelude-ty">Result</span> <span class="op">=</span> <span class="ident">C::Result</span>;
 
-    <span class="kw">fn</span> <span class="ident">split_at</span>(<span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="self">Self</span>, <span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Reducer</span>) {
+    <span class="kw">fn</span> <span class="ident">split_at</span>(<span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; (<span class="self">Self</span>, <span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Reducer</span>) {
         <span class="kw">let</span> (<span class="ident">left</span>, <span class="ident">right</span>, <span class="ident">reducer</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">base</span>.<span class="ident">split_at</span>(<span class="ident">index</span>);
         (
             <span class="ident">TryFoldWithConsumer</span> {
@@ -554,7 +554,7 @@
         )
     }
 
-    <span class="kw">fn</span> <span class="ident">into_folder</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Folder</span> {
+    <span class="kw">fn</span> <span class="ident">into_folder</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Folder</span> {
         <span class="ident">TryFoldFolder</span> {
             <span class="ident">base</span>: <span class="self">self</span>.<span class="ident">base</span>.<span class="ident">into_folder</span>(),
             <span class="ident">result</span>: <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">item</span>),
@@ -562,7 +562,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">full</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">full</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">base</span>.<span class="ident">full</span>()
     }
 }
@@ -570,11 +570,11 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span>, <span class="ident">U</span>, <span class="ident">T</span>, <span class="ident">C</span>, <span class="ident">F</span><span class="op">&gt;</span> <span class="ident">UnindexedConsumer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TryFoldWithConsumer</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span>, <span class="ident">C</span>, <span class="ident">U</span>, <span class="ident">F</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">C</span>: <span class="ident">UnindexedConsumer</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span>,
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">U::Ok</span>, <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">U</span> <span class="op">+</span> <span class="ident">Sync</span>,
+    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">U::Ok</span>, <span class="ident">T</span>) -&gt; <span class="ident">U</span> <span class="op">+</span> <span class="ident">Sync</span>,
     <span class="ident">U</span>: <span class="ident">Try</span> <span class="op">+</span> <span class="ident">Send</span>,
     <span class="ident">U::Ok</span>: <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Send</span>,
 {
-    <span class="kw">fn</span> <span class="ident">split_off_left</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">split_off_left</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">TryFoldWithConsumer</span> {
             <span class="ident">base</span>: <span class="self">self</span>.<span class="ident">base</span>.<span class="ident">split_off_left</span>(),
             <span class="ident">item</span>: <span class="self">self</span>.<span class="ident">item</span>.<span class="ident">clone</span>(),
@@ -582,7 +582,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">to_reducer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Reducer</span> {
+    <span class="kw">fn</span> <span class="ident">to_reducer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Reducer</span> {
         <span class="self">self</span>.<span class="ident">base</span>.<span class="ident">to_reducer</span>()
     }
 }

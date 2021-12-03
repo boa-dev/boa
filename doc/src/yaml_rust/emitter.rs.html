@@ -645,22 +645,22 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Error</span> <span class="kw">for</span> <span class="ident">EmitError</span> {
-    <span class="kw">fn</span> <span class="ident">cause</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">cause</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="prelude-val">None</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">EmitError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">EmitError::FmtError</span>(<span class="kw-2">ref</span> <span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">err</span>, <span class="ident">formatter</span>),
-            <span class="ident">EmitError::BadHashmapKey</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">formatter</span>.<span class="ident">write_str</span>(<span class="string">&quot;bad hashmap key&quot;</span>),
+            <span class="ident">EmitError::FmtError</span>(<span class="kw-2">ref</span> <span class="ident">err</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">err</span>, <span class="ident">formatter</span>),
+            <span class="ident">EmitError::BadHashmapKey</span> =&gt; <span class="ident">formatter</span>.<span class="ident">write_str</span>(<span class="string">&quot;bad hashmap key&quot;</span>),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">fmt::Error</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">EmitError</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">f</span>: <span class="ident">fmt::Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">f</span>: <span class="ident">fmt::Error</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">EmitError::FmtError</span>(<span class="ident">f</span>)
     }
 }
@@ -676,49 +676,49 @@
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">EmitResult</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">EmitError</span><span class="op">&gt;</span>;
 
 <span class="comment">// from serialize::json</span>
-<span class="kw">fn</span> <span class="ident">escape_str</span>(<span class="ident">wr</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">dyn</span> <span class="ident">fmt::Write</span>, <span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">fmt::Error</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">escape_str</span>(<span class="ident">wr</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">dyn</span> <span class="ident">fmt::Write</span>, <span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">fmt::Error</span><span class="op">&gt;</span> {
     <span class="ident">wr</span>.<span class="ident">write_str</span>(<span class="string">&quot;\&quot;&quot;</span>)<span class="question-mark">?</span>;
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">start</span> <span class="op">=</span> <span class="number">0</span>;
 
     <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">byte</span>) <span class="kw">in</span> <span class="ident">v</span>.<span class="ident">bytes</span>().<span class="ident">enumerate</span>() {
         <span class="kw">let</span> <span class="ident">escaped</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">byte</span> {
-            <span class="string">b&#39;&quot;&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;\\\&quot;&quot;</span>,
-            <span class="string">b&#39;\\&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;\\\\&quot;</span>,
-            <span class="string">b&#39;\x00&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;\\u0000&quot;</span>,
-            <span class="string">b&#39;\x01&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;\\u0001&quot;</span>,
-            <span class="string">b&#39;\x02&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;\\u0002&quot;</span>,
-            <span class="string">b&#39;\x03&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;\\u0003&quot;</span>,
-            <span class="string">b&#39;\x04&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;\\u0004&quot;</span>,
-            <span class="string">b&#39;\x05&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;\\u0005&quot;</span>,
-            <span class="string">b&#39;\x06&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;\\u0006&quot;</span>,
-            <span class="string">b&#39;\x07&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;\\u0007&quot;</span>,
-            <span class="string">b&#39;\x08&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;\\b&quot;</span>,
-            <span class="string">b&#39;\t&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;\\t&quot;</span>,
-            <span class="string">b&#39;\n&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;\\n&quot;</span>,
-            <span class="string">b&#39;\x0b&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;\\u000b&quot;</span>,
-            <span class="string">b&#39;\x0c&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;\\f&quot;</span>,
-            <span class="string">b&#39;\r&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;\\r&quot;</span>,
-            <span class="string">b&#39;\x0e&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;\\u000e&quot;</span>,
-            <span class="string">b&#39;\x0f&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;\\u000f&quot;</span>,
-            <span class="string">b&#39;\x10&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;\\u0010&quot;</span>,
-            <span class="string">b&#39;\x11&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;\\u0011&quot;</span>,
-            <span class="string">b&#39;\x12&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;\\u0012&quot;</span>,
-            <span class="string">b&#39;\x13&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;\\u0013&quot;</span>,
-            <span class="string">b&#39;\x14&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;\\u0014&quot;</span>,
-            <span class="string">b&#39;\x15&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;\\u0015&quot;</span>,
-            <span class="string">b&#39;\x16&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;\\u0016&quot;</span>,
-            <span class="string">b&#39;\x17&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;\\u0017&quot;</span>,
-            <span class="string">b&#39;\x18&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;\\u0018&quot;</span>,
-            <span class="string">b&#39;\x19&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;\\u0019&quot;</span>,
-            <span class="string">b&#39;\x1a&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;\\u001a&quot;</span>,
-            <span class="string">b&#39;\x1b&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;\\u001b&quot;</span>,
-            <span class="string">b&#39;\x1c&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;\\u001c&quot;</span>,
-            <span class="string">b&#39;\x1d&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;\\u001d&quot;</span>,
-            <span class="string">b&#39;\x1e&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;\\u001e&quot;</span>,
-            <span class="string">b&#39;\x1f&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;\\u001f&quot;</span>,
-            <span class="string">b&#39;\x7f&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;\\u007f&quot;</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">continue</span>,
+            <span class="string">b&#39;&quot;&#39;</span> =&gt; <span class="string">&quot;\\\&quot;&quot;</span>,
+            <span class="string">b&#39;\\&#39;</span> =&gt; <span class="string">&quot;\\\\&quot;</span>,
+            <span class="string">b&#39;\x00&#39;</span> =&gt; <span class="string">&quot;\\u0000&quot;</span>,
+            <span class="string">b&#39;\x01&#39;</span> =&gt; <span class="string">&quot;\\u0001&quot;</span>,
+            <span class="string">b&#39;\x02&#39;</span> =&gt; <span class="string">&quot;\\u0002&quot;</span>,
+            <span class="string">b&#39;\x03&#39;</span> =&gt; <span class="string">&quot;\\u0003&quot;</span>,
+            <span class="string">b&#39;\x04&#39;</span> =&gt; <span class="string">&quot;\\u0004&quot;</span>,
+            <span class="string">b&#39;\x05&#39;</span> =&gt; <span class="string">&quot;\\u0005&quot;</span>,
+            <span class="string">b&#39;\x06&#39;</span> =&gt; <span class="string">&quot;\\u0006&quot;</span>,
+            <span class="string">b&#39;\x07&#39;</span> =&gt; <span class="string">&quot;\\u0007&quot;</span>,
+            <span class="string">b&#39;\x08&#39;</span> =&gt; <span class="string">&quot;\\b&quot;</span>,
+            <span class="string">b&#39;\t&#39;</span> =&gt; <span class="string">&quot;\\t&quot;</span>,
+            <span class="string">b&#39;\n&#39;</span> =&gt; <span class="string">&quot;\\n&quot;</span>,
+            <span class="string">b&#39;\x0b&#39;</span> =&gt; <span class="string">&quot;\\u000b&quot;</span>,
+            <span class="string">b&#39;\x0c&#39;</span> =&gt; <span class="string">&quot;\\f&quot;</span>,
+            <span class="string">b&#39;\r&#39;</span> =&gt; <span class="string">&quot;\\r&quot;</span>,
+            <span class="string">b&#39;\x0e&#39;</span> =&gt; <span class="string">&quot;\\u000e&quot;</span>,
+            <span class="string">b&#39;\x0f&#39;</span> =&gt; <span class="string">&quot;\\u000f&quot;</span>,
+            <span class="string">b&#39;\x10&#39;</span> =&gt; <span class="string">&quot;\\u0010&quot;</span>,
+            <span class="string">b&#39;\x11&#39;</span> =&gt; <span class="string">&quot;\\u0011&quot;</span>,
+            <span class="string">b&#39;\x12&#39;</span> =&gt; <span class="string">&quot;\\u0012&quot;</span>,
+            <span class="string">b&#39;\x13&#39;</span> =&gt; <span class="string">&quot;\\u0013&quot;</span>,
+            <span class="string">b&#39;\x14&#39;</span> =&gt; <span class="string">&quot;\\u0014&quot;</span>,
+            <span class="string">b&#39;\x15&#39;</span> =&gt; <span class="string">&quot;\\u0015&quot;</span>,
+            <span class="string">b&#39;\x16&#39;</span> =&gt; <span class="string">&quot;\\u0016&quot;</span>,
+            <span class="string">b&#39;\x17&#39;</span> =&gt; <span class="string">&quot;\\u0017&quot;</span>,
+            <span class="string">b&#39;\x18&#39;</span> =&gt; <span class="string">&quot;\\u0018&quot;</span>,
+            <span class="string">b&#39;\x19&#39;</span> =&gt; <span class="string">&quot;\\u0019&quot;</span>,
+            <span class="string">b&#39;\x1a&#39;</span> =&gt; <span class="string">&quot;\\u001a&quot;</span>,
+            <span class="string">b&#39;\x1b&#39;</span> =&gt; <span class="string">&quot;\\u001b&quot;</span>,
+            <span class="string">b&#39;\x1c&#39;</span> =&gt; <span class="string">&quot;\\u001c&quot;</span>,
+            <span class="string">b&#39;\x1d&#39;</span> =&gt; <span class="string">&quot;\\u001d&quot;</span>,
+            <span class="string">b&#39;\x1e&#39;</span> =&gt; <span class="string">&quot;\\u001e&quot;</span>,
+            <span class="string">b&#39;\x1f&#39;</span> =&gt; <span class="string">&quot;\\u001f&quot;</span>,
+            <span class="string">b&#39;\x7f&#39;</span> =&gt; <span class="string">&quot;\\u007f&quot;</span>,
+            <span class="kw">_</span> =&gt; <span class="kw">continue</span>,
         };
 
         <span class="kw">if</span> <span class="ident">start</span> <span class="op">&lt;</span> <span class="ident">i</span> {
@@ -739,7 +739,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">YamlEmitter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">writer</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="kw">dyn</span> <span class="ident">fmt::Write</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">YamlEmitter</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">writer</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="kw">dyn</span> <span class="ident">fmt::Write</span>) -&gt; <span class="ident">YamlEmitter</span> {
         <span class="ident">YamlEmitter</span> {
             <span class="ident">writer</span>,
             <span class="ident">best_indent</span>: <span class="number">2</span>,
@@ -761,18 +761,18 @@
     }
 
     <span class="doccomment">/// Determine if this emitter is using &#39;compact inline notation&#39;.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_compact</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_compact</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">compact</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dump</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">doc</span>: <span class="kw-2">&amp;</span><span class="ident">Yaml</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EmitResult</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dump</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">doc</span>: <span class="kw-2">&amp;</span><span class="ident">Yaml</span>) -&gt; <span class="ident">EmitResult</span> {
         <span class="comment">// write DocumentStart</span>
         <span class="macro">writeln!</span>(<span class="self">self</span>.<span class="ident">writer</span>, <span class="string">&quot;---&quot;</span>)<span class="question-mark">?</span>;
         <span class="self">self</span>.<span class="ident">level</span> <span class="op">=</span> <span class="op">-</span><span class="number">1</span>;
         <span class="self">self</span>.<span class="ident">emit_node</span>(<span class="ident">doc</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">write_indent</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EmitResult</span> {
+    <span class="kw">fn</span> <span class="ident">write_indent</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">EmitResult</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">level</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
         }
@@ -784,11 +784,11 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">emit_node</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="ident">Yaml</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EmitResult</span> {
+    <span class="kw">fn</span> <span class="ident">emit_node</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="ident">Yaml</span>) -&gt; <span class="ident">EmitResult</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">node</span> {
-            <span class="ident">Yaml::Array</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">emit_array</span>(<span class="ident">v</span>),
-            <span class="ident">Yaml::Hash</span>(<span class="kw-2">ref</span> <span class="ident">h</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">emit_hash</span>(<span class="ident">h</span>),
-            <span class="ident">Yaml::String</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Yaml::Array</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; <span class="self">self</span>.<span class="ident">emit_array</span>(<span class="ident">v</span>),
+            <span class="ident">Yaml::Hash</span>(<span class="kw-2">ref</span> <span class="ident">h</span>) =&gt; <span class="self">self</span>.<span class="ident">emit_hash</span>(<span class="ident">h</span>),
+            <span class="ident">Yaml::String</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; {
                 <span class="kw">if</span> <span class="ident">need_quotes</span>(<span class="ident">v</span>) {
                     <span class="ident">escape_str</span>(<span class="self">self</span>.<span class="ident">writer</span>, <span class="ident">v</span>)<span class="question-mark">?</span>;
                 } <span class="kw">else</span> {
@@ -796,7 +796,7 @@
                 }
                 <span class="prelude-val">Ok</span>(())
             }
-            <span class="ident">Yaml::Boolean</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Yaml::Boolean</span>(<span class="ident">v</span>) =&gt; {
                 <span class="kw">if</span> <span class="ident">v</span> {
                     <span class="self">self</span>.<span class="ident">writer</span>.<span class="ident">write_str</span>(<span class="string">&quot;true&quot;</span>)<span class="question-mark">?</span>;
                 } <span class="kw">else</span> {
@@ -804,24 +804,24 @@
                 }
                 <span class="prelude-val">Ok</span>(())
             }
-            <span class="ident">Yaml::Integer</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Yaml::Integer</span>(<span class="ident">v</span>) =&gt; {
                 <span class="macro">write!</span>(<span class="self">self</span>.<span class="ident">writer</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">v</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(())
             }
-            <span class="ident">Yaml::Real</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Yaml::Real</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; {
                 <span class="macro">write!</span>(<span class="self">self</span>.<span class="ident">writer</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">v</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(())
             }
-            <span class="ident">Yaml::Null</span> <span class="op">|</span> <span class="ident">Yaml::BadValue</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Yaml::Null</span> <span class="op">|</span> <span class="ident">Yaml::BadValue</span> =&gt; {
                 <span class="macro">write!</span>(<span class="self">self</span>.<span class="ident">writer</span>, <span class="string">&quot;~&quot;</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(())
             }
             <span class="comment">// XXX(chenyh) Alias</span>
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(()),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>(()),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">emit_array</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">v</span>: <span class="kw-2">&amp;</span>[<span class="ident">Yaml</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EmitResult</span> {
+    <span class="kw">fn</span> <span class="ident">emit_array</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">v</span>: <span class="kw-2">&amp;</span>[<span class="ident">Yaml</span>]) -&gt; <span class="ident">EmitResult</span> {
         <span class="kw">if</span> <span class="ident">v</span>.<span class="ident">is_empty</span>() {
             <span class="macro">write!</span>(<span class="self">self</span>.<span class="ident">writer</span>, <span class="string">&quot;[]&quot;</span>)<span class="question-mark">?</span>;
         } <span class="kw">else</span> {
@@ -839,15 +839,15 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">emit_hash</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">h</span>: <span class="kw-2">&amp;</span><span class="ident">Hash</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EmitResult</span> {
+    <span class="kw">fn</span> <span class="ident">emit_hash</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">h</span>: <span class="kw-2">&amp;</span><span class="ident">Hash</span>) -&gt; <span class="ident">EmitResult</span> {
         <span class="kw">if</span> <span class="ident">h</span>.<span class="ident">is_empty</span>() {
             <span class="self">self</span>.<span class="ident">writer</span>.<span class="ident">write_str</span>(<span class="string">&quot;{}&quot;</span>)<span class="question-mark">?</span>;
         } <span class="kw">else</span> {
             <span class="self">self</span>.<span class="ident">level</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
             <span class="kw">for</span> (<span class="ident">cnt</span>, (<span class="ident">k</span>, <span class="ident">v</span>)) <span class="kw">in</span> <span class="ident">h</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
                 <span class="kw">let</span> <span class="ident">complex_key</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">k</span> {
-                    <span class="ident">Yaml::Hash</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Yaml::Array</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+                    <span class="ident">Yaml::Hash</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Yaml::Array</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+                    <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
                 };
                 <span class="kw">if</span> <span class="ident">cnt</span> <span class="op">&gt;</span> <span class="number">0</span> {
                     <span class="macro">writeln!</span>(<span class="self">self</span>.<span class="ident">writer</span>)<span class="question-mark">?</span>;
@@ -875,9 +875,9 @@
     <span class="doccomment">/// following a &quot;:&quot; or &quot;-&quot;, either after a space, or on a new line.</span>
     <span class="doccomment">/// If `inline` is true, then the preceding characters are distinct</span>
     <span class="doccomment">/// and short enough to respect the compact flag.</span>
-    <span class="kw">fn</span> <span class="ident">emit_val</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">inline</span>: <span class="ident">bool</span>, <span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="ident">Yaml</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EmitResult</span> {
+    <span class="kw">fn</span> <span class="ident">emit_val</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">inline</span>: <span class="ident">bool</span>, <span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="ident">Yaml</span>) -&gt; <span class="ident">EmitResult</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">val</span> {
-            <span class="ident">Yaml::Array</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Yaml::Array</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; {
                 <span class="kw">if</span> (<span class="ident">inline</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">compact</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">is_empty</span>() {
                     <span class="macro">write!</span>(<span class="self">self</span>.<span class="ident">writer</span>, <span class="string">&quot; &quot;</span>)<span class="question-mark">?</span>;
                 } <span class="kw">else</span> {
@@ -888,7 +888,7 @@
                 }
                 <span class="self">self</span>.<span class="ident">emit_array</span>(<span class="ident">v</span>)
             }
-            <span class="ident">Yaml::Hash</span>(<span class="kw-2">ref</span> <span class="ident">h</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Yaml::Hash</span>(<span class="kw-2">ref</span> <span class="ident">h</span>) =&gt; {
                 <span class="kw">if</span> (<span class="ident">inline</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">compact</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">h</span>.<span class="ident">is_empty</span>() {
                     <span class="macro">write!</span>(<span class="self">self</span>.<span class="ident">writer</span>, <span class="string">&quot; &quot;</span>)<span class="question-mark">?</span>;
                 } <span class="kw">else</span> {
@@ -899,7 +899,7 @@
                 }
                 <span class="self">self</span>.<span class="ident">emit_hash</span>(<span class="ident">h</span>)
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">_</span> =&gt; {
                 <span class="macro">write!</span>(<span class="self">self</span>.<span class="ident">writer</span>, <span class="string">&quot; &quot;</span>)<span class="question-mark">?</span>;
                 <span class="self">self</span>.<span class="ident">emit_node</span>(<span class="ident">val</span>)
             }
@@ -921,16 +921,16 @@
 <span class="doccomment">/// * When the string is null or ~ (otherwise, it would be considered as a null value);</span>
 <span class="doccomment">/// * When the string looks like a number, such as integers (e.g. 2, 14, etc.), floats (e.g. 2.6, 14.9) and exponential numbers (e.g. 12e7, etc.) (otherwise, it would be treated as a numeric value);</span>
 <span class="doccomment">/// * When the string looks like a date (e.g. 2014-12-31) (otherwise it would be automatically converted into a Unix timestamp).</span>
-<span class="kw">fn</span> <span class="ident">need_quotes</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-    <span class="kw">fn</span> <span class="ident">need_quotes_spaces</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">fn</span> <span class="ident">need_quotes</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">need_quotes_spaces</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span> {
         <span class="ident">string</span>.<span class="ident">starts_with</span>(<span class="string">&#39; &#39;</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">string</span>.<span class="ident">ends_with</span>(<span class="string">&#39; &#39;</span>)
     }
 
-    <span class="ident">string</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;&quot;</span>
+    <span class="ident">string</span> <span class="op">==</span> <span class="string">&quot;&quot;</span>
         <span class="op">|</span><span class="op">|</span> <span class="ident">need_quotes_spaces</span>(<span class="ident">string</span>)
         <span class="op">|</span><span class="op">|</span> <span class="ident">string</span>.<span class="ident">starts_with</span>(<span class="op">|</span><span class="ident">character</span>: <span class="ident">char</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">character</span> {
-            <span class="string">&#39;&amp;&#39;</span> <span class="op">|</span> <span class="string">&#39;*&#39;</span> <span class="op">|</span> <span class="string">&#39;?&#39;</span> <span class="op">|</span> <span class="string">&#39;|&#39;</span> <span class="op">|</span> <span class="string">&#39;-&#39;</span> <span class="op">|</span> <span class="string">&#39;&lt;&#39;</span> <span class="op">|</span> <span class="string">&#39;&gt;&#39;</span> <span class="op">|</span> <span class="string">&#39;=&#39;</span> <span class="op">|</span> <span class="string">&#39;!&#39;</span> <span class="op">|</span> <span class="string">&#39;%&#39;</span> <span class="op">|</span> <span class="string">&#39;@&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="string">&#39;&amp;&#39;</span> <span class="op">|</span> <span class="string">&#39;*&#39;</span> <span class="op">|</span> <span class="string">&#39;?&#39;</span> <span class="op">|</span> <span class="string">&#39;|&#39;</span> <span class="op">|</span> <span class="string">&#39;-&#39;</span> <span class="op">|</span> <span class="string">&#39;&lt;&#39;</span> <span class="op">|</span> <span class="string">&#39;&gt;&#39;</span> <span class="op">|</span> <span class="string">&#39;=&#39;</span> <span class="op">|</span> <span class="string">&#39;!&#39;</span> <span class="op">|</span> <span class="string">&#39;%&#39;</span> <span class="op">|</span> <span class="string">&#39;@&#39;</span> =&gt; <span class="bool-val">true</span>,
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         })
         <span class="op">|</span><span class="op">|</span> <span class="ident">string</span>.<span class="ident">contains</span>(<span class="op">|</span><span class="ident">character</span>: <span class="ident">char</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">character</span> {
             <span class="string">&#39;:&#39;</span>
@@ -949,8 +949,8 @@
             <span class="op">|</span> <span class="string">&#39;\n&#39;</span>
             <span class="op">|</span> <span class="string">&#39;\r&#39;</span>
             <span class="op">|</span> <span class="string">&#39;\x0e&#39;</span>..<span class="op">=</span><span class="string">&#39;\x1a&#39;</span>
-            <span class="op">|</span> <span class="string">&#39;\x1c&#39;</span>..<span class="op">=</span><span class="string">&#39;\x1f&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="op">|</span> <span class="string">&#39;\x1c&#39;</span>..<span class="op">=</span><span class="string">&#39;\x1f&#39;</span> =&gt; <span class="bool-val">true</span>,
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         })
         <span class="op">|</span><span class="op">|</span> [
             <span class="comment">// http://yaml.org/type/bool.html</span>
@@ -999,8 +999,8 @@ a4:
         <span class="macro">println!</span>(<span class="string">&quot;original:\n{}&quot;</span>, <span class="ident">s</span>);
         <span class="macro">println!</span>(<span class="string">&quot;emitted:\n{}&quot;</span>, <span class="ident">writer</span>);
         <span class="kw">let</span> <span class="ident">docs_new</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">YamlLoader::load_from_str</span>(<span class="kw-2">&amp;</span><span class="ident">writer</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">y</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">y</span>,
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">e</span>)),
+            <span class="prelude-val">Ok</span>(<span class="ident">y</span>) =&gt; <span class="ident">y</span>,
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="macro">panic!</span>(<span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">e</span>)),
         };
         <span class="kw">let</span> <span class="ident">doc_new</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">docs_new</span>[<span class="number">0</span>];
 
@@ -1036,8 +1036,8 @@ products:
             <span class="ident">emitter</span>.<span class="ident">dump</span>(<span class="ident">doc</span>).<span class="ident">unwrap</span>();
         }
         <span class="kw">let</span> <span class="ident">docs_new</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">YamlLoader::load_from_str</span>(<span class="kw-2">&amp;</span><span class="ident">writer</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">y</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">y</span>,
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">e</span>)),
+            <span class="prelude-val">Ok</span>(<span class="ident">y</span>) =&gt; <span class="ident">y</span>,
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="macro">panic!</span>(<span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">e</span>)),
         };
         <span class="kw">let</span> <span class="ident">doc_new</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">docs_new</span>[<span class="number">0</span>];
         <span class="macro">assert_eq!</span>(<span class="ident">doc</span>, <span class="ident">doc_new</span>);

@@ -135,7 +135,7 @@
 <span class="doccomment">///     assert_eq!(&quot;Style { fg(Red), on(Blue), bold, italic }&quot;,</span>
 <span class="doccomment">///                format!(&quot;{:?}&quot;, Red.on(Blue).bold().italic()));</span>
 <span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Style</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">if</span> <span class="ident">fmt</span>.<span class="ident">alternate</span>() {
             <span class="ident">fmt</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;Style&quot;</span>)
                .<span class="ident">field</span>(<span class="string">&quot;foreground&quot;</span>,    <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">foreground</span>)
@@ -198,12 +198,12 @@
     <span class="kw">use</span> <span class="ident">style::Colour</span>::<span class="kw-2">*</span>;
     <span class="kw">use</span> <span class="ident">style::Style</span>;
 
-    <span class="kw">fn</span> <span class="ident">style</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Style</span> {
+    <span class="kw">fn</span> <span class="ident">style</span>() -&gt; <span class="ident">Style</span> {
         <span class="ident">Style::new</span>()
     }
 
     <span class="macro">macro_rules!</span> <span class="ident">test</span> {
-        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>: <span class="ident">ident</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>: <span class="ident">expr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">result</span>: <span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>: <span class="ident">ident</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>: <span class="ident">expr</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">result</span>: <span class="ident">expr</span>) =&gt; {
             <span class="attribute">#[<span class="ident">test</span>]</span>
             <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>() {
                 <span class="macro">assert_eq!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">result</span>, <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>));
@@ -211,16 +211,16 @@
         };
     }
 
-    <span class="macro">test!</span>(<span class="ident">empty</span>:   <span class="ident">style</span>()                  <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Style {}&quot;</span>);
-    <span class="macro">test!</span>(<span class="ident">bold</span>:    <span class="ident">style</span>().<span class="ident">bold</span>()           <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Style { bold }&quot;</span>);
-    <span class="macro">test!</span>(<span class="ident">italic</span>:  <span class="ident">style</span>().<span class="ident">italic</span>()         <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Style { italic }&quot;</span>);
-    <span class="macro">test!</span>(<span class="ident">both</span>:    <span class="ident">style</span>().<span class="ident">bold</span>().<span class="ident">italic</span>()  <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Style { bold, italic }&quot;</span>);
+    <span class="macro">test!</span>(<span class="ident">empty</span>:   <span class="ident">style</span>()                  =&gt; <span class="string">&quot;Style {}&quot;</span>);
+    <span class="macro">test!</span>(<span class="ident">bold</span>:    <span class="ident">style</span>().<span class="ident">bold</span>()           =&gt; <span class="string">&quot;Style { bold }&quot;</span>);
+    <span class="macro">test!</span>(<span class="ident">italic</span>:  <span class="ident">style</span>().<span class="ident">italic</span>()         =&gt; <span class="string">&quot;Style { italic }&quot;</span>);
+    <span class="macro">test!</span>(<span class="ident">both</span>:    <span class="ident">style</span>().<span class="ident">bold</span>().<span class="ident">italic</span>()  =&gt; <span class="string">&quot;Style { bold, italic }&quot;</span>);
 
-    <span class="macro">test!</span>(<span class="ident">red</span>:     <span class="ident">Red</span>.<span class="ident">normal</span>()                     <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Style { fg(Red) }&quot;</span>);
-    <span class="macro">test!</span>(<span class="ident">redblue</span>: <span class="ident">Red</span>.<span class="ident">normal</span>().<span class="ident">on</span>(<span class="ident">RGB</span>(<span class="number">3</span>, <span class="number">2</span>, <span class="number">4</span>))    <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Style { fg(Red), on(RGB(3, 2, 4)) }&quot;</span>);
+    <span class="macro">test!</span>(<span class="ident">red</span>:     <span class="ident">Red</span>.<span class="ident">normal</span>()                     =&gt; <span class="string">&quot;Style { fg(Red) }&quot;</span>);
+    <span class="macro">test!</span>(<span class="ident">redblue</span>: <span class="ident">Red</span>.<span class="ident">normal</span>().<span class="ident">on</span>(<span class="ident">RGB</span>(<span class="number">3</span>, <span class="number">2</span>, <span class="number">4</span>))    =&gt; <span class="string">&quot;Style { fg(Red), on(RGB(3, 2, 4)) }&quot;</span>);
 
     <span class="macro">test!</span>(<span class="ident">everything</span>:
-            <span class="ident">Red</span>.<span class="ident">on</span>(<span class="ident">Blue</span>).<span class="ident">blink</span>().<span class="ident">bold</span>().<span class="ident">dimmed</span>().<span class="ident">hidden</span>().<span class="ident">italic</span>().<span class="ident">reverse</span>().<span class="ident">strikethrough</span>().<span class="ident">underline</span>() <span class="op">=</span><span class="op">&gt;</span>
+            <span class="ident">Red</span>.<span class="ident">on</span>(<span class="ident">Blue</span>).<span class="ident">blink</span>().<span class="ident">bold</span>().<span class="ident">dimmed</span>().<span class="ident">hidden</span>().<span class="ident">italic</span>().<span class="ident">reverse</span>().<span class="ident">strikethrough</span>().<span class="ident">underline</span>() =&gt;
             <span class="string">&quot;Style { fg(Red), on(Blue), blink, bold, dimmed, hidden, italic, reverse, strikethrough, underline }&quot;</span>);
 
     <span class="attribute">#[<span class="ident">test</span>]</span>

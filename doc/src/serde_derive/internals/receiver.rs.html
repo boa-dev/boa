@@ -309,7 +309,7 @@
 <span class="kw">struct</span> <span class="ident">ReplaceReceiver</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">TypePath</span>);
 
 <span class="kw">impl</span> <span class="ident">ReplaceReceiver</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">self_ty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="ident">Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TypePath</span> {
+    <span class="kw">fn</span> <span class="ident">self_ty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="ident">Span</span>) -&gt; <span class="ident">TypePath</span> {
         <span class="kw">let</span> <span class="ident">tokens</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">to_token_stream</span>();
         <span class="kw">let</span> <span class="ident">respanned</span> <span class="op">=</span> <span class="ident">respan</span>(<span class="ident">tokens</span>, <span class="ident">span</span>);
         <span class="ident">syn::parse2</span>(<span class="ident">respanned</span>).<span class="ident">unwrap</span>()
@@ -320,7 +320,7 @@
             <span class="kw">return</span>;
         }
 
-        <span class="kw">if</span> <span class="ident">path</span>.<span class="ident">segments</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+        <span class="kw">if</span> <span class="ident">path</span>.<span class="ident">segments</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
             <span class="self">self</span>.<span class="ident">self_to_expr_path</span>(<span class="ident">path</span>);
             <span class="kw">return</span>;
         }
@@ -394,50 +394,50 @@
 
     <span class="kw">fn</span> <span class="ident">visit_type_mut_impl</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ty</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Type</span>) {
         <span class="kw">match</span> <span class="ident">ty</span> {
-            <span class="ident">Type::Array</span>(<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Type::Array</span>(<span class="ident">ty</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">visit_type_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ty</span>.<span class="ident">elem</span>);
                 <span class="self">self</span>.<span class="ident">visit_expr_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ty</span>.<span class="ident">len</span>);
             }
-            <span class="ident">Type::BareFn</span>(<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Type::BareFn</span>(<span class="ident">ty</span>) =&gt; {
                 <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ty</span>.<span class="ident">inputs</span> {
                     <span class="self">self</span>.<span class="ident">visit_type_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">arg</span>.<span class="ident">ty</span>);
                 }
                 <span class="self">self</span>.<span class="ident">visit_return_type_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ty</span>.<span class="ident">output</span>);
             }
-            <span class="ident">Type::Group</span>(<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_type_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ty</span>.<span class="ident">elem</span>),
-            <span class="ident">Type::ImplTrait</span>(<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Type::Group</span>(<span class="ident">ty</span>) =&gt; <span class="self">self</span>.<span class="ident">visit_type_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ty</span>.<span class="ident">elem</span>),
+            <span class="ident">Type::ImplTrait</span>(<span class="ident">ty</span>) =&gt; {
                 <span class="kw">for</span> <span class="ident">bound</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ty</span>.<span class="ident">bounds</span> {
                     <span class="self">self</span>.<span class="ident">visit_type_param_bound_mut</span>(<span class="ident">bound</span>);
                 }
             }
-            <span class="ident">Type::Macro</span>(<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_macro_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ty</span>.<span class="ident">mac</span>),
-            <span class="ident">Type::Paren</span>(<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_type_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ty</span>.<span class="ident">elem</span>),
-            <span class="ident">Type::Path</span>(<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Type::Macro</span>(<span class="ident">ty</span>) =&gt; <span class="self">self</span>.<span class="ident">visit_macro_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ty</span>.<span class="ident">mac</span>),
+            <span class="ident">Type::Paren</span>(<span class="ident">ty</span>) =&gt; <span class="self">self</span>.<span class="ident">visit_type_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ty</span>.<span class="ident">elem</span>),
+            <span class="ident">Type::Path</span>(<span class="ident">ty</span>) =&gt; {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">qself</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ty</span>.<span class="ident">qself</span> {
                     <span class="self">self</span>.<span class="ident">visit_type_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">qself</span>.<span class="ident">ty</span>);
                 }
                 <span class="self">self</span>.<span class="ident">visit_path_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ty</span>.<span class="ident">path</span>);
             }
-            <span class="ident">Type::Ptr</span>(<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_type_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ty</span>.<span class="ident">elem</span>),
-            <span class="ident">Type::Reference</span>(<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_type_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ty</span>.<span class="ident">elem</span>),
-            <span class="ident">Type::Slice</span>(<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_type_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ty</span>.<span class="ident">elem</span>),
-            <span class="ident">Type::TraitObject</span>(<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Type::Ptr</span>(<span class="ident">ty</span>) =&gt; <span class="self">self</span>.<span class="ident">visit_type_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ty</span>.<span class="ident">elem</span>),
+            <span class="ident">Type::Reference</span>(<span class="ident">ty</span>) =&gt; <span class="self">self</span>.<span class="ident">visit_type_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ty</span>.<span class="ident">elem</span>),
+            <span class="ident">Type::Slice</span>(<span class="ident">ty</span>) =&gt; <span class="self">self</span>.<span class="ident">visit_type_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ty</span>.<span class="ident">elem</span>),
+            <span class="ident">Type::TraitObject</span>(<span class="ident">ty</span>) =&gt; {
                 <span class="kw">for</span> <span class="ident">bound</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ty</span>.<span class="ident">bounds</span> {
                     <span class="self">self</span>.<span class="ident">visit_type_param_bound_mut</span>(<span class="ident">bound</span>);
                 }
             }
-            <span class="ident">Type::Tuple</span>(<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Type::Tuple</span>(<span class="ident">ty</span>) =&gt; {
                 <span class="kw">for</span> <span class="ident">elem</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ty</span>.<span class="ident">elems</span> {
                     <span class="self">self</span>.<span class="ident">visit_type_mut</span>(<span class="ident">elem</span>);
                 }
             }
 
-            <span class="ident">Type::Infer</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Type::Never</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Type::Verbatim</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="ident">Type::Infer</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Type::Never</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Type::Verbatim</span>(<span class="kw">_</span>) =&gt; {}
 
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-            <span class="ident">Type::__TestExhaustive</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented!</span>(),
+            <span class="ident">Type::__TestExhaustive</span>(<span class="kw">_</span>) =&gt; <span class="macro">unimplemented!</span>(),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">test</span>))]</span>
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="kw">_</span> =&gt; {}
         }
     }
 
@@ -463,19 +463,19 @@
 
     <span class="kw">fn</span> <span class="ident">visit_path_arguments_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">arguments</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PathArguments</span>) {
         <span class="kw">match</span> <span class="ident">arguments</span> {
-            <span class="ident">PathArguments::None</span> <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="ident">PathArguments::AngleBracketed</span>(<span class="ident">arguments</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">PathArguments::None</span> =&gt; {}
+            <span class="ident">PathArguments::AngleBracketed</span>(<span class="ident">arguments</span>) =&gt; {
                 <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">arguments</span>.<span class="ident">args</span> {
                     <span class="kw">match</span> <span class="ident">arg</span> {
-                        <span class="ident">GenericArgument::Type</span>(<span class="ident">arg</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_type_mut</span>(<span class="ident">arg</span>),
-                        <span class="ident">GenericArgument::Binding</span>(<span class="ident">arg</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_type_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">arg</span>.<span class="ident">ty</span>),
+                        <span class="ident">GenericArgument::Type</span>(<span class="ident">arg</span>) =&gt; <span class="self">self</span>.<span class="ident">visit_type_mut</span>(<span class="ident">arg</span>),
+                        <span class="ident">GenericArgument::Binding</span>(<span class="ident">arg</span>) =&gt; <span class="self">self</span>.<span class="ident">visit_type_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">arg</span>.<span class="ident">ty</span>),
                         <span class="ident">GenericArgument::Lifetime</span>(<span class="kw">_</span>)
                         <span class="op">|</span> <span class="ident">GenericArgument::Constraint</span>(<span class="kw">_</span>)
-                        <span class="op">|</span> <span class="ident">GenericArgument::Const</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
+                        <span class="op">|</span> <span class="ident">GenericArgument::Const</span>(<span class="kw">_</span>) =&gt; {}
                     }
                 }
             }
-            <span class="ident">PathArguments::Parenthesized</span>(<span class="ident">arguments</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">PathArguments::Parenthesized</span>(<span class="ident">arguments</span>) =&gt; {
                 <span class="kw">for</span> <span class="ident">argument</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">arguments</span>.<span class="ident">inputs</span> {
                     <span class="self">self</span>.<span class="ident">visit_type_mut</span>(<span class="ident">argument</span>);
                 }
@@ -486,39 +486,39 @@
 
     <span class="kw">fn</span> <span class="ident">visit_return_type_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">return_type</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ReturnType</span>) {
         <span class="kw">match</span> <span class="ident">return_type</span> {
-            <span class="ident">ReturnType::Default</span> <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="ident">ReturnType::Type</span>(<span class="kw">_</span>, <span class="ident">output</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_type_mut</span>(<span class="ident">output</span>),
+            <span class="ident">ReturnType::Default</span> =&gt; {}
+            <span class="ident">ReturnType::Type</span>(<span class="kw">_</span>, <span class="ident">output</span>) =&gt; <span class="self">self</span>.<span class="ident">visit_type_mut</span>(<span class="ident">output</span>),
         }
     }
 
     <span class="kw">fn</span> <span class="ident">visit_type_param_bound_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">bound</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TypeParamBound</span>) {
         <span class="kw">match</span> <span class="ident">bound</span> {
-            <span class="ident">TypeParamBound::Trait</span>(<span class="ident">bound</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_path_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">bound</span>.<span class="ident">path</span>),
-            <span class="ident">TypeParamBound::Lifetime</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="ident">TypeParamBound::Trait</span>(<span class="ident">bound</span>) =&gt; <span class="self">self</span>.<span class="ident">visit_path_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">bound</span>.<span class="ident">path</span>),
+            <span class="ident">TypeParamBound::Lifetime</span>(<span class="kw">_</span>) =&gt; {}
         }
     }
 
     <span class="kw">fn</span> <span class="ident">visit_generics_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">generics</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Generics</span>) {
         <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">generics</span>.<span class="ident">params</span> {
             <span class="kw">match</span> <span class="ident">param</span> {
-                <span class="ident">GenericParam::Type</span>(<span class="ident">param</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">GenericParam::Type</span>(<span class="ident">param</span>) =&gt; {
                     <span class="kw">for</span> <span class="ident">bound</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">param</span>.<span class="ident">bounds</span> {
                         <span class="self">self</span>.<span class="ident">visit_type_param_bound_mut</span>(<span class="ident">bound</span>);
                     }
                 }
-                <span class="ident">GenericParam::Lifetime</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">GenericParam::Const</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
+                <span class="ident">GenericParam::Lifetime</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">GenericParam::Const</span>(<span class="kw">_</span>) =&gt; {}
             }
         }
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">where_clause</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">generics</span>.<span class="ident">where_clause</span> {
             <span class="kw">for</span> <span class="ident">predicate</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">where_clause</span>.<span class="ident">predicates</span> {
                 <span class="kw">match</span> <span class="ident">predicate</span> {
-                    <span class="ident">WherePredicate::Type</span>(<span class="ident">predicate</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">WherePredicate::Type</span>(<span class="ident">predicate</span>) =&gt; {
                         <span class="self">self</span>.<span class="ident">visit_type_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">predicate</span>.<span class="ident">bounded_ty</span>);
                         <span class="kw">for</span> <span class="ident">bound</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">predicate</span>.<span class="ident">bounds</span> {
                             <span class="self">self</span>.<span class="ident">visit_type_param_bound_mut</span>(<span class="ident">bound</span>);
                         }
                     }
-                    <span class="ident">WherePredicate::Lifetime</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">WherePredicate::Eq</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
+                    <span class="ident">WherePredicate::Lifetime</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">WherePredicate::Eq</span>(<span class="kw">_</span>) =&gt; {}
                 }
             }
         }
@@ -526,47 +526,47 @@
 
     <span class="kw">fn</span> <span class="ident">visit_data_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">data</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Data</span>) {
         <span class="kw">match</span> <span class="ident">data</span> {
-            <span class="ident">Data::Struct</span>(<span class="ident">data</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Data::Struct</span>(<span class="ident">data</span>) =&gt; {
                 <span class="kw">for</span> <span class="ident">field</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">data</span>.<span class="ident">fields</span> {
                     <span class="self">self</span>.<span class="ident">visit_type_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">field</span>.<span class="ident">ty</span>);
                 }
             }
-            <span class="ident">Data::Enum</span>(<span class="ident">data</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Data::Enum</span>(<span class="ident">data</span>) =&gt; {
                 <span class="kw">for</span> <span class="ident">variant</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">data</span>.<span class="ident">variants</span> {
                     <span class="kw">for</span> <span class="ident">field</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">variant</span>.<span class="ident">fields</span> {
                         <span class="self">self</span>.<span class="ident">visit_type_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">field</span>.<span class="ident">ty</span>);
                     }
                 }
             }
-            <span class="ident">Data::Union</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="ident">Data::Union</span>(<span class="kw">_</span>) =&gt; {}
         }
     }
 
     <span class="kw">fn</span> <span class="ident">visit_expr_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">expr</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Expr</span>) {
         <span class="kw">match</span> <span class="ident">expr</span> {
-            <span class="ident">Expr::Binary</span>(<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr::Binary</span>(<span class="ident">expr</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">visit_expr_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">expr</span>.<span class="ident">left</span>);
                 <span class="self">self</span>.<span class="ident">visit_expr_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">expr</span>.<span class="ident">right</span>);
             }
-            <span class="ident">Expr::Call</span>(<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr::Call</span>(<span class="ident">expr</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">visit_expr_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">expr</span>.<span class="ident">func</span>);
                 <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">expr</span>.<span class="ident">args</span> {
                     <span class="self">self</span>.<span class="ident">visit_expr_mut</span>(<span class="ident">arg</span>);
                 }
             }
-            <span class="ident">Expr::Cast</span>(<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr::Cast</span>(<span class="ident">expr</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">visit_expr_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">expr</span>.<span class="ident">expr</span>);
                 <span class="self">self</span>.<span class="ident">visit_type_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">expr</span>.<span class="ident">ty</span>);
             }
-            <span class="ident">Expr::Field</span>(<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_expr_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">expr</span>.<span class="ident">base</span>),
-            <span class="ident">Expr::Index</span>(<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr::Field</span>(<span class="ident">expr</span>) =&gt; <span class="self">self</span>.<span class="ident">visit_expr_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">expr</span>.<span class="ident">base</span>),
+            <span class="ident">Expr::Index</span>(<span class="ident">expr</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">visit_expr_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">expr</span>.<span class="ident">expr</span>);
                 <span class="self">self</span>.<span class="ident">visit_expr_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">expr</span>.<span class="ident">index</span>);
             }
-            <span class="ident">Expr::Paren</span>(<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_expr_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">expr</span>.<span class="ident">expr</span>),
-            <span class="ident">Expr::Path</span>(<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_expr_path_mut</span>(<span class="ident">expr</span>),
-            <span class="ident">Expr::Unary</span>(<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_expr_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">expr</span>.<span class="ident">expr</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="ident">Expr::Paren</span>(<span class="ident">expr</span>) =&gt; <span class="self">self</span>.<span class="ident">visit_expr_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">expr</span>.<span class="ident">expr</span>),
+            <span class="ident">Expr::Path</span>(<span class="ident">expr</span>) =&gt; <span class="self">self</span>.<span class="ident">visit_expr_path_mut</span>(<span class="ident">expr</span>),
+            <span class="ident">Expr::Unary</span>(<span class="ident">expr</span>) =&gt; <span class="self">self</span>.<span class="ident">visit_expr_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">expr</span>.<span class="ident">expr</span>),
+            <span class="kw">_</span> =&gt; {}
         }
     }
 

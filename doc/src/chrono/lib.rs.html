@@ -2063,10 +2063,10 @@
 
 <span class="comment">// useful throughout the codebase</span>
 <span class="macro">macro_rules!</span> <span class="ident">try_opt</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>:<span class="ident">expr</span>) =&gt; {
         <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>,
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span>,
+            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
         }
     };
 }
@@ -2143,13 +2143,13 @@
 
 <span class="doccomment">/// Construct a [`SerdeError::NonExistent`]</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>)]</span>
-<span class="kw">fn</span> <span class="ident">ne_timestamp</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">fmt::Display</span><span class="op">&gt;</span>(<span class="ident">ts</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SerdeError</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">u8</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">ne_timestamp</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">fmt::Display</span><span class="op">&gt;</span>(<span class="ident">ts</span>: <span class="ident">T</span>) -&gt; <span class="ident">SerdeError</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">u8</span><span class="op">&gt;</span> {
     <span class="ident">SerdeError::NonExistent</span>::<span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">u8</span><span class="op">&gt;</span> { <span class="ident">timestamp</span>: <span class="ident">ts</span> }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>)]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">fmt::Display</span>, <span class="ident">D</span>: <span class="ident">fmt::Display</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">SerdeError</span><span class="op">&lt;</span><span class="ident">V</span>, <span class="ident">D</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;ChronoSerdeError({})&quot;</span>, <span class="self">self</span>)
     }
 }
@@ -2157,12 +2157,12 @@
 <span class="comment">// impl&lt;V: fmt::Display, D: fmt::Debug&gt; core::error::Error for SerdeError&lt;V, D&gt; {}</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>)]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">fmt::Display</span>, <span class="ident">D</span>: <span class="ident">fmt::Display</span><span class="op">&gt;</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">SerdeError</span><span class="op">&lt;</span><span class="ident">V</span>, <span class="ident">D</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="kw-2">&amp;</span><span class="ident">SerdeError::NonExistent</span> { <span class="kw-2">ref</span> <span class="ident">timestamp</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw-2">&amp;</span><span class="ident">SerdeError::NonExistent</span> { <span class="kw-2">ref</span> <span class="ident">timestamp</span> } =&gt; {
                 <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;value is not a legal timestamp: {}&quot;</span>, <span class="ident">timestamp</span>)
             }
-            <span class="kw-2">&amp;</span><span class="ident">SerdeError::Ambiguous</span> { <span class="kw-2">ref</span> <span class="ident">timestamp</span>, <span class="kw-2">ref</span> <span class="ident">min</span>, <span class="kw-2">ref</span> <span class="ident">max</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(
+            <span class="kw-2">&amp;</span><span class="ident">SerdeError::Ambiguous</span> { <span class="kw-2">ref</span> <span class="ident">timestamp</span>, <span class="kw-2">ref</span> <span class="ident">min</span>, <span class="kw-2">ref</span> <span class="ident">max</span> } =&gt; <span class="macro">write!</span>(
                 <span class="ident">f</span>,
                 <span class="string">&quot;value is an ambiguous timestamp: {}, could be either of {}, {}&quot;</span>,
                 <span class="ident">timestamp</span>, <span class="ident">min</span>, <span class="ident">max</span>
@@ -2202,15 +2202,15 @@
     <span class="doccomment">/// ----------- | ----- | ----- | ----- | ----- | ----- | ----- | -----</span>
     <span class="doccomment">/// `w.succ()`: | `Tue` | `Wed` | `Thu` | `Fri` | `Sat` | `Sun` | `Mon`</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">succ</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Weekday</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">succ</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Weekday</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Weekday::Mon</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Weekday::Tue</span>,
-            <span class="ident">Weekday::Tue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Weekday::Wed</span>,
-            <span class="ident">Weekday::Wed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Weekday::Thu</span>,
-            <span class="ident">Weekday::Thu</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Weekday::Fri</span>,
-            <span class="ident">Weekday::Fri</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Weekday::Sat</span>,
-            <span class="ident">Weekday::Sat</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Weekday::Sun</span>,
-            <span class="ident">Weekday::Sun</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Weekday::Mon</span>,
+            <span class="ident">Weekday::Mon</span> =&gt; <span class="ident">Weekday::Tue</span>,
+            <span class="ident">Weekday::Tue</span> =&gt; <span class="ident">Weekday::Wed</span>,
+            <span class="ident">Weekday::Wed</span> =&gt; <span class="ident">Weekday::Thu</span>,
+            <span class="ident">Weekday::Thu</span> =&gt; <span class="ident">Weekday::Fri</span>,
+            <span class="ident">Weekday::Fri</span> =&gt; <span class="ident">Weekday::Sat</span>,
+            <span class="ident">Weekday::Sat</span> =&gt; <span class="ident">Weekday::Sun</span>,
+            <span class="ident">Weekday::Sun</span> =&gt; <span class="ident">Weekday::Mon</span>,
         }
     }
 
@@ -2220,15 +2220,15 @@
     <span class="doccomment">/// ----------- | ----- | ----- | ----- | ----- | ----- | ----- | -----</span>
     <span class="doccomment">/// `w.pred()`: | `Sun` | `Mon` | `Tue` | `Wed` | `Thu` | `Fri` | `Sat`</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pred</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Weekday</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pred</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Weekday</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Weekday::Mon</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Weekday::Sun</span>,
-            <span class="ident">Weekday::Tue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Weekday::Mon</span>,
-            <span class="ident">Weekday::Wed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Weekday::Tue</span>,
-            <span class="ident">Weekday::Thu</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Weekday::Wed</span>,
-            <span class="ident">Weekday::Fri</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Weekday::Thu</span>,
-            <span class="ident">Weekday::Sat</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Weekday::Fri</span>,
-            <span class="ident">Weekday::Sun</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Weekday::Sat</span>,
+            <span class="ident">Weekday::Mon</span> =&gt; <span class="ident">Weekday::Sun</span>,
+            <span class="ident">Weekday::Tue</span> =&gt; <span class="ident">Weekday::Mon</span>,
+            <span class="ident">Weekday::Wed</span> =&gt; <span class="ident">Weekday::Tue</span>,
+            <span class="ident">Weekday::Thu</span> =&gt; <span class="ident">Weekday::Wed</span>,
+            <span class="ident">Weekday::Fri</span> =&gt; <span class="ident">Weekday::Thu</span>,
+            <span class="ident">Weekday::Sat</span> =&gt; <span class="ident">Weekday::Fri</span>,
+            <span class="ident">Weekday::Sun</span> =&gt; <span class="ident">Weekday::Sat</span>,
         }
     }
 
@@ -2238,15 +2238,15 @@
     <span class="doccomment">/// ------------------------- | ----- | ----- | ----- | ----- | ----- | ----- | -----</span>
     <span class="doccomment">/// `w.number_from_monday()`: | 1     | 2     | 3     | 4     | 5     | 6     | 7</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">number_from_monday</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">number_from_monday</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Weekday::Mon</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,
-            <span class="ident">Weekday::Tue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">2</span>,
-            <span class="ident">Weekday::Wed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">3</span>,
-            <span class="ident">Weekday::Thu</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">4</span>,
-            <span class="ident">Weekday::Fri</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">5</span>,
-            <span class="ident">Weekday::Sat</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">6</span>,
-            <span class="ident">Weekday::Sun</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">7</span>,
+            <span class="ident">Weekday::Mon</span> =&gt; <span class="number">1</span>,
+            <span class="ident">Weekday::Tue</span> =&gt; <span class="number">2</span>,
+            <span class="ident">Weekday::Wed</span> =&gt; <span class="number">3</span>,
+            <span class="ident">Weekday::Thu</span> =&gt; <span class="number">4</span>,
+            <span class="ident">Weekday::Fri</span> =&gt; <span class="number">5</span>,
+            <span class="ident">Weekday::Sat</span> =&gt; <span class="number">6</span>,
+            <span class="ident">Weekday::Sun</span> =&gt; <span class="number">7</span>,
         }
     }
 
@@ -2256,15 +2256,15 @@
     <span class="doccomment">/// ------------------------- | ----- | ----- | ----- | ----- | ----- | ----- | -----</span>
     <span class="doccomment">/// `w.number_from_sunday()`: | 2     | 3     | 4     | 5     | 6     | 7     | 1</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">number_from_sunday</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">number_from_sunday</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Weekday::Mon</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">2</span>,
-            <span class="ident">Weekday::Tue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">3</span>,
-            <span class="ident">Weekday::Wed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">4</span>,
-            <span class="ident">Weekday::Thu</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">5</span>,
-            <span class="ident">Weekday::Fri</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">6</span>,
-            <span class="ident">Weekday::Sat</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">7</span>,
-            <span class="ident">Weekday::Sun</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,
+            <span class="ident">Weekday::Mon</span> =&gt; <span class="number">2</span>,
+            <span class="ident">Weekday::Tue</span> =&gt; <span class="number">3</span>,
+            <span class="ident">Weekday::Wed</span> =&gt; <span class="number">4</span>,
+            <span class="ident">Weekday::Thu</span> =&gt; <span class="number">5</span>,
+            <span class="ident">Weekday::Fri</span> =&gt; <span class="number">6</span>,
+            <span class="ident">Weekday::Sat</span> =&gt; <span class="number">7</span>,
+            <span class="ident">Weekday::Sun</span> =&gt; <span class="number">1</span>,
         }
     }
 
@@ -2274,15 +2274,15 @@
     <span class="doccomment">/// --------------------------- | ----- | ----- | ----- | ----- | ----- | ----- | -----</span>
     <span class="doccomment">/// `w.num_days_from_monday()`: | 0     | 1     | 2     | 3     | 4     | 5     | 6</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">num_days_from_monday</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">num_days_from_monday</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Weekday::Mon</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
-            <span class="ident">Weekday::Tue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,
-            <span class="ident">Weekday::Wed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">2</span>,
-            <span class="ident">Weekday::Thu</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">3</span>,
-            <span class="ident">Weekday::Fri</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">4</span>,
-            <span class="ident">Weekday::Sat</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">5</span>,
-            <span class="ident">Weekday::Sun</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">6</span>,
+            <span class="ident">Weekday::Mon</span> =&gt; <span class="number">0</span>,
+            <span class="ident">Weekday::Tue</span> =&gt; <span class="number">1</span>,
+            <span class="ident">Weekday::Wed</span> =&gt; <span class="number">2</span>,
+            <span class="ident">Weekday::Thu</span> =&gt; <span class="number">3</span>,
+            <span class="ident">Weekday::Fri</span> =&gt; <span class="number">4</span>,
+            <span class="ident">Weekday::Sat</span> =&gt; <span class="number">5</span>,
+            <span class="ident">Weekday::Sun</span> =&gt; <span class="number">6</span>,
         }
     }
 
@@ -2292,29 +2292,29 @@
     <span class="doccomment">/// --------------------------- | ----- | ----- | ----- | ----- | ----- | ----- | -----</span>
     <span class="doccomment">/// `w.num_days_from_sunday()`: | 1     | 2     | 3     | 4     | 5     | 6     | 0</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">num_days_from_sunday</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">num_days_from_sunday</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Weekday::Mon</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,
-            <span class="ident">Weekday::Tue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">2</span>,
-            <span class="ident">Weekday::Wed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">3</span>,
-            <span class="ident">Weekday::Thu</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">4</span>,
-            <span class="ident">Weekday::Fri</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">5</span>,
-            <span class="ident">Weekday::Sat</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">6</span>,
-            <span class="ident">Weekday::Sun</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
+            <span class="ident">Weekday::Mon</span> =&gt; <span class="number">1</span>,
+            <span class="ident">Weekday::Tue</span> =&gt; <span class="number">2</span>,
+            <span class="ident">Weekday::Wed</span> =&gt; <span class="number">3</span>,
+            <span class="ident">Weekday::Thu</span> =&gt; <span class="number">4</span>,
+            <span class="ident">Weekday::Fri</span> =&gt; <span class="number">5</span>,
+            <span class="ident">Weekday::Sat</span> =&gt; <span class="number">6</span>,
+            <span class="ident">Weekday::Sun</span> =&gt; <span class="number">0</span>,
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Weekday</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Weekday::Mon</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Mon&quot;</span>,
-            <span class="ident">Weekday::Tue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Tue&quot;</span>,
-            <span class="ident">Weekday::Wed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Wed&quot;</span>,
-            <span class="ident">Weekday::Thu</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Thu&quot;</span>,
-            <span class="ident">Weekday::Fri</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Fri&quot;</span>,
-            <span class="ident">Weekday::Sat</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Sat&quot;</span>,
-            <span class="ident">Weekday::Sun</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Sun&quot;</span>,
+            <span class="ident">Weekday::Mon</span> =&gt; <span class="string">&quot;Mon&quot;</span>,
+            <span class="ident">Weekday::Tue</span> =&gt; <span class="string">&quot;Tue&quot;</span>,
+            <span class="ident">Weekday::Wed</span> =&gt; <span class="string">&quot;Wed&quot;</span>,
+            <span class="ident">Weekday::Thu</span> =&gt; <span class="string">&quot;Thu&quot;</span>,
+            <span class="ident">Weekday::Fri</span> =&gt; <span class="string">&quot;Fri&quot;</span>,
+            <span class="ident">Weekday::Sat</span> =&gt; <span class="string">&quot;Sat&quot;</span>,
+            <span class="ident">Weekday::Sun</span> =&gt; <span class="string">&quot;Sun&quot;</span>,
         })
     }
 }
@@ -2324,30 +2324,30 @@
 <span class="doccomment">/// Do not heavily depend on this though; use explicit methods whenever possible.</span>
 <span class="kw">impl</span> <span class="ident">num_traits::FromPrimitive</span> <span class="kw">for</span> <span class="ident">Weekday</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_i64</span>(<span class="ident">n</span>: <span class="ident">i64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Weekday</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_i64</span>(<span class="ident">n</span>: <span class="ident">i64</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Weekday</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">n</span> {
-            <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Weekday::Mon</span>),
-            <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Weekday::Tue</span>),
-            <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Weekday::Wed</span>),
-            <span class="number">3</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Weekday::Thu</span>),
-            <span class="number">4</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Weekday::Fri</span>),
-            <span class="number">5</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Weekday::Sat</span>),
-            <span class="number">6</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Weekday::Sun</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="number">0</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Weekday::Mon</span>),
+            <span class="number">1</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Weekday::Tue</span>),
+            <span class="number">2</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Weekday::Wed</span>),
+            <span class="number">3</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Weekday::Thu</span>),
+            <span class="number">4</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Weekday::Fri</span>),
+            <span class="number">5</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Weekday::Sat</span>),
+            <span class="number">6</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Weekday::Sun</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_u64</span>(<span class="ident">n</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Weekday</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_u64</span>(<span class="ident">n</span>: <span class="ident">u64</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Weekday</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">n</span> {
-            <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Weekday::Mon</span>),
-            <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Weekday::Tue</span>),
-            <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Weekday::Wed</span>),
-            <span class="number">3</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Weekday::Thu</span>),
-            <span class="number">4</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Weekday::Fri</span>),
-            <span class="number">5</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Weekday::Sat</span>),
-            <span class="number">6</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Weekday::Sun</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="number">0</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Weekday::Mon</span>),
+            <span class="number">1</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Weekday::Tue</span>),
+            <span class="number">2</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Weekday::Wed</span>),
+            <span class="number">3</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Weekday::Thu</span>),
+            <span class="number">4</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Weekday::Fri</span>),
+            <span class="number">5</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Weekday::Sat</span>),
+            <span class="number">6</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Weekday::Sun</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 }
@@ -2361,7 +2361,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">ParseWeekdayError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;ParseWeekdayError {{ .. }}&quot;</span>)
     }
 }
@@ -2375,7 +2375,7 @@
     <span class="kw">use</span> <span class="ident">serdelib</span>::{<span class="ident">de</span>, <span class="ident">ser</span>};
 
     <span class="kw">impl</span> <span class="ident">ser::Serialize</span> <span class="kw">for</span> <span class="ident">Weekday</span> {
-        <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S::Ok</span>, <span class="ident">S::Error</span><span class="op">&gt;</span>
+        <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S::Ok</span>, <span class="ident">S::Error</span><span class="op">&gt;</span>
         <span class="kw">where</span>
             <span class="ident">S</span>: <span class="ident">ser::Serializer</span>,
         {
@@ -2388,11 +2388,11 @@
     <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">WeekdayVisitor</span> {
         <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> <span class="ident">Weekday</span>;
 
-        <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+        <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
             <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Weekday&quot;</span>)
         }
 
-        <span class="kw">fn</span> <span class="ident">visit_str</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Value</span>, <span class="ident">E</span><span class="op">&gt;</span>
+        <span class="kw">fn</span> <span class="ident">visit_str</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Value</span>, <span class="ident">E</span><span class="op">&gt;</span>
         <span class="kw">where</span>
             <span class="ident">E</span>: <span class="ident">de::Error</span>,
         {
@@ -2401,7 +2401,7 @@
     }
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">de::Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Weekday</span> {
-        <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">D::Error</span><span class="op">&gt;</span>
+        <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">D::Error</span><span class="op">&gt;</span>
         <span class="kw">where</span>
             <span class="ident">D</span>: <span class="ident">de::Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
         {
@@ -2532,20 +2532,20 @@
     <span class="doccomment">/// ----------- | ---------  | ---------- | --- | ---------</span>
     <span class="doccomment">/// `m.succ()`: | `February` | `March`    | `...` | `January`</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">succ</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Month</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">succ</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Month</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Month::January</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Month::February</span>,
-            <span class="ident">Month::February</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Month::March</span>,
-            <span class="ident">Month::March</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Month::April</span>,
-            <span class="ident">Month::April</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Month::May</span>,
-            <span class="ident">Month::May</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Month::June</span>,
-            <span class="ident">Month::June</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Month::July</span>,
-            <span class="ident">Month::July</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Month::August</span>,
-            <span class="ident">Month::August</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Month::September</span>,
-            <span class="ident">Month::September</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Month::October</span>,
-            <span class="ident">Month::October</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Month::November</span>,
-            <span class="ident">Month::November</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Month::December</span>,
-            <span class="ident">Month::December</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Month::January</span>,
+            <span class="ident">Month::January</span> =&gt; <span class="ident">Month::February</span>,
+            <span class="ident">Month::February</span> =&gt; <span class="ident">Month::March</span>,
+            <span class="ident">Month::March</span> =&gt; <span class="ident">Month::April</span>,
+            <span class="ident">Month::April</span> =&gt; <span class="ident">Month::May</span>,
+            <span class="ident">Month::May</span> =&gt; <span class="ident">Month::June</span>,
+            <span class="ident">Month::June</span> =&gt; <span class="ident">Month::July</span>,
+            <span class="ident">Month::July</span> =&gt; <span class="ident">Month::August</span>,
+            <span class="ident">Month::August</span> =&gt; <span class="ident">Month::September</span>,
+            <span class="ident">Month::September</span> =&gt; <span class="ident">Month::October</span>,
+            <span class="ident">Month::October</span> =&gt; <span class="ident">Month::November</span>,
+            <span class="ident">Month::November</span> =&gt; <span class="ident">Month::December</span>,
+            <span class="ident">Month::December</span> =&gt; <span class="ident">Month::January</span>,
         }
     }
 
@@ -2555,20 +2555,20 @@
     <span class="doccomment">/// ----------- | ---------  | ---------- | --- | ---------</span>
     <span class="doccomment">/// `m.succ()`: | `December` | `January`  | `...` | `November`</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pred</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Month</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pred</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Month</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Month::January</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Month::December</span>,
-            <span class="ident">Month::February</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Month::January</span>,
-            <span class="ident">Month::March</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Month::February</span>,
-            <span class="ident">Month::April</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Month::March</span>,
-            <span class="ident">Month::May</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Month::April</span>,
-            <span class="ident">Month::June</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Month::May</span>,
-            <span class="ident">Month::July</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Month::June</span>,
-            <span class="ident">Month::August</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Month::July</span>,
-            <span class="ident">Month::September</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Month::August</span>,
-            <span class="ident">Month::October</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Month::September</span>,
-            <span class="ident">Month::November</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Month::October</span>,
-            <span class="ident">Month::December</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Month::November</span>,
+            <span class="ident">Month::January</span> =&gt; <span class="ident">Month::December</span>,
+            <span class="ident">Month::February</span> =&gt; <span class="ident">Month::January</span>,
+            <span class="ident">Month::March</span> =&gt; <span class="ident">Month::February</span>,
+            <span class="ident">Month::April</span> =&gt; <span class="ident">Month::March</span>,
+            <span class="ident">Month::May</span> =&gt; <span class="ident">Month::April</span>,
+            <span class="ident">Month::June</span> =&gt; <span class="ident">Month::May</span>,
+            <span class="ident">Month::July</span> =&gt; <span class="ident">Month::June</span>,
+            <span class="ident">Month::August</span> =&gt; <span class="ident">Month::July</span>,
+            <span class="ident">Month::September</span> =&gt; <span class="ident">Month::August</span>,
+            <span class="ident">Month::October</span> =&gt; <span class="ident">Month::September</span>,
+            <span class="ident">Month::November</span> =&gt; <span class="ident">Month::October</span>,
+            <span class="ident">Month::December</span> =&gt; <span class="ident">Month::November</span>,
         }
     }
 
@@ -2578,20 +2578,20 @@
     <span class="doccomment">/// -------------------------| --------- | ---------- | --- | -----</span>
     <span class="doccomment">/// `m.number_from_month()`: | 1         | 2          | `...` | 12</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">number_from_month</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">number_from_month</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Month::January</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,
-            <span class="ident">Month::February</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">2</span>,
-            <span class="ident">Month::March</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">3</span>,
-            <span class="ident">Month::April</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">4</span>,
-            <span class="ident">Month::May</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">5</span>,
-            <span class="ident">Month::June</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">6</span>,
-            <span class="ident">Month::July</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">7</span>,
-            <span class="ident">Month::August</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">8</span>,
-            <span class="ident">Month::September</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">9</span>,
-            <span class="ident">Month::October</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">10</span>,
-            <span class="ident">Month::November</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">11</span>,
-            <span class="ident">Month::December</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">12</span>,
+            <span class="ident">Month::January</span> =&gt; <span class="number">1</span>,
+            <span class="ident">Month::February</span> =&gt; <span class="number">2</span>,
+            <span class="ident">Month::March</span> =&gt; <span class="number">3</span>,
+            <span class="ident">Month::April</span> =&gt; <span class="number">4</span>,
+            <span class="ident">Month::May</span> =&gt; <span class="number">5</span>,
+            <span class="ident">Month::June</span> =&gt; <span class="number">6</span>,
+            <span class="ident">Month::July</span> =&gt; <span class="number">7</span>,
+            <span class="ident">Month::August</span> =&gt; <span class="number">8</span>,
+            <span class="ident">Month::September</span> =&gt; <span class="number">9</span>,
+            <span class="ident">Month::October</span> =&gt; <span class="number">10</span>,
+            <span class="ident">Month::November</span> =&gt; <span class="number">11</span>,
+            <span class="ident">Month::December</span> =&gt; <span class="number">12</span>,
         }
     }
 
@@ -2602,20 +2602,20 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(Month::January.name(), &quot;January&quot;)</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Month::January</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;January&quot;</span>,
-            <span class="ident">Month::February</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;February&quot;</span>,
-            <span class="ident">Month::March</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;March&quot;</span>,
-            <span class="ident">Month::April</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;April&quot;</span>,
-            <span class="ident">Month::May</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;May&quot;</span>,
-            <span class="ident">Month::June</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;June&quot;</span>,
-            <span class="ident">Month::July</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;July&quot;</span>,
-            <span class="ident">Month::August</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;August&quot;</span>,
-            <span class="ident">Month::September</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;September&quot;</span>,
-            <span class="ident">Month::October</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;October&quot;</span>,
-            <span class="ident">Month::November</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;November&quot;</span>,
-            <span class="ident">Month::December</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;December&quot;</span>,
+            <span class="ident">Month::January</span> =&gt; <span class="string">&quot;January&quot;</span>,
+            <span class="ident">Month::February</span> =&gt; <span class="string">&quot;February&quot;</span>,
+            <span class="ident">Month::March</span> =&gt; <span class="string">&quot;March&quot;</span>,
+            <span class="ident">Month::April</span> =&gt; <span class="string">&quot;April&quot;</span>,
+            <span class="ident">Month::May</span> =&gt; <span class="string">&quot;May&quot;</span>,
+            <span class="ident">Month::June</span> =&gt; <span class="string">&quot;June&quot;</span>,
+            <span class="ident">Month::July</span> =&gt; <span class="string">&quot;July&quot;</span>,
+            <span class="ident">Month::August</span> =&gt; <span class="string">&quot;August&quot;</span>,
+            <span class="ident">Month::September</span> =&gt; <span class="string">&quot;September&quot;</span>,
+            <span class="ident">Month::October</span> =&gt; <span class="string">&quot;October&quot;</span>,
+            <span class="ident">Month::November</span> =&gt; <span class="string">&quot;November&quot;</span>,
+            <span class="ident">Month::December</span> =&gt; <span class="string">&quot;December&quot;</span>,
         }
     }
 }
@@ -2628,31 +2628,31 @@
     <span class="doccomment">/// ``:                        | Some(Month::January) | Some(Month::February) | ... | Some(Month::December)</span>
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_u64</span>(<span class="ident">n</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Month</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_u64</span>(<span class="ident">n</span>: <span class="ident">u64</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Month</span><span class="op">&gt;</span> {
         <span class="ident"><span class="self">Self</span>::from_u32</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">u32</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_i64</span>(<span class="ident">n</span>: <span class="ident">i64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Month</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_i64</span>(<span class="ident">n</span>: <span class="ident">i64</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Month</span><span class="op">&gt;</span> {
         <span class="ident"><span class="self">Self</span>::from_u32</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">u32</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_u32</span>(<span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Month</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_u32</span>(<span class="ident">n</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Month</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">n</span> {
-            <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Month::January</span>),
-            <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Month::February</span>),
-            <span class="number">3</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Month::March</span>),
-            <span class="number">4</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Month::April</span>),
-            <span class="number">5</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Month::May</span>),
-            <span class="number">6</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Month::June</span>),
-            <span class="number">7</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Month::July</span>),
-            <span class="number">8</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Month::August</span>),
-            <span class="number">9</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Month::September</span>),
-            <span class="number">10</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Month::October</span>),
-            <span class="number">11</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Month::November</span>),
-            <span class="number">12</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Month::December</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="number">1</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Month::January</span>),
+            <span class="number">2</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Month::February</span>),
+            <span class="number">3</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Month::March</span>),
+            <span class="number">4</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Month::April</span>),
+            <span class="number">5</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Month::May</span>),
+            <span class="number">6</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Month::June</span>),
+            <span class="number">7</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Month::July</span>),
+            <span class="number">8</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Month::August</span>),
+            <span class="number">9</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Month::September</span>),
+            <span class="number">10</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Month::October</span>),
+            <span class="number">11</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Month::November</span>),
+            <span class="number">12</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Month::December</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 }
@@ -2664,7 +2664,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">ParseMonthError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;ParseMonthError {{ .. }}&quot;</span>)
     }
 }
@@ -2677,7 +2677,7 @@
     <span class="kw">use</span> <span class="ident">core::fmt</span>;
 
     <span class="kw">impl</span> <span class="ident">ser::Serialize</span> <span class="kw">for</span> <span class="ident">Month</span> {
-        <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S::Ok</span>, <span class="ident">S::Error</span><span class="op">&gt;</span>
+        <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S::Ok</span>, <span class="ident">S::Error</span><span class="op">&gt;</span>
         <span class="kw">where</span>
             <span class="ident">S</span>: <span class="ident">ser::Serializer</span>,
         {
@@ -2690,11 +2690,11 @@
     <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MonthVisitor</span> {
         <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> <span class="ident">Month</span>;
 
-        <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+        <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
             <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Month&quot;</span>)
         }
 
-        <span class="kw">fn</span> <span class="ident">visit_str</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Value</span>, <span class="ident">E</span><span class="op">&gt;</span>
+        <span class="kw">fn</span> <span class="ident">visit_str</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Value</span>, <span class="ident">E</span><span class="op">&gt;</span>
         <span class="kw">where</span>
             <span class="ident">E</span>: <span class="ident">de::Error</span>,
         {
@@ -2703,7 +2703,7 @@
     }
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">de::Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Month</span> {
-        <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">D::Error</span><span class="op">&gt;</span>
+        <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">D::Error</span><span class="op">&gt;</span>
         <span class="kw">where</span>
             <span class="ident">D</span>: <span class="ident">de::Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
         {
@@ -2779,12 +2779,12 @@
 <span class="doccomment">/// The common set of methods for date component.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Datelike</span>: <span class="ident">Sized</span> {
     <span class="doccomment">/// Returns the year number in the [calendar date](./naive/struct.NaiveDate.html#calendar-date).</span>
-    <span class="kw">fn</span> <span class="ident">year</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span>;
+    <span class="kw">fn</span> <span class="ident">year</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">i32</span>;
 
     <span class="doccomment">/// Returns the absolute year number starting from 1 with a boolean flag,</span>
     <span class="doccomment">/// which is false when the year predates the epoch (BCE/BC) and true otherwise (CE/AD).</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">year_ce</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">bool</span>, <span class="ident">u32</span>) {
+    <span class="kw">fn</span> <span class="ident">year_ce</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="ident">bool</span>, <span class="ident">u32</span>) {
         <span class="kw">let</span> <span class="ident">year</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">year</span>();
         <span class="kw">if</span> <span class="ident">year</span> <span class="op">&lt;</span> <span class="number">1</span> {
             (<span class="bool-val">false</span>, (<span class="number">1</span> <span class="op">-</span> <span class="ident">year</span>) <span class="kw">as</span> <span class="ident">u32</span>)
@@ -2796,73 +2796,73 @@
     <span class="doccomment">/// Returns the month number starting from 1.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The return value ranges from 1 to 12.</span>
-    <span class="kw">fn</span> <span class="ident">month</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
+    <span class="kw">fn</span> <span class="ident">month</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span>;
 
     <span class="doccomment">/// Returns the month number starting from 0.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The return value ranges from 0 to 11.</span>
-    <span class="kw">fn</span> <span class="ident">month0</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
+    <span class="kw">fn</span> <span class="ident">month0</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span>;
 
     <span class="doccomment">/// Returns the day of month starting from 1.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The return value ranges from 1 to 31. (The last day of month differs by months.)</span>
-    <span class="kw">fn</span> <span class="ident">day</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
+    <span class="kw">fn</span> <span class="ident">day</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span>;
 
     <span class="doccomment">/// Returns the day of month starting from 0.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The return value ranges from 0 to 30. (The last day of month differs by months.)</span>
-    <span class="kw">fn</span> <span class="ident">day0</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
+    <span class="kw">fn</span> <span class="ident">day0</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span>;
 
     <span class="doccomment">/// Returns the day of year starting from 1.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The return value ranges from 1 to 366. (The last day of year differs by years.)</span>
-    <span class="kw">fn</span> <span class="ident">ordinal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
+    <span class="kw">fn</span> <span class="ident">ordinal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span>;
 
     <span class="doccomment">/// Returns the day of year starting from 0.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The return value ranges from 0 to 365. (The last day of year differs by years.)</span>
-    <span class="kw">fn</span> <span class="ident">ordinal0</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
+    <span class="kw">fn</span> <span class="ident">ordinal0</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span>;
 
     <span class="doccomment">/// Returns the day of week.</span>
-    <span class="kw">fn</span> <span class="ident">weekday</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Weekday</span>;
+    <span class="kw">fn</span> <span class="ident">weekday</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Weekday</span>;
 
     <span class="doccomment">/// Returns the ISO week.</span>
-    <span class="kw">fn</span> <span class="ident">iso_week</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IsoWeek</span>;
+    <span class="kw">fn</span> <span class="ident">iso_week</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">IsoWeek</span>;
 
     <span class="doccomment">/// Makes a new value with the year number changed.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns `None` when the resulting value would be invalid.</span>
-    <span class="kw">fn</span> <span class="ident">with_year</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">year</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">with_year</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">year</span>: <span class="ident">i32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Makes a new value with the month number (starting from 1) changed.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns `None` when the resulting value would be invalid.</span>
-    <span class="kw">fn</span> <span class="ident">with_month</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">month</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">with_month</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">month</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Makes a new value with the month number (starting from 0) changed.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns `None` when the resulting value would be invalid.</span>
-    <span class="kw">fn</span> <span class="ident">with_month0</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">month0</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">with_month0</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">month0</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Makes a new value with the day of month (starting from 1) changed.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns `None` when the resulting value would be invalid.</span>
-    <span class="kw">fn</span> <span class="ident">with_day</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">day</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">with_day</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">day</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Makes a new value with the day of month (starting from 0) changed.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns `None` when the resulting value would be invalid.</span>
-    <span class="kw">fn</span> <span class="ident">with_day0</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">day0</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">with_day0</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">day0</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Makes a new value with the day of year (starting from 1) changed.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns `None` when the resulting value would be invalid.</span>
-    <span class="kw">fn</span> <span class="ident">with_ordinal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ordinal</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">with_ordinal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ordinal</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Makes a new value with the day of year (starting from 0) changed.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns `None` when the resulting value would be invalid.</span>
-    <span class="kw">fn</span> <span class="ident">with_ordinal0</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ordinal0</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">with_ordinal0</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ordinal0</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Counts the days in the proleptic Gregorian calendar, with January 1, Year 1 (CE) as day 1.</span>
     <span class="doccomment">///</span>
@@ -2876,7 +2876,7 @@
     <span class="doccomment">/// assert_eq!(NaiveDate::from_ymd(1, 1, 1).num_days_from_ce(), 1);</span>
     <span class="doccomment">/// assert_eq!(NaiveDate::from_ymd(0, 1, 1).num_days_from_ce(), -365);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">num_days_from_ce</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
+    <span class="kw">fn</span> <span class="ident">num_days_from_ce</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">i32</span> {
         <span class="comment">// See test_num_days_from_ce_against_alternative_impl below for a more straightforward</span>
         <span class="comment">// implementation.</span>
 
@@ -2897,58 +2897,58 @@
 <span class="doccomment">/// The common set of methods for time component.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Timelike</span>: <span class="ident">Sized</span> {
     <span class="doccomment">/// Returns the hour number from 0 to 23.</span>
-    <span class="kw">fn</span> <span class="ident">hour</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
+    <span class="kw">fn</span> <span class="ident">hour</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span>;
 
     <span class="doccomment">/// Returns the hour number from 1 to 12 with a boolean flag,</span>
     <span class="doccomment">/// which is false for AM and true for PM.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">hour12</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">bool</span>, <span class="ident">u32</span>) {
+    <span class="kw">fn</span> <span class="ident">hour12</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="ident">bool</span>, <span class="ident">u32</span>) {
         <span class="kw">let</span> <span class="ident">hour</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">hour</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hour12</span> <span class="op">=</span> <span class="ident">hour</span> <span class="op">%</span> <span class="number">12</span>;
-        <span class="kw">if</span> <span class="ident">hour12</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">hour12</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="ident">hour12</span> <span class="op">=</span> <span class="number">12</span>;
         }
         (<span class="ident">hour</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">12</span>, <span class="ident">hour12</span>)
     }
 
     <span class="doccomment">/// Returns the minute number from 0 to 59.</span>
-    <span class="kw">fn</span> <span class="ident">minute</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
+    <span class="kw">fn</span> <span class="ident">minute</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span>;
 
     <span class="doccomment">/// Returns the second number from 0 to 59.</span>
-    <span class="kw">fn</span> <span class="ident">second</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
+    <span class="kw">fn</span> <span class="ident">second</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span>;
 
     <span class="doccomment">/// Returns the number of nanoseconds since the whole non-leap second.</span>
     <span class="doccomment">/// The range from 1,000,000,000 to 1,999,999,999 represents</span>
     <span class="doccomment">/// the [leap second](./naive/struct.NaiveTime.html#leap-second-handling).</span>
-    <span class="kw">fn</span> <span class="ident">nanosecond</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
+    <span class="kw">fn</span> <span class="ident">nanosecond</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span>;
 
     <span class="doccomment">/// Makes a new value with the hour number changed.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns `None` when the resulting value would be invalid.</span>
-    <span class="kw">fn</span> <span class="ident">with_hour</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">hour</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">with_hour</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">hour</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Makes a new value with the minute number changed.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns `None` when the resulting value would be invalid.</span>
-    <span class="kw">fn</span> <span class="ident">with_minute</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">min</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">with_minute</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">min</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Makes a new value with the second number changed.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns `None` when the resulting value would be invalid.</span>
     <span class="doccomment">/// As with the [`second`](#tymethod.second) method,</span>
     <span class="doccomment">/// the input range is restricted to 0 through 59.</span>
-    <span class="kw">fn</span> <span class="ident">with_second</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">sec</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">with_second</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">sec</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Makes a new value with nanoseconds since the whole non-leap second changed.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns `None` when the resulting value would be invalid.</span>
     <span class="doccomment">/// As with the [`nanosecond`](#tymethod.nanosecond) method,</span>
     <span class="doccomment">/// the input range can exceed 1,000,000,000 for leap seconds.</span>
-    <span class="kw">fn</span> <span class="ident">with_nanosecond</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">nano</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">with_nanosecond</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">nano</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Returns the number of non-leap seconds past the last midnight.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">num_seconds_from_midnight</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">num_seconds_from_midnight</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span> {
         <span class="self">self</span>.<span class="ident">hour</span>() <span class="op">*</span> <span class="number">3600</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">minute</span>() <span class="op">*</span> <span class="number">60</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">second</span>()
     }
 }
@@ -2983,7 +2983,7 @@
 
             <span class="kw">let</span> <span class="ident">weekday</span> <span class="op">=</span> <span class="ident">d30</span>.<span class="ident">weekday</span>();
             <span class="kw">let</span> <span class="ident">other_dates</span> <span class="op">=</span> [<span class="ident">d4</span>, <span class="ident">d6</span>, <span class="ident">d8</span>, <span class="ident">d10</span>, <span class="ident">d12</span>, <span class="ident">d59</span>, <span class="ident">d95</span>, <span class="ident">d711</span>, <span class="ident">d117</span>];
-            <span class="macro">assert!</span>(<span class="ident">other_dates</span>.<span class="ident">iter</span>().<span class="ident">all</span>(<span class="op">|</span><span class="ident">d</span><span class="op">|</span> <span class="ident">d</span>.<span class="ident">weekday</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">weekday</span>));
+            <span class="macro">assert!</span>(<span class="ident">other_dates</span>.<span class="ident">iter</span>().<span class="ident">all</span>(<span class="op">|</span><span class="ident">d</span><span class="op">|</span> <span class="ident">d</span>.<span class="ident">weekday</span>() <span class="op">==</span> <span class="ident">weekday</span>));
         }
     }
 
@@ -3026,7 +3026,7 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics if `div` is not positive.</span>
-    <span class="kw">fn</span> <span class="ident">in_between</span>(<span class="ident">start</span>: <span class="ident">i32</span>, <span class="ident">end</span>: <span class="ident">i32</span>, <span class="ident">div</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
+    <span class="kw">fn</span> <span class="ident">in_between</span>(<span class="ident">start</span>: <span class="ident">i32</span>, <span class="ident">end</span>: <span class="ident">i32</span>, <span class="ident">div</span>: <span class="ident">i32</span>) -&gt; <span class="ident">i32</span> {
         <span class="macro">assert!</span>(<span class="ident">div</span> <span class="op">&gt;</span> <span class="number">0</span>, <span class="string">&quot;in_between: nonpositive div = {}&quot;</span>, <span class="ident">div</span>);
         <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> (<span class="ident">start</span>.<span class="ident">div_euclid</span>(<span class="ident">div</span>), <span class="ident">start</span>.<span class="ident">rem_euclid</span>(<span class="ident">div</span>));
         <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> (<span class="ident">end</span>.<span class="ident">div_euclid</span>(<span class="ident">div</span>), <span class="ident">end</span>.<span class="ident">rem_euclid</span>(<span class="ident">div</span>));
@@ -3038,7 +3038,7 @@
     }
 
     <span class="doccomment">/// Alternative implementation to `Datelike::num_days_from_ce`</span>
-    <span class="kw">fn</span> <span class="ident">num_days_from_ce</span><span class="op">&lt;</span><span class="ident">Date</span>: <span class="ident">Datelike</span><span class="op">&gt;</span>(<span class="ident">date</span>: <span class="kw-2">&amp;</span><span class="ident">Date</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
+    <span class="kw">fn</span> <span class="ident">num_days_from_ce</span><span class="op">&lt;</span><span class="ident">Date</span>: <span class="ident">Datelike</span><span class="op">&gt;</span>(<span class="ident">date</span>: <span class="kw-2">&amp;</span><span class="ident">Date</span>) -&gt; <span class="ident">i32</span> {
         <span class="kw">let</span> <span class="ident">year</span> <span class="op">=</span> <span class="ident">date</span>.<span class="ident">year</span>();
         <span class="kw">let</span> <span class="ident">diff</span> <span class="op">=</span> <span class="kw">move</span> <span class="op">|</span><span class="ident">div</span><span class="op">|</span> <span class="ident">in_between</span>(<span class="number">1</span>, <span class="ident">year</span>, <span class="ident">div</span>);
         <span class="comment">// 365 days a year, one more in leap years. In the gregorian calendar, leap years are all</span>

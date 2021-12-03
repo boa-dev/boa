@@ -224,7 +224,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">AsciiStr</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">ptr</span>: <span class="ident">s</span>.<span class="ident">as_ptr</span>(),
             <span class="ident">end</span>: <span class="kw">unsafe</span> { <span class="ident">s</span>.<span class="ident">as_ptr</span>().<span class="ident">add</span>(<span class="ident">s</span>.<span class="ident">len</span>()) },
@@ -233,49 +233,49 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">step_by</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">step_by</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">add</span>(<span class="ident">n</span>) };
         <span class="self">self</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">step</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">step</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">step_by</span>(<span class="number">1</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">ptr</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">end</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">ptr</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">end</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">first</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">first</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u8</span> {
         <span class="kw">unsafe</span> { <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">ptr</span> }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">first_is</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">c</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">first</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">c</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">first_is</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">c</span>: <span class="ident">u8</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">first</span>() <span class="op">==</span> <span class="ident">c</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">first_either</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">c1</span>: <span class="ident">u8</span>, <span class="ident">c2</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">first_either</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">c1</span>: <span class="ident">u8</span>, <span class="ident">c2</span>: <span class="ident">u8</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">first</span>();
-        <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="ident">c1</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="ident">c2</span>
+        <span class="ident">c</span> <span class="op">==</span> <span class="ident">c1</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="ident">c2</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">check_first</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">c</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="op">!</span><span class="self">self</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">first</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">c</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">check_first</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">c</span>: <span class="ident">u8</span>) -&gt; <span class="ident">bool</span> {
+        <span class="op">!</span><span class="self">self</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">first</span>() <span class="op">==</span> <span class="ident">c</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">check_first_either</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">c1</span>: <span class="ident">u8</span>, <span class="ident">c2</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="op">!</span><span class="self">self</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> (<span class="self">self</span>.<span class="ident">first</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">c1</span> <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">first</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">c2</span>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">check_first_either</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">c1</span>: <span class="ident">u8</span>, <span class="ident">c2</span>: <span class="ident">u8</span>) -&gt; <span class="ident">bool</span> {
+        <span class="op">!</span><span class="self">self</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> (<span class="self">self</span>.<span class="ident">first</span>() <span class="op">==</span> <span class="ident">c1</span> <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">first</span>() <span class="op">==</span> <span class="ident">c2</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">check_first_digit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">check_first_digit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="op">!</span><span class="self">self</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">first</span>().<span class="ident">is_ascii_digit</span>()
     }
 
@@ -288,12 +288,12 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">check_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">check_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">add</span>(<span class="ident">n</span>) <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">end</span> }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_read_u64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_read_u64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">check_len</span>(<span class="number">8</span>) {
             <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">read_u64</span>())
         } <span class="kw">else</span> {
@@ -302,7 +302,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_u64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_u64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u64</span> {
         <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">check_len</span>(<span class="number">8</span>));
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> <span class="op">=</span> <span class="number">0_u64</span>;
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ptr</span>;
@@ -312,7 +312,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">offset_from</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">isize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">offset_from</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">isize</span> {
         <span class="ident">isize::wrapping_sub</span>(<span class="self">self</span>.<span class="ident">ptr</span> <span class="kw">as</span> <span class="kw">_</span>, <span class="ident">other</span>.<span class="ident">ptr</span> <span class="kw">as</span> <span class="kw">_</span>) <span class="comment">// assuming the same end</span>
     }
 }
@@ -320,40 +320,40 @@
 <span class="comment">// Most of these are inherently unsafe; we assume we know what we&#39;re calling and when.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ByteSlice</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">AsMut</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">get_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">i</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span> {
+    <span class="kw">fn</span> <span class="ident">get_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">i</span>: <span class="ident">usize</span>) -&gt; <span class="ident">u8</span> {
         <span class="kw">unsafe</span> { <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">as_ref</span>().<span class="ident">get_unchecked</span>(<span class="ident">i</span>) }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">get_first</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span> {
+    <span class="kw">fn</span> <span class="ident">get_first</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u8</span> {
         <span class="macro">debug_assert!</span>(<span class="op">!</span><span class="self">self</span>.<span class="ident">as_ref</span>().<span class="ident">is_empty</span>());
         <span class="self">self</span>.<span class="ident">get_at</span>(<span class="number">0</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">check_first</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">c</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="op">!</span><span class="self">self</span>.<span class="ident">as_ref</span>().<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">get_first</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">c</span>
+    <span class="kw">fn</span> <span class="ident">check_first</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">c</span>: <span class="ident">u8</span>) -&gt; <span class="ident">bool</span> {
+        <span class="op">!</span><span class="self">self</span>.<span class="ident">as_ref</span>().<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">get_first</span>() <span class="op">==</span> <span class="ident">c</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">check_first2</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">c1</span>: <span class="ident">u8</span>, <span class="ident">c2</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="op">!</span><span class="self">self</span>.<span class="ident">as_ref</span>().<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> (<span class="self">self</span>.<span class="ident">get_first</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">c1</span> <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">get_first</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">c2</span>)
+    <span class="kw">fn</span> <span class="ident">check_first2</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">c1</span>: <span class="ident">u8</span>, <span class="ident">c2</span>: <span class="ident">u8</span>) -&gt; <span class="ident">bool</span> {
+        <span class="op">!</span><span class="self">self</span>.<span class="ident">as_ref</span>().<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> (<span class="self">self</span>.<span class="ident">get_first</span>() <span class="op">==</span> <span class="ident">c1</span> <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">get_first</span>() <span class="op">==</span> <span class="ident">c2</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">eq_ignore_case</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">u</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">eq_ignore_case</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">u</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">bool</span> {
         <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">as_ref</span>().<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">u</span>.<span class="ident">len</span>());
         <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> (<span class="number">0</span>..<span class="ident">u</span>.<span class="ident">len</span>()).<span class="ident">fold</span>(<span class="number">0</span>, <span class="op">|</span><span class="ident">d</span>, <span class="ident">i</span><span class="op">|</span> <span class="ident">d</span> <span class="op">|</span> <span class="self">self</span>.<span class="ident">get_at</span>(<span class="ident">i</span>) <span class="op">^</span> <span class="ident">u</span>.<span class="ident">get_at</span>(<span class="ident">i</span>));
-        <span class="ident">d</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">d</span> <span class="op">=</span><span class="op">=</span> <span class="number">32</span>
+        <span class="ident">d</span> <span class="op">==</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">d</span> <span class="op">==</span> <span class="number">32</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">advance</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
+    <span class="kw">fn</span> <span class="ident">advance</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">as_ref</span>()[<span class="ident">n</span>..]
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">skip_chars</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">c</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
+    <span class="kw">fn</span> <span class="ident">skip_chars</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">c</span>: <span class="ident">u8</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">as_ref</span>();
         <span class="kw">while</span> <span class="ident">s</span>.<span class="ident">check_first</span>(<span class="ident">c</span>) {
             <span class="ident">s</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">advance</span>(<span class="number">1</span>);
@@ -362,16 +362,16 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">skip_chars2</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">c1</span>: <span class="ident">u8</span>, <span class="ident">c2</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
+    <span class="kw">fn</span> <span class="ident">skip_chars2</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">c1</span>: <span class="ident">u8</span>, <span class="ident">c2</span>: <span class="ident">u8</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">as_ref</span>();
-        <span class="kw">while</span> <span class="op">!</span><span class="ident">s</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> (<span class="ident">s</span>.<span class="ident">get_first</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">c1</span> <span class="op">|</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">get_first</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">c2</span>) {
+        <span class="kw">while</span> <span class="op">!</span><span class="ident">s</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> (<span class="ident">s</span>.<span class="ident">get_first</span>() <span class="op">==</span> <span class="ident">c1</span> <span class="op">|</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">get_first</span>() <span class="op">==</span> <span class="ident">c2</span>) {
             <span class="ident">s</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">advance</span>(<span class="number">1</span>);
         }
         <span class="ident">s</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_u64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
+    <span class="kw">fn</span> <span class="ident">read_u64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u64</span> {
         <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">as_ref</span>().<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">8</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> <span class="op">=</span> <span class="number">0_u64</span>;
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">as_ref</span>().<span class="ident">as_ptr</span>();
@@ -392,10 +392,10 @@
 <span class="kw">impl</span> <span class="ident">ByteSlice</span> <span class="kw">for</span> [<span class="ident">u8</span>] {}
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_8digits_le</span>(<span class="ident">v</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_8digits_le</span>(<span class="ident">v</span>: <span class="ident">u64</span>) -&gt; <span class="ident">bool</span> {
     <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">wrapping_add</span>(<span class="number">0x4646_4646_4646_4646</span>);
     <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">wrapping_sub</span>(<span class="number">0x3030_3030_3030_3030</span>);
-    (<span class="ident">a</span> <span class="op">|</span> <span class="ident">b</span>) <span class="op">&amp;</span> <span class="number">0x8080_8080_8080_8080</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>
+    (<span class="ident">a</span> <span class="op">|</span> <span class="ident">b</span>) <span class="op">&amp;</span> <span class="number">0x8080_8080_8080_8080</span> <span class="op">==</span> <span class="number">0</span>
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -419,7 +419,7 @@
 
 <span class="kw">impl</span> <span class="ident">AdjustedMantissa</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">zero_pow2</span>(<span class="ident">power2</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">zero_pow2</span>(<span class="ident">power2</span>: <span class="ident">i32</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">mantissa</span>: <span class="number">0</span>,
             <span class="ident">power2</span>,

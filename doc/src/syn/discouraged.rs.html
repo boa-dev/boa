@@ -362,11 +362,11 @@
         <span class="kw">if</span> <span class="op">!</span><span class="ident">Rc::ptr_eq</span>(<span class="kw-2">&amp;</span><span class="ident">self_unexp</span>, <span class="kw-2">&amp;</span><span class="ident">fork_unexp</span>) {
             <span class="kw">match</span> (<span class="ident">fork_sp</span>, <span class="ident">self_sp</span>) {
                 <span class="comment">// Unexpected set on the fork, but not on `self`, copy it over.</span>
-                (<span class="prelude-val">Some</span>(<span class="ident">span</span>), <span class="prelude-val">None</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                (<span class="prelude-val">Some</span>(<span class="ident">span</span>), <span class="prelude-val">None</span>) =&gt; {
                     <span class="ident">self_unexp</span>.<span class="ident">set</span>(<span class="ident">Unexpected::Some</span>(<span class="ident">span</span>));
                 }
                 <span class="comment">// Unexpected unset. Use chain to propagate errors from fork.</span>
-                (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; {
                     <span class="ident">fork_unexp</span>.<span class="ident">set</span>(<span class="ident">Unexpected::Chain</span>(<span class="ident">self_unexp</span>));
 
                     <span class="comment">// Ensure toplevel &#39;unexpected&#39; tokens from the fork don&#39;t</span>
@@ -377,7 +377,7 @@
                         .<span class="ident">set</span>(<span class="prelude-val">Some</span>(<span class="ident">Rc::new</span>(<span class="ident">Cell::new</span>(<span class="ident">Unexpected::None</span>))));
                 }
                 <span class="comment">// Unexpected has been set on `self`. No changes needed.</span>
-                (<span class="kw">_</span>, <span class="prelude-val">Some</span>(<span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> {}
+                (<span class="kw">_</span>, <span class="prelude-val">Some</span>(<span class="kw">_</span>)) =&gt; {}
             }
         }
 

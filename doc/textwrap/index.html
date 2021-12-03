@@ -13,7 +13,7 @@ terminal. A quick example:</p>
 <p>This will display the following output:</p>
 <div class="example-wrap"><pre class="language-text"><code>textwrap: a small
 library for
-wrapping text.</code></pre></div><h1 id="displayed-width-vs-byte-size" class="section-header"><a href="#displayed-width-vs-byte-size">Displayed Width vs Byte Size</a></h1>
+wrapping text.</code></pre></div><h2 id="displayed-width-vs-byte-size" class="section-header"><a href="#displayed-width-vs-byte-size">Displayed Width vs Byte Size</a></h2>
 <p>To word wrap text, one must know the width of each word so one can
 know when to break lines. This library measures the width of text
 using the <a href="https://docs.rs/unicode-width/">displayed width</a>, not the size in bytes.</p>
@@ -27,30 +27,30 @@ byte when UTF-8 encoded: <code>é</code> is <code>0xc3 0xa9</code> (two bytes) a
 byte count when computing line lengths. All functions in this
 library handle Unicode characters like this.</p>
 </div></details><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="struct" href="struct.HyphenSplitter.html" title="textwrap::HyphenSplitter struct">HyphenSplitter</a></div><div class="item-right docblock-short"><p>Simple and default way to split words: splitting on existing
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.HyphenSplitter.html" title="textwrap::HyphenSplitter struct">HyphenSplitter</a></div><div class="item-right docblock-short"><p>Simple and default way to split words: splitting on existing
 hyphens only.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.IntoWrapIter.html" title="textwrap::IntoWrapIter struct">IntoWrapIter</a></div><div class="item-right docblock-short"><p>An iterator over the lines of the input string which owns a
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.IntoWrapIter.html" title="textwrap::IntoWrapIter struct">IntoWrapIter</a></div><div class="item-right docblock-short"><p>An iterator over the lines of the input string which owns a
 <code>Wrapper</code>. An instance of <code>IntoWrapIter</code> is typically obtained
 through either <a href="fn.wrap_iter.html"><code>wrap_iter</code></a> or <a href="struct.Wrapper.html#method.into_wrap_iter"><code>Wrapper::into_wrap_iter</code></a>.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.NoHyphenation.html" title="textwrap::NoHyphenation struct">NoHyphenation</a></div><div class="item-right docblock-short"><p>Use this as a <a href="../struct.Wrapper.html#structfield.splitter"><code>Wrapper.splitter</code></a> to avoid any kind of
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.NoHyphenation.html" title="textwrap::NoHyphenation struct">NoHyphenation</a></div><div class="item-right docblock-short"><p>Use this as a <a href="../struct.Wrapper.html#structfield.splitter"><code>Wrapper.splitter</code></a> to avoid any kind of
 hyphenation:</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.WrapIter.html" title="textwrap::WrapIter struct">WrapIter</a></div><div class="item-right docblock-short"><p>An iterator over the lines of the input string which borrows a
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.WrapIter.html" title="textwrap::WrapIter struct">WrapIter</a></div><div class="item-right docblock-short"><p>An iterator over the lines of the input string which borrows a
 <code>Wrapper</code>. An instance of <code>WrapIter</code> is typically obtained
 through the <a href="struct.Wrapper.html#method.wrap_iter"><code>Wrapper::wrap_iter</code></a> method.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.Wrapper.html" title="textwrap::Wrapper struct">Wrapper</a></div><div class="item-right docblock-short"><p>A Wrapper holds settings for wrapping and filling text. Use it
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Wrapper.html" title="textwrap::Wrapper struct">Wrapper</a></div><div class="item-right docblock-short"><p>A Wrapper holds settings for wrapping and filling text. Use it
 when the convenience <a href="fn.wrap_iter.html"><code>wrap_iter</code></a>, <a href="fn.wrap.html"><code>wrap</code></a> and <a href="fn.fill.html"><code>fill</code></a> functions
 are not flexible enough.</p>
-</div></div><h2 id="traits" class="section-header"><a href="#traits">Traits</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="trait" href="trait.WordSplitter.html" title="textwrap::WordSplitter trait">WordSplitter</a></div><div class="item-right docblock-short"><p>An interface for splitting words.</p>
-</div></div><h2 id="functions" class="section-header"><a href="#functions">Functions</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="fn" href="fn.dedent.html" title="textwrap::dedent fn">dedent</a></div><div class="item-right docblock-short"><p>Removes common leading whitespace from each line.</p>
-</div><div class="item-left module-item"><a class="fn" href="fn.fill.html" title="textwrap::fill fn">fill</a></div><div class="item-right docblock-short"><p>Fill a line of text at <code>width</code> characters. Strings are wrapped
+</div></div></div><h2 id="traits" class="section-header"><a href="#traits">Traits</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.WordSplitter.html" title="textwrap::WordSplitter trait">WordSplitter</a></div><div class="item-right docblock-short"><p>An interface for splitting words.</p>
+</div></div></div><h2 id="functions" class="section-header"><a href="#functions">Functions</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.dedent.html" title="textwrap::dedent fn">dedent</a></div><div class="item-right docblock-short"><p>Removes common leading whitespace from each line.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.fill.html" title="textwrap::fill fn">fill</a></div><div class="item-right docblock-short"><p>Fill a line of text at <code>width</code> characters. Strings are wrapped
 based on their displayed width, not their size in bytes.</p>
-</div><div class="item-left module-item"><a class="fn" href="fn.indent.html" title="textwrap::indent fn">indent</a></div><div class="item-right docblock-short"><p>Add prefix to each non-empty line.</p>
-</div><div class="item-left module-item"><a class="fn" href="fn.wrap.html" title="textwrap::wrap fn">wrap</a></div><div class="item-right docblock-short"><p>Wrap a line of text at <code>width</code> characters. Strings are wrapped
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.indent.html" title="textwrap::indent fn">indent</a></div><div class="item-right docblock-short"><p>Add prefix to each non-empty line.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.wrap.html" title="textwrap::wrap fn">wrap</a></div><div class="item-right docblock-short"><p>Wrap a line of text at <code>width</code> characters. Strings are wrapped
 based on their displayed width, not their size in bytes.</p>
-</div><div class="item-left module-item"><a class="fn" href="fn.wrap_iter.html" title="textwrap::wrap_iter fn">wrap_iter</a></div><div class="item-right docblock-short"><p>Lazily wrap a line of text at <code>width</code> characters. Strings are
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.wrap_iter.html" title="textwrap::wrap_iter fn">wrap_iter</a></div><div class="item-right docblock-short"><p>Lazily wrap a line of text at <code>width</code> characters. Strings are
 wrapped based on their displayed width, not their size in bytes.</p>
-</div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="textwrap" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
+</div></div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="textwrap" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
     <script src="../main.js"></script>
 </body></html>

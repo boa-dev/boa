@@ -612,60 +612,60 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EVP_CTRL_GCM_GET_TAG</span>: <span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x10</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EVP_CTRL_GCM_SET_TAG</span>: <span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x11</span>;
 
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">EVP_get_digestbynid</span>(<span class="ident">type_</span>: <span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span> {
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">EVP_get_digestbynid</span>(<span class="ident">type_</span>: <span class="ident">c_int</span>) -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span> {
     <span class="ident">EVP_get_digestbyname</span>(<span class="ident">OBJ_nid2sn</span>(<span class="ident">type_</span>))
 }
 
 <span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl300</span>)]</span> {
         <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_MD_get_size</span>(<span class="ident">md</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_MD_get_type</span>(<span class="ident">md</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_MD_get_size</span>(<span class="ident">md</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>) -&gt; <span class="ident">c_int</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_MD_get_type</span>(<span class="ident">md</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>) -&gt; <span class="ident">c_int</span>;
 
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_CIPHER_get_key_length</span>(<span class="ident">cipher</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_CIPHER_get_block_size</span>(<span class="ident">cipher</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_CIPHER_get_iv_length</span>(<span class="ident">cipher</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_CIPHER_get_nid</span>(<span class="ident">cipher</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_CIPHER_get_key_length</span>(<span class="ident">cipher</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>) -&gt; <span class="ident">c_int</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_CIPHER_get_block_size</span>(<span class="ident">cipher</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>) -&gt; <span class="ident">c_int</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_CIPHER_get_iv_length</span>(<span class="ident">cipher</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>) -&gt; <span class="ident">c_int</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_CIPHER_get_nid</span>(<span class="ident">cipher</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>) -&gt; <span class="ident">c_int</span>;
         }
 
         <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">EVP_MD_size</span>(<span class="ident">md</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span> {
+        <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">EVP_MD_size</span>(<span class="ident">md</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>) -&gt; <span class="ident">c_int</span> {
             <span class="ident">EVP_MD_get_size</span>(<span class="ident">md</span>)
         }
 
         <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">EVP_MD_type</span>(<span class="ident">md</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span> {
+        <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">EVP_MD_type</span>(<span class="ident">md</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>) -&gt; <span class="ident">c_int</span> {
             <span class="ident">EVP_MD_get_type</span>(<span class="ident">md</span>)
         }
 
         <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">EVP_CIPHER_key_length</span>(<span class="ident">cipher</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span> {
+        <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">EVP_CIPHER_key_length</span>(<span class="ident">cipher</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>) -&gt; <span class="ident">c_int</span> {
             <span class="ident">EVP_CIPHER_get_key_length</span>(<span class="ident">cipher</span>)
         }
 
         <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">EVP_CIPHER_block_size</span>(<span class="ident">cipher</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span> {
+        <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">EVP_CIPHER_block_size</span>(<span class="ident">cipher</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>) -&gt; <span class="ident">c_int</span> {
             <span class="ident">EVP_CIPHER_get_block_size</span>(<span class="ident">cipher</span>)
         }
 
         <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">EVP_CIPHER_iv_length</span>(<span class="ident">cipher</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span> {
+        <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">EVP_CIPHER_iv_length</span>(<span class="ident">cipher</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>) -&gt; <span class="ident">c_int</span> {
             <span class="ident">EVP_CIPHER_get_iv_length</span>(<span class="ident">cipher</span>)
         }
 
         <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">EVP_CIPHER_nid</span>(<span class="ident">cipher</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span> {
+        <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">EVP_CIPHER_nid</span>(<span class="ident">cipher</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>) -&gt; <span class="ident">c_int</span> {
             <span class="ident">EVP_CIPHER_get_nid</span>(<span class="ident">cipher</span>)
         }
     } <span class="kw">else</span> {
         <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_MD_size</span>(<span class="ident">md</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_MD_type</span>(<span class="ident">md</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_MD_size</span>(<span class="ident">md</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>) -&gt; <span class="ident">c_int</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_MD_type</span>(<span class="ident">md</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>) -&gt; <span class="ident">c_int</span>;
 
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_CIPHER_key_length</span>(<span class="ident">cipher</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_CIPHER_block_size</span>(<span class="ident">cipher</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_CIPHER_iv_length</span>(<span class="ident">cipher</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_CIPHER_nid</span>(<span class="ident">cipher</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_CIPHER_key_length</span>(<span class="ident">cipher</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>) -&gt; <span class="ident">c_int</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_CIPHER_block_size</span>(<span class="ident">cipher</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>) -&gt; <span class="ident">c_int</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_CIPHER_iv_length</span>(<span class="ident">cipher</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>) -&gt; <span class="ident">c_int</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_CIPHER_nid</span>(<span class="ident">cipher</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>) -&gt; <span class="ident">c_int</span>;
         }
     }
 }
@@ -674,12 +674,12 @@
 <span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span> {
         <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_MD_CTX_new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_MD_CTX</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_MD_CTX_new</span>() -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_MD_CTX</span>;
             <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_MD_CTX_free</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_MD_CTX</span>);
         }
     } <span class="kw">else</span> {
         <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_MD_CTX_create</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_MD_CTX</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_MD_CTX_create</span>() -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_MD_CTX</span>;
             <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_MD_CTX_destroy</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_MD_CTX</span>);
         }
     }
@@ -687,9 +687,9 @@
 
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_DigestInit_ex</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_MD_CTX</span>, <span class="ident">typ</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>, <span class="ident">imple</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ENGINE</span>)
-        <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_DigestUpdate</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_MD_CTX</span>, <span class="ident">data</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_void</span>, <span class="ident">n</span>: <span class="ident">size_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_DigestFinal_ex</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_MD_CTX</span>, <span class="ident">res</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>, <span class="ident">n</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+        -&gt; <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_DigestUpdate</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_MD_CTX</span>, <span class="ident">data</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_void</span>, <span class="ident">n</span>: <span class="ident">size_t</span>) -&gt; <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_DigestFinal_ex</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_MD_CTX</span>, <span class="ident">res</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>, <span class="ident">n</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u32</span>) -&gt; <span class="ident">c_int</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl300</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_Q_digest</span>(
         <span class="ident">libctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OSSL_LIB_CTX</span>,
@@ -699,11 +699,11 @@
         <span class="ident">count</span>: <span class="ident">size_t</span>,
         <span class="ident">md</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>,
         <span class="ident">size</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">size_t</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_DigestInit</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_MD_CTX</span>, <span class="ident">typ</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_DigestFinal</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_MD_CTX</span>, <span class="ident">res</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>, <span class="ident">n</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_DigestInit</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_MD_CTX</span>, <span class="ident">typ</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>) -&gt; <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_DigestFinal</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_MD_CTX</span>, <span class="ident">res</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>, <span class="ident">n</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u32</span>) -&gt; <span class="ident">c_int</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_DigestFinalXOF</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_MD_CTX</span>, <span class="ident">res</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>, <span class="ident">len</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_DigestFinalXOF</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_MD_CTX</span>, <span class="ident">res</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>, <span class="ident">len</span>: <span class="ident">usize</span>) -&gt; <span class="ident">c_int</span>;
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_BytesToKey</span>(
         <span class="ident">typ</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>,
@@ -714,7 +714,7 @@
         <span class="ident">count</span>: <span class="ident">c_int</span>,
         <span class="ident">key</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>,
         <span class="ident">iv</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_CipherInit</span>(
         <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_CIPHER_CTX</span>,
@@ -722,7 +722,7 @@
         <span class="ident">key</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>,
         <span class="ident">iv</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>,
         <span class="ident">mode</span>: <span class="ident">c_int</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_CipherInit_ex</span>(
         <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_CIPHER_CTX</span>,
         <span class="ident">type_</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>,
@@ -730,15 +730,15 @@
         <span class="ident">key</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>,
         <span class="ident">iv</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>,
         <span class="ident">enc</span>: <span class="ident">c_int</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_CipherUpdate</span>(
         <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_CIPHER_CTX</span>,
         <span class="ident">outbuf</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>,
         <span class="ident">outlen</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_int</span>,
         <span class="ident">inbuf</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>,
         <span class="ident">inlen</span>: <span class="ident">c_int</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_CipherFinal</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_CIPHER_CTX</span>, <span class="ident">res</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>, <span class="ident">len</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_CipherFinal</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_CIPHER_CTX</span>, <span class="ident">res</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>, <span class="ident">len</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_int</span>) -&gt; <span class="ident">c_int</span>;
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_DigestSignInit</span>(
         <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_MD_CTX</span>,
@@ -746,19 +746,19 @@
         <span class="ident">type_</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>,
         <span class="ident">e</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ENGINE</span>,
         <span class="ident">pkey</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_DigestSignFinal</span>(
         <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_MD_CTX</span>,
         <span class="ident">sig</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>,
         <span class="ident">siglen</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">size_t</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_DigestVerifyInit</span>(
         <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_MD_CTX</span>,
         <span class="ident">pctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>,
         <span class="ident">type_</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>,
         <span class="ident">e</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ENGINE</span>,
         <span class="ident">pkey</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_SealInit</span>(
         <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_CIPHER_CTX</span>,
         <span class="ident">type_</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>,
@@ -767,27 +767,27 @@
         <span class="ident">iv</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>,
         <span class="ident">pubk</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>,
         <span class="ident">npubk</span>: <span class="ident">c_int</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_SealFinal</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_CIPHER_CTX</span>, <span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>, <span class="ident">outl</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_SealFinal</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_CIPHER_CTX</span>, <span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>, <span class="ident">outl</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_int</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_EncryptInit_ex</span>(
         <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_CIPHER_CTX</span>,
         <span class="ident">cipher</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>,
         <span class="ident">impl_</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ENGINE</span>,
         <span class="ident">key</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>,
         <span class="ident">iv</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_EncryptUpdate</span>(
         <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_CIPHER_CTX</span>,
         <span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>,
         <span class="ident">outl</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_int</span>,
         <span class="ident">in_</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>,
         <span class="ident">inl</span>: <span class="ident">c_int</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_EncryptFinal_ex</span>(
         <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_CIPHER_CTX</span>,
         <span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>,
         <span class="ident">outl</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_int</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_OpenInit</span>(
         <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_CIPHER_CTX</span>,
         <span class="ident">type_</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>,
@@ -795,42 +795,42 @@
         <span class="ident">ekl</span>: <span class="ident">c_int</span>,
         <span class="ident">iv</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>,
         <span class="ident">priv_</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_OpenFinal</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_CIPHER_CTX</span>, <span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>, <span class="ident">outl</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_OpenFinal</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_CIPHER_CTX</span>, <span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>, <span class="ident">outl</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_int</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_DecryptInit_ex</span>(
         <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_CIPHER_CTX</span>,
         <span class="ident">cipher</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>,
         <span class="ident">impl_</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ENGINE</span>,
         <span class="ident">key</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>,
         <span class="ident">iv</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_DecryptUpdate</span>(
         <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_CIPHER_CTX</span>,
         <span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>,
         <span class="ident">outl</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_int</span>,
         <span class="ident">in_</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>,
         <span class="ident">inl</span>: <span class="ident">c_int</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_DecryptFinal_ex</span>(
         <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_CIPHER_CTX</span>,
         <span class="ident">outm</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>,
         <span class="ident">outl</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_int</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
 }
 <span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl300</span>)]</span> {
         <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_get_size</span>(<span class="ident">pkey</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_PKEY</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_get_size</span>(<span class="ident">pkey</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_PKEY</span>) -&gt; <span class="ident">c_int</span>;
         }
 
         <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_size</span>(<span class="ident">pkey</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_PKEY</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span> {
+        <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_size</span>(<span class="ident">pkey</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_PKEY</span>) -&gt; <span class="ident">c_int</span> {
             <span class="ident">EVP_PKEY_get_size</span>(<span class="ident">pkey</span>)
         }
     } <span class="kw">else</span> {
         <span class="macro">const_ptr_api!</span> {
             <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-                <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_size</span>(<span class="ident">pkey</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl111b</span>, <span class="ident">libressl280</span>))]</span> <span class="ident">EVP_PKEY</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+                <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_size</span>(<span class="ident">pkey</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl111b</span>, <span class="ident">libressl280</span>))]</span> <span class="ident">EVP_PKEY</span>) -&gt; <span class="ident">c_int</span>;
             }
         }
     }
@@ -844,7 +844,7 @@
                 <span class="ident">siglen</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">size_t</span>,
                 <span class="ident">tbs</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>,
                 <span class="ident">tbslen</span>: <span class="ident">size_t</span>
-            ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+            ) -&gt; <span class="ident">c_int</span>;
 
             <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_DigestVerify</span>(
                 <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_MD_CTX</span>,
@@ -852,7 +852,7 @@
                 <span class="ident">siglen</span>: <span class="ident">size_t</span>,
                 <span class="ident">tbs</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>,
                 <span class="ident">tbslen</span>: <span class="ident">size_t</span>
-            ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+            ) -&gt; <span class="ident">c_int</span>;
         }
     }
 }
@@ -862,160 +862,160 @@
             <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_MD_CTX</span>,
             <span class="ident">sigret</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl102</span>, <span class="ident">libressl280</span>))]</span> <span class="ident">c_uchar</span>,
             <span class="ident">siglen</span>: <span class="ident">size_t</span>,
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+        ) -&gt; <span class="ident">c_int</span>;
     }
 }
 
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_CIPHER_CTX_new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_CIPHER_CTX</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_CIPHER_CTX_new</span>() -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_CIPHER_CTX</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_CIPHER_CTX_free</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_CIPHER_CTX</span>);
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_MD_CTX_copy_ex</span>(<span class="ident">dst</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_MD_CTX</span>, <span class="ident">src</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD_CTX</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_CIPHER_CTX_set_key_length</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_CIPHER_CTX</span>, <span class="ident">keylen</span>: <span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_CIPHER_CTX_set_padding</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_CIPHER_CTX</span>, <span class="ident">padding</span>: <span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_MD_CTX_copy_ex</span>(<span class="ident">dst</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_MD_CTX</span>, <span class="ident">src</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD_CTX</span>) -&gt; <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_CIPHER_CTX_set_key_length</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_CIPHER_CTX</span>, <span class="ident">keylen</span>: <span class="ident">c_int</span>) -&gt; <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_CIPHER_CTX_set_padding</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_CIPHER_CTX</span>, <span class="ident">padding</span>: <span class="ident">c_int</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_CIPHER_CTX_ctrl</span>(
         <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_CIPHER_CTX</span>,
         <span class="ident">type_</span>: <span class="ident">c_int</span>,
         <span class="ident">arg</span>: <span class="ident">c_int</span>,
         <span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_md_null</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_md5</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_sha1</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_sha224</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_sha256</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_sha384</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_sha512</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_md_null</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_md5</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_sha1</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_sha224</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_sha256</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_sha384</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_sha512</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_sha3_224</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_sha3_224</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_sha3_256</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_sha3_256</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_sha3_384</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_sha3_384</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_sha3_512</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_sha3_512</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_shake128</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_shake128</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_shake256</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_ripemd160</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_shake256</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_ripemd160</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">any</span>(<span class="ident">ossl111</span>, <span class="ident">libressl291</span>), <span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_SM3&quot;</span>)))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_sm3</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_des_ecb</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_des_ede3</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_des_ede3_cbc</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_des_ede3_cfb64</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_des_cbc</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_rc4</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_bf_ecb</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_bf_cbc</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_bf_cfb64</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_bf_ofb</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_128_ecb</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_128_cbc</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_128_cfb1</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_128_cfb8</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_128_cfb128</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_128_ctr</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_128_ccm</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_128_gcm</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_128_xts</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_128_ofb</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_sm3</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_des_ecb</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_des_ede3</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_des_ede3_cbc</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_des_ede3_cfb64</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_des_cbc</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_rc4</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_bf_ecb</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_bf_cbc</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_bf_cfb64</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_bf_ofb</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_128_ecb</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_128_cbc</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_128_cfb1</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_128_cfb8</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_128_cfb128</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_128_ctr</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_128_ccm</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_128_gcm</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_128_xts</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_128_ofb</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_128_ocb</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_192_ecb</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_192_cbc</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_192_cfb1</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_192_cfb8</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_192_cfb128</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_192_ctr</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_192_ccm</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_192_gcm</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_192_ofb</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_128_ocb</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_192_ecb</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_192_cbc</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_192_cfb1</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_192_cfb8</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_192_cfb128</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_192_ctr</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_192_ccm</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_192_gcm</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_192_ofb</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_192_ocb</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_256_ecb</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_256_cbc</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_256_cfb1</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_256_cfb8</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_256_cfb128</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_256_ctr</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_256_ccm</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_256_gcm</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_256_xts</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_256_ofb</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_192_ocb</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_256_ecb</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_256_cbc</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_256_cfb1</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_256_cfb8</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_256_cfb128</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_256_ctr</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_256_ccm</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_256_gcm</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_256_xts</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_256_ofb</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_256_ocb</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_aes_256_ocb</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">ossl110</span>, <span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_CHACHA&quot;</span>)))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_chacha20</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_chacha20</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::EVP_CIPHER</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">ossl110</span>, <span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_CHACHA&quot;</span>)))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_chacha20_poly1305</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_chacha20_poly1305</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::EVP_CIPHER</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_SEED&quot;</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_seed_cbc</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_seed_cbc</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_SEED&quot;</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_seed_cfb128</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_seed_cfb128</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_SEED&quot;</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_seed_ecb</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_seed_ecb</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_SEED&quot;</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_seed_ofb</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_seed_ofb</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">ossl110</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OPENSSL_add_all_algorithms_noconf</span>();
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_get_digestbyname</span>(<span class="ident">name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_get_cipherbyname</span>(<span class="ident">name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_get_digestbyname</span>(<span class="ident">name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>) -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_get_cipherbyname</span>(<span class="ident">name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>) -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_CIPHER</span>;
 }
 
 <span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl300</span>)]</span> {
         <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_get_id</span>(<span class="ident">pkey</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_PKEY</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_get_bits</span>(<span class="ident">key</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_PKEY</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_get_id</span>(<span class="ident">pkey</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_PKEY</span>) -&gt; <span class="ident">c_int</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_get_bits</span>(<span class="ident">key</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_PKEY</span>) -&gt; <span class="ident">c_int</span>;
         }
 
         <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_id</span>(<span class="ident">pkey</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_PKEY</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span> {
+        <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_id</span>(<span class="ident">pkey</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_PKEY</span>) -&gt; <span class="ident">c_int</span> {
             <span class="ident">EVP_PKEY_get_id</span>(<span class="ident">pkey</span>)
         }
 
         <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_bits</span>(<span class="ident">pkey</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_PKEY</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span> {
+        <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_bits</span>(<span class="ident">pkey</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_PKEY</span>) -&gt; <span class="ident">c_int</span> {
             <span class="ident">EVP_PKEY_get_bits</span>(<span class="ident">pkey</span>)
         }
     } <span class="kw">else</span> {
         <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_id</span>(<span class="ident">pkey</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_PKEY</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_id</span>(<span class="ident">pkey</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_PKEY</span>) -&gt; <span class="ident">c_int</span>;
         }
         <span class="macro">const_ptr_api!</span> {
             <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-                <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_bits</span>(<span class="ident">key</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <span class="ident">EVP_PKEY</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+                <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_bits</span>(<span class="ident">key</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <span class="ident">EVP_PKEY</span>) -&gt; <span class="ident">c_int</span>;
             }
         }
     }
 }
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_assign</span>(<span class="ident">pkey</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>, <span class="ident">typ</span>: <span class="ident">c_int</span>, <span class="ident">key</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_assign</span>(<span class="ident">pkey</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>, <span class="ident">typ</span>: <span class="ident">c_int</span>, <span class="ident">key</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>) -&gt; <span class="ident">c_int</span>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_set1_RSA</span>(<span class="ident">k</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>, <span class="ident">r</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">RSA</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_get1_RSA</span>(<span class="ident">k</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">RSA</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_get1_DSA</span>(<span class="ident">k</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">DSA</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_get1_DH</span>(<span class="ident">k</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">DH</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_get1_EC_KEY</span>(<span class="ident">k</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EC_KEY</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_set1_RSA</span>(<span class="ident">k</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>, <span class="ident">r</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">RSA</span>) -&gt; <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_get1_RSA</span>(<span class="ident">k</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">RSA</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_get1_DSA</span>(<span class="ident">k</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">DSA</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_get1_DH</span>(<span class="ident">k</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">DH</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_get1_EC_KEY</span>(<span class="ident">k</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EC_KEY</span>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_new</span>() -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_free</span>(<span class="ident">k</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>);
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl270</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_up_ref</span>(<span class="ident">pkey</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_up_ref</span>(<span class="ident">pkey</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>) -&gt; <span class="ident">c_int</span>;
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">d2i_AutoPrivateKey</span>(
         <span class="ident">a</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>,
         <span class="ident">pp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>,
         <span class="ident">length</span>: <span class="ident">c_long</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>;
+    ) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_cmp</span>(<span class="ident">a</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_PKEY</span>, <span class="ident">b</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_PKEY</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_cmp</span>(<span class="ident">a</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_PKEY</span>, <span class="ident">b</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_PKEY</span>) -&gt; <span class="ident">c_int</span>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_copy_parameters</span>(<span class="ident">to</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>, <span class="ident">from</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_PKEY</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_copy_parameters</span>(<span class="ident">to</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>, <span class="ident">from</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_PKEY</span>) -&gt; <span class="ident">c_int</span>;
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PKCS5_PBKDF2_HMAC_SHA1</span>(
         <span class="ident">pass</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
@@ -1025,7 +1025,7 @@
         <span class="ident">iter</span>: <span class="ident">c_int</span>,
         <span class="ident">keylen</span>: <span class="ident">c_int</span>,
         <span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PKCS5_PBKDF2_HMAC</span>(
         <span class="ident">pass</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
         <span class="ident">passlen</span>: <span class="ident">c_int</span>,
@@ -1035,7 +1035,7 @@
         <span class="ident">digest</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_MD</span>,
         <span class="ident">keylen</span>: <span class="ident">c_int</span>,
         <span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PBE_scrypt</span>(
@@ -1049,7 +1049,7 @@
         <span class="ident">maxmem</span>: <span class="ident">u64</span>,
         <span class="ident">key</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>,
         <span class="ident">keylen</span>: <span class="ident">size_t</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
 }
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EVP_PKEY_OP_KEYGEN</span>: <span class="ident">c_int</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">2</span>;
@@ -1088,8 +1088,8 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EVP_PKEY_ALG_CTRL</span>: <span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x1000</span>;
 
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_CTX_new</span>(<span class="ident">k</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>, <span class="ident">e</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ENGINE</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_CTX_new_id</span>(<span class="ident">id</span>: <span class="ident">c_int</span>, <span class="ident">e</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ENGINE</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_CTX_new</span>(<span class="ident">k</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>, <span class="ident">e</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ENGINE</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_CTX_new_id</span>(<span class="ident">id</span>: <span class="ident">c_int</span>, <span class="ident">e</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ENGINE</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_CTX_free</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>);
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_CTX_ctrl</span>(
@@ -1099,43 +1099,43 @@
         <span class="ident">cmd</span>: <span class="ident">c_int</span>,
         <span class="ident">p1</span>: <span class="ident">c_int</span>,
         <span class="ident">p2</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_new_mac_key</span>(
         <span class="ident">type_</span>: <span class="ident">c_int</span>,
         <span class="ident">e</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ENGINE</span>,
         <span class="ident">key</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>,
         <span class="ident">keylen</span>: <span class="ident">c_int</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>;
+    ) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_derive_init</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_derive_set_peer</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>, <span class="ident">peer</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_derive</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>, <span class="ident">key</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>, <span class="ident">size</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">size_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_derive_init</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>) -&gt; <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_derive_set_peer</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>, <span class="ident">peer</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>) -&gt; <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_derive</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>, <span class="ident">key</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>, <span class="ident">size</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">size_t</span>) -&gt; <span class="ident">c_int</span>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_keygen_init</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_keygen</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>, <span class="ident">key</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_keygen_init</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>) -&gt; <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_keygen</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>, <span class="ident">key</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>) -&gt; <span class="ident">c_int</span>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_encrypt_init</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_encrypt_init</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_encrypt</span>(
         <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>,
         <span class="ident">pout</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>,
         <span class="ident">poutlen</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">size_t</span>,
         <span class="ident">pin</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>,
         <span class="ident">pinlen</span>: <span class="ident">size_t</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_decrypt_init</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_decrypt_init</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_decrypt</span>(
         <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY_CTX</span>,
         <span class="ident">pout</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>,
         <span class="ident">poutlen</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">size_t</span>,
         <span class="ident">pin</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>,
         <span class="ident">pinlen</span>: <span class="ident">size_t</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="ident">c_int</span>;
 }
 
 <span class="macro">const_ptr_api!</span> {
     <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKCS82PKEY</span>(<span class="ident">p8</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <span class="ident">PKCS8_PRIV_KEY_INFO</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>;
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKCS82PKEY</span>(<span class="ident">p8</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <span class="ident">PKCS8_PRIV_KEY_INFO</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>;
     }
 }
 
@@ -1146,31 +1146,31 @@
                 <span class="ident">pkey</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_PKEY</span>,
                 <span class="ident">ppub</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>,
                 <span class="ident">len</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">size_t</span>,
-            ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+            ) -&gt; <span class="ident">c_int</span>;
             <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_new_raw_public_key</span>(
                 <span class="ident">ttype</span>: <span class="ident">c_int</span>,
                 <span class="ident">e</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ENGINE</span>,
                 <span class="ident">key</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>,
                 <span class="ident">keylen</span>: <span class="ident">size_t</span>,
-            ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>;
+            ) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>;
             <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_get_raw_private_key</span>(
                 <span class="ident">pkey</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">EVP_PKEY</span>,
                 <span class="ident">ppriv</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>,
                 <span class="ident">len</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">size_t</span>,
-            ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+            ) -&gt; <span class="ident">c_int</span>;
             <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_PKEY_new_raw_private_key</span>(
                 <span class="ident">ttype</span>: <span class="ident">c_int</span>,
                 <span class="ident">e</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ENGINE</span>,
                 <span class="ident">key</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>,
                 <span class="ident">keylen</span>: <span class="ident">size_t</span>,
-            ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>;
+            ) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>;
         }
     }
 }
 
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_EncodeBlock</span>(<span class="ident">dst</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>, <span class="ident">src</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>, <span class="ident">src_len</span>: <span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_DecodeBlock</span>(<span class="ident">dst</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>, <span class="ident">src</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>, <span class="ident">src_len</span>: <span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_EncodeBlock</span>(<span class="ident">dst</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>, <span class="ident">src</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>, <span class="ident">src_len</span>: <span class="ident">c_int</span>) -&gt; <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">EVP_DecodeBlock</span>(<span class="ident">dst</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>, <span class="ident">src</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>, <span class="ident">src_len</span>: <span class="ident">c_int</span>) -&gt; <span class="ident">c_int</span>;
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl_sys" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>

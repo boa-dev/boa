@@ -82,7 +82,7 @@
     <span class="doccomment">/// Create a new context object.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This object contains no errors, but will still trigger a panic if it is not `check`ed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
         <span class="ident">Ctxt</span> {
             <span class="ident">errors</span>: <span class="ident">RefCell::new</span>(<span class="prelude-val">Some</span>(<span class="ident">Vec::new</span>())),
         }
@@ -106,11 +106,11 @@
     }
 
     <span class="doccomment">/// Consume this object, producing a formatted error string if there are errors.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">check</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">syn::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">check</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">syn::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">errors</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">errors</span>.<span class="ident">borrow_mut</span>().<span class="ident">take</span>().<span class="ident">unwrap</span>();
         <span class="kw">match</span> <span class="ident">errors</span>.<span class="ident">len</span>() {
-            <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(()),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">errors</span>),
+            <span class="number">0</span> =&gt; <span class="prelude-val">Ok</span>(()),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">errors</span>),
         }
     }
 }

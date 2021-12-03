@@ -3086,14 +3086,14 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">ParseOptions</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Change the base URL</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">base_url</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">new</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Url</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">base_url</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">new</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Url</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">base_url</span> <span class="op">=</span> <span class="ident">new</span>;
         <span class="self">self</span>
     }
 
     <span class="doccomment">/// Override the character encoding of query strings.</span>
     <span class="doccomment">/// This is a legacy concept only relevant for HTML.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encoding_override</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">new</span>: <span class="ident">EncodingOverride</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encoding_override</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">new</span>: <span class="ident">EncodingOverride</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">encoding_override</span> <span class="op">=</span> <span class="ident">new</span>;
         <span class="self">self</span>
     }
@@ -3120,13 +3120,13 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">/// # }</span>
     <span class="doccomment">/// # run().unwrap();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">syntax_violation_callback</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">new</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="ident">SyntaxViolation</span>)<span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">syntax_violation_callback</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">new</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="ident">SyntaxViolation</span>)<span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">violation_fn</span> <span class="op">=</span> <span class="ident">new</span>;
         <span class="self">self</span>
     }
 
     <span class="doccomment">/// Parse an URL string with the configuration so far.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Url</span>, <span class="ident"><span class="kw">crate</span>::ParseError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Url</span>, <span class="ident"><span class="kw">crate</span>::ParseError</span><span class="op">&gt;</span> {
         <span class="ident">Parser</span> {
             <span class="ident">serialization</span>: <span class="ident">String::with_capacity</span>(<span class="ident">input</span>.<span class="ident">len</span>()),
             <span class="ident">base_url</span>: <span class="self">self</span>.<span class="ident">base_url</span>,
@@ -3161,7 +3161,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`ParseError`]: enum.ParseError.html</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Url</span>, <span class="ident"><span class="kw">crate</span>::ParseError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Url</span>, <span class="ident"><span class="kw">crate</span>::ParseError</span><span class="op">&gt;</span> {
         <span class="ident">Url::options</span>().<span class="ident">parse</span>(<span class="ident">input</span>)
     }
 
@@ -3191,7 +3191,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`ParseError`]: enum.ParseError.html</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_with_params</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">iter</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Url</span>, <span class="ident"><span class="kw">crate</span>::ParseError</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_with_params</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">iter</span>: <span class="ident">I</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Url</span>, <span class="ident"><span class="kw">crate</span>::ParseError</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">IntoIterator</span>,
         <span class="ident">I::Item</span>: <span class="ident">Borrow</span><span class="op">&lt;</span>(<span class="ident">K</span>, <span class="ident">V</span>)<span class="op">&gt;</span>,
@@ -3242,7 +3242,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">/// [`ParseError`]: enum.ParseError.html</span>
     <span class="doccomment">/// [`make_relative`]: #method.make_relative</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">join</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Url</span>, <span class="ident"><span class="kw">crate</span>::ParseError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">join</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Url</span>, <span class="ident"><span class="kw">crate</span>::ParseError</span><span class="op">&gt;</span> {
         <span class="ident">Url::options</span>().<span class="ident">base_url</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>)).<span class="ident">parse</span>(<span class="ident">input</span>)
     }
 
@@ -3287,7 +3287,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">/// This is for example the case if the scheme, host or port are not the same.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`join`]: #method.join</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_relative</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">url</span>: <span class="kw-2">&amp;</span><span class="ident">Url</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_relative</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">url</span>: <span class="kw-2">&amp;</span><span class="ident">Url</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">cannot_be_a_base</span>() {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
@@ -3303,7 +3303,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">relative</span> <span class="op">=</span> <span class="ident">String::new</span>();
 
         <span class="comment">// Extract the filename of both URIs, these need to be handled separately</span>
-        <span class="kw">fn</span> <span class="ident">extract_path_filename</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span>) {
+        <span class="kw">fn</span> <span class="ident">extract_path_filename</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; (<span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span>) {
             <span class="kw">let</span> <span class="ident">last_slash_idx</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">rfind</span>(<span class="string">&#39;/&#39;</span>).<span class="ident">unwrap_or</span>(<span class="number">0</span>);
             <span class="kw">let</span> (<span class="ident">path</span>, <span class="ident">filename</span>) <span class="op">=</span> <span class="ident">s</span>.<span class="ident">split_at</span>(<span class="ident">last_slash_idx</span>);
             <span class="kw">if</span> <span class="ident">filename</span>.<span class="ident">is_empty</span>() {
@@ -3320,7 +3320,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">url_path</span> <span class="op">=</span> <span class="ident">url_path</span>.<span class="ident">split</span>(<span class="string">&#39;/&#39;</span>).<span class="ident">peekable</span>();
 
         <span class="comment">// Skip over the common prefix</span>
-        <span class="kw">while</span> <span class="ident">base_path</span>.<span class="ident">peek</span>().<span class="ident">is_some</span>() <span class="op">&amp;&amp;</span> <span class="ident">base_path</span>.<span class="ident">peek</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">url_path</span>.<span class="ident">peek</span>() {
+        <span class="kw">while</span> <span class="ident">base_path</span>.<span class="ident">peek</span>().<span class="ident">is_some</span>() <span class="op">&amp;&amp;</span> <span class="ident">base_path</span>.<span class="ident">peek</span>() <span class="op">==</span> <span class="ident">url_path</span>.<span class="ident">peek</span>() {
             <span class="ident">base_path</span>.<span class="ident">next</span>();
             <span class="ident">url_path</span>.<span class="ident">next</span>();
         }
@@ -3397,7 +3397,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">/// # }</span>
     <span class="doccomment">/// # run().unwrap();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">options</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseOptions</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">options</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>() -&gt; <span class="ident">ParseOptions</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="ident">ParseOptions</span> {
             <span class="ident">base_url</span>: <span class="prelude-val">None</span>,
             <span class="ident">encoding_override</span>: <span class="prelude-val">None</span>,
@@ -3424,7 +3424,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">/// # run().unwrap();</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">serialization</span>
     }
 
@@ -3448,7 +3448,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;2.3.0&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;use Into&lt;String&gt;&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_string</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_string</span>(<span class="self">self</span>) -&gt; <span class="ident">String</span> {
         <span class="self">self</span>.<span class="ident">into</span>()
     }
 
@@ -3458,9 +3458,9 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">/// This checks each of these invariants and panic if one is not met.</span>
     <span class="doccomment">/// This is for testing rust-url itself.</span>
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">check_invariants</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">String</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">check_invariants</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">String</span><span class="op">&gt;</span> {
         <span class="macro">macro_rules!</span> <span class="ident">assert</span> {
-            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>: <span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>: <span class="ident">expr</span>) =&gt; {
                 <span class="kw">if</span> <span class="op">!</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span> {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">format!</span>(
                         <span class="string">&quot;!( {} ) for URL {:?}&quot;</span>,
@@ -3472,7 +3472,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
         }
 
         <span class="macro">macro_rules!</span> <span class="ident">assert_eq</span> {
-            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>: <span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">b</span>: <span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>: <span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">b</span>: <span class="ident">expr</span>) =&gt; {
                 {
                     <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>;
                     <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">b</span>;
@@ -3497,31 +3497,31 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
             <span class="comment">// URL with authority</span>
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">username_end</span> <span class="op">!</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">serialization</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span> {
                 <span class="kw">match</span> <span class="self">self</span>.<span class="ident">byte_at</span>(<span class="self">self</span>.<span class="ident">username_end</span>) {
-                    <span class="string">b&#39;:&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="string">b&#39;:&#39;</span> =&gt; {
                         <span class="macro">assert!</span>(<span class="self">self</span>.<span class="ident">host_start</span> <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">username_end</span> <span class="op">+</span> <span class="number">2</span>);
                         <span class="macro">assert_eq!</span>(<span class="self">self</span>.<span class="ident">byte_at</span>(<span class="self">self</span>.<span class="ident">host_start</span> <span class="op">-</span> <span class="number">1</span>), <span class="string">b&#39;@&#39;</span>);
                     }
-                    <span class="string">b&#39;@&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">assert!</span>(<span class="self">self</span>.<span class="ident">host_start</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">username_end</span> <span class="op">+</span> <span class="number">1</span>),
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">assert_eq!</span>(<span class="self">self</span>.<span class="ident">username_end</span>, <span class="self">self</span>.<span class="ident">scheme_end</span> <span class="op">+</span> <span class="number">3</span>),
+                    <span class="string">b&#39;@&#39;</span> =&gt; <span class="macro">assert!</span>(<span class="self">self</span>.<span class="ident">host_start</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">username_end</span> <span class="op">+</span> <span class="number">1</span>),
+                    <span class="kw">_</span> =&gt; <span class="macro">assert_eq!</span>(<span class="self">self</span>.<span class="ident">username_end</span>, <span class="self">self</span>.<span class="ident">scheme_end</span> <span class="op">+</span> <span class="number">3</span>),
                 }
             }
             <span class="macro">assert!</span>(<span class="self">self</span>.<span class="ident">host_start</span> <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">username_end</span>);
             <span class="macro">assert!</span>(<span class="self">self</span>.<span class="ident">host_end</span> <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">host_start</span>);
             <span class="kw">let</span> <span class="ident">host_str</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">slice</span>(<span class="self">self</span>.<span class="ident">host_start</span>..<span class="self">self</span>.<span class="ident">host_end</span>);
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">host</span> {
-                <span class="ident">HostInternal::None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">assert_eq!</span>(<span class="ident">host_str</span>, <span class="string">&quot;&quot;</span>),
-                <span class="ident">HostInternal::Ipv4</span>(<span class="ident">address</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">assert_eq!</span>(<span class="ident">host_str</span>, <span class="ident">address</span>.<span class="ident">to_string</span>()),
-                <span class="ident">HostInternal::Ipv6</span>(<span class="ident">address</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">HostInternal::None</span> =&gt; <span class="macro">assert_eq!</span>(<span class="ident">host_str</span>, <span class="string">&quot;&quot;</span>),
+                <span class="ident">HostInternal::Ipv4</span>(<span class="ident">address</span>) =&gt; <span class="macro">assert_eq!</span>(<span class="ident">host_str</span>, <span class="ident">address</span>.<span class="ident">to_string</span>()),
+                <span class="ident">HostInternal::Ipv6</span>(<span class="ident">address</span>) =&gt; {
                     <span class="kw">let</span> <span class="ident">h</span>: <span class="ident">Host</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Host::Ipv6</span>(<span class="ident">address</span>);
                     <span class="macro">assert_eq!</span>(<span class="ident">host_str</span>, <span class="ident">h</span>.<span class="ident">to_string</span>())
                 }
-                <span class="ident">HostInternal::Domain</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">HostInternal::Domain</span> =&gt; {
                     <span class="kw">if</span> <span class="ident">SchemeType::from</span>(<span class="self">self</span>.<span class="ident">scheme</span>()).<span class="ident">is_special</span>() {
                         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">host_str</span>.<span class="ident">is_empty</span>())
                     }
                 }
             }
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">path_start</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">host_end</span> {
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">path_start</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">host_end</span> {
                 <span class="macro">assert_eq!</span>(<span class="self">self</span>.<span class="ident">port</span>, <span class="prelude-val">None</span>);
             } <span class="kw">else</span> {
                 <span class="macro">assert_eq!</span>(<span class="self">self</span>.<span class="ident">byte_at</span>(<span class="self">self</span>.<span class="ident">host_end</span>), <span class="string">b&#39;:&#39;</span>);
@@ -3532,7 +3532,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
                 );
             }
             <span class="macro">assert!</span>(
-                <span class="self">self</span>.<span class="ident">path_start</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">serialization</span>.<span class="ident">len</span>()
+                <span class="self">self</span>.<span class="ident">path_start</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">serialization</span>.<span class="ident">len</span>()
                     <span class="op">|</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">byte_at</span>(<span class="self">self</span>.<span class="ident">path_start</span>), <span class="string">b&#39;/&#39;</span> <span class="op">|</span> <span class="string">b&#39;#&#39;</span> <span class="op">|</span> <span class="string">b&#39;?&#39;</span>)
             );
         } <span class="kw">else</span> {
@@ -3563,10 +3563,10 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
         <span class="macro">assert_eq!</span>(<span class="self">self</span>.<span class="ident">host_start</span>, <span class="ident">other</span>.<span class="ident">host_start</span>);
         <span class="macro">assert_eq!</span>(<span class="self">self</span>.<span class="ident">host_end</span>, <span class="ident">other</span>.<span class="ident">host_end</span>);
         <span class="macro">assert!</span>(
-            <span class="self">self</span>.<span class="ident">host</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">host</span> <span class="op">|</span><span class="op">|</span>
+            <span class="self">self</span>.<span class="ident">host</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">host</span> <span class="op">|</span><span class="op">|</span>
                 <span class="comment">// XXX No host round-trips to empty host.</span>
                 <span class="comment">// See https://github.com/whatwg/url/issues/79</span>
-                (<span class="self">self</span>.<span class="ident">host_str</span>(), <span class="ident">other</span>.<span class="ident">host_str</span>()) <span class="op">=</span><span class="op">=</span> (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;&quot;</span>))
+                (<span class="self">self</span>.<span class="ident">host_str</span>(), <span class="ident">other</span>.<span class="ident">host_str</span>()) <span class="op">==</span> (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;&quot;</span>))
         );
         <span class="macro">assert_eq!</span>(<span class="self">self</span>.<span class="ident">port</span>, <span class="ident">other</span>.<span class="ident">port</span>);
         <span class="macro">assert_eq!</span>(<span class="self">self</span>.<span class="ident">path_start</span>, <span class="ident">other</span>.<span class="ident">path_start</span>);
@@ -3647,7 +3647,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">/// # run().unwrap();</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">origin</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Origin</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">origin</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Origin</span> {
         <span class="ident">origin::url_origin</span>(<span class="self">self</span>)
     }
 
@@ -3667,7 +3667,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">/// # run().unwrap();</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">scheme</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">scheme</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="self">self</span>.<span class="ident">slice</span>(..<span class="self">self</span>.<span class="ident">scheme_end</span>)
     }
 
@@ -3697,8 +3697,8 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">/// # run().unwrap();</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_authority</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">byte_at</span>(<span class="self">self</span>.<span class="ident">scheme_end</span>) <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;:&#39;</span>);
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_authority</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">byte_at</span>(<span class="self">self</span>.<span class="ident">scheme_end</span>) <span class="op">==</span> <span class="string">b&#39;:&#39;</span>);
         <span class="self">self</span>.<span class="ident">slice</span>(<span class="self">self</span>.<span class="ident">scheme_end</span>..).<span class="ident">starts_with</span>(<span class="string">&quot;://&quot;</span>)
     }
 
@@ -3728,7 +3728,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">/// # run().unwrap();</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cannot_be_a_base</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cannot_be_a_base</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="op">!</span><span class="self">self</span>.<span class="ident">slice</span>(<span class="self">self</span>.<span class="ident">scheme_end</span> <span class="op">+</span> <span class="number">1</span>..).<span class="ident">starts_with</span>(<span class="string">&#39;/&#39;</span>)
     }
 
@@ -3754,7 +3754,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">/// # }</span>
     <span class="doccomment">/// # run().unwrap();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">username</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">username</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="kw">let</span> <span class="ident">scheme_separator_len</span> <span class="op">=</span> <span class="string">&quot;://&quot;</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_authority</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">username_end</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">scheme_end</span> <span class="op">+</span> <span class="ident">scheme_separator_len</span> {
             <span class="self">self</span>.<span class="ident">slice</span>(<span class="self">self</span>.<span class="ident">scheme_end</span> <span class="op">+</span> <span class="ident">scheme_separator_len</span>..<span class="self">self</span>.<span class="ident">username_end</span>)
@@ -3787,14 +3787,14 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">/// # }</span>
     <span class="doccomment">/// # run().unwrap();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">password</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">password</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
         <span class="comment">// This &#39;:&#39; is not the one marking a port number since a host can not be empty.</span>
         <span class="comment">// (Except for file: URLs, which do not have port numbers.)</span>
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_authority</span>()
             <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">username_end</span> <span class="op">!</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">serialization</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">byte_at</span>(<span class="self">self</span>.<span class="ident">username_end</span>) <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;:&#39;</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">byte_at</span>(<span class="self">self</span>.<span class="ident">username_end</span>) <span class="op">==</span> <span class="string">b&#39;:&#39;</span>
         {
-            <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">byte_at</span>(<span class="self">self</span>.<span class="ident">host_start</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;@&#39;</span>);
+            <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">byte_at</span>(<span class="self">self</span>.<span class="ident">host_start</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">==</span> <span class="string">b&#39;@&#39;</span>);
             <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">slice</span>(<span class="self">self</span>.<span class="ident">username_end</span> <span class="op">+</span> <span class="number">1</span>..<span class="self">self</span>.<span class="ident">host_start</span> <span class="op">-</span> <span class="number">1</span>))
         } <span class="kw">else</span> {
             <span class="prelude-val">None</span>
@@ -3822,7 +3822,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">/// # }</span>
     <span class="doccomment">/// # run().unwrap();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_host</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_host</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="op">!</span><span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">host</span>, <span class="ident">HostInternal::None</span>)
     }
 
@@ -3859,7 +3859,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">/// # }</span>
     <span class="doccomment">/// # run().unwrap();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">host_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">host_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_host</span>() {
             <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">slice</span>(<span class="self">self</span>.<span class="ident">host_start</span>..<span class="self">self</span>.<span class="ident">host_end</span>))
         } <span class="kw">else</span> {
@@ -3898,12 +3898,12 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">/// # }</span>
     <span class="doccomment">/// # run().unwrap();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">host</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Host</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">host</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Host</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">host</span> {
-            <span class="ident">HostInternal::None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="ident">HostInternal::Domain</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Host::Domain</span>(<span class="self">self</span>.<span class="ident">slice</span>(<span class="self">self</span>.<span class="ident">host_start</span>..<span class="self">self</span>.<span class="ident">host_end</span>))),
-            <span class="ident">HostInternal::Ipv4</span>(<span class="ident">address</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Host::Ipv4</span>(<span class="ident">address</span>)),
-            <span class="ident">HostInternal::Ipv6</span>(<span class="ident">address</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Host::Ipv6</span>(<span class="ident">address</span>)),
+            <span class="ident">HostInternal::None</span> =&gt; <span class="prelude-val">None</span>,
+            <span class="ident">HostInternal::Domain</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Host::Domain</span>(<span class="self">self</span>.<span class="ident">slice</span>(<span class="self">self</span>.<span class="ident">host_start</span>..<span class="self">self</span>.<span class="ident">host_end</span>))),
+            <span class="ident">HostInternal::Ipv4</span>(<span class="ident">address</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Host::Ipv4</span>(<span class="ident">address</span>)),
+            <span class="ident">HostInternal::Ipv6</span>(<span class="ident">address</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Host::Ipv6</span>(<span class="ident">address</span>)),
         }
     }
 
@@ -3930,10 +3930,10 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">/// # }</span>
     <span class="doccomment">/// # run().unwrap();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">domain</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">domain</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">host</span> {
-            <span class="ident">HostInternal::Domain</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">slice</span>(<span class="self">self</span>.<span class="ident">host_start</span>..<span class="self">self</span>.<span class="ident">host_end</span>)),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">HostInternal::Domain</span> =&gt; <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">slice</span>(<span class="self">self</span>.<span class="ident">host_start</span>..<span class="self">self</span>.<span class="ident">host_end</span>)),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 
@@ -3962,7 +3962,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">/// # run().unwrap();</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">port</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">port</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">port</span>
     }
 
@@ -3994,7 +3994,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">/// # run().unwrap();</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">port_or_known_default</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">port_or_known_default</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">port</span>.<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">parser::default_port</span>(<span class="self">self</span>.<span class="ident">scheme</span>()))
     }
 
@@ -4027,8 +4027,8 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">socket_addrs</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">default_port_number</span>: <span class="kw">impl</span> <span class="ident">Fn</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">SocketAddr</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="ident">default_port_number</span>: <span class="kw">impl</span> <span class="ident">Fn</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>,
+    ) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">SocketAddr</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="comment">// Note: trying to avoid the Vec allocation by returning `impl AsRef&lt;[SocketAddr]&gt;`</span>
         <span class="comment">// causes borrowck issues because the return value borrows `default_port_number`:</span>
         <span class="comment">//</span>
@@ -4037,7 +4037,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
         <span class="comment">// &gt; This RFC proposes that *all* type parameters are considered in scope</span>
         <span class="comment">// &gt; for `impl Trait` in return position</span>
 
-        <span class="kw">fn</span> <span class="ident">io_result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">opt</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">io_result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">opt</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
             <span class="ident">opt</span>.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">io::Error::new</span>(<span class="ident">io::ErrorKind::InvalidData</span>, <span class="ident">message</span>))
         }
 
@@ -4047,9 +4047,9 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
             <span class="string">&quot;No port number in the URL&quot;</span>,
         )<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">host</span> {
-            <span class="ident">Host::Domain</span>(<span class="ident">domain</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">domain</span>, <span class="ident">port</span>).<span class="ident">to_socket_addrs</span>()<span class="question-mark">?</span>.<span class="ident">collect</span>(),
-            <span class="ident">Host::Ipv4</span>(<span class="ident">ip</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">vec!</span>[(<span class="ident">ip</span>, <span class="ident">port</span>).<span class="ident">into</span>()],
-            <span class="ident">Host::Ipv6</span>(<span class="ident">ip</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">vec!</span>[(<span class="ident">ip</span>, <span class="ident">port</span>).<span class="ident">into</span>()],
+            <span class="ident">Host::Domain</span>(<span class="ident">domain</span>) =&gt; (<span class="ident">domain</span>, <span class="ident">port</span>).<span class="ident">to_socket_addrs</span>()<span class="question-mark">?</span>.<span class="ident">collect</span>(),
+            <span class="ident">Host::Ipv4</span>(<span class="ident">ip</span>) =&gt; <span class="macro">vec!</span>[(<span class="ident">ip</span>, <span class="ident">port</span>).<span class="ident">into</span>()],
+            <span class="ident">Host::Ipv6</span>(<span class="ident">ip</span>) =&gt; <span class="macro">vec!</span>[(<span class="ident">ip</span>, <span class="ident">port</span>).<span class="ident">into</span>()],
         })
     }
 
@@ -4076,10 +4076,10 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">/// # }</span>
     <span class="doccomment">/// # run().unwrap();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">path</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">path</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="kw">match</span> (<span class="self">self</span>.<span class="ident">query_start</span>, <span class="self">self</span>.<span class="ident">fragment_start</span>) {
-            (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">slice</span>(<span class="self">self</span>.<span class="ident">path_start</span>..),
-            (<span class="prelude-val">Some</span>(<span class="ident">next_component_start</span>), <span class="kw">_</span>) <span class="op">|</span> (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="ident">next_component_start</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; <span class="self">self</span>.<span class="ident">slice</span>(<span class="self">self</span>.<span class="ident">path_start</span>..),
+            (<span class="prelude-val">Some</span>(<span class="ident">next_component_start</span>), <span class="kw">_</span>) <span class="op">|</span> (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="ident">next_component_start</span>)) =&gt; {
                 <span class="self">self</span>.<span class="ident">slice</span>(<span class="self">self</span>.<span class="ident">path_start</span>..<span class="ident">next_component_start</span>)
             }
         }
@@ -4124,7 +4124,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">/// # run().unwrap();</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::manual_strip</span>)]</span> <span class="comment">// introduced in 1.45, MSRV is 1.36</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">path_segments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">str::Split</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">char</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">path_segments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">str::Split</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">char</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">path</span>();
         <span class="kw">if</span> <span class="ident">path</span>.<span class="ident">starts_with</span>(<span class="string">&#39;/&#39;</span>) {
             <span class="prelude-val">Some</span>(<span class="ident">path</span>[<span class="number">1</span>..].<span class="ident">split</span>(<span class="string">&#39;/&#39;</span>))
@@ -4157,15 +4157,15 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">/// # }</span>
     <span class="doccomment">/// # run().unwrap();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">query</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">query</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
         <span class="kw">match</span> (<span class="self">self</span>.<span class="ident">query_start</span>, <span class="self">self</span>.<span class="ident">fragment_start</span>) {
-            (<span class="prelude-val">None</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            (<span class="prelude-val">Some</span>(<span class="ident">query_start</span>), <span class="prelude-val">None</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">byte_at</span>(<span class="ident">query_start</span>) <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;?&#39;</span>);
+            (<span class="prelude-val">None</span>, <span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+            (<span class="prelude-val">Some</span>(<span class="ident">query_start</span>), <span class="prelude-val">None</span>) =&gt; {
+                <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">byte_at</span>(<span class="ident">query_start</span>) <span class="op">==</span> <span class="string">b&#39;?&#39;</span>);
                 <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">slice</span>(<span class="ident">query_start</span> <span class="op">+</span> <span class="number">1</span>..))
             }
-            (<span class="prelude-val">Some</span>(<span class="ident">query_start</span>), <span class="prelude-val">Some</span>(<span class="ident">fragment_start</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">byte_at</span>(<span class="ident">query_start</span>) <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;?&#39;</span>);
+            (<span class="prelude-val">Some</span>(<span class="ident">query_start</span>), <span class="prelude-val">Some</span>(<span class="ident">fragment_start</span>)) =&gt; {
+                <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">byte_at</span>(<span class="ident">query_start</span>) <span class="op">==</span> <span class="string">b&#39;?&#39;</span>);
                 <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">slice</span>(<span class="ident">query_start</span> <span class="op">+</span> <span class="number">1</span>..<span class="ident">fragment_start</span>))
             }
         }
@@ -4196,7 +4196,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">///</span>
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">query_pairs</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">form_urlencoded::Parse</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">query_pairs</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">form_urlencoded::Parse</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
         <span class="ident">form_urlencoded::parse</span>(<span class="self">self</span>.<span class="ident">query</span>().<span class="ident">unwrap_or</span>(<span class="string">&quot;&quot;</span>).<span class="ident">as_bytes</span>())
     }
 
@@ -4232,14 +4232,14 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">/// # }</span>
     <span class="doccomment">/// # run().unwrap();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fragment</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fragment</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">fragment_start</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">start</span><span class="op">|</span> {
-            <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">byte_at</span>(<span class="ident">start</span>) <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;#&#39;</span>);
+            <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">byte_at</span>(<span class="ident">start</span>) <span class="op">==</span> <span class="string">b&#39;#&#39;</span>);
             <span class="self">self</span>.<span class="ident">slice</span>(<span class="ident">start</span> <span class="op">+</span> <span class="number">1</span>..)
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">mutate</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Parser</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> {
+    <span class="kw">fn</span> <span class="ident">mutate</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Parser</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">R</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">R</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parser</span> <span class="op">=</span> <span class="ident">Parser::for_setter</span>(<span class="ident">mem::replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">serialization</span>, <span class="ident">String::new</span>()));
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">parser</span>);
         <span class="self">self</span>.<span class="ident">serialization</span> <span class="op">=</span> <span class="ident">parser</span>.<span class="ident">serialization</span>;
@@ -4272,7 +4272,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_fragment</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">fragment</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>) {
         <span class="comment">// Remove any previous fragment</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">start</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">fragment_start</span> {
-            <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">byte_at</span>(<span class="ident">start</span>) <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;#&#39;</span>);
+            <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">byte_at</span>(<span class="ident">start</span>) <span class="op">==</span> <span class="string">b&#39;#&#39;</span>);
             <span class="self">self</span>.<span class="ident">serialization</span>.<span class="ident">truncate</span>(<span class="ident">start</span> <span class="kw">as</span> <span class="ident">usize</span>);
         }
         <span class="comment">// Write the new one</span>
@@ -4285,9 +4285,9 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">take_fragment</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">take_fragment</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">fragment_start</span>.<span class="ident">take</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">start</span><span class="op">|</span> {
-            <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">byte_at</span>(<span class="ident">start</span>) <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;#&#39;</span>);
+            <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">byte_at</span>(<span class="ident">start</span>) <span class="op">==</span> <span class="string">b&#39;#&#39;</span>);
             <span class="kw">let</span> <span class="ident">fragment</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">slice</span>(<span class="ident">start</span> <span class="op">+</span> <span class="number">1</span>..).<span class="ident">to_owned</span>();
             <span class="self">self</span>.<span class="ident">serialization</span>.<span class="ident">truncate</span>(<span class="ident">start</span> <span class="kw">as</span> <span class="ident">usize</span>);
             <span class="ident">fragment</span>
@@ -4327,7 +4327,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
 
         <span class="comment">// Remove any previous query</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">start</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">query_start</span>.<span class="ident">take</span>() {
-            <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">byte_at</span>(<span class="ident">start</span>) <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;?&#39;</span>);
+            <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">byte_at</span>(<span class="ident">start</span>) <span class="op">==</span> <span class="string">b&#39;?&#39;</span>);
             <span class="self">self</span>.<span class="ident">serialization</span>.<span class="ident">truncate</span>(<span class="ident">start</span> <span class="kw">as</span> <span class="ident">usize</span>);
         }
         <span class="comment">// Write the new query, if any</span>
@@ -4381,12 +4381,12 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">/// not `url.set_query(None)`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The state of `Url` is unspecified if this return value is leaked without being dropped.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">query_pairs_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">form_urlencoded::Serializer</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">UrlQuery</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">query_pairs_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">form_urlencoded::Serializer</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">UrlQuery</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">fragment</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">take_fragment</span>();
 
         <span class="kw">let</span> <span class="ident">query_start</span>;
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">start</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">query_start</span> {
-            <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">byte_at</span>(<span class="ident">start</span>) <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;?&#39;</span>);
+            <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">byte_at</span>(<span class="ident">start</span>) <span class="op">==</span> <span class="string">b&#39;?&#39;</span>);
             <span class="ident">query_start</span> <span class="op">=</span> <span class="ident">start</span> <span class="kw">as</span> <span class="ident">usize</span>;
         } <span class="kw">else</span> {
             <span class="ident">query_start</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">serialization</span>.<span class="ident">len</span>();
@@ -4401,14 +4401,14 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
         <span class="ident">form_urlencoded::Serializer::for_suffix</span>(<span class="ident">query</span>, <span class="ident">query_start</span> <span class="op">+</span> <span class="string">&quot;?&quot;</span>.<span class="ident">len</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">take_after_path</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+    <span class="kw">fn</span> <span class="ident">take_after_path</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">String</span> {
         <span class="kw">match</span> (<span class="self">self</span>.<span class="ident">query_start</span>, <span class="self">self</span>.<span class="ident">fragment_start</span>) {
-            (<span class="prelude-val">Some</span>(<span class="ident">i</span>), <span class="kw">_</span>) <span class="op">|</span> (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="ident">i</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            (<span class="prelude-val">Some</span>(<span class="ident">i</span>), <span class="kw">_</span>) <span class="op">|</span> (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="ident">i</span>)) =&gt; {
                 <span class="kw">let</span> <span class="ident">after_path</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">slice</span>(<span class="ident">i</span>..).<span class="ident">to_owned</span>();
                 <span class="self">self</span>.<span class="ident">serialization</span>.<span class="ident">truncate</span>(<span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>);
                 <span class="ident">after_path</span>
             }
-            (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">String::new</span>(),
+            (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; <span class="ident">String::new</span>(),
         }
     }
 
@@ -4459,7 +4459,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">///</span>
     <span class="doccomment">/// Return `Err(())` if this URL is cannot-be-a-base.</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::result_unit_err</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">path_segments_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PathSegmentsMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, ()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">path_segments_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PathSegmentsMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, ()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">cannot_be_a_base</span>() {
             <span class="prelude-val">Err</span>(())
         } <span class="kw">else</span> {
@@ -4543,12 +4543,12 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">/// # run().unwrap();</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::result_unit_err</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_port</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">port</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_port</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">port</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
         <span class="comment">// has_host implies !cannot_be_a_base</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">has_host</span>() <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">host</span>() <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Host::Domain</span>(<span class="string">&quot;&quot;</span>)) <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">scheme</span>() <span class="op">=</span><span class="op">=</span> <span class="string">&quot;file&quot;</span> {
+        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">has_host</span>() <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">host</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">Host::Domain</span>(<span class="string">&quot;&quot;</span>)) <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">scheme</span>() <span class="op">==</span> <span class="string">&quot;file&quot;</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(());
         }
-        <span class="kw">if</span> <span class="ident">port</span>.<span class="ident">is_some</span>() <span class="op">&amp;&amp;</span> <span class="ident">port</span> <span class="op">=</span><span class="op">=</span> <span class="ident">parser::default_port</span>(<span class="self">self</span>.<span class="ident">scheme</span>()) {
+        <span class="kw">if</span> <span class="ident">port</span>.<span class="ident">is_some</span>() <span class="op">&amp;&amp;</span> <span class="ident">port</span> <span class="op">==</span> <span class="ident">parser::default_port</span>(<span class="self">self</span>.<span class="ident">scheme</span>()) {
             <span class="ident">port</span> <span class="op">=</span> <span class="prelude-val">None</span>
         }
         <span class="self">self</span>.<span class="ident">set_port_internal</span>(<span class="ident">port</span>);
@@ -4557,8 +4557,8 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
 
     <span class="kw">fn</span> <span class="ident">set_port_internal</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">port</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>) {
         <span class="kw">match</span> (<span class="self">self</span>.<span class="ident">port</span>, <span class="ident">port</span>) {
-            (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) <span class="op">=</span><span class="op">&gt;</span> {}
-            (<span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="prelude-val">None</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; {}
+            (<span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="prelude-val">None</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">serialization</span>
                     .<span class="ident">drain</span>(<span class="self">self</span>.<span class="ident">host_end</span> <span class="kw">as</span> <span class="ident">usize</span>..<span class="self">self</span>.<span class="ident">path_start</span> <span class="kw">as</span> <span class="ident">usize</span>);
                 <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">path_start</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">host_end</span>;
@@ -4570,8 +4570,8 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
                     <span class="kw-2">*</span><span class="ident">index</span> <span class="op">-</span><span class="op">=</span> <span class="ident">offset</span>
                 }
             }
-            (<span class="prelude-val">Some</span>(<span class="ident">old</span>), <span class="prelude-val">Some</span>(<span class="ident">new</span>)) <span class="kw">if</span> <span class="ident">old</span> <span class="op">=</span><span class="op">=</span> <span class="ident">new</span> <span class="op">=</span><span class="op">&gt;</span> {}
-            (<span class="kw">_</span>, <span class="prelude-val">Some</span>(<span class="ident">new</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            (<span class="prelude-val">Some</span>(<span class="ident">old</span>), <span class="prelude-val">Some</span>(<span class="ident">new</span>)) <span class="kw">if</span> <span class="ident">old</span> <span class="op">==</span> <span class="ident">new</span> =&gt; {}
+            (<span class="kw">_</span>, <span class="prelude-val">Some</span>(<span class="ident">new</span>)) =&gt; {
                 <span class="kw">let</span> <span class="ident">path_and_after</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">slice</span>(<span class="self">self</span>.<span class="ident">path_start</span>..).<span class="ident">to_owned</span>();
                 <span class="self">self</span>.<span class="ident">serialization</span>.<span class="ident">truncate</span>(<span class="self">self</span>.<span class="ident">host_end</span> <span class="kw">as</span> <span class="ident">usize</span>);
                 <span class="macro">write!</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">serialization</span>, <span class="string">&quot;:{}&quot;</span>, <span class="ident">new</span>).<span class="ident">unwrap</span>();
@@ -4676,7 +4676,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">/// a [`ParseError`] variant will be returned.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`ParseError`]: enum.ParseError.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_host</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">host</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ParseError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_host</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">host</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ParseError</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">cannot_be_a_base</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::SetHostOnCannotBeABaseUrl</span>);
         }
@@ -4689,15 +4689,15 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
             <span class="comment">// Otherwise, if c is U+003A (:) and the [] flag is unset, then</span>
             <span class="kw">if</span> <span class="op">!</span><span class="ident">host</span>.<span class="ident">starts_with</span>(<span class="string">&#39;[&#39;</span>) <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">host</span>.<span class="ident">ends_with</span>(<span class="string">&#39;]&#39;</span>) {
                 <span class="kw">match</span> <span class="ident">host</span>.<span class="ident">find</span>(<span class="string">&#39;:&#39;</span>) {
-                    <span class="prelude-val">Some</span>(<span class="number">0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Some</span>(<span class="number">0</span>) =&gt; {
                         <span class="comment">// If buffer is the empty string, validation error, return failure.</span>
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::InvalidDomainCharacter</span>);
                     }
                     <span class="comment">// Let host be the result of host parsing buffer</span>
-                    <span class="prelude-val">Some</span>(<span class="ident">colon_index</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Some</span>(<span class="ident">colon_index</span>) =&gt; {
                         <span class="ident">host_substr</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">host</span>[..<span class="ident">colon_index</span>];
                     }
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {}
+                    <span class="prelude-val">None</span> =&gt; {}
                 }
             }
             <span class="kw">if</span> <span class="ident">SchemeType::from</span>(<span class="self">self</span>.<span class="ident">scheme</span>()).<span class="ident">is_special</span>() {
@@ -4709,11 +4709,11 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
             <span class="kw">let</span> <span class="ident">scheme_type</span> <span class="op">=</span> <span class="ident">SchemeType::from</span>(<span class="self">self</span>.<span class="ident">scheme</span>());
             <span class="kw">if</span> <span class="ident">scheme_type</span>.<span class="ident">is_special</span>() {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::EmptyHost</span>);
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">serialization</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">path_start</span> <span class="kw">as</span> <span class="ident">usize</span> {
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">serialization</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="self">self</span>.<span class="ident">path_start</span> <span class="kw">as</span> <span class="ident">usize</span> {
                 <span class="self">self</span>.<span class="ident">serialization</span>.<span class="ident">push</span>(<span class="string">&#39;/&#39;</span>);
             }
-            <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">byte_at</span>(<span class="self">self</span>.<span class="ident">scheme_end</span>) <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;:&#39;</span>);
-            <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">byte_at</span>(<span class="self">self</span>.<span class="ident">path_start</span>) <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;/&#39;</span>);
+            <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">byte_at</span>(<span class="self">self</span>.<span class="ident">scheme_end</span>) <span class="op">==</span> <span class="string">b&#39;:&#39;</span>);
+            <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">byte_at</span>(<span class="self">self</span>.<span class="ident">path_start</span>) <span class="op">==</span> <span class="string">b&#39;/&#39;</span>);
             <span class="kw">let</span> <span class="ident">new_path_start</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">scheme_end</span> <span class="op">+</span> <span class="number">1</span>;
             <span class="self">self</span>.<span class="ident">serialization</span>
                 .<span class="ident">drain</span>(<span class="ident">new_path_start</span> <span class="kw">as</span> <span class="ident">usize</span>..<span class="self">self</span>.<span class="ident">path_start</span> <span class="kw">as</span> <span class="ident">usize</span>);
@@ -4743,8 +4743,8 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
         <span class="kw">let</span> <span class="ident">suffix</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">slice</span>(<span class="ident">old_suffix_pos</span>..).<span class="ident">to_owned</span>();
         <span class="self">self</span>.<span class="ident">serialization</span>.<span class="ident">truncate</span>(<span class="self">self</span>.<span class="ident">host_start</span> <span class="kw">as</span> <span class="ident">usize</span>);
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">has_authority</span>() {
-            <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">slice</span>(<span class="self">self</span>.<span class="ident">scheme_end</span>..<span class="self">self</span>.<span class="ident">host_start</span>) <span class="op">=</span><span class="op">=</span> <span class="string">&quot;:&quot;</span>);
-            <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">username_end</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">host_start</span>);
+            <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">slice</span>(<span class="self">self</span>.<span class="ident">scheme_end</span>..<span class="self">self</span>.<span class="ident">host_start</span>) <span class="op">==</span> <span class="string">&quot;:&quot;</span>);
+            <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">username_end</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">host_start</span>);
             <span class="self">self</span>.<span class="ident">serialization</span>.<span class="ident">push</span>(<span class="string">&#39;/&#39;</span>);
             <span class="self">self</span>.<span class="ident">serialization</span>.<span class="ident">push</span>(<span class="string">&#39;/&#39;</span>);
             <span class="self">self</span>.<span class="ident">username_end</span> <span class="op">+</span><span class="op">=</span> <span class="number">2</span>;
@@ -4814,14 +4814,14 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::result_unit_err</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_ip_host</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">address</span>: <span class="ident">IpAddr</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_ip_host</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">address</span>: <span class="ident">IpAddr</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">cannot_be_a_base</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(());
         }
 
         <span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">address</span> {
-            <span class="ident">IpAddr::V4</span>(<span class="ident">address</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Host::Ipv4</span>(<span class="ident">address</span>),
-            <span class="ident">IpAddr::V6</span>(<span class="ident">address</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Host::Ipv6</span>(<span class="ident">address</span>),
+            <span class="ident">IpAddr::V4</span>(<span class="ident">address</span>) =&gt; <span class="ident">Host::Ipv4</span>(<span class="ident">address</span>),
+            <span class="ident">IpAddr::V6</span>(<span class="ident">address</span>) =&gt; <span class="ident">Host::Ipv6</span>(<span class="ident">address</span>),
         };
         <span class="self">self</span>.<span class="ident">set_host_internal</span>(<span class="ident">address</span>, <span class="prelude-val">None</span>);
         <span class="prelude-val">Ok</span>(())
@@ -4854,9 +4854,9 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">/// # run().unwrap();</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::result_unit_err</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_password</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">password</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_password</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">password</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
         <span class="comment">// has_host implies !cannot_be_a_base</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">has_host</span>() <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">host</span>() <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Host::Domain</span>(<span class="string">&quot;&quot;</span>)) <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">scheme</span>() <span class="op">=</span><span class="op">=</span> <span class="string">&quot;file&quot;</span> {
+        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">has_host</span>() <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">host</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">Host::Domain</span>(<span class="string">&quot;&quot;</span>)) <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">scheme</span>() <span class="op">==</span> <span class="string">&quot;file&quot;</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(());
         }
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">password</span>) <span class="op">=</span> <span class="ident">password</span> {
@@ -4884,12 +4884,12 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
             }
 
             <span class="self">self</span>.<span class="ident">serialization</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">host_and_after</span>);
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">byte_at</span>(<span class="self">self</span>.<span class="ident">username_end</span>) <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;:&#39;</span> {
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">byte_at</span>(<span class="self">self</span>.<span class="ident">username_end</span>) <span class="op">==</span> <span class="string">b&#39;:&#39;</span> {
             <span class="comment">// If there is a password to remove</span>
-            <span class="kw">let</span> <span class="ident">has_username_or_password</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">byte_at</span>(<span class="self">self</span>.<span class="ident">host_start</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;@&#39;</span>;
+            <span class="kw">let</span> <span class="ident">has_username_or_password</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">byte_at</span>(<span class="self">self</span>.<span class="ident">host_start</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">==</span> <span class="string">b&#39;@&#39;</span>;
             <span class="macro">debug_assert!</span>(<span class="ident">has_username_or_password</span>);
             <span class="kw">let</span> <span class="ident">username_start</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">scheme_end</span> <span class="op">+</span> <span class="number">3</span>;
-            <span class="kw">let</span> <span class="ident">empty_username</span> <span class="op">=</span> <span class="ident">username_start</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">username_end</span>;
+            <span class="kw">let</span> <span class="ident">empty_username</span> <span class="op">=</span> <span class="ident">username_start</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">username_end</span>;
             <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">username_end</span>; <span class="comment">// Remove the &#39;:&#39;</span>
             <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">empty_username</span> {
                 <span class="self">self</span>.<span class="ident">host_start</span> <span class="comment">// Remove the &#39;@&#39; as well</span>
@@ -4947,14 +4947,14 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">/// # run().unwrap();</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::result_unit_err</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_username</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">username</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_username</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">username</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
         <span class="comment">// has_host implies !cannot_be_a_base</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">has_host</span>() <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">host</span>() <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Host::Domain</span>(<span class="string">&quot;&quot;</span>)) <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">scheme</span>() <span class="op">=</span><span class="op">=</span> <span class="string">&quot;file&quot;</span> {
+        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">has_host</span>() <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">host</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">Host::Domain</span>(<span class="string">&quot;&quot;</span>)) <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">scheme</span>() <span class="op">==</span> <span class="string">&quot;file&quot;</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(());
         }
         <span class="kw">let</span> <span class="ident">username_start</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">scheme_end</span> <span class="op">+</span> <span class="number">3</span>;
-        <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">slice</span>(<span class="self">self</span>.<span class="ident">scheme_end</span>..<span class="ident">username_start</span>) <span class="op">=</span><span class="op">=</span> <span class="string">&quot;://&quot;</span>);
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">slice</span>(<span class="ident">username_start</span>..<span class="self">self</span>.<span class="ident">username_end</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">username</span> {
+        <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">slice</span>(<span class="self">self</span>.<span class="ident">scheme_end</span>..<span class="ident">username_start</span>) <span class="op">==</span> <span class="string">&quot;://&quot;</span>);
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">slice</span>(<span class="ident">username_start</span>..<span class="self">self</span>.<span class="ident">username_end</span>) <span class="op">==</span> <span class="ident">username</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
         }
         <span class="kw">let</span> <span class="ident">after_username</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">slice</span>(<span class="self">self</span>.<span class="ident">username_end</span>..).<span class="ident">to_owned</span>();
@@ -4966,16 +4966,16 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
         <span class="self">self</span>.<span class="ident">username_end</span> <span class="op">=</span> <span class="ident">to_u32</span>(<span class="self">self</span>.<span class="ident">serialization</span>.<span class="ident">len</span>()).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">added_bytes</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">username_end</span>;
 
-        <span class="kw">let</span> <span class="ident">new_username_is_empty</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">username_end</span> <span class="op">=</span><span class="op">=</span> <span class="ident">username_start</span>;
+        <span class="kw">let</span> <span class="ident">new_username_is_empty</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">username_end</span> <span class="op">==</span> <span class="ident">username_start</span>;
         <span class="kw">match</span> (<span class="ident">new_username_is_empty</span>, <span class="ident">after_username</span>.<span class="ident">chars</span>().<span class="ident">next</span>()) {
-            (<span class="bool-val">true</span>, <span class="prelude-val">Some</span>(<span class="string">&#39;@&#39;</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            (<span class="bool-val">true</span>, <span class="prelude-val">Some</span>(<span class="string">&#39;@&#39;</span>)) =&gt; {
                 <span class="ident">removed_bytes</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 <span class="self">self</span>.<span class="ident">serialization</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">after_username</span>[<span class="number">1</span>..]);
             }
-            (<span class="bool-val">false</span>, <span class="prelude-val">Some</span>(<span class="string">&#39;@&#39;</span>)) <span class="op">|</span> (<span class="kw">_</span>, <span class="prelude-val">Some</span>(<span class="string">&#39;:&#39;</span>)) <span class="op">|</span> (<span class="bool-val">true</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            (<span class="bool-val">false</span>, <span class="prelude-val">Some</span>(<span class="string">&#39;@&#39;</span>)) <span class="op">|</span> (<span class="kw">_</span>, <span class="prelude-val">Some</span>(<span class="string">&#39;:&#39;</span>)) <span class="op">|</span> (<span class="bool-val">true</span>, <span class="kw">_</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">serialization</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">after_username</span>);
             }
-            (<span class="bool-val">false</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            (<span class="bool-val">false</span>, <span class="kw">_</span>) =&gt; {
                 <span class="ident">added_bytes</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 <span class="self">self</span>.<span class="ident">serialization</span>.<span class="ident">push</span>(<span class="string">&#39;@&#39;</span>);
                 <span class="self">self</span>.<span class="ident">serialization</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">after_username</span>);
@@ -5109,7 +5109,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">/// # run().unwrap();</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::result_unit_err</span>, <span class="ident">clippy::suspicious_operation_groupings</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_scheme</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">scheme</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_scheme</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">scheme</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parser</span> <span class="op">=</span> <span class="ident">Parser::for_setter</span>(<span class="ident">String::new</span>());
         <span class="kw">let</span> <span class="ident">remaining</span> <span class="op">=</span> <span class="ident">parser</span>.<span class="ident">parse_scheme</span>(<span class="ident">parser::Input::new</span>(<span class="ident">scheme</span>))<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">new_scheme_type</span> <span class="op">=</span> <span class="ident">SchemeType::from</span>(<span class="kw-2">&amp;</span><span class="ident">parser</span>.<span class="ident">serialization</span>);
@@ -5189,7 +5189,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">unix</span>, <span class="ident">windows</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::result_unit_err</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_file_path</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Url</span>, ()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_file_path</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Url</span>, ()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">serialization</span> <span class="op">=</span> <span class="string">&quot;file://&quot;</span>.<span class="ident">to_owned</span>();
         <span class="kw">let</span> <span class="ident">host_start</span> <span class="op">=</span> <span class="ident">serialization</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="kw">let</span> (<span class="ident">host_end</span>, <span class="ident">host</span>) <span class="op">=</span> <span class="ident">path_to_file_url_segments</span>(<span class="ident">path</span>.<span class="ident">as_ref</span>(), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">serialization</span>)<span class="question-mark">?</span>;
@@ -5226,7 +5226,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">/// and usually does not include them (e.g. in `Path::parent()`).</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">unix</span>, <span class="ident">windows</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::result_unit_err</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_directory_path</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Url</span>, ()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_directory_path</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Url</span>, ()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">Url::from_file_path</span>(<span class="ident">path</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="op">!</span><span class="ident">url</span>.<span class="ident">serialization</span>.<span class="ident">ends_with</span>(<span class="string">&#39;/&#39;</span>) {
             <span class="ident">url</span>.<span class="ident">serialization</span>.<span class="ident">push</span>(<span class="string">&#39;/&#39;</span>)
@@ -5242,7 +5242,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">/// This method is only available if the `serde` Cargo feature is enabled.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">deny</span>(<span class="ident">unused</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">serialize_internal</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S::Ok</span>, <span class="ident">S::Error</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">serialize_internal</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S::Ok</span>, <span class="ident">S::Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">S</span>: <span class="ident">serde::Serializer</span>,
     {
@@ -5284,7 +5284,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="doccomment">/// This method is only available if the `serde` Cargo feature is enabled.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">deny</span>(<span class="ident">unused</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">deserialize_internal</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">D::Error</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">deserialize_internal</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">D::Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">D</span>: <span class="ident">serde::Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
@@ -5343,14 +5343,14 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">unix</span>, <span class="ident">windows</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::result_unit_err</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_file_path</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PathBuf</span>, ()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_file_path</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PathBuf</span>, ()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">segments</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">path_segments</span>() {
             <span class="kw">let</span> <span class="ident">host</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">host</span>() {
-                <span class="prelude-val">None</span> <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">Host::Domain</span>(<span class="string">&quot;localhost&quot;</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-                <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">windows</span>) <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">scheme</span>() <span class="op">=</span><span class="op">=</span> <span class="string">&quot;file&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">None</span> <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">Host::Domain</span>(<span class="string">&quot;localhost&quot;</span>)) =&gt; <span class="prelude-val">None</span>,
+                <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">windows</span>) <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">scheme</span>() <span class="op">==</span> <span class="string">&quot;file&quot;</span> =&gt; {
                     <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">serialization</span>[<span class="self">self</span>.<span class="ident">host_start</span> <span class="kw">as</span> <span class="ident">usize</span>..<span class="self">self</span>.<span class="ident">host_end</span> <span class="kw">as</span> <span class="ident">usize</span>])
                 }
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(()),
+                <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(()),
             };
 
             <span class="kw">return</span> <span class="ident">file_url_segments_to_pathbuf</span>(<span class="ident">host</span>, <span class="ident">segments</span>);
@@ -5361,7 +5361,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="comment">// Private helper methods:</span>
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">slice</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">range</span>: <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span>
+    <span class="kw">fn</span> <span class="ident">slice</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">range</span>: <span class="ident">R</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span>
     <span class="kw">where</span>
         <span class="ident">R</span>: <span class="ident">RangeArg</span>,
     {
@@ -5369,7 +5369,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">byte_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">i</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span> {
+    <span class="kw">fn</span> <span class="ident">byte_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">i</span>: <span class="ident">u32</span>) -&gt; <span class="ident">u8</span> {
         <span class="self">self</span>.<span class="ident">serialization</span>.<span class="ident">as_bytes</span>()[<span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>]
     }
 }
@@ -5379,7 +5379,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">ParseError</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Url</span>, <span class="ident"><span class="kw">crate</span>::ParseError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Url</span>, <span class="ident"><span class="kw">crate</span>::ParseError</span><span class="op">&gt;</span> {
         <span class="ident">Url::parse</span>(<span class="ident">input</span>)
     }
 }
@@ -5387,7 +5387,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Url</span> {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">ParseError</span>;
 
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
         <span class="ident">Url::parse</span>(<span class="ident">s</span>)
     }
 }
@@ -5395,14 +5395,14 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
 <span class="doccomment">/// Display the serialization of this URL.</span>
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Url</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="ident">fmt::Display::fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">serialization</span>, <span class="ident">formatter</span>)
     }
 }
 
 <span class="doccomment">/// String converstion.</span>
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Url</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">String</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">Url</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">Url</span>) -&gt; <span class="ident">String</span> {
         <span class="ident">value</span>.<span class="ident">serialization</span>
     }
 }
@@ -5410,7 +5410,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
 <span class="doccomment">/// Debug the serialization of this URL.</span>
 <span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Url</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="ident">formatter</span>
             .<span class="ident">debug_struct</span>(<span class="string">&quot;Url&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;scheme&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">scheme</span>())
@@ -5432,15 +5432,15 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
 <span class="doccomment">/// URLs compare like their serialization.</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">Url</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">serialization</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">serialization</span>
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">serialization</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">serialization</span>
     }
 }
 
 <span class="doccomment">/// URLs compare like their serialization.</span>
 <span class="kw">impl</span> <span class="ident">Ord</span> <span class="kw">for</span> <span class="ident">Url</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">cmp::Ordering</span> {
+    <span class="kw">fn</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">cmp::Ordering</span> {
         <span class="self">self</span>.<span class="ident">serialization</span>.<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="ident">serialization</span>)
     }
 }
@@ -5448,7 +5448,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
 <span class="doccomment">/// URLs compare like their serialization.</span>
 <span class="kw">impl</span> <span class="ident">PartialOrd</span> <span class="kw">for</span> <span class="ident">Url</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">cmp::Ordering</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">cmp::Ordering</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">serialization</span>.<span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="ident">serialization</span>)
     }
 }
@@ -5467,32 +5467,32 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
 <span class="doccomment">/// Return the serialization of this URL.</span>
 <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Url</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">serialization</span>
     }
 }
 
 <span class="kw">trait</span> <span class="ident">RangeArg</span> {
-    <span class="kw">fn</span> <span class="ident">slice_of</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>;
+    <span class="kw">fn</span> <span class="ident">slice_of</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">RangeArg</span> <span class="kw">for</span> <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">slice_of</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span> {
+    <span class="kw">fn</span> <span class="ident">slice_of</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span> {
         <span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="self">self</span>.<span class="ident">start</span> <span class="kw">as</span> <span class="ident">usize</span>..<span class="self">self</span>.<span class="ident">end</span> <span class="kw">as</span> <span class="ident">usize</span>]
     }
 }
 
 <span class="kw">impl</span> <span class="ident">RangeArg</span> <span class="kw">for</span> <span class="ident">RangeFrom</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">slice_of</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span> {
+    <span class="kw">fn</span> <span class="ident">slice_of</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span> {
         <span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="self">self</span>.<span class="ident">start</span> <span class="kw">as</span> <span class="ident">usize</span>..]
     }
 }
 
 <span class="kw">impl</span> <span class="ident">RangeArg</span> <span class="kw">for</span> <span class="ident">RangeTo</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">slice_of</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span> {
+    <span class="kw">fn</span> <span class="ident">slice_of</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span> {
         <span class="kw-2">&amp;</span><span class="ident">s</span>[..<span class="self">self</span>.<span class="ident">end</span> <span class="kw">as</span> <span class="ident">usize</span>]
     }
 }
@@ -5502,7 +5502,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
 <span class="doccomment">/// This implementation is only available if the `serde` Cargo feature is enabled.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>)]</span>
 <span class="kw">impl</span> <span class="ident">serde::Serialize</span> <span class="kw">for</span> <span class="ident">Url</span> {
-    <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S::Ok</span>, <span class="ident">S::Error</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S::Ok</span>, <span class="ident">S::Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">S</span>: <span class="ident">serde::Serializer</span>,
     {
@@ -5515,7 +5515,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
 <span class="doccomment">/// This implementation is only available if the `serde` Cargo feature is enabled.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>)]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">serde::Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Url</span> {
-    <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Url</span>, <span class="ident">D::Error</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Url</span>, <span class="ident">D::Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">D</span>: <span class="ident">serde::Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
@@ -5526,11 +5526,11 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
         <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">UrlVisitor</span> {
             <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> <span class="ident">Url</span>;
 
-            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
                 <span class="ident">formatter</span>.<span class="ident">write_str</span>(<span class="string">&quot;a string representing an URL&quot;</span>)
             }
 
-            <span class="kw">fn</span> <span class="ident">visit_str</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Value</span>, <span class="ident">E</span><span class="op">&gt;</span>
+            <span class="kw">fn</span> <span class="ident">visit_str</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Value</span>, <span class="ident">E</span><span class="op">&gt;</span>
             <span class="kw">where</span>
                 <span class="ident">E</span>: <span class="ident">Error</span>,
             {
@@ -5549,7 +5549,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
 <span class="kw">fn</span> <span class="ident">path_to_file_url_segments</span>(
     <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
     <span class="ident">serialization</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">String</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">u32</span>, <span class="ident">HostInternal</span>), ()<span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">u32</span>, <span class="ident">HostInternal</span>), ()<span class="op">&gt;</span> {
     <span class="kw">use</span> <span class="ident">std::os::unix::prelude::OsStrExt</span>;
     <span class="kw">if</span> <span class="op">!</span><span class="ident">path</span>.<span class="ident">is_absolute</span>() {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(());
@@ -5576,7 +5576,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
 <span class="kw">fn</span> <span class="ident">path_to_file_url_segments</span>(
     <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
     <span class="ident">serialization</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">String</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">u32</span>, <span class="ident">HostInternal</span>), ()<span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">u32</span>, <span class="ident">HostInternal</span>), ()<span class="op">&gt;</span> {
     <span class="ident">path_to_file_url_segments_windows</span>(<span class="ident">path</span>, <span class="ident">serialization</span>)
 }
 
@@ -5585,7 +5585,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
 <span class="kw">fn</span> <span class="ident">path_to_file_url_segments_windows</span>(
     <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
     <span class="ident">serialization</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">String</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">u32</span>, <span class="ident">HostInternal</span>), ()<span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">u32</span>, <span class="ident">HostInternal</span>), ()<span class="op">&gt;</span> {
     <span class="kw">use</span> <span class="ident">std::path</span>::{<span class="ident">Component</span>, <span class="ident">Prefix</span>};
     <span class="kw">if</span> <span class="op">!</span><span class="ident">path</span>.<span class="ident">is_absolute</span>() {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(());
@@ -5596,15 +5596,15 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
     <span class="kw">let</span> <span class="ident">host_end</span>;
     <span class="kw">let</span> <span class="ident">host_internal</span>;
     <span class="kw">match</span> <span class="ident">components</span>.<span class="ident">next</span>() {
-        <span class="prelude-val">Some</span>(<span class="ident">Component::Prefix</span>(<span class="kw-2">ref</span> <span class="ident">p</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">p</span>.<span class="ident">kind</span>() {
-            <span class="ident">Prefix::Disk</span>(<span class="ident">letter</span>) <span class="op">|</span> <span class="ident">Prefix::VerbatimDisk</span>(<span class="ident">letter</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Some</span>(<span class="ident">Component::Prefix</span>(<span class="kw-2">ref</span> <span class="ident">p</span>)) =&gt; <span class="kw">match</span> <span class="ident">p</span>.<span class="ident">kind</span>() {
+            <span class="ident">Prefix::Disk</span>(<span class="ident">letter</span>) <span class="op">|</span> <span class="ident">Prefix::VerbatimDisk</span>(<span class="ident">letter</span>) =&gt; {
                 <span class="ident">host_end</span> <span class="op">=</span> <span class="ident">to_u32</span>(<span class="ident">serialization</span>.<span class="ident">len</span>()).<span class="ident">unwrap</span>();
                 <span class="ident">host_internal</span> <span class="op">=</span> <span class="ident">HostInternal::None</span>;
                 <span class="ident">serialization</span>.<span class="ident">push</span>(<span class="string">&#39;/&#39;</span>);
                 <span class="ident">serialization</span>.<span class="ident">push</span>(<span class="ident">letter</span> <span class="kw">as</span> <span class="ident">char</span>);
                 <span class="ident">serialization</span>.<span class="ident">push</span>(<span class="string">&#39;:&#39;</span>);
             }
-            <span class="ident">Prefix::UNC</span>(<span class="ident">server</span>, <span class="ident">share</span>) <span class="op">|</span> <span class="ident">Prefix::VerbatimUNC</span>(<span class="ident">server</span>, <span class="ident">share</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Prefix::UNC</span>(<span class="ident">server</span>, <span class="ident">share</span>) <span class="op">|</span> <span class="ident">Prefix::VerbatimUNC</span>(<span class="ident">server</span>, <span class="ident">share</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">host</span> <span class="op">=</span> <span class="ident">Host::parse</span>(<span class="ident">server</span>.<span class="ident">to_str</span>().<span class="ident">ok_or</span>(())<span class="question-mark">?</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())<span class="question-mark">?</span>;
                 <span class="macro">write!</span>(<span class="ident">serialization</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">host</span>).<span class="ident">unwrap</span>();
                 <span class="ident">host_end</span> <span class="op">=</span> <span class="ident">to_u32</span>(<span class="ident">serialization</span>.<span class="ident">len</span>()).<span class="ident">unwrap</span>();
@@ -5613,15 +5613,15 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
                 <span class="kw">let</span> <span class="ident">share</span> <span class="op">=</span> <span class="ident">share</span>.<span class="ident">to_str</span>().<span class="ident">ok_or</span>(())<span class="question-mark">?</span>;
                 <span class="ident">serialization</span>.<span class="ident">extend</span>(<span class="ident">percent_encode</span>(<span class="ident">share</span>.<span class="ident">as_bytes</span>(), <span class="ident">PATH_SEGMENT</span>));
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(()),
+            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(()),
         },
 
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(()),
+        <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(()),
     }
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">path_only_has_prefix</span> <span class="op">=</span> <span class="bool-val">true</span>;
     <span class="kw">for</span> <span class="ident">component</span> <span class="kw">in</span> <span class="ident">components</span> {
-        <span class="kw">if</span> <span class="ident">component</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Component::RootDir</span> {
+        <span class="kw">if</span> <span class="ident">component</span> <span class="op">==</span> <span class="ident">Component::RootDir</span> {
             <span class="kw">continue</span>;
         }
         <span class="ident">path_only_has_prefix</span> <span class="op">=</span> <span class="bool-val">false</span>;
@@ -5644,7 +5644,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
 <span class="kw">fn</span> <span class="ident">file_url_segments_to_pathbuf</span>(
     <span class="ident">host</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>,
     <span class="ident">segments</span>: <span class="ident">str::Split</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">char</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PathBuf</span>, ()<span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PathBuf</span>, ()<span class="op">&gt;</span> {
     <span class="kw">use</span> <span class="ident">std::ffi::OsStr</span>;
     <span class="kw">use</span> <span class="ident">std::os::unix::prelude::OsStrExt</span>;
 
@@ -5681,7 +5681,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
 <span class="kw">fn</span> <span class="ident">file_url_segments_to_pathbuf</span>(
     <span class="ident">host</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>,
     <span class="ident">segments</span>: <span class="ident">str::Split</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PathBuf</span>, ()<span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PathBuf</span>, ()<span class="op">&gt;</span> {
     <span class="ident">file_url_segments_to_pathbuf_windows</span>(<span class="ident">host</span>, <span class="ident">segments</span>)
 }
 
@@ -5690,14 +5690,14 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
 <span class="kw">fn</span> <span class="ident">file_url_segments_to_pathbuf_windows</span>(
     <span class="ident">host</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>,
     <span class="kw-2">mut</span> <span class="ident">segments</span>: <span class="ident">str::Split</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">char</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PathBuf</span>, ()<span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PathBuf</span>, ()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">string</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">host</span>) <span class="op">=</span> <span class="ident">host</span> {
         <span class="string">r&quot;\\&quot;</span>.<span class="ident">to_owned</span>() <span class="op">+</span> <span class="ident">host</span>
     } <span class="kw">else</span> {
         <span class="kw">let</span> <span class="ident">first</span> <span class="op">=</span> <span class="ident">segments</span>.<span class="ident">next</span>().<span class="ident">ok_or</span>(())<span class="question-mark">?</span>;
 
         <span class="kw">match</span> <span class="ident">first</span>.<span class="ident">len</span>() {
-            <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="number">2</span> =&gt; {
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">first</span>.<span class="ident">starts_with</span>(<span class="ident">parser::ascii_alpha</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">first</span>.<span class="ident">as_bytes</span>()[<span class="number">1</span>] <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;:&#39;</span> {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(());
                 }
@@ -5705,7 +5705,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
                 <span class="ident">first</span>.<span class="ident">to_owned</span>()
             }
 
-            <span class="number">4</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="number">4</span> =&gt; {
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">first</span>.<span class="ident">starts_with</span>(<span class="ident">parser::ascii_alpha</span>) {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(());
                 }
@@ -5717,7 +5717,7 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
                 <span class="ident">first</span>[<span class="number">0</span>..<span class="number">1</span>].<span class="ident">to_owned</span>() <span class="op">+</span> <span class="string">&quot;:&quot;</span>
             }
 
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(()),
+            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(()),
         }
     };
 
@@ -5726,8 +5726,8 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
 
         <span class="comment">// Currently non-unicode windows paths cannot be represented</span>
         <span class="kw">match</span> <span class="ident">String::from_utf8</span>(<span class="ident">percent_decode</span>(<span class="ident">segment</span>.<span class="ident">as_bytes</span>()).<span class="ident">collect</span>()) {
-            <span class="prelude-val">Ok</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">string</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>),
-            <span class="prelude-val">Err</span>(..) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(()),
+            <span class="prelude-val">Ok</span>(<span class="ident">s</span>) =&gt; <span class="ident">string</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>),
+            <span class="prelude-val">Err</span>(..) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(()),
         }
     }
     <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">PathBuf::from</span>(<span class="ident">string</span>);
@@ -5756,11 +5756,11 @@ url = { version = &quot;2&quot;, features = [&quot;serde&quot;] }
 <span class="comment">// * `Serializer` keeps its target in a private field</span>
 <span class="comment">// * Unlike in other `Target` impls, `UrlQuery::finished` does not return `Self`.</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">form_urlencoded::Target</span> <span class="kw">for</span> <span class="ident">UrlQuery</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">as_mut_string</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">String</span> {
+    <span class="kw">fn</span> <span class="ident">as_mut_string</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">String</span> {
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">url</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">serialization</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">finish</span>(<span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Url</span> {
+    <span class="kw">fn</span> <span class="ident">finish</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Url</span> {
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">url</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>();
         <span class="ident">url</span>.<span class="ident">restore_already_parsed_fragment</span>(<span class="self">self</span>.<span class="ident">fragment</span>.<span class="ident">take</span>());
         <span class="ident">url</span>

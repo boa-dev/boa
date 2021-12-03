@@ -505,7 +505,7 @@
 
 <span class="comment">// Creates a usage string for display. This happens just after all arguments were parsed, but before</span>
 <span class="comment">// any subcommands have been parsed (so as to give subcommands their own usage recursively)</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_usage_with_title</span>(<span class="ident">p</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>, <span class="ident">used</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_usage_with_title</span>(<span class="ident">p</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>, <span class="ident">used</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>]) -&gt; <span class="ident">String</span> {
     <span class="macro">debugln!</span>(<span class="string">&quot;usage::create_usage_with_title;&quot;</span>);
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">usage</span> <span class="op">=</span> <span class="ident">String::with_capacity</span>(<span class="number">75</span>);
     <span class="ident">usage</span>.<span class="ident">push_str</span>(<span class="string">&quot;USAGE:\n    &quot;</span>);
@@ -518,7 +518,7 @@
     <span class="ident">p</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
     <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">ArgMatcher</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
     <span class="ident">extra</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+) -&gt; <span class="ident">String</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">matcher</span>
         .<span class="ident">arg_names</span>()
         .<span class="ident">iter</span>()
@@ -540,7 +540,7 @@
 }
 
 <span class="comment">// Creates a usage string (*without title*) if one was not provided by the user manually.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_usage_no_title</span>(<span class="ident">p</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>, <span class="ident">used</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_usage_no_title</span>(<span class="ident">p</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>, <span class="ident">used</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>]) -&gt; <span class="ident">String</span> {
     <span class="macro">debugln!</span>(<span class="string">&quot;usage::create_usage_no_title;&quot;</span>);
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">u</span>) <span class="op">=</span> <span class="ident">p</span>.<span class="ident">meta</span>.<span class="ident">usage_str</span> {
         <span class="ident">String::from</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">u</span>)
@@ -552,7 +552,7 @@
 }
 
 <span class="comment">// Creates a usage string for display in help messages (i.e. not for errors)</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_help_usage</span>(<span class="ident">p</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>, <span class="ident">incl_reqs</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_help_usage</span>(<span class="ident">p</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>, <span class="ident">incl_reqs</span>: <span class="ident">bool</span>) -&gt; <span class="ident">String</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">usage</span> <span class="op">=</span> <span class="ident">String::with_capacity</span>(<span class="number">75</span>);
     <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">p</span>
         .<span class="ident">meta</span>
@@ -662,7 +662,7 @@
 
 <span class="comment">// Creates a context aware usage string, or &quot;smart usage&quot; from currently used</span>
 <span class="comment">// args, and requirements</span>
-<span class="kw">fn</span> <span class="ident">create_smart_usage</span>(<span class="ident">p</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>, <span class="ident">used</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+<span class="kw">fn</span> <span class="ident">create_smart_usage</span>(<span class="ident">p</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>, <span class="ident">used</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>]) -&gt; <span class="ident">String</span> {
     <span class="macro">debugln!</span>(<span class="string">&quot;usage::smart_usage;&quot;</span>);
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">usage</span> <span class="op">=</span> <span class="ident">String::with_capacity</span>(<span class="number">75</span>);
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">p</span>.<span class="ident">required</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">s</span>).<span class="ident">collect</span>();
@@ -687,7 +687,7 @@
 }
 
 <span class="comment">// Gets the `[ARGS]` tag for the usage string</span>
-<span class="kw">fn</span> <span class="ident">get_args_tag</span>(<span class="ident">p</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>, <span class="ident">incl_reqs</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">get_args_tag</span>(<span class="ident">p</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>, <span class="ident">incl_reqs</span>: <span class="ident">bool</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
     <span class="macro">debugln!</span>(<span class="string">&quot;usage::get_args_tag;&quot;</span>);
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">count</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="lifetime">&#39;outer</span>: <span class="kw">for</span> <span class="ident">pos</span> <span class="kw">in</span> <span class="ident">p</span>
@@ -702,7 +702,7 @@
             <span class="kw">for</span> <span class="ident">grp_s</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">g_vec</span> {
                 <span class="macro">debugln!</span>(<span class="string">&quot;usage::get_args_tag:iter:{}:iter:{};&quot;</span>, <span class="ident">pos</span>.<span class="ident">b</span>.<span class="ident">name</span>, <span class="ident">grp_s</span>);
                 <span class="comment">// if it&#39;s part of a required group we don&#39;t want to count it</span>
-                <span class="kw">if</span> <span class="ident">p</span>.<span class="ident">groups</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">g</span><span class="op">|</span> <span class="ident">g</span>.<span class="ident">required</span> <span class="op">&amp;&amp;</span> (<span class="kw-2">&amp;</span><span class="ident">g</span>.<span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="ident">grp_s</span>)) {
+                <span class="kw">if</span> <span class="ident">p</span>.<span class="ident">groups</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">g</span><span class="op">|</span> <span class="ident">g</span>.<span class="ident">required</span> <span class="op">&amp;&amp;</span> (<span class="kw-2">&amp;</span><span class="ident">g</span>.<span class="ident">name</span> <span class="op">==</span> <span class="ident">grp_s</span>)) {
                     <span class="kw">continue</span> <span class="lifetime">&#39;outer</span>;
                 }
             }
@@ -716,7 +716,7 @@
     <span class="kw">if</span> <span class="op">!</span><span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">AS::DontCollapseArgsInUsage</span>) <span class="op">&amp;&amp;</span> <span class="ident">count</span> <span class="op">&gt;</span> <span class="number">1</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;usage::get_args_tag:iter: More than one, returning [ARGS]&quot;</span>);
         <span class="kw">return</span> <span class="prelude-val">None</span>; <span class="comment">// [ARGS]</span>
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">count</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span> <span class="op">&amp;&amp;</span> <span class="ident">incl_reqs</span> {
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">count</span> <span class="op">==</span> <span class="number">1</span> <span class="op">&amp;&amp;</span> <span class="ident">incl_reqs</span> {
         <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">p</span>
             .<span class="ident">positionals</span>
             .<span class="ident">values</span>()
@@ -783,12 +783,12 @@
 }
 
 <span class="comment">// Determines if we need the `[FLAGS]` tag in the usage string</span>
-<span class="kw">fn</span> <span class="ident">needs_flags_tag</span>(<span class="ident">p</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">fn</span> <span class="ident">needs_flags_tag</span>(<span class="ident">p</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>) -&gt; <span class="ident">bool</span> {
     <span class="macro">debugln!</span>(<span class="string">&quot;usage::needs_flags_tag;&quot;</span>);
     <span class="lifetime">&#39;outer</span>: <span class="kw">for</span> <span class="ident">f</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">p</span>.<span class="ident">flags</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;usage::needs_flags_tag:iter: f={};&quot;</span>, <span class="ident">f</span>.<span class="ident">b</span>.<span class="ident">name</span>);
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">l</span>) <span class="op">=</span> <span class="ident">f</span>.<span class="ident">s</span>.<span class="ident">long</span> {
-            <span class="kw">if</span> <span class="ident">l</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;help&quot;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">l</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;version&quot;</span> {
+            <span class="kw">if</span> <span class="ident">l</span> <span class="op">==</span> <span class="string">&quot;help&quot;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">l</span> <span class="op">==</span> <span class="string">&quot;version&quot;</span> {
                 <span class="comment">// Don&#39;t print `[FLAGS]` just for help or version</span>
                 <span class="kw">continue</span>;
             }
@@ -796,7 +796,7 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">g_vec</span>) <span class="op">=</span> <span class="ident">p</span>.<span class="ident">groups_for_arg</span>(<span class="ident">f</span>.<span class="ident">b</span>.<span class="ident">name</span>) {
             <span class="kw">for</span> <span class="ident">grp_s</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">g_vec</span> {
                 <span class="macro">debugln!</span>(<span class="string">&quot;usage::needs_flags_tag:iter:iter: grp_s={};&quot;</span>, <span class="ident">grp_s</span>);
-                <span class="kw">if</span> <span class="ident">p</span>.<span class="ident">groups</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">g</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">g</span>.<span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="ident">grp_s</span> <span class="op">&amp;&amp;</span> <span class="ident">g</span>.<span class="ident">required</span>) {
+                <span class="kw">if</span> <span class="ident">p</span>.<span class="ident">groups</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">g</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">g</span>.<span class="ident">name</span> <span class="op">==</span> <span class="ident">grp_s</span> <span class="op">&amp;&amp;</span> <span class="ident">g</span>.<span class="ident">required</span>) {
                     <span class="macro">debugln!</span>(<span class="string">&quot;usage::needs_flags_tag:iter:iter: Group is required&quot;</span>);
                     <span class="kw">continue</span> <span class="lifetime">&#39;outer</span>;
                 }
@@ -820,7 +820,7 @@
     <span class="ident">matcher</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">ArgMatcher</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">extra</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>,
     <span class="ident">incl_last</span>: <span class="ident">bool</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
+) -&gt; <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
     <span class="macro">debugln!</span>(
         <span class="string">&quot;usage::get_required_usage_from: reqs={:?}, extra={:?}&quot;</span>,
         <span class="ident">reqs</span>,
@@ -830,12 +830,12 @@
     <span class="ident">desc_reqs</span>.<span class="ident">extend</span>(<span class="ident">extra</span>);
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_reqs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
     <span class="macro">macro_rules!</span> <span class="ident">get_requires</span> {
-        (@<span class="ident">group</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>: <span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">p</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {{
+        (@<span class="ident">group</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>: <span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">p</span>:<span class="ident">ident</span>) =&gt; {{
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">rl</span>) <span class="op">=</span> <span class="ident">p</span>
                 .<span class="ident">groups</span>
                 .<span class="ident">iter</span>()
                 .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">g</span><span class="op">|</span> <span class="ident">g</span>.<span class="ident">requires</span>.<span class="ident">is_some</span>())
-                .<span class="ident">find</span>(<span class="op">|</span><span class="ident">g</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">g</span>.<span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>)
+                .<span class="ident">find</span>(<span class="op">|</span><span class="ident">g</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">g</span>.<span class="ident">name</span> <span class="op">==</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>)
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">g</span><span class="op">|</span> <span class="ident">g</span>.<span class="ident">requires</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>())
             {
                 <span class="kw">for</span> <span class="ident">r</span> <span class="kw">in</span> <span class="ident">rl</span> {
@@ -850,12 +850,12 @@
                 }
             }
         }};
-        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">what</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">how</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">p</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {{
+        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">what</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">how</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">p</span>:<span class="ident">ident</span>) =&gt; {{
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">rl</span>) <span class="op">=</span> <span class="ident">p</span>
                 .<span class="macro-nonterminal">$</span><span class="macro-nonterminal">what</span>
                 .<span class="macro-nonterminal">$</span><span class="macro-nonterminal">how</span>()
                 .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">a</span>.<span class="ident">b</span>.<span class="ident">requires</span>.<span class="ident">is_some</span>())
-                .<span class="ident">find</span>(<span class="op">|</span><span class="ident">arg</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">arg</span>.<span class="ident">b</span>.<span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>)
+                .<span class="ident">find</span>(<span class="op">|</span><span class="ident">arg</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">arg</span>.<span class="ident">b</span>.<span class="ident">name</span> <span class="op">==</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>)
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">a</span>.<span class="ident">b</span>.<span class="ident">requires</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>())
             {
                 <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="kw">_</span>, <span class="ident">r</span>) <span class="kw">in</span> <span class="ident">rl</span>.<span class="ident">iter</span>() {
@@ -927,9 +927,9 @@
     <span class="kw">let</span> <span class="ident">pmap</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">m</span>) <span class="op">=</span> <span class="ident">matcher</span> {
         <span class="ident">desc_reqs</span>
             .<span class="ident">iter</span>()
-            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">positionals</span>.<span class="ident">values</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="op">&amp;&amp;</span><span class="ident">p</span>.<span class="ident">b</span>.<span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="ident">a</span>))
+            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">positionals</span>.<span class="ident">values</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="op">&amp;&amp;</span><span class="ident">p</span>.<span class="ident">b</span>.<span class="ident">name</span> <span class="op">==</span> <span class="ident">a</span>))
             .<span class="ident">filter</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">pos</span><span class="op">|</span> <span class="op">!</span><span class="ident">m</span>.<span class="ident">contains</span>(<span class="ident">pos</span>))
-            .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">positionals</span>.<span class="ident">values</span>().<span class="ident">find</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">x</span>.<span class="ident">b</span>.<span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="ident">pos</span>))
+            .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">positionals</span>.<span class="ident">values</span>().<span class="ident">find</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">x</span>.<span class="ident">b</span>.<span class="ident">name</span> <span class="op">==</span> <span class="ident">pos</span>))
             .<span class="ident">filter</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">pos</span><span class="op">|</span> <span class="ident">incl_last</span> <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">pos</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Last</span>))
             .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <span class="op">!</span><span class="ident">args_in_groups</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">pos</span>.<span class="ident">b</span>.<span class="ident">name</span>))
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> (<span class="ident">pos</span>.<span class="ident">index</span>, <span class="ident">pos</span>))
@@ -937,8 +937,8 @@
     } <span class="kw">else</span> {
         <span class="ident">desc_reqs</span>
             .<span class="ident">iter</span>()
-            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">positionals</span>.<span class="ident">values</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <span class="op">&amp;&amp;</span><span class="ident">pos</span>.<span class="ident">b</span>.<span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="ident">a</span>))
-            .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">positionals</span>.<span class="ident">values</span>().<span class="ident">find</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">x</span>.<span class="ident">b</span>.<span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="ident">pos</span>))
+            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">positionals</span>.<span class="ident">values</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <span class="op">&amp;&amp;</span><span class="ident">pos</span>.<span class="ident">b</span>.<span class="ident">name</span> <span class="op">==</span> <span class="ident">a</span>))
+            .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">positionals</span>.<span class="ident">values</span>().<span class="ident">find</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">x</span>.<span class="ident">b</span>.<span class="ident">name</span> <span class="op">==</span> <span class="ident">pos</span>))
             .<span class="ident">filter</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">pos</span><span class="op">|</span> <span class="ident">incl_last</span> <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">pos</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Last</span>))
             .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <span class="op">!</span><span class="ident">args_in_groups</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">pos</span>.<span class="ident">b</span>.<span class="ident">name</span>))
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> (<span class="ident">pos</span>.<span class="ident">index</span>, <span class="ident">pos</span>))
@@ -956,8 +956,8 @@
     }
     <span class="kw">for</span> <span class="ident">a</span> <span class="kw">in</span> <span class="ident">desc_reqs</span>
         .<span class="ident">iter</span>()
-        .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">name</span><span class="op">|</span> <span class="op">!</span><span class="ident">p</span>.<span class="ident">positionals</span>.<span class="ident">values</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="op">&amp;&amp;</span><span class="ident">p</span>.<span class="ident">b</span>.<span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="ident">name</span>))
-        .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">name</span><span class="op">|</span> <span class="op">!</span><span class="ident">p</span>.<span class="ident">groups</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">g</span><span class="op">|</span> <span class="op">&amp;&amp;</span><span class="ident">g</span>.<span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="ident">name</span>))
+        .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">name</span><span class="op">|</span> <span class="op">!</span><span class="ident">p</span>.<span class="ident">positionals</span>.<span class="ident">values</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="op">&amp;&amp;</span><span class="ident">p</span>.<span class="ident">b</span>.<span class="ident">name</span> <span class="op">==</span> <span class="ident">name</span>))
+        .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">name</span><span class="op">|</span> <span class="op">!</span><span class="ident">p</span>.<span class="ident">groups</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">g</span><span class="op">|</span> <span class="op">&amp;&amp;</span><span class="ident">g</span>.<span class="ident">name</span> <span class="op">==</span> <span class="ident">name</span>))
         .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">name</span><span class="op">|</span> <span class="op">!</span><span class="ident">args_in_groups</span>.<span class="ident">contains</span>(<span class="ident">name</span>))
         .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">name</span><span class="op">|</span> <span class="op">!</span>(<span class="ident">matcher</span>.<span class="ident">is_some</span>() <span class="op">&amp;&amp;</span> <span class="ident">matcher</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">contains</span>(<span class="ident">name</span>)))
     {
@@ -974,7 +974,7 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">g_vec</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
     <span class="kw">for</span> <span class="ident">g</span> <span class="kw">in</span> <span class="ident">desc_reqs</span>
         .<span class="ident">iter</span>()
-        .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">n</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">groups</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">g</span><span class="op">|</span> <span class="op">&amp;&amp;</span><span class="ident">g</span>.<span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="ident">n</span>))
+        .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">n</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">groups</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">g</span><span class="op">|</span> <span class="op">&amp;&amp;</span><span class="ident">g</span>.<span class="ident">name</span> <span class="op">==</span> <span class="ident">n</span>))
     {
         <span class="kw">let</span> <span class="ident">g_string</span> <span class="op">=</span> <span class="ident">p</span>.<span class="ident">args_in_group</span>(<span class="ident">g</span>).<span class="ident">join</span>(<span class="string">&quot;|&quot;</span>);
         <span class="kw">let</span> <span class="ident">elem</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;&lt;{}&gt;&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">g_string</span>[..<span class="ident">g_string</span>.<span class="ident">len</span>()]);

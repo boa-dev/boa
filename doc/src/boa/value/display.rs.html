@@ -314,7 +314,7 @@
 <span class="doccomment">/// - A HashSet with the addresses of the already printed objects for the current branch</span>
 <span class="doccomment">///      (used to avoid infinite loops when there are cyclic deps)</span>
 <span class="macro">macro_rules!</span> <span class="ident">print_obj_value</span> {
-    (<span class="ident">all</span> <span class="ident">of</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">display_fn</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">indent</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">encounters</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="ident">all</span> <span class="ident">of</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">display_fn</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">indent</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">encounters</span>:<span class="ident">expr</span>) =&gt; {
         {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">internals</span> <span class="op">=</span> <span class="macro">print_obj_value!</span>(<span class="ident">internals</span> <span class="ident">of</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">display_fn</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">indent</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">encounters</span>);
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">props</span> <span class="op">=</span> <span class="macro">print_obj_value!</span>(<span class="ident">props</span> <span class="ident">of</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">display_fn</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">indent</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">encounters</span>, <span class="bool-val">true</span>);
@@ -325,7 +325,7 @@
             <span class="ident">props</span>
         }
     };
-    (<span class="ident">internals</span> <span class="ident">of</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">display_fn</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">indent</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">encounters</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="ident">internals</span> <span class="ident">of</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">display_fn</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">indent</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">encounters</span>:<span class="ident">expr</span>) =&gt; {
         {
             <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>.<span class="ident">borrow</span>();
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">prototype</span>() {
@@ -345,7 +345,7 @@
             }
         }
     };
-    (<span class="ident">props</span> <span class="ident">of</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">display_fn</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">indent</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">encounters</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">print_internals</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="ident">props</span> <span class="ident">of</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">display_fn</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">indent</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">encounters</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">print_internals</span>:<span class="ident">expr</span>) =&gt; {
         <span class="macro">print_obj_value!</span>(<span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>, <span class="op">|</span>(<span class="ident">key</span>, <span class="ident">val</span>)<span class="op">|</span> {
             <span class="kw">if</span> <span class="ident">val</span>.<span class="ident">is_data_descriptor</span>() {
                 <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">val</span>.<span class="ident">expect_value</span>();
@@ -357,10 +357,10 @@
                 )
             } <span class="kw">else</span> {
                <span class="kw">let</span> <span class="ident">display</span> <span class="op">=</span> <span class="kw">match</span> (<span class="ident">val</span>.<span class="ident">set</span>().<span class="ident">is_some</span>(), <span class="ident">val</span>.<span class="ident">get</span>().<span class="ident">is_some</span>()) {
-                    (<span class="bool-val">true</span>, <span class="bool-val">true</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Getter &amp; Setter&quot;</span>,
-                    (<span class="bool-val">true</span>, <span class="bool-val">false</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Setter&quot;</span>,
-                    (<span class="bool-val">false</span>, <span class="bool-val">true</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Getter&quot;</span>,
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;No Getter/Setter&quot;</span>
+                    (<span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; <span class="string">&quot;Getter &amp; Setter&quot;</span>,
+                    (<span class="bool-val">true</span>, <span class="bool-val">false</span>) =&gt; <span class="string">&quot;Setter&quot;</span>,
+                    (<span class="bool-val">false</span>, <span class="bool-val">true</span>) =&gt; <span class="string">&quot;Getter&quot;</span>,
+                    <span class="kw">_</span> =&gt; <span class="string">&quot;No Getter/Setter&quot;</span>
                 };
                <span class="macro">format!</span>(<span class="string">&quot;{:&gt;width$}: {}&quot;</span>, <span class="ident">key</span>, <span class="ident">display</span>, <span class="ident">width</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">indent</span>)
             }
@@ -369,7 +369,7 @@
 
     <span class="comment">// A private overload of the macro</span>
     <span class="comment">// DO NOT use directly</span>
-    (<span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span>:<span class="ident">expr</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>
             .<span class="ident">borrow</span>()
             .<span class="ident">properties</span>()
@@ -379,24 +379,24 @@
     };
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">log_string_from</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">print_internals</span>: <span class="ident">bool</span>, <span class="ident">print_children</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">log_string_from</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">print_internals</span>: <span class="ident">bool</span>, <span class="ident">print_children</span>: <span class="ident">bool</span>) -&gt; <span class="ident">String</span> {
     <span class="kw">match</span> <span class="ident">x</span> {
         <span class="comment">// We don&#39;t want to print private (compiler) or prototype properties</span>
-        <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; {
             <span class="comment">// Can use the private &quot;type&quot; field of an Object to match on</span>
             <span class="comment">// which type of Object it represents for special printing</span>
             <span class="kw">match</span> <span class="ident">v</span>.<span class="ident">borrow</span>().<span class="ident">kind</span>() {
-                <span class="ident">ObjectKind::String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format!</span>(<span class="string">&quot;String {{ \&quot;{}\&quot; }}&quot;</span>, <span class="ident">string</span>),
-                <span class="ident">ObjectKind::Boolean</span>(<span class="ident">boolean</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format!</span>(<span class="string">&quot;Boolean {{ {} }}&quot;</span>, <span class="ident">boolean</span>),
-                <span class="ident">ObjectKind::Number</span>(<span class="ident">rational</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="kw">if</span> <span class="ident">rational</span>.<span class="ident">is_sign_negative</span>() <span class="op">&amp;&amp;</span> <span class="kw-2">*</span><span class="ident">rational</span> <span class="op">=</span><span class="op">=</span> <span class="number">0.0</span> {
+                <span class="ident">ObjectKind::String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;String {{ \&quot;{}\&quot; }}&quot;</span>, <span class="ident">string</span>),
+                <span class="ident">ObjectKind::Boolean</span>(<span class="ident">boolean</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Boolean {{ {} }}&quot;</span>, <span class="ident">boolean</span>),
+                <span class="ident">ObjectKind::Number</span>(<span class="ident">rational</span>) =&gt; {
+                    <span class="kw">if</span> <span class="ident">rational</span>.<span class="ident">is_sign_negative</span>() <span class="op">&amp;&amp;</span> <span class="kw-2">*</span><span class="ident">rational</span> <span class="op">==</span> <span class="number">0.0</span> {
                         <span class="string">&quot;Number { -0 }&quot;</span>.<span class="ident">to_string</span>()
                     } <span class="kw">else</span> {
                         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">ryu_js::Buffer::new</span>();
                         <span class="macro">format!</span>(<span class="string">&quot;Number {{ {} }}&quot;</span>, <span class="ident">buffer</span>.<span class="ident">format</span>(<span class="kw-2">*</span><span class="ident">rational</span>))
                     }
                 }
-                <span class="ident">ObjectKind::Array</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">ObjectKind::Array</span> =&gt; {
                     <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">v</span>
                         .<span class="ident">borrow</span>()
                         .<span class="ident">properties</span>()
@@ -410,7 +410,7 @@
                         .<span class="ident">unwrap_or_default</span>();
 
                     <span class="kw">if</span> <span class="ident">print_children</span> {
-                        <span class="kw">if</span> <span class="ident">len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+                        <span class="kw">if</span> <span class="ident">len</span> <span class="op">==</span> <span class="number">0</span> {
                             <span class="kw">return</span> <span class="ident">String::from</span>(<span class="string">&quot;[]&quot;</span>);
                         }
 
@@ -437,9 +437,9 @@
                         <span class="macro">format!</span>(<span class="string">&quot;Array({})&quot;</span>, <span class="ident">len</span>)
                     }
                 }
-                <span class="ident">ObjectKind::Map</span>(<span class="kw-2">ref</span> <span class="ident">map</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">ObjectKind::Map</span>(<span class="kw-2">ref</span> <span class="ident">map</span>) =&gt; {
                     <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">map</span>.<span class="ident">len</span>();
-                    <span class="kw">if</span> <span class="ident">size</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+                    <span class="kw">if</span> <span class="ident">size</span> <span class="op">==</span> <span class="number">0</span> {
                         <span class="kw">return</span> <span class="ident">String::from</span>(<span class="string">&quot;Map(0)&quot;</span>);
                     }
 
@@ -458,10 +458,10 @@
                         <span class="macro">format!</span>(<span class="string">&quot;Map({})&quot;</span>, <span class="ident">size</span>)
                     }
                 }
-                <span class="ident">ObjectKind::Set</span>(<span class="kw-2">ref</span> <span class="ident">set</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">ObjectKind::Set</span>(<span class="kw-2">ref</span> <span class="ident">set</span>) =&gt; {
                     <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">set</span>.<span class="ident">size</span>();
 
-                    <span class="kw">if</span> <span class="ident">size</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+                    <span class="kw">if</span> <span class="ident">size</span> <span class="op">==</span> <span class="number">0</span> {
                         <span class="kw">return</span> <span class="ident">String::from</span>(<span class="string">&quot;Set(0)&quot;</span>);
                     }
 
@@ -476,19 +476,19 @@
                         <span class="macro">format!</span>(<span class="string">&quot;Set({})&quot;</span>, <span class="ident">size</span>)
                     }
                 }
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">display_obj</span>(<span class="ident">x</span>, <span class="ident">print_internals</span>),
+                <span class="kw">_</span> =&gt; <span class="ident">display_obj</span>(<span class="ident">x</span>, <span class="ident">print_internals</span>),
             }
         }
-        <span class="ident">JsValue::Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">symbol</span>.<span class="ident">to_string</span>(),
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">x</span>.<span class="ident">display</span>()),
+        <span class="ident">JsValue::Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) =&gt; <span class="ident">symbol</span>.<span class="ident">to_string</span>(),
+        <span class="kw">_</span> =&gt; <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">x</span>.<span class="ident">display</span>()),
     }
 }
 
 <span class="doccomment">/// A helper function for specifically printing object values</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">display_obj</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">print_internals</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">display_obj</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">print_internals</span>: <span class="ident">bool</span>) -&gt; <span class="ident">String</span> {
     <span class="comment">// A simple helper for getting the address of a value</span>
     <span class="comment">// TODO: Find a more general place for this, as it can be used in other situations as well</span>
-    <span class="kw">fn</span> <span class="ident">address_of</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">t</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">address_of</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">t</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">usize</span> {
         <span class="kw">let</span> <span class="ident">my_ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">T</span> <span class="op">=</span> <span class="ident">t</span>;
         <span class="ident">my_ptr</span> <span class="kw">as</span> <span class="ident">usize</span>
     }
@@ -522,7 +522,7 @@
         <span class="ident">encounters</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
         <span class="ident">indent</span>: <span class="ident">usize</span>,
         <span class="ident">print_internals</span>: <span class="ident">bool</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+    ) -&gt; <span class="ident">String</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="ident">data</span> {
             <span class="comment">// The in-memory address of the current object</span>
             <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="ident">address_of</span>(<span class="ident">v</span>.<span class="ident">as_ref</span>());
@@ -561,20 +561,20 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">ValueDisplay</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">value</span> {
-            <span class="ident">JsValue::Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;null&quot;</span>),
-            <span class="ident">JsValue::Undefined</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;undefined&quot;</span>),
-            <span class="ident">JsValue::Boolean</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">v</span>),
-            <span class="ident">JsValue::Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">symbol</span>.<span class="ident">description</span>() {
-                <span class="prelude-val">Some</span>(<span class="ident">description</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Symbol({})&quot;</span>, <span class="ident">description</span>),
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Symbol()&quot;</span>),
+            <span class="ident">JsValue::Null</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;null&quot;</span>),
+            <span class="ident">JsValue::Undefined</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;undefined&quot;</span>),
+            <span class="ident">JsValue::Boolean</span>(<span class="ident">v</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">v</span>),
+            <span class="ident">JsValue::Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) =&gt; <span class="kw">match</span> <span class="ident">symbol</span>.<span class="ident">description</span>() {
+                <span class="prelude-val">Some</span>(<span class="ident">description</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Symbol({})&quot;</span>, <span class="ident">description</span>),
+                <span class="prelude-val">None</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Symbol()&quot;</span>),
             },
-            <span class="ident">JsValue::String</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;\&quot;{}\&quot;&quot;</span>, <span class="ident">v</span>),
-            <span class="ident">JsValue::Rational</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">format_rational</span>(<span class="kw-2">*</span><span class="ident">v</span>, <span class="ident">f</span>),
-            <span class="ident">JsValue::Object</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">log_string_from</span>(<span class="self">self</span>.<span class="ident">value</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>)),
-            <span class="ident">JsValue::Integer</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">v</span>),
-            <span class="ident">JsValue::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">num</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}n&quot;</span>, <span class="ident">num</span>),
+            <span class="ident">JsValue::String</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;\&quot;{}\&quot;&quot;</span>, <span class="ident">v</span>),
+            <span class="ident">JsValue::Rational</span>(<span class="ident">v</span>) =&gt; <span class="ident">format_rational</span>(<span class="kw-2">*</span><span class="ident">v</span>, <span class="ident">f</span>),
+            <span class="ident">JsValue::Object</span>(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">log_string_from</span>(<span class="self">self</span>.<span class="ident">value</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>)),
+            <span class="ident">JsValue::Integer</span>(<span class="ident">v</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">v</span>),
+            <span class="ident">JsValue::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">num</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}n&quot;</span>, <span class="ident">num</span>),
         }
     }
 }
@@ -584,8 +584,8 @@
 <span class="doccomment">/// This function prints `-0` as `-0` instead of pasitive `0` as the specification says.</span>
 <span class="doccomment">/// This is done to make it easer for the user of the REPL to identify what is a `-0` vs `0`,</span>
 <span class="doccomment">/// since the REPL is not bound to the ECMAScript specification we can do this.</span>
-<span class="kw">fn</span> <span class="ident">format_rational</span>(<span class="ident">v</span>: <span class="ident">f64</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
-    <span class="kw">if</span> <span class="ident">v</span>.<span class="ident">is_sign_negative</span>() <span class="op">&amp;&amp;</span> <span class="ident">v</span> <span class="op">=</span><span class="op">=</span> <span class="number">0.0</span> {
+<span class="kw">fn</span> <span class="ident">format_rational</span>(<span class="ident">v</span>: <span class="ident">f64</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
+    <span class="kw">if</span> <span class="ident">v</span>.<span class="ident">is_sign_negative</span>() <span class="op">&amp;&amp;</span> <span class="ident">v</span> <span class="op">==</span> <span class="number">0.0</span> {
         <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;-0&quot;</span>)
     } <span class="kw">else</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">ryu_js::Buffer::new</span>();

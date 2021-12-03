@@ -441,7 +441,7 @@
 
 <span class="kw">impl</span> <span class="ident">NumberLiteral</span> {
     <span class="doccomment">/// Creates a new string literal lexer.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">init</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">init</span>: <span class="ident">u8</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> { <span class="ident">init</span> }
     }
 }
@@ -458,20 +458,20 @@
 
 <span class="kw">impl</span> <span class="ident">NumericKind</span> {
     <span class="doccomment">/// Get the base of the number kind.</span>
-    <span class="kw">fn</span> <span class="ident">base</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">base</span>(<span class="self">self</span>) -&gt; <span class="ident">u32</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Rational</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">10</span>,
-            <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">base</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">base</span>,
-            <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="ident">base</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">base</span>,
+            <span class="ident"><span class="self">Self</span>::Rational</span> =&gt; <span class="number">10</span>,
+            <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">base</span>) =&gt; <span class="ident">base</span>,
+            <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="ident">base</span>) =&gt; <span class="ident">base</span>,
         }
     }
 
     <span class="doccomment">/// Converts `self` to BigInt kind.</span>
-    <span class="kw">fn</span> <span class="ident">to_bigint</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">to_bigint</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Rational</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(<span class="string">&quot;can not convert rational number to BigInt&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">base</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="ident">base</span>),
-            <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="ident">base</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="ident">base</span>),
+            <span class="ident"><span class="self">Self</span>::Rational</span> =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;can not convert rational number to BigInt&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">base</span>) =&gt; <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="ident">base</span>),
+            <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="ident">base</span>) =&gt; <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="ident">base</span>),
         }
     }
 }
@@ -481,28 +481,28 @@
     <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
     <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
     <span class="ident">kind</span>: <span class="kw-2">&amp;</span><span class="ident">NumericKind</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span>
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">Read</span>,
 {
     <span class="comment">// The next part must be SignedInteger.</span>
     <span class="comment">// This is optionally a &#39;+&#39; or &#39;-&#39; followed by 1 or more DecimalDigits.</span>
     <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span> {
-        <span class="prelude-val">Some</span>(<span class="string">b&#39;+&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Some</span>(<span class="string">b&#39;+&#39;</span>) =&gt; {
             <span class="ident">buf</span>.<span class="ident">push</span>(<span class="string">b&#39;+&#39;</span>);
             <span class="kw">if</span> <span class="op">!</span><span class="ident">cursor</span>.<span class="ident">next_is_ascii_pred</span>(<span class="kw-2">&amp;</span><span class="op">|</span><span class="ident">ch</span><span class="op">|</span> <span class="ident">ch</span>.<span class="ident">is_digit</span>(<span class="ident">kind</span>.<span class="ident">base</span>()))<span class="question-mark">?</span> {
                 <span class="comment">// A digit must follow the + or - symbol.</span>
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::syntax</span>(<span class="string">&quot;No digit found after + symbol&quot;</span>, <span class="ident">cursor</span>.<span class="ident">pos</span>()));
             }
         }
-        <span class="prelude-val">Some</span>(<span class="string">b&#39;-&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Some</span>(<span class="string">b&#39;-&#39;</span>) =&gt; {
             <span class="ident">buf</span>.<span class="ident">push</span>(<span class="string">b&#39;-&#39;</span>);
             <span class="kw">if</span> <span class="op">!</span><span class="ident">cursor</span>.<span class="ident">next_is_ascii_pred</span>(<span class="kw-2">&amp;</span><span class="op">|</span><span class="ident">ch</span><span class="op">|</span> <span class="ident">ch</span>.<span class="ident">is_digit</span>(<span class="ident">kind</span>.<span class="ident">base</span>()))<span class="question-mark">?</span> {
                 <span class="comment">// A digit must follow the + or - symbol.</span>
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::syntax</span>(<span class="string">&quot;No digit found after - symbol&quot;</span>, <span class="ident">cursor</span>.<span class="ident">pos</span>()));
             }
         }
-        <span class="prelude-val">Some</span>(<span class="ident">byte</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Some</span>(<span class="ident">byte</span>) =&gt; {
             <span class="kw">let</span> <span class="ident">ch</span> <span class="op">=</span> <span class="ident">char::from</span>(<span class="ident">byte</span>);
             <span class="kw">if</span> <span class="ident">ch</span>.<span class="ident">is_ascii</span>() <span class="op">&amp;&amp;</span> <span class="ident">ch</span>.<span class="ident">is_digit</span>(<span class="ident">kind</span>.<span class="ident">base</span>()) {
                 <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">byte</span>);
@@ -513,7 +513,7 @@
                 ));
             }
         }
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">None</span> =&gt; {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::syntax</span>(
                 <span class="string">&quot;Abrupt end: No exponential value found&quot;</span>,
                 <span class="ident">cursor</span>.<span class="ident">pos</span>(),
@@ -532,20 +532,20 @@
     <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
     <span class="ident">kind</span>: <span class="kw-2">&amp;</span><span class="ident">NumericKind</span>,
     <span class="ident">separator_allowed</span>: <span class="ident">bool</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span>
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">Read</span>,
 {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev_is_underscore</span> <span class="op">=</span> <span class="bool-val">false</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">pos</span>();
-    <span class="kw">while</span> <span class="ident">cursor</span>.<span class="ident">next_is_ascii_pred</span>(<span class="kw-2">&amp;</span><span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span>.<span class="ident">is_digit</span>(<span class="ident">kind</span>.<span class="ident">base</span>()) <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;_&#39;</span>)<span class="question-mark">?</span> {
+    <span class="kw">while</span> <span class="ident">cursor</span>.<span class="ident">next_is_ascii_pred</span>(<span class="kw-2">&amp;</span><span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span>.<span class="ident">is_digit</span>(<span class="ident">kind</span>.<span class="ident">base</span>()) <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;_&#39;</span>)<span class="question-mark">?</span> {
         <span class="ident">pos</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">pos</span>();
         <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="kw">if</span> <span class="ident">char::from</span>(<span class="ident">c</span>).<span class="ident">is_digit</span>(<span class="ident">kind</span>.<span class="ident">base</span>()) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="kw">if</span> <span class="ident">char::from</span>(<span class="ident">c</span>).<span class="ident">is_digit</span>(<span class="ident">kind</span>.<span class="ident">base</span>()) =&gt; {
                 <span class="ident">prev_is_underscore</span> <span class="op">=</span> <span class="bool-val">false</span>;
                 <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">c</span>);
             }
-            <span class="prelude-val">Some</span>(<span class="string">b&#39;_&#39;</span>) <span class="kw">if</span> <span class="ident">separator_allowed</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="string">b&#39;_&#39;</span>) <span class="kw">if</span> <span class="ident">separator_allowed</span> =&gt; {
                 <span class="kw">if</span> <span class="ident">prev_is_underscore</span> {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::syntax</span>(
                         <span class="string">&quot;only one underscore is allowed as numeric separator&quot;</span>,
@@ -554,10 +554,10 @@
                 }
                 <span class="ident">prev_is_underscore</span> <span class="op">=</span> <span class="bool-val">true</span>;
             }
-            <span class="prelude-val">Some</span>(<span class="string">b&#39;_&#39;</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">separator_allowed</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="string">b&#39;_&#39;</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">separator_allowed</span> =&gt; {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::syntax</span>(<span class="string">&quot;separator is not allowed&quot;</span>, <span class="ident">pos</span>));
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> (),
+            <span class="kw">_</span> =&gt; (),
         }
     }
     <span class="kw">if</span> <span class="ident">prev_is_underscore</span> {
@@ -575,11 +575,11 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-literals-numeric-literals</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">check_after_numeric_literal</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span>
+<span class="kw">fn</span> <span class="ident">check_after_numeric_literal</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">Read</span>,
 {
-    <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">next_is_ascii_pred</span>(<span class="kw-2">&amp;</span><span class="op">|</span><span class="ident">ch</span><span class="op">|</span> <span class="ident">ch</span>.<span class="ident">is_ascii_alphanumeric</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">ch</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;$&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">ch</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;_&#39;</span>)<span class="question-mark">?</span> {
+    <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">next_is_ascii_pred</span>(<span class="kw-2">&amp;</span><span class="op">|</span><span class="ident">ch</span><span class="op">|</span> <span class="ident">ch</span>.<span class="ident">is_ascii_alphanumeric</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">ch</span> <span class="op">==</span> <span class="string">&#39;$&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">ch</span> <span class="op">==</span> <span class="string">&#39;_&#39;</span>)<span class="question-mark">?</span> {
         <span class="prelude-val">Err</span>(<span class="ident">Error::syntax</span>(
             <span class="string">&quot;a numeric literal must not be followed by an alphanumeric, $ or _ characters&quot;</span>,
             <span class="ident">cursor</span>.<span class="ident">pos</span>(),
@@ -590,7 +590,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">Tokenizer</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">NumberLiteral</span> {
-    <span class="kw">fn</span> <span class="ident">lex</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">start_pos</span>: <span class="ident">Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Token</span>, <span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">lex</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">start_pos</span>: <span class="ident">Position</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Token</span>, <span class="ident">Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">R</span>: <span class="ident">Read</span>,
     {
@@ -604,10 +604,10 @@
         <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">legacy_octal</span> <span class="op">=</span> <span class="bool-val">false</span>;
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">init</span> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;0&#39;</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">init</span> <span class="op">==</span> <span class="string">b&#39;0&#39;</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ch</span>) <span class="op">=</span> <span class="ident">c</span><span class="question-mark">?</span> {
                 <span class="kw">match</span> <span class="ident">ch</span> {
-                    <span class="string">b&#39;x&#39;</span> <span class="op">|</span> <span class="string">b&#39;X&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="string">b&#39;x&#39;</span> <span class="op">|</span> <span class="string">b&#39;X&#39;</span> =&gt; {
                         <span class="comment">// Remove the initial &#39;0&#39; from buffer.</span>
                         <span class="ident">cursor</span>.<span class="ident">next_char</span>()<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;x or X character vanished&quot;</span>);
                         <span class="ident">buf</span>.<span class="ident">pop</span>();
@@ -623,7 +623,7 @@
                             ));
                         }
                     }
-                    <span class="string">b&#39;o&#39;</span> <span class="op">|</span> <span class="string">b&#39;O&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="string">b&#39;o&#39;</span> <span class="op">|</span> <span class="string">b&#39;O&#39;</span> =&gt; {
                         <span class="comment">// Remove the initial &#39;0&#39; from buffer.</span>
                         <span class="ident">cursor</span>.<span class="ident">next_char</span>()<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;o or O character vanished&quot;</span>);
                         <span class="ident">buf</span>.<span class="ident">pop</span>();
@@ -639,7 +639,7 @@
                             ));
                         }
                     }
-                    <span class="string">b&#39;b&#39;</span> <span class="op">|</span> <span class="string">b&#39;B&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="string">b&#39;b&#39;</span> <span class="op">|</span> <span class="string">b&#39;B&#39;</span> =&gt; {
                         <span class="comment">// Remove the initial &#39;0&#39; from buffer.</span>
                         <span class="ident">cursor</span>.<span class="ident">next_char</span>()<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;b or B character vanished&quot;</span>);
                         <span class="ident">buf</span>.<span class="ident">pop</span>();
@@ -655,7 +655,7 @@
                             ));
                         }
                     }
-                    <span class="string">b&#39;n&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="string">b&#39;n&#39;</span> =&gt; {
                         <span class="ident">cursor</span>.<span class="ident">next_char</span>()<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;n character vanished&quot;</span>);
 
                         <span class="comment">// DecimalBigIntegerLiteral &#39;0n&#39;</span>
@@ -664,7 +664,7 @@
                             <span class="ident">Span::new</span>(<span class="ident">start_pos</span>, <span class="ident">cursor</span>.<span class="ident">pos</span>()),
                         ));
                     }
-                    <span class="ident">byte</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">byte</span> =&gt; {
                         <span class="ident">legacy_octal</span> <span class="op">=</span> <span class="bool-val">true</span>;
                         <span class="kw">let</span> <span class="ident">ch</span> <span class="op">=</span> <span class="ident">char::from</span>(<span class="ident">byte</span>);
                         <span class="kw">if</span> <span class="ident">ch</span>.<span class="ident">is_digit</span>(<span class="number">8</span>) {
@@ -706,7 +706,7 @@
             }
         }
 
-        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">init</span> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;.&#39;</span> {
+        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">init</span> <span class="op">==</span> <span class="string">b&#39;.&#39;</span> {
             <span class="prelude-val">Some</span>(<span class="string">b&#39;.&#39;</span>)
         } <span class="kw">else</span> {
             <span class="comment">// Consume digits and separators until a non-digit non-separator</span>
@@ -720,7 +720,7 @@
         <span class="comment">// &#39;.&#39; To indicate a decimal separator.</span>
         <span class="comment">// &#39;e&#39; | &#39;E&#39; To indicate an ExponentPart.</span>
         <span class="kw">match</span> <span class="ident">next</span> {
-            <span class="prelude-val">Some</span>(<span class="string">b&#39;n&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="string">b&#39;n&#39;</span>) =&gt; {
                 <span class="comment">// DecimalBigIntegerLiteral</span>
                 <span class="comment">// Lexing finished.</span>
                 <span class="comment">// Consume the n</span>
@@ -734,8 +734,8 @@
 
                 <span class="ident">kind</span> <span class="op">=</span> <span class="ident">kind</span>.<span class="ident">to_bigint</span>();
             }
-            <span class="prelude-val">Some</span>(<span class="string">b&#39;.&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <span class="ident">kind</span>.<span class="ident">base</span>() <span class="op">=</span><span class="op">=</span> <span class="number">10</span> {
+            <span class="prelude-val">Some</span>(<span class="string">b&#39;.&#39;</span>) =&gt; {
+                <span class="kw">if</span> <span class="ident">kind</span>.<span class="ident">base</span>() <span class="op">==</span> <span class="number">10</span> {
                     <span class="comment">// Only base 10 numbers can have a decimal separator.</span>
                     <span class="comment">// Number literal lexing finished if a . is found for a number in a different base.</span>
                     <span class="kw">if</span> <span class="self">self</span>.<span class="ident">init</span> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;.&#39;</span> {
@@ -744,7 +744,7 @@
                     }
                     <span class="ident">kind</span> <span class="op">=</span> <span class="ident">NumericKind::Rational</span>;
 
-                    <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">peek</span>()<span class="question-mark">?</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="string">b&#39;_&#39;</span>) {
+                    <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">peek</span>()<span class="question-mark">?</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="string">b&#39;_&#39;</span>) {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::syntax</span>(
                             <span class="string">&quot;numeric separator not allowed after &#39;.&#39;&quot;</span>,
                             <span class="ident">cursor</span>.<span class="ident">pos</span>(),
@@ -758,7 +758,7 @@
                     <span class="comment">// The non-digit character at this point must be an &#39;e&#39; or &#39;E&#39; to indicate an Exponent Part.</span>
                     <span class="comment">// Another &#39;.&#39; or &#39;n&#39; is not allowed.</span>
                     <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek</span>()<span class="question-mark">?</span> {
-                        <span class="prelude-val">Some</span>(<span class="string">b&#39;e&#39;</span>) <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="string">b&#39;E&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">Some</span>(<span class="string">b&#39;e&#39;</span>) <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="string">b&#39;E&#39;</span>) =&gt; {
                             <span class="comment">// Consume the ExponentIndicator.</span>
                             <span class="ident">cursor</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;e or E token vanished&quot;</span>);
 
@@ -766,19 +766,19 @@
 
                             <span class="ident">take_signed_integer</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>, <span class="ident">cursor</span>, <span class="kw-2">&amp;</span><span class="ident">kind</span>)<span class="question-mark">?</span>;
                         }
-                        <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="prelude-val">None</span> =&gt; {
                             <span class="comment">// Finished lexing.</span>
                         }
                     }
                 }
             }
-            <span class="prelude-val">Some</span>(<span class="string">b&#39;e&#39;</span>) <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="string">b&#39;E&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="string">b&#39;e&#39;</span>) <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="string">b&#39;E&#39;</span>) =&gt; {
                 <span class="ident">kind</span> <span class="op">=</span> <span class="ident">NumericKind::Rational</span>;
                 <span class="ident">cursor</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;e or E character vanished&quot;</span>); <span class="comment">// Consume the ExponentIndicator.</span>
                 <span class="ident">buf</span>.<span class="ident">push</span>(<span class="string">b&#39;E&#39;</span>);
                 <span class="ident">take_signed_integer</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>, <span class="ident">cursor</span>, <span class="kw-2">&amp;</span><span class="ident">kind</span>)<span class="question-mark">?</span>;
             }
-            <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="prelude-val">None</span> =&gt; {
                 <span class="comment">// Indicates lexing finished.</span>
             }
         }
@@ -787,26 +787,26 @@
 
         <span class="kw">let</span> <span class="ident">num_str</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">str::from_utf8_unchecked</span>(<span class="ident">buf</span>.<span class="ident">as_slice</span>()) };
         <span class="kw">let</span> <span class="ident">num</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">kind</span> {
-            <span class="ident">NumericKind::BigInt</span>(<span class="ident">base</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">NumericKind::BigInt</span>(<span class="ident">base</span>) =&gt; {
                 <span class="ident">Numeric::BigInt</span>(
                     <span class="ident">JsBigInt::from_string_radix</span>(<span class="ident">num_str</span>, <span class="ident">base</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not convert to BigInt&quot;</span>)
                     )
             }
-            <span class="ident">NumericKind::Rational</span> <span class="comment">/* base: 10 */</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">NumericKind::Rational</span> <span class="comment">/* base: 10 */</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">val</span>: <span class="ident">f64</span> <span class="op">=</span> <span class="ident">fast_float::parse</span>(<span class="ident">num_str</span>).<span class="ident">expect</span>(<span class="string">&quot;Failed to parse float after checks&quot;</span>);
                 <span class="kw">let</span> <span class="ident">int_val</span> <span class="op">=</span> <span class="ident">val</span> <span class="kw">as</span> <span class="ident">i32</span>;
 
                 <span class="comment">// The truncated float should be identically to the non-truncated float for the conversion to be loss-less,</span>
                 <span class="comment">// any other different and the number must be stored as a rational.</span>
                 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::float_cmp</span>)]</span>
-                <span class="kw">if</span> (<span class="ident">int_val</span> <span class="kw">as</span> <span class="ident">f64</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">val</span> {
+                <span class="kw">if</span> (<span class="ident">int_val</span> <span class="kw">as</span> <span class="ident">f64</span>) <span class="op">==</span> <span class="ident">val</span> {
                     <span class="comment">// For performance reasons we attempt to store values as integers if possible.</span>
                     <span class="ident">Numeric::Integer</span>(<span class="ident">int_val</span>)
                 } <span class="kw">else</span> {
                     <span class="ident">Numeric::Rational</span>(<span class="ident">val</span>)
                 }
             },
-            <span class="ident">NumericKind::Integer</span>(<span class="ident">base</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">NumericKind::Integer</span>(<span class="ident">base</span>) =&gt; {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">num</span>) <span class="op">=</span> <span class="ident">i32::from_str_radix</span>(<span class="ident">num_str</span>, <span class="ident">base</span>) {
                     <span class="ident">Numeric::Integer</span>(<span class="ident">num</span>)
                 } <span class="kw">else</span> {

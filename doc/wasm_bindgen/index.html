@@ -4,28 +4,28 @@ attribute and tool. Crates pull in the <code>#[wasm_bindgen]</code> attribute th
 this crate and this crate also provides JS bindings through the <code>JsValue</code>
 interface.</p>
 </div></details><h2 id="modules" class="section-header"><a href="#modules">Modules</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="mod" href="closure/index.html" title="wasm_bindgen::closure mod">closure</a></div><div class="item-right docblock-short"><p>Support for long-lived closures in <code>wasm-bindgen</code></p>
-</div><div class="item-left module-item"><a class="mod" href="convert/index.html" title="wasm_bindgen::convert mod">convert</a></div><div class="item-right docblock-short"><p>This is mostly an internal module, no stability guarantees are provided. Use
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="mod" href="closure/index.html" title="wasm_bindgen::closure mod">closure</a></div><div class="item-right docblock-short"><p>Support for long-lived closures in <code>wasm-bindgen</code></p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="convert/index.html" title="wasm_bindgen::convert mod">convert</a></div><div class="item-right docblock-short"><p>This is mostly an internal module, no stability guarantees are provided. Use
 at your own risk.</p>
-</div><div class="item-left module-item"><a class="mod" href="prelude/index.html" title="wasm_bindgen::prelude mod">prelude</a></div><div class="item-right docblock-short"><p>A module which is typically glob imported from:</p>
-</div></div><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="struct" href="struct.Clamped.html" title="wasm_bindgen::Clamped struct">Clamped</a></div><div class="item-right docblock-short"><p>A wrapper type around slices and vectors for binding the <code>Uint8ClampedArray</code>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="prelude/index.html" title="wasm_bindgen::prelude mod">prelude</a></div><div class="item-right docblock-short"><p>A module which is typically glob imported from:</p>
+</div></div></div><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Clamped.html" title="wasm_bindgen::Clamped struct">Clamped</a></div><div class="item-right docblock-short"><p>A wrapper type around slices and vectors for binding the <code>Uint8ClampedArray</code>
 array in JS.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.JsStatic.html" title="wasm_bindgen::JsStatic struct">JsStatic</a></div><div class="item-right docblock-short"><p>Wrapper type for imported statics.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.JsValue.html" title="wasm_bindgen::JsValue struct">JsValue</a></div><div class="item-right docblock-short"><p>Representation of an object owned by JS.</p>
-</div></div><h2 id="traits" class="section-header"><a href="#traits">Traits</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="trait" href="trait.JsCast.html" title="wasm_bindgen::JsCast trait">JsCast</a></div><div class="item-right docblock-short"><p>A trait for checked and unchecked casting between JS types.</p>
-</div><div class="item-left module-item"><a class="trait" href="trait.UnwrapThrowExt.html" title="wasm_bindgen::UnwrapThrowExt trait">UnwrapThrowExt</a></div><div class="item-right docblock-short"><p>An extension trait for <code>Option&lt;T&gt;</code> and <code>Result&lt;T, E&gt;</code> for unwraping the <code>T</code>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.JsStatic.html" title="wasm_bindgen::JsStatic struct">JsStatic</a></div><div class="item-right docblock-short"><p>Wrapper type for imported statics.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.JsValue.html" title="wasm_bindgen::JsValue struct">JsValue</a></div><div class="item-right docblock-short"><p>Representation of an object owned by JS.</p>
+</div></div></div><h2 id="traits" class="section-header"><a href="#traits">Traits</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.JsCast.html" title="wasm_bindgen::JsCast trait">JsCast</a></div><div class="item-right docblock-short"><p>A trait for checked and unchecked casting between JS types.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.UnwrapThrowExt.html" title="wasm_bindgen::UnwrapThrowExt trait">UnwrapThrowExt</a></div><div class="item-right docblock-short"><p>An extension trait for <code>Option&lt;T&gt;</code> and <code>Result&lt;T, E&gt;</code> for unwraping the <code>T</code>
 value, or throwing a JS error if it is not available.</p>
-</div></div><h2 id="functions" class="section-header"><a href="#functions">Functions</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="fn" href="fn.externref_heap_live_count.html" title="wasm_bindgen::externref_heap_live_count fn">externref_heap_live_count</a></div><div class="item-right docblock-short"><p>Get the count of live <code>externref</code>s / <code>JsValue</code>s in <code>wasm-bindgen</code>’s heap.</p>
-</div><div class="item-left module-item"><a class="fn" href="fn.function_table.html" title="wasm_bindgen::function_table fn">function_table</a></div><div class="item-right docblock-short"><p>Returns a handle to this wasm instance’s <code>WebAssembly.Table</code> which is the
+</div></div></div><h2 id="functions" class="section-header"><a href="#functions">Functions</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.externref_heap_live_count.html" title="wasm_bindgen::externref_heap_live_count fn">externref_heap_live_count</a></div><div class="item-right docblock-short"><p>Get the count of live <code>externref</code>s / <code>JsValue</code>s in <code>wasm-bindgen</code>’s heap.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.function_table.html" title="wasm_bindgen::function_table fn">function_table</a></div><div class="item-right docblock-short"><p>Returns a handle to this wasm instance’s <code>WebAssembly.Table</code> which is the
 indirect function table used by Rust</p>
-</div><div class="item-left module-item"><a class="fn" href="fn.intern.html" title="wasm_bindgen::intern fn">intern</a></div><div class="item-right docblock-short"><p>Interns Rust strings so that it’s much faster to send them to JS.</p>
-</div><div class="item-left module-item"><a class="fn" href="fn.memory.html" title="wasm_bindgen::memory fn">memory</a></div><div class="item-right docblock-short"><p>Returns a handle to this wasm instance’s <code>WebAssembly.Memory</code></p>
-</div><div class="item-left module-item"><a class="fn" href="fn.throw_str.html" title="wasm_bindgen::throw_str fn">throw_str</a></div><div class="item-right docblock-short"><p>Throws a JS exception.</p>
-</div><div class="item-left module-item"><a class="fn" href="fn.throw_val.html" title="wasm_bindgen::throw_val fn">throw_val</a></div><div class="item-right docblock-short"><p>Rethrow a JS exception</p>
-</div><div class="item-left module-item"><a class="fn" href="fn.unintern.html" title="wasm_bindgen::unintern fn">unintern</a></div><div class="item-right docblock-short"><p>Removes a Rust string from the intern cache.</p>
-</div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="wasm_bindgen" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.intern.html" title="wasm_bindgen::intern fn">intern</a></div><div class="item-right docblock-short"><p>Interns Rust strings so that it’s much faster to send them to JS.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.memory.html" title="wasm_bindgen::memory fn">memory</a></div><div class="item-right docblock-short"><p>Returns a handle to this wasm instance’s <code>WebAssembly.Memory</code></p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.throw_str.html" title="wasm_bindgen::throw_str fn">throw_str</a></div><div class="item-right docblock-short"><p>Throws a JS exception.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.throw_val.html" title="wasm_bindgen::throw_val fn">throw_val</a></div><div class="item-right docblock-short"><p>Rethrow a JS exception</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.unintern.html" title="wasm_bindgen::unintern fn">unintern</a></div><div class="item-right docblock-short"><p>Removes a Rust string from the intern cache.</p>
+</div></div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="wasm_bindgen" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
     <script src="../main.js"></script>
 </body></html>

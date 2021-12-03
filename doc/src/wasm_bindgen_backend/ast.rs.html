@@ -495,7 +495,7 @@
 
 <span class="kw">impl</span> <span class="ident">Program</span> {
     <span class="doccomment">/// Returns true if the Program is empty</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">exports</span>.<span class="ident">is_empty</span>()
             <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">imports</span>.<span class="ident">is_empty</span>()
             <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">enums</span>.<span class="ident">is_empty</span>()
@@ -570,18 +570,18 @@
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ImportModule</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="ident">Hasher</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">h</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>) {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ImportModule::None</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ImportModule::None</span> =&gt; {
                 <span class="number">0u8</span>.<span class="ident">hash</span>(<span class="ident">h</span>);
             }
-            <span class="ident">ImportModule::Named</span>(<span class="ident">name</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ImportModule::Named</span>(<span class="ident">name</span>, <span class="kw">_</span>) =&gt; {
                 <span class="number">1u8</span>.<span class="ident">hash</span>(<span class="ident">h</span>);
                 <span class="ident">name</span>.<span class="ident">hash</span>(<span class="ident">h</span>);
             }
-            <span class="ident">ImportModule::Inline</span>(<span class="ident">idx</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ImportModule::Inline</span>(<span class="ident">idx</span>, <span class="kw">_</span>) =&gt; {
                 <span class="number">2u8</span>.<span class="ident">hash</span>(<span class="ident">h</span>);
                 <span class="ident">idx</span>.<span class="ident">hash</span>(<span class="ident">h</span>);
             }
-            <span class="ident">ImportModule::RawNamed</span>(<span class="ident">name</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ImportModule::RawNamed</span>(<span class="ident">name</span>, <span class="kw">_</span>) =&gt; {
                 <span class="number">3u8</span>.<span class="ident">hash</span>(<span class="ident">h</span>);
                 <span class="ident">name</span>.<span class="ident">hash</span>(<span class="ident">h</span>);
             }
@@ -872,7 +872,7 @@
 <span class="kw">impl</span> <span class="ident">Export</span> {
     <span class="doccomment">/// Mangles a rust -&gt; javascript export, so that the created Ident will be unique over function</span>
     <span class="doccomment">/// name and class name, if the function belongs to a javascript class.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">rust_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ident</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">rust_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Ident</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">generated_name</span> <span class="op">=</span> <span class="ident">String::from</span>(<span class="string">&quot;__wasm_bindgen_generated&quot;</span>);
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">class</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">js_class</span> {
             <span class="ident">generated_name</span>.<span class="ident">push_str</span>(<span class="string">&quot;_&quot;</span>);
@@ -886,23 +886,23 @@
     <span class="doccomment">/// This is the name of the shim function that gets exported and takes the raw</span>
     <span class="doccomment">/// ABI form of its arguments and converts them back into their normal,</span>
     <span class="doccomment">/// &quot;high level&quot; form before calling the actual function.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">export_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">export_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">String</span> {
         <span class="kw">let</span> <span class="ident">fn_name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">function</span>.<span class="ident">name</span>.<span class="ident">to_string</span>();
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">js_class</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">class</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">shared::struct_function_export_name</span>(<span class="ident">class</span>, <span class="kw-2">&amp;</span><span class="ident">fn_name</span>),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">shared::free_function_export_name</span>(<span class="kw-2">&amp;</span><span class="ident">fn_name</span>),
+            <span class="prelude-val">Some</span>(<span class="ident">class</span>) =&gt; <span class="ident">shared::struct_function_export_name</span>(<span class="ident">class</span>, <span class="kw-2">&amp;</span><span class="ident">fn_name</span>),
+            <span class="prelude-val">None</span> =&gt; <span class="ident">shared::free_function_export_name</span>(<span class="kw-2">&amp;</span><span class="ident">fn_name</span>),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">ImportKind</span> {
     <span class="doccomment">/// Whether this type can be inside an `impl` block.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fits_on_impl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fits_on_impl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">ImportKind::Function</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="ident">ImportKind::Static</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-            <span class="ident">ImportKind::Type</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-            <span class="ident">ImportKind::Enum</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident">ImportKind::Function</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+            <span class="ident">ImportKind::Static</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+            <span class="ident">ImportKind::Type</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+            <span class="ident">ImportKind::Enum</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
         }
     }
 }
@@ -910,13 +910,13 @@
 <span class="kw">impl</span> <span class="ident">Function</span> {
     <span class="doccomment">/// If the rust object has a `fn xxx(&amp;self) -&gt; MyType` method, get the name for a getter in</span>
     <span class="doccomment">/// javascript (in this case `xxx`, so you can write `val = obj.xxx`)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">infer_getter_property</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">infer_getter_property</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">name</span>
     }
 
     <span class="doccomment">/// If the rust object has a `fn set_xxx(&amp;mut self, MyType)` style method, get the name</span>
     <span class="doccomment">/// for a setter in javascript (in this case `xxx`, so you can write `obj.xxx = val`)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">infer_setter_property</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">infer_setter_property</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">name</span>.<span class="ident">to_string</span>();
 
         <span class="comment">// Otherwise we infer names based on the Rust function name.</span>

@@ -2087,7 +2087,7 @@
         }
 
         $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">tt</span>)<span class="op">*</span>
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">outer</span>]</span>)<span class="op">*</span>
         <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>)]</span>
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">vis</span> <span class="kw">struct</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
@@ -2107,7 +2107,7 @@
             $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>)<span class="op">*</span>
         }
     };
-    () <span class="op">=</span><span class="op">&gt;</span> {};
+    () =&gt; {};
 }
 
 <span class="comment">// A helper macro to implement the `all` function.</span>
@@ -2121,7 +2121,7 @@
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">Flag</span>:<span class="ident">ident</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">expr</span>;
             )<span class="op">+</span>
         }
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="comment">// See `Debug::fmt` for why this approach is taken.</span>
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_snake_case</span>)]</span>
         <span class="kw">trait</span> <span class="ident">__BitFlags</span> {
@@ -2143,7 +2143,7 @@
     };
     (
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span>:<span class="ident">ident</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:<span class="ident">ty</span> { }
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="self">Self</span> { <span class="ident">bits</span>: <span class="number">0</span> }
     };
 }
@@ -2158,9 +2158,9 @@
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">Flag</span>:<span class="ident">ident</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">expr</span>;
             )<span class="op">*</span>
         }
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::_core::fmt::Debug</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
-            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::_core::fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::_core::fmt::Result</span> {
+            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::_core::fmt::Formatter</span>) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::_core::fmt::Result</span> {
                 <span class="comment">// This convoluted approach is to handle #[cfg]-based flag</span>
                 <span class="comment">// omission correctly. For example it needs to support:</span>
                 <span class="comment">//</span>
@@ -2173,7 +2173,7 @@
                 <span class="kw">trait</span> <span class="ident">__BitFlags</span> {
                     $(
                         <span class="attribute">#[<span class="ident">inline</span>]</span>
-                        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">Flag</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> { <span class="bool-val">false</span> }
+                        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">Flag</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> { <span class="bool-val">false</span> }
                     )<span class="op">*</span>
                 }
 
@@ -2186,11 +2186,11 @@
                             <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
                             <span class="attribute">#[<span class="ident">inline</span>]</span>
                             $(<span class="question-mark">?</span> <span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">attr</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>)<span class="kw-2">*</span>]</span>)<span class="op">*</span>
-                            <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">Flag</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-                                <span class="kw">if</span> <span class="self">Self</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">Flag</span>.<span class="ident">bits</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">bits</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+                            <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">Flag</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+                                <span class="kw">if</span> <span class="self">Self</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">Flag</span>.<span class="ident">bits</span> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">bits</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
                                     <span class="bool-val">false</span>
                                 } <span class="kw">else</span> {
-                                    <span class="self">self</span>.<span class="ident">bits</span> <span class="op">&amp;</span> <span class="self">Self</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">Flag</span>.<span class="ident">bits</span> <span class="op">=</span><span class="op">=</span> <span class="self">Self</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">Flag</span>.<span class="ident">bits</span>
+                                    <span class="self">self</span>.<span class="ident">bits</span> <span class="op">&amp;</span> <span class="self">Self</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">Flag</span>.<span class="ident">bits</span> <span class="op">==</span> <span class="self">Self</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">Flag</span>.<span class="ident">bits</span>
                                 }
                             }
                         }
@@ -2223,22 +2223,22 @@
             }
         }
         <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::_core::fmt::Binary</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
-            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::_core::fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::_core::fmt::Result</span> {
+            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::_core::fmt::Formatter</span>) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::_core::fmt::Result</span> {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::_core::fmt::Binary::fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">bits</span>, <span class="ident">f</span>)
             }
         }
         <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::_core::fmt::Octal</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
-            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::_core::fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::_core::fmt::Result</span> {
+            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::_core::fmt::Formatter</span>) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::_core::fmt::Result</span> {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::_core::fmt::Octal::fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">bits</span>, <span class="ident">f</span>)
             }
         }
         <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::_core::fmt::LowerHex</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
-            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::_core::fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::_core::fmt::Result</span> {
+            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::_core::fmt::Formatter</span>) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::_core::fmt::Result</span> {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::_core::fmt::LowerHex::fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">bits</span>, <span class="ident">f</span>)
             }
         }
         <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::_core::fmt::UpperHex</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
-            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::_core::fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::_core::fmt::Result</span> {
+            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::_core::fmt::Formatter</span>) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::_core::fmt::Result</span> {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::_core::fmt::UpperHex::fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">bits</span>, <span class="ident">f</span>)
             }
         }
@@ -2252,13 +2252,13 @@
 
             <span class="doccomment">/// Returns an empty set of flags.</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">empty</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">empty</span>() -&gt; <span class="self">Self</span> {
                 <span class="self">Self</span> { <span class="ident">bits</span>: <span class="number">0</span> }
             }
 
             <span class="doccomment">/// Returns the set containing all flags.</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">all</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">all</span>() -&gt; <span class="self">Self</span> {
                 <span class="macro">__impl_all_bitflags!</span> {
                     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
                         $(
@@ -2271,15 +2271,15 @@
 
             <span class="doccomment">/// Returns the raw value of the flags currently stored.</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">bits</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
+            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">bits</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
                 <span class="self">self</span>.<span class="ident">bits</span>
             }
 
             <span class="doccomment">/// Convert from underlying bit representation, unless that</span>
             <span class="doccomment">/// representation contains bits that do not correspond to a flag.</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">from_bits</span>(<span class="ident">bits</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::_core::option::Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> (<span class="ident">bits</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident"><span class="self">Self</span>::all</span>().<span class="ident">bits</span>()) <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">from_bits</span>(<span class="ident">bits</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::_core::option::Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+                <span class="kw">if</span> (<span class="ident">bits</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident"><span class="self">Self</span>::all</span>().<span class="ident">bits</span>()) <span class="op">==</span> <span class="number">0</span> {
                     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::_core::option::Option::Some</span>(<span class="self">Self</span> { <span class="ident">bits</span> })
                 } <span class="kw">else</span> {
                     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::_core::option::Option::None</span>
@@ -2289,7 +2289,7 @@
             <span class="doccomment">/// Convert from underlying bit representation, dropping any bits</span>
             <span class="doccomment">/// that do not correspond to flags.</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">from_bits_truncate</span>(<span class="ident">bits</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">from_bits_truncate</span>(<span class="ident">bits</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>) -&gt; <span class="self">Self</span> {
                 <span class="self">Self</span> { <span class="ident">bits</span>: <span class="ident">bits</span> <span class="op">&amp;</span> <span class="ident"><span class="self">Self</span>::all</span>().<span class="ident">bits</span> }
             }
 
@@ -2305,32 +2305,32 @@
             <span class="doccomment">/// all bits correspond to a defined flag or that extra bits</span>
             <span class="doccomment">/// are valid for this bitflags type.</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_bits_unchecked</span>(<span class="ident">bits</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_bits_unchecked</span>(<span class="ident">bits</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>) -&gt; <span class="self">Self</span> {
                 <span class="self">Self</span> { <span class="ident">bits</span> }
             }
 
             <span class="doccomment">/// Returns `true` if no flags are currently stored.</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-                <span class="self">self</span>.<span class="ident">bits</span>() <span class="op">=</span><span class="op">=</span> <span class="ident"><span class="self">Self</span>::empty</span>().<span class="ident">bits</span>()
+            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+                <span class="self">self</span>.<span class="ident">bits</span>() <span class="op">==</span> <span class="ident"><span class="self">Self</span>::empty</span>().<span class="ident">bits</span>()
             }
 
             <span class="doccomment">/// Returns `true` if all flags are currently set.</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">is_all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-                <span class="ident"><span class="self">Self</span>::all</span>().<span class="ident">bits</span> <span class="op">|</span> <span class="self">self</span>.<span class="ident">bits</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">bits</span>
+            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">is_all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+                <span class="ident"><span class="self">Self</span>::all</span>().<span class="ident">bits</span> <span class="op">|</span> <span class="self">self</span>.<span class="ident">bits</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">bits</span>
             }
 
             <span class="doccomment">/// Returns `true` if there are flags common to both `self` and `other`.</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">intersects</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">intersects</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
                 <span class="op">!</span>(<span class="self">Self</span> { <span class="ident">bits</span>: <span class="self">self</span>.<span class="ident">bits</span> <span class="op">&amp;</span> <span class="ident">other</span>.<span class="ident">bits</span>}).<span class="ident">is_empty</span>()
             }
 
             <span class="doccomment">/// Returns `true` if all of the flags in `other` are contained within `self`.</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-                (<span class="self">self</span>.<span class="ident">bits</span> <span class="op">&amp;</span> <span class="ident">other</span>.<span class="ident">bits</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">bits</span>
+            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
+                (<span class="self">self</span>.<span class="ident">bits</span> <span class="op">&amp;</span> <span class="ident">other</span>.<span class="ident">bits</span>) <span class="op">==</span> <span class="ident">other</span>.<span class="ident">bits</span>
             }
 
             <span class="doccomment">/// Inserts the specified flags in-place.</span>
@@ -2373,7 +2373,7 @@
             <span class="doccomment">/// [`ops::BitAnd`]: https://doc.rust-lang.org/std/ops/trait.BitAnd.html</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
             <span class="attribute">#[<span class="ident">must_use</span>]</span>
-            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">intersection</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">intersection</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
                 <span class="self">Self</span> { <span class="ident">bits</span>: <span class="self">self</span>.<span class="ident">bits</span> <span class="op">&amp;</span> <span class="ident">other</span>.<span class="ident">bits</span> }
             }
 
@@ -2390,7 +2390,7 @@
             <span class="doccomment">/// [`ops::BitOr`]: https://doc.rust-lang.org/std/ops/trait.BitOr.html</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
             <span class="attribute">#[<span class="ident">must_use</span>]</span>
-            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">union</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">union</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
                 <span class="self">Self</span> { <span class="ident">bits</span>: <span class="self">self</span>.<span class="ident">bits</span> <span class="op">|</span> <span class="ident">other</span>.<span class="ident">bits</span> }
             }
 
@@ -2408,7 +2408,7 @@
             <span class="doccomment">/// [`ops::Sub`]: https://doc.rust-lang.org/std/ops/trait.Sub.html</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
             <span class="attribute">#[<span class="ident">must_use</span>]</span>
-            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">difference</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">difference</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
                 <span class="self">Self</span> { <span class="ident">bits</span>: <span class="self">self</span>.<span class="ident">bits</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident">other</span>.<span class="ident">bits</span> }
             }
 
@@ -2427,7 +2427,7 @@
             <span class="doccomment">/// [`ops::BitXor`]: https://doc.rust-lang.org/std/ops/trait.BitXor.html</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
             <span class="attribute">#[<span class="ident">must_use</span>]</span>
-            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">symmetric_difference</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">symmetric_difference</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
                 <span class="self">Self</span> { <span class="ident">bits</span>: <span class="self">self</span>.<span class="ident">bits</span> <span class="op">^</span> <span class="ident">other</span>.<span class="ident">bits</span> }
             }
 
@@ -2446,7 +2446,7 @@
             <span class="doccomment">/// [`ops::Not`]: https://doc.rust-lang.org/std/ops/trait.Not.html</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
             <span class="attribute">#[<span class="ident">must_use</span>]</span>
-            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">complement</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">complement</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
                 <span class="ident"><span class="self">Self</span>::from_bits_truncate</span>(<span class="op">!</span><span class="self">self</span>.<span class="ident">bits</span>)
             }
 
@@ -2457,7 +2457,7 @@
 
             <span class="doccomment">/// Returns the union of the two sets of flags.</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">bitor</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="kw">fn</span> <span class="ident">bitor</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span>) -&gt; <span class="self">Self</span> {
                 <span class="self">Self</span> { <span class="ident">bits</span>: <span class="self">self</span>.<span class="ident">bits</span> <span class="op">|</span> <span class="ident">other</span>.<span class="ident">bits</span> }
             }
         }
@@ -2475,7 +2475,7 @@
 
             <span class="doccomment">/// Returns the left flags, but with all the right flags toggled.</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">bitxor</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="kw">fn</span> <span class="ident">bitxor</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
                 <span class="self">Self</span> { <span class="ident">bits</span>: <span class="self">self</span>.<span class="ident">bits</span> <span class="op">^</span> <span class="ident">other</span>.<span class="ident">bits</span> }
             }
         }
@@ -2493,7 +2493,7 @@
 
             <span class="doccomment">/// Returns the intersection between the two sets of flags.</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">bitand</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="kw">fn</span> <span class="ident">bitand</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
                 <span class="self">Self</span> { <span class="ident">bits</span>: <span class="self">self</span>.<span class="ident">bits</span> <span class="op">&amp;</span> <span class="ident">other</span>.<span class="ident">bits</span> }
             }
         }
@@ -2511,7 +2511,7 @@
 
             <span class="doccomment">/// Returns the set difference of the two sets of flags.</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">sub</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="kw">fn</span> <span class="ident">sub</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
                 <span class="self">Self</span> { <span class="ident">bits</span>: <span class="self">self</span>.<span class="ident">bits</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident">other</span>.<span class="ident">bits</span> }
             }
         }
@@ -2529,7 +2529,7 @@
 
             <span class="doccomment">/// Returns the complement of this set of flags.</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">not</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="kw">fn</span> <span class="ident">not</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
                 <span class="self">Self</span> { <span class="ident">bits</span>: <span class="op">!</span><span class="self">self</span>.<span class="ident">bits</span> } <span class="op">&amp;</span> <span class="ident"><span class="self">Self</span>::all</span>()
             }
         }
@@ -2543,7 +2543,7 @@
         }
 
         <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::_core::iter::FromIterator</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
-            <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::_core::iter::IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">iterator</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::_core::iter::IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">iterator</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::empty</span>();
                 <span class="ident">result</span>.<span class="ident">extend</span>(<span class="ident">iterator</span>);
                 <span class="ident">result</span>
@@ -2574,7 +2574,7 @@
         <span class="question-mark">?</span> <span class="attribute">#[<span class="ident">cfg</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cfgargs</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>]</span>
         $(<span class="question-mark">?</span> <span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>:<span class="ident">ident</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">restargs</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>]</span>)<span class="op">*</span>
         <span class="kw">fn</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">item</span>:<span class="ident">tt</span>)<span class="op">*</span>
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro">__impl_bitflags!</span> {
             $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">filtered</span>]</span>)<span class="op">*</span>
             <span class="attribute">#[<span class="ident">cfg</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cfgargs</span>)<span class="kw-2">*</span>]</span>
@@ -2588,7 +2588,7 @@
         <span class="question-mark">?</span> <span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">next</span>:<span class="ident">ident</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">nextargs</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>]</span>
         $(<span class="question-mark">?</span> <span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>:<span class="ident">ident</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">restargs</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>]</span>)<span class="op">*</span>
         <span class="kw">fn</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">item</span>:<span class="ident">tt</span>)<span class="op">*</span>
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro">__impl_bitflags!</span> {
             $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">filtered</span>]</span>)<span class="op">*</span>
             <span class="comment">// $next filtered out</span>
@@ -2599,7 +2599,7 @@
     (
         $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">filtered</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span>
         <span class="kw">fn</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">item</span>:<span class="ident">tt</span>)<span class="op">*</span>
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">filtered</span>]</span>)<span class="op">*</span>
         <span class="kw">fn</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">item</span>)<span class="op">*</span>
     };
@@ -2629,7 +2629,7 @@
         <span class="question-mark">?</span> <span class="attribute">#[<span class="ident">cfg</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cfgargs</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>]</span>
         $(<span class="question-mark">?</span> <span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>:<span class="ident">ident</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">restargs</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>]</span>)<span class="op">*</span>
         <span class="kw">const</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">item</span>:<span class="ident">tt</span>)<span class="op">*</span>
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro">__impl_bitflags!</span> {
             $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">filtered</span>]</span>)<span class="op">*</span>
             <span class="attribute">#[<span class="ident">cfg</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cfgargs</span>)<span class="kw-2">*</span>]</span>
@@ -2643,7 +2643,7 @@
         <span class="question-mark">?</span> <span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">next</span>:<span class="ident">ident</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">nextargs</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>]</span>
         $(<span class="question-mark">?</span> <span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>:<span class="ident">ident</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">restargs</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>]</span>)<span class="op">*</span>
         <span class="kw">const</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">item</span>:<span class="ident">tt</span>)<span class="op">*</span>
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro">__impl_bitflags!</span> {
             $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">filtered</span>]</span>)<span class="op">*</span>
             <span class="comment">// $next filtered out</span>
@@ -2654,7 +2654,7 @@
     (
         $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">filtered</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span>
         <span class="kw">const</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">item</span>:<span class="ident">tt</span>)<span class="op">*</span>
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">filtered</span>]</span>)<span class="op">*</span>
         <span class="kw">const</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">item</span>)<span class="op">*</span>
     };
@@ -3194,7 +3194,7 @@
         <span class="macro">assert!</span>(<span class="ident">a</span> <span class="op">&lt;</span> <span class="ident">b</span> <span class="op">&amp;&amp;</span> <span class="ident">a</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">b</span>);
     }
 
-    <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Hash</span><span class="op">&gt;</span>(<span class="ident">t</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
+    <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Hash</span><span class="op">&gt;</span>(<span class="ident">t</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">u64</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">DefaultHasher::new</span>();
         <span class="ident">t</span>.<span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>);
         <span class="ident">s</span>.<span class="ident">finish</span>()
@@ -3359,12 +3359,12 @@
             <span class="kw">mod</span> <span class="ident">test</span> {
                 <span class="comment">// Note: due to `pub (in super)`,</span>
                 <span class="comment">// this cannot be accessed directly by the testing code.</span>
-                <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">value</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span> {
+                <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">value</span>() -&gt; <span class="ident">u8</span> {
                     <span class="ident"><span class="kw">super</span>::submodule::Test::FOO</span>.<span class="ident">bits</span>()
                 }
             }
 
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span> {
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value</span>() -&gt; <span class="ident">u8</span> {
                 <span class="ident">test::value</span>()
             }
         }

@@ -276,11 +276,11 @@
     <span class="ident">key</span>: <span class="ident">PropertyKey</span>,
     <span class="ident">desc</span>: <span class="ident">PropertyDescriptor</span>,
     <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
     <span class="comment">// 1. Assert: IsPropertyKey(P) is true.</span>
     <span class="kw">match</span> <span class="ident">key</span> {
         <span class="comment">// 2. If P is &quot;length&quot;, then</span>
-        <span class="ident">PropertyKey::String</span>(<span class="kw-2">ref</span> <span class="ident">s</span>) <span class="kw">if</span> <span class="ident">s</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;length&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">PropertyKey::String</span>(<span class="kw-2">ref</span> <span class="ident">s</span>) <span class="kw">if</span> <span class="ident">s</span> <span class="op">==</span> <span class="string">&quot;length&quot;</span> =&gt; {
             <span class="comment">// a. Return ? ArraySetLength(A, Desc).</span>
 
             <span class="comment">// Abstract operation `ArraySetLength ( A, Desc )`</span>
@@ -289,8 +289,8 @@
 
             <span class="comment">// 1. If Desc.[[Value]] is absent, then</span>
             <span class="kw">let</span> <span class="ident">new_len_val</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">desc</span>.<span class="ident">value</span>() {
-                <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span>,
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; <span class="ident">value</span>,
+                <span class="kw">_</span> =&gt; {
                     <span class="comment">// a. Return OrdinaryDefineOwnProperty(A, &quot;length&quot;, Desc).</span>
                     <span class="kw">return</span> <span class="ident"><span class="kw">super</span>::ordinary_define_own_property</span>(
                         <span class="ident">obj</span>,
@@ -438,7 +438,7 @@
         }
 
         <span class="comment">// 3. Else if P is an array index, then</span>
-        <span class="ident">PropertyKey::Index</span>(<span class="ident">index</span>) <span class="kw">if</span> <span class="ident">index</span> <span class="op">&lt;</span> <span class="ident">u32::MAX</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">PropertyKey::Index</span>(<span class="ident">index</span>) <span class="kw">if</span> <span class="ident">index</span> <span class="op">&lt;</span> <span class="ident">u32::MAX</span> =&gt; {
             <span class="comment">// a. Let oldLenDesc be OrdinaryGetOwnProperty(A, &quot;length&quot;).</span>
             <span class="kw">let</span> <span class="ident">old_len_desc</span> <span class="op">=</span>
                 <span class="ident"><span class="kw">super</span>::ordinary_get_own_property</span>(<span class="ident">obj</span>, <span class="kw-2">&amp;</span><span class="string">&quot;length&quot;</span>.<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">unwrap</span>();
@@ -491,7 +491,7 @@
             }
         }
         <span class="comment">// 4. Return OrdinaryDefineOwnProperty(A, P, Desc).</span>
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ordinary_define_own_property</span>(<span class="ident">obj</span>, <span class="ident">key</span>, <span class="ident">desc</span>, <span class="ident">context</span>),
+        <span class="kw">_</span> =&gt; <span class="ident"><span class="kw">super</span>::ordinary_define_own_property</span>(<span class="ident">obj</span>, <span class="ident">key</span>, <span class="ident">desc</span>, <span class="ident">context</span>),
     }
 }
 </code></pre></div>

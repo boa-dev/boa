@@ -2,7 +2,7 @@
 <p>This is simply a shortcut for <code>thread_rng().gen()</code>. See <a href="fn.thread_rng.html" title="thread_rng"><code>thread_rng</code></a> for
 documentation of the entropy source and <a href="distributions/struct.Standard.html"><code>Standard</code></a> for documentation of
 distributions and type-specific generation.</p>
-<h1 id="provided-implementations" class="section-header"><a href="#provided-implementations">Provided implementations</a></h1>
+<h2 id="provided-implementations" class="section-header"><a href="#provided-implementations">Provided implementations</a></h2>
 <p>The following types have provided implementations that
 generate values with the following ranges and distributions:</p>
 <ul>
@@ -28,7 +28,7 @@ types and tends to be faster for <code>u32</code> and smaller types.</li>
 <li><code>Option&lt;T&gt;</code> first generates a <code>bool</code>, and if true generates and returns
 <code>Some(value)</code> where <code>value: T</code>, otherwise returning <code>None</code>.</li>
 </ul>
-<h1 id="examples" class="section-header"><a href="#examples">Examples</a></h1>
+<h2 id="examples" class="section-header"><a href="#examples">Examples</a></h2>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">rand::random</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>();
 <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">x</span>);
 

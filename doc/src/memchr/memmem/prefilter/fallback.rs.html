@@ -173,7 +173,7 @@ https://github.com/BurntSushi/bstr/blob/a444256ca7407fe180ee32534688549655b7a38e
     <span class="ident">ninfo</span>: <span class="kw-2">&amp;</span><span class="ident">NeedleInfo</span>,
     <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
     <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">i</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">let</span> (<span class="ident">rare1i</span>, <span class="ident">rare2i</span>) <span class="op">=</span> <span class="ident">ninfo</span>.<span class="ident">rarebytes</span>.<span class="ident">as_rare_usize</span>();
     <span class="kw">let</span> (<span class="ident">rare1</span>, <span class="ident">rare2</span>) <span class="op">=</span> <span class="ident">ninfo</span>.<span class="ident">rarebytes</span>.<span class="ident">as_rare_bytes</span>(<span class="ident">needle</span>);
@@ -214,7 +214,7 @@ https://github.com/BurntSushi/bstr/blob/a444256ca7407fe180ee32534688549655b7a38e
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
-    <span class="kw">fn</span> <span class="ident">freqy_find</span>(<span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">freqy_find</span>(<span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">ninfo</span> <span class="op">=</span> <span class="ident">NeedleInfo::new</span>(<span class="ident">needle</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prestate</span> <span class="op">=</span> <span class="ident">PrefilterState::new</span>();
         <span class="ident">find</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">prestate</span>, <span class="kw-2">&amp;</span><span class="ident">ninfo</span>, <span class="ident">haystack</span>, <span class="ident">needle</span>)

@@ -19,7 +19,7 @@ general-purpose Rust quasi-quoting library and is not specific to procedural
 macros.</p>
 <div class="example-wrap"><pre class="language-toml"><code>[dependencies]
 quote = &quot;1.0&quot;</code></pre></div><br>
-<h1 id="example" class="section-header"><a href="#example">Example</a></h1>
+<h2 id="example" class="section-header"><a href="#example">Example</a></h2>
 <p>The following quasi-quoted block of code is something you might find in <a href="https://serde.rs/">a</a>
 procedural macro having to do with data structure serialization. The <code>#var</code>
 syntax performs interpolation of runtime variables into the quoted tokens.
@@ -34,7 +34,7 @@ implementing hygienic procedural macros.</p>
     }
 
     <span class="kw">impl</span> #<span class="ident">generics</span> <span class="ident">serde::Serialize</span> <span class="kw">for</span> <span class="ident">SerializeWith</span> #<span class="ident">generics</span> #<span class="ident">where_clause</span> {
-        <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S::Ok</span>, <span class="ident">S::Error</span><span class="op">&gt;</span>
+        <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S::Ok</span>, <span class="ident">S::Error</span><span class="op">&gt;</span>
         <span class="kw">where</span>
             <span class="ident">S</span>: <span class="ident">serde::Serializer</span>,
         {
@@ -48,14 +48,14 @@ implementing hygienic procedural macros.</p>
     }
 };</code></pre></div>
 </div></details><h2 id="macros" class="section-header"><a href="#macros">Macros</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="macro" href="macro.format_ident.html" title="quote::format_ident macro">format_ident</a></div><div class="item-right docblock-short"><p>Formatting macro for constructing <code>Ident</code>s.</p>
-</div><div class="item-left module-item"><a class="macro" href="macro.quote.html" title="quote::quote macro">quote</a></div><div class="item-right docblock-short"><p>The whole point.</p>
-</div><div class="item-left module-item"><a class="macro" href="macro.quote_spanned.html" title="quote::quote_spanned macro">quote_spanned</a></div><div class="item-right docblock-short"><p>Same as <code>quote!</code>, but applies a given span to all tokens originating within
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="macro" href="macro.format_ident.html" title="quote::format_ident macro">format_ident</a></div><div class="item-right docblock-short"><p>Formatting macro for constructing <code>Ident</code>s.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="macro" href="macro.quote.html" title="quote::quote macro">quote</a></div><div class="item-right docblock-short"><p>The whole point.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="macro" href="macro.quote_spanned.html" title="quote::quote_spanned macro">quote_spanned</a></div><div class="item-right docblock-short"><p>Same as <code>quote!</code>, but applies a given span to all tokens originating within
 the macro invocation.</p>
-</div></div><h2 id="traits" class="section-header"><a href="#traits">Traits</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="trait" href="trait.IdentFragment.html" title="quote::IdentFragment trait">IdentFragment</a></div><div class="item-right docblock-short"><p>Specialized formatting trait used by <code>format_ident!</code>.</p>
-</div><div class="item-left module-item"><a class="trait" href="trait.ToTokens.html" title="quote::ToTokens trait">ToTokens</a></div><div class="item-right docblock-short"><p>Types that can be interpolated inside a <code>quote!</code> invocation.</p>
-</div><div class="item-left module-item"><a class="trait" href="trait.TokenStreamExt.html" title="quote::TokenStreamExt trait">TokenStreamExt</a></div><div class="item-right docblock-short"><p>TokenStream extension trait with methods for appending tokens.</p>
-</div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="quote" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
+</div></div></div><h2 id="traits" class="section-header"><a href="#traits">Traits</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.IdentFragment.html" title="quote::IdentFragment trait">IdentFragment</a></div><div class="item-right docblock-short"><p>Specialized formatting trait used by <code>format_ident!</code>.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.ToTokens.html" title="quote::ToTokens trait">ToTokens</a></div><div class="item-right docblock-short"><p>Types that can be interpolated inside a <code>quote!</code> invocation.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.TokenStreamExt.html" title="quote::TokenStreamExt trait">TokenStreamExt</a></div><div class="item-right docblock-short"><p>TokenStream extension trait with methods for appending tokens.</p>
+</div></div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="quote" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
     <script src="../main.js"></script>
 </body></html>

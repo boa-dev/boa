@@ -194,8 +194,8 @@
 <span class="macro">externs!</span> {
     <span class="attribute">#[<span class="ident">link</span>(<span class="ident">wasm_import_module</span> <span class="op">=</span> <span class="string">&quot;__wbindgen_externref_xform__&quot;</span>)]</span>
     <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-        <span class="kw">fn</span> <span class="ident">__wbindgen_externref_table_grow</span>(<span class="ident">delta</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span>;
-        <span class="kw">fn</span> <span class="ident">__wbindgen_externref_table_set_null</span>(<span class="ident">idx</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> ();
+        <span class="kw">fn</span> <span class="ident">__wbindgen_externref_table_grow</span>(<span class="ident">delta</span>: <span class="ident">usize</span>) -&gt; <span class="ident">i32</span>;
+        <span class="kw">fn</span> <span class="ident">__wbindgen_externref_table_set_null</span>(<span class="ident">idx</span>: <span class="ident">usize</span>) -&gt; ();
     }
 }
 
@@ -206,7 +206,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Slab</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Slab</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">Slab</span> {
         <span class="ident">Slab</span> {
             <span class="ident">data</span>: <span class="ident">Vec::new</span>(),
             <span class="ident">head</span>: <span class="number">0</span>,
@@ -214,17 +214,17 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">alloc</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">alloc</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">head</span>;
-        <span class="kw">if</span> <span class="ident">ret</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">len</span>() {
+        <span class="kw">if</span> <span class="ident">ret</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">len</span>() {
             <span class="kw">let</span> <span class="ident">curr_len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">len</span>();
-            <span class="kw">if</span> <span class="ident">curr_len</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">capacity</span>() {
+            <span class="kw">if</span> <span class="ident">curr_len</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">capacity</span>() {
                 <span class="kw">let</span> <span class="ident">extra</span> <span class="op">=</span> <span class="ident">max</span>(<span class="number">128</span>, <span class="ident">curr_len</span>);
                 <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">__wbindgen_externref_table_grow</span>(<span class="ident">extra</span>) };
-                <span class="kw">if</span> <span class="ident">r</span> <span class="op">=</span><span class="op">=</span> <span class="op">-</span><span class="number">1</span> {
+                <span class="kw">if</span> <span class="ident">r</span> <span class="op">==</span> <span class="op">-</span><span class="number">1</span> {
                     <span class="ident">internal_error</span>(<span class="string">&quot;table grow failure&quot;</span>)
                 }
-                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">base</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">base</span> <span class="op">==</span> <span class="number">0</span> {
                     <span class="self">self</span>.<span class="ident">base</span> <span class="op">=</span> <span class="ident">r</span> <span class="kw">as</span> <span class="ident">usize</span>;
                 } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">base</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">r</span> <span class="kw">as</span> <span class="ident">usize</span> {
                     <span class="ident">internal_error</span>(<span class="string">&quot;someone else allocated table entires?&quot;</span>)
@@ -236,8 +236,8 @@
                     <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>() <span class="op">*</span> <span class="ident">new_cap</span>;
                     <span class="kw">let</span> <span class="ident">align</span> <span class="op">=</span> <span class="ident">mem::align_of</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>();
                     <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">Layout::from_size_align</span>(<span class="ident">size</span>, <span class="ident">align</span>) {
-                        <span class="prelude-val">Ok</span>(<span class="ident">l</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">l</span>,
-                        <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">internal_error</span>(<span class="string">&quot;size/align layout failure&quot;</span>),
+                        <span class="prelude-val">Ok</span>(<span class="ident">l</span>) =&gt; <span class="ident">l</span>,
+                        <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="ident">internal_error</span>(<span class="string">&quot;size/align layout failure&quot;</span>),
                     };
                     <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">alloc::alloc</span>(<span class="ident">layout</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">usize</span>;
                     <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">is_null</span>() {
@@ -261,8 +261,8 @@
         <span class="comment">// usage of `get_mut` thwarts panicking infrastructure in optimized</span>
         <span class="comment">// builds</span>
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">get_mut</span>(<span class="ident">ret</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">slot</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">head</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">slot</span>,
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">internal_error</span>(<span class="string">&quot;ret out of bounds&quot;</span>),
+            <span class="prelude-val">Some</span>(<span class="ident">slot</span>) =&gt; <span class="self">self</span>.<span class="ident">head</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">slot</span>,
+            <span class="prelude-val">None</span> =&gt; <span class="ident">internal_error</span>(<span class="string">&quot;ret out of bounds&quot;</span>),
         }
         <span class="ident">ret</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">base</span>
     }
@@ -276,30 +276,30 @@
         <span class="comment">// usage of `get_mut` thwarts panicking infrastructure in optimized</span>
         <span class="comment">// builds</span>
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">get_mut</span>(<span class="ident">slot</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">ptr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">ptr</span>) =&gt; {
                 <span class="kw-2">*</span><span class="ident">ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">head</span>;
                 <span class="self">self</span>.<span class="ident">head</span> <span class="op">=</span> <span class="ident">slot</span>;
             }
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">internal_error</span>(<span class="string">&quot;slot out of bounds&quot;</span>),
+            <span class="prelude-val">None</span> =&gt; <span class="ident">internal_error</span>(<span class="string">&quot;slot out of bounds&quot;</span>),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">live_count</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">live_count</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">free_count</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">next</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">head</span>;
         <span class="kw">while</span> <span class="ident">next</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">len</span>() {
             <span class="macro">debug_assert!</span>((<span class="ident">free_count</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">len</span>());
             <span class="ident">free_count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">get</span>(<span class="ident">next</span>) {
-                <span class="prelude-val">Some</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">n</span>,
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">internal_error</span>(<span class="string">&quot;slot out of bounds&quot;</span>),
+                <span class="prelude-val">Some</span>(<span class="ident">n</span>) =&gt; <span class="ident">next</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">n</span>,
+                <span class="prelude-val">None</span> =&gt; <span class="ident">internal_error</span>(<span class="string">&quot;slot out of bounds&quot;</span>),
             };
         }
         <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span> <span class="op">-</span> <span class="ident">free_count</span>
     }
 }
 
-<span class="kw">fn</span> <span class="ident">internal_error</span>(<span class="ident">msg</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="op">!</span> {
+<span class="kw">fn</span> <span class="ident">internal_error</span>(<span class="ident">msg</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="op">!</span> {
     <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">debug_assertions</span>) {
         <span class="ident"><span class="kw">super</span>::throw_str</span>(<span class="ident">msg</span>)
     } <span class="kw">else</span> {
@@ -312,7 +312,7 @@
 <span class="macro">std::thread_local!</span>(<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">HEAP_SLAB</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">Slab</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Cell::new</span>(<span class="ident">Slab::new</span>()));
 
 <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-<span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">__externref_table_alloc</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">__externref_table_alloc</span>() -&gt; <span class="ident">usize</span> {
     <span class="ident">HEAP_SLAB</span>
         .<span class="ident">try_with</span>(<span class="op">|</span><span class="ident">slot</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">slab</span> <span class="op">=</span> <span class="ident">slot</span>.<span class="ident">replace</span>(<span class="ident">Slab::new</span>());
@@ -352,7 +352,7 @@
 <span class="comment">// Implementation of `__wbindgen_externref_heap_live_count` for when we are using</span>
 <span class="comment">// `externref` instead of the JS `heap`.</span>
 <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">__externref_heap_live_count</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">__externref_heap_live_count</span>() -&gt; <span class="ident">u32</span> {
     <span class="ident">HEAP_SLAB</span>
         .<span class="ident">try_with</span>(<span class="op">|</span><span class="ident">slot</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">slab</span> <span class="op">=</span> <span class="ident">slot</span>.<span class="ident">replace</span>(<span class="ident">Slab::new</span>());

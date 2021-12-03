@@ -1288,7 +1288,7 @@
     <span class="doccomment">/// reference should point to a variable that is specific to the thread and the operation,</span>
     <span class="doccomment">/// and is alive for the entire duration of select or blocking operation.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hook</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">r</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Operation</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hook</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">r</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>) -&gt; <span class="ident">Operation</span> {
         <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">r</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">T</span> <span class="kw">as</span> <span class="ident">usize</span>;
         <span class="comment">// Make sure that the pointer address doesn&#39;t equal the numerical representation of</span>
         <span class="comment">// `Selected::{Waiting, Aborted, Disconnected}`.</span>
@@ -1315,24 +1315,24 @@
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Selected</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Selected</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="ident">usize</span>) -&gt; <span class="ident">Selected</span> {
         <span class="kw">match</span> <span class="ident">val</span> {
-            <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Selected::Waiting</span>,
-            <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Selected::Aborted</span>,
-            <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Selected::Disconnected</span>,
-            <span class="ident">oper</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Selected::Operation</span>(<span class="ident">Operation</span>(<span class="ident">oper</span>)),
+            <span class="number">0</span> =&gt; <span class="ident">Selected::Waiting</span>,
+            <span class="number">1</span> =&gt; <span class="ident">Selected::Aborted</span>,
+            <span class="number">2</span> =&gt; <span class="ident">Selected::Disconnected</span>,
+            <span class="ident">oper</span> =&gt; <span class="ident">Selected::Operation</span>(<span class="ident">Operation</span>(<span class="ident">oper</span>)),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Selected</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">into</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">into</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Selected::Waiting</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
-            <span class="ident">Selected::Aborted</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,
-            <span class="ident">Selected::Disconnected</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">2</span>,
-            <span class="ident">Selected::Operation</span>(<span class="ident">Operation</span>(<span class="ident">val</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">val</span>,
+            <span class="ident">Selected::Waiting</span> =&gt; <span class="number">0</span>,
+            <span class="ident">Selected::Aborted</span> =&gt; <span class="number">1</span>,
+            <span class="ident">Selected::Disconnected</span> =&gt; <span class="number">2</span>,
+            <span class="ident">Selected::Operation</span>(<span class="ident">Operation</span>(<span class="ident">val</span>)) =&gt; <span class="ident">val</span>,
         }
     }
 }
@@ -1343,40 +1343,40 @@
 <span class="doccomment">/// appropriate deadline for blocking, etc.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">SelectHandle</span> {
     <span class="doccomment">/// Attempts to select an operation and returns `true` on success.</span>
-    <span class="kw">fn</span> <span class="ident">try_select</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">token</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Token</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">try_select</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">token</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Token</span>) -&gt; <span class="ident">bool</span>;
 
     <span class="doccomment">/// Returns a deadline for an operation, if there is one.</span>
-    <span class="kw">fn</span> <span class="ident">deadline</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Instant</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">deadline</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Instant</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Registers an operation for execution and returns `true` if it is now ready.</span>
-    <span class="kw">fn</span> <span class="ident">register</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">oper</span>: <span class="ident">Operation</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">register</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">oper</span>: <span class="ident">Operation</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>) -&gt; <span class="ident">bool</span>;
 
     <span class="doccomment">/// Unregisters an operation for execution.</span>
     <span class="kw">fn</span> <span class="ident">unregister</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">oper</span>: <span class="ident">Operation</span>);
 
     <span class="doccomment">/// Attempts to select an operation the thread got woken up for and returns `true` on success.</span>
-    <span class="kw">fn</span> <span class="ident">accept</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">token</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Token</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">accept</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">token</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Token</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>) -&gt; <span class="ident">bool</span>;
 
     <span class="doccomment">/// Returns `true` if an operation can be executed without blocking.</span>
-    <span class="kw">fn</span> <span class="ident">is_ready</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">is_ready</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span>;
 
     <span class="doccomment">/// Registers an operation for readiness notification and returns `true` if it is now ready.</span>
-    <span class="kw">fn</span> <span class="ident">watch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">oper</span>: <span class="ident">Operation</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">watch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">oper</span>: <span class="ident">Operation</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>) -&gt; <span class="ident">bool</span>;
 
     <span class="doccomment">/// Unregisters an operation for readiness notification.</span>
     <span class="kw">fn</span> <span class="ident">unwatch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">oper</span>: <span class="ident">Operation</span>);
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">SelectHandle</span><span class="op">&gt;</span> <span class="ident">SelectHandle</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">T</span> {
-    <span class="kw">fn</span> <span class="ident">try_select</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">token</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Token</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">try_select</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">token</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Token</span>) -&gt; <span class="ident">bool</span> {
         (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">try_select</span>(<span class="ident">token</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deadline</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Instant</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">deadline</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Instant</span><span class="op">&gt;</span> {
         (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">deadline</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">register</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">oper</span>: <span class="ident">Operation</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">register</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">oper</span>: <span class="ident">Operation</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>) -&gt; <span class="ident">bool</span> {
         (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">register</span>(<span class="ident">oper</span>, <span class="ident">cx</span>)
     }
 
@@ -1384,15 +1384,15 @@
         (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">unregister</span>(<span class="ident">oper</span>);
     }
 
-    <span class="kw">fn</span> <span class="ident">accept</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">token</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Token</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">accept</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">token</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Token</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>) -&gt; <span class="ident">bool</span> {
         (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">accept</span>(<span class="ident">token</span>, <span class="ident">cx</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">is_ready</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">is_ready</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">is_ready</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">watch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">oper</span>: <span class="ident">Operation</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">watch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">oper</span>: <span class="ident">Operation</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>) -&gt; <span class="ident">bool</span> {
         (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">watch</span>(<span class="ident">oper</span>, <span class="ident">cx</span>)
     }
 
@@ -1421,16 +1421,16 @@
 <span class="kw">fn</span> <span class="ident">run_select</span>(
     <span class="ident">handles</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [(<span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">SelectHandle</span>, <span class="ident">usize</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>)],
     <span class="ident">timeout</span>: <span class="ident">Timeout</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">Token</span>, <span class="ident">usize</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>)<span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">Token</span>, <span class="ident">usize</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>)<span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="ident">handles</span>.<span class="ident">is_empty</span>() {
         <span class="comment">// Wait until the timeout and return.</span>
         <span class="kw">match</span> <span class="ident">timeout</span> {
-            <span class="ident">Timeout::Now</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
-            <span class="ident">Timeout::Never</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Timeout::Now</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+            <span class="ident">Timeout::Never</span> =&gt; {
                 <span class="ident">utils::sleep_until</span>(<span class="prelude-val">None</span>);
                 <span class="macro">unreachable!</span>();
             }
-            <span class="ident">Timeout::At</span>(<span class="ident">when</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Timeout::At</span>(<span class="ident">when</span>) =&gt; {
                 <span class="ident">utils::sleep_until</span>(<span class="prelude-val">Some</span>(<span class="ident">when</span>));
                 <span class="kw">return</span> <span class="prelude-val">None</span>;
             }
@@ -1471,11 +1471,11 @@
                 <span class="kw">if</span> <span class="ident">handle</span>.<span class="ident">register</span>(<span class="ident">Operation::hook</span>::<span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">SelectHandle</span><span class="op">&gt;</span>(<span class="ident">handle</span>), <span class="ident">cx</span>) {
                     <span class="comment">// Try aborting select.</span>
                     <span class="ident">sel</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">cx</span>.<span class="ident">try_select</span>(<span class="ident">Selected::Aborted</span>) {
-                        <span class="prelude-val">Ok</span>(()) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">Ok</span>(()) =&gt; {
                             <span class="ident">index_ready</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="ident">i</span>);
                             <span class="ident">Selected::Aborted</span>
                         }
-                        <span class="prelude-val">Err</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>,
+                        <span class="prelude-val">Err</span>(<span class="ident">s</span>) =&gt; <span class="ident">s</span>,
                     };
                     <span class="kw">break</span>;
                 }
@@ -1487,13 +1487,13 @@
                 }
             }
 
-            <span class="kw">if</span> <span class="ident">sel</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Selected::Waiting</span> {
+            <span class="kw">if</span> <span class="ident">sel</span> <span class="op">==</span> <span class="ident">Selected::Waiting</span> {
                 <span class="comment">// Check with each operation for how long we&#39;re allowed to block, and compute the</span>
                 <span class="comment">// earliest deadline.</span>
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">deadline</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Instant</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">timeout</span> {
-                    <span class="ident">Timeout::Now</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
-                    <span class="ident">Timeout::Never</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-                    <span class="ident">Timeout::At</span>(<span class="ident">when</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">when</span>),
+                    <span class="ident">Timeout::Now</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+                    <span class="ident">Timeout::Never</span> =&gt; <span class="prelude-val">None</span>,
+                    <span class="ident">Timeout::At</span>(<span class="ident">when</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">when</span>),
                 };
                 <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">handle</span>, <span class="kw">_</span>, <span class="kw">_</span>) <span class="kw">in</span> <span class="ident">handles</span>.<span class="ident">iter</span>() {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">deadline</span>() {
@@ -1511,23 +1511,23 @@
             }
 
             <span class="kw">match</span> <span class="ident">sel</span> {
-                <span class="ident">Selected::Waiting</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
-                <span class="ident">Selected::Aborted</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Selected::Waiting</span> =&gt; <span class="macro">unreachable!</span>(),
+                <span class="ident">Selected::Aborted</span> =&gt; {
                     <span class="comment">// If an operation became ready during registration, try selecting it.</span>
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">index_ready</span>) <span class="op">=</span> <span class="ident">index_ready</span> {
                         <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">handle</span>, <span class="ident">i</span>, <span class="ident">ptr</span>) <span class="kw">in</span> <span class="ident">handles</span>.<span class="ident">iter</span>() {
-                            <span class="kw">if</span> <span class="ident">i</span> <span class="op">=</span><span class="op">=</span> <span class="ident">index_ready</span> <span class="op">&amp;&amp;</span> <span class="ident">handle</span>.<span class="ident">try_select</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">token</span>) {
+                            <span class="kw">if</span> <span class="ident">i</span> <span class="op">==</span> <span class="ident">index_ready</span> <span class="op">&amp;&amp;</span> <span class="ident">handle</span>.<span class="ident">try_select</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">token</span>) {
                                 <span class="kw">return</span> <span class="prelude-val">Some</span>((<span class="ident">i</span>, <span class="ident">ptr</span>));
                             }
                         }
                     }
                 }
-                <span class="ident">Selected::Disconnected</span> <span class="op">=</span><span class="op">&gt;</span> {}
-                <span class="ident">Selected::Operation</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Selected::Disconnected</span> =&gt; {}
+                <span class="ident">Selected::Operation</span>(<span class="kw">_</span>) =&gt; {
                     <span class="comment">// Find the selected operation.</span>
                     <span class="kw">for</span> (<span class="ident">handle</span>, <span class="ident">i</span>, <span class="ident">ptr</span>) <span class="kw">in</span> <span class="ident">handles</span>.<span class="ident">iter_mut</span>() {
                         <span class="comment">// Is this the selected operation?</span>
-                        <span class="kw">if</span> <span class="ident">sel</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Selected::Operation</span>(<span class="ident">Operation::hook</span>::<span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">SelectHandle</span><span class="op">&gt;</span>(<span class="ident">handle</span>))
+                        <span class="kw">if</span> <span class="ident">sel</span> <span class="op">==</span> <span class="ident">Selected::Operation</span>(<span class="ident">Operation::hook</span>::<span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">SelectHandle</span><span class="op">&gt;</span>(<span class="ident">handle</span>))
                         {
                             <span class="comment">// Try selecting this operation.</span>
                             <span class="kw">if</span> <span class="ident">handle</span>.<span class="ident">accept</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">token</span>, <span class="ident">cx</span>) {
@@ -1554,9 +1554,9 @@
         }
 
         <span class="kw">match</span> <span class="ident">timeout</span> {
-            <span class="ident">Timeout::Now</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
-            <span class="ident">Timeout::Never</span> <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="ident">Timeout::At</span>(<span class="ident">when</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Timeout::Now</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+            <span class="ident">Timeout::Never</span> =&gt; {}
+            <span class="ident">Timeout::At</span>(<span class="ident">when</span>) =&gt; {
                 <span class="kw">if</span> <span class="ident">Instant::now</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">when</span> {
                     <span class="kw">return</span> <span class="prelude-val">None</span>;
                 }
@@ -1569,16 +1569,16 @@
 <span class="kw">fn</span> <span class="ident">run_ready</span>(
     <span class="ident">handles</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [(<span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">SelectHandle</span>, <span class="ident">usize</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>)],
     <span class="ident">timeout</span>: <span class="ident">Timeout</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="ident">handles</span>.<span class="ident">is_empty</span>() {
         <span class="comment">// Wait until the timeout and return.</span>
         <span class="kw">match</span> <span class="ident">timeout</span> {
-            <span class="ident">Timeout::Now</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
-            <span class="ident">Timeout::Never</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Timeout::Now</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+            <span class="ident">Timeout::Never</span> =&gt; {
                 <span class="ident">utils::sleep_until</span>(<span class="prelude-val">None</span>);
                 <span class="macro">unreachable!</span>();
             }
-            <span class="ident">Timeout::At</span>(<span class="ident">when</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Timeout::At</span>(<span class="ident">when</span>) =&gt; {
                 <span class="ident">utils::sleep_until</span>(<span class="prelude-val">Some</span>(<span class="ident">when</span>));
                 <span class="kw">return</span> <span class="prelude-val">None</span>;
             }
@@ -1607,9 +1607,9 @@
 
         <span class="comment">// Check for timeout.</span>
         <span class="kw">match</span> <span class="ident">timeout</span> {
-            <span class="ident">Timeout::Now</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
-            <span class="ident">Timeout::Never</span> <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="ident">Timeout::At</span>(<span class="ident">when</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Timeout::Now</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+            <span class="ident">Timeout::Never</span> =&gt; {}
+            <span class="ident">Timeout::At</span>(<span class="ident">when</span>) =&gt; {
                 <span class="kw">if</span> <span class="ident">Instant::now</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">when</span> {
                     <span class="kw">return</span> <span class="prelude-val">None</span>;
                 }
@@ -1629,8 +1629,8 @@
                 <span class="comment">// If registration returns `false`, that means the operation has just become ready.</span>
                 <span class="kw">if</span> <span class="ident">handle</span>.<span class="ident">watch</span>(<span class="ident">oper</span>, <span class="ident">cx</span>) {
                     <span class="ident">sel</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">cx</span>.<span class="ident">try_select</span>(<span class="ident">Selected::Operation</span>(<span class="ident">oper</span>)) {
-                        <span class="prelude-val">Ok</span>(()) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Selected::Operation</span>(<span class="ident">oper</span>),
-                        <span class="prelude-val">Err</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>,
+                        <span class="prelude-val">Ok</span>(()) =&gt; <span class="ident">Selected::Operation</span>(<span class="ident">oper</span>),
+                        <span class="prelude-val">Err</span>(<span class="ident">s</span>) =&gt; <span class="ident">s</span>,
                     };
                     <span class="kw">break</span>;
                 }
@@ -1642,13 +1642,13 @@
                 }
             }
 
-            <span class="kw">if</span> <span class="ident">sel</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Selected::Waiting</span> {
+            <span class="kw">if</span> <span class="ident">sel</span> <span class="op">==</span> <span class="ident">Selected::Waiting</span> {
                 <span class="comment">// Check with each operation for how long we&#39;re allowed to block, and compute the</span>
                 <span class="comment">// earliest deadline.</span>
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">deadline</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Instant</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">timeout</span> {
-                    <span class="ident">Timeout::Now</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
-                    <span class="ident">Timeout::Never</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-                    <span class="ident">Timeout::At</span>(<span class="ident">when</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">when</span>),
+                    <span class="ident">Timeout::Now</span> =&gt; <span class="macro">unreachable!</span>(),
+                    <span class="ident">Timeout::Never</span> =&gt; <span class="prelude-val">None</span>,
+                    <span class="ident">Timeout::At</span>(<span class="ident">when</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">when</span>),
                 };
                 <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">handle</span>, <span class="kw">_</span>, <span class="kw">_</span>) <span class="kw">in</span> <span class="ident">handles</span>.<span class="ident">iter</span>() {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">deadline</span>() {
@@ -1666,13 +1666,13 @@
             }
 
             <span class="kw">match</span> <span class="ident">sel</span> {
-                <span class="ident">Selected::Waiting</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
-                <span class="ident">Selected::Aborted</span> <span class="op">=</span><span class="op">&gt;</span> {}
-                <span class="ident">Selected::Disconnected</span> <span class="op">=</span><span class="op">&gt;</span> {}
-                <span class="ident">Selected::Operation</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Selected::Waiting</span> =&gt; <span class="macro">unreachable!</span>(),
+                <span class="ident">Selected::Aborted</span> =&gt; {}
+                <span class="ident">Selected::Disconnected</span> =&gt; {}
+                <span class="ident">Selected::Operation</span>(<span class="kw">_</span>) =&gt; {
                     <span class="kw">for</span> (<span class="ident">handle</span>, <span class="ident">i</span>, <span class="kw">_</span>) <span class="kw">in</span> <span class="ident">handles</span>.<span class="ident">iter_mut</span>() {
                         <span class="kw">let</span> <span class="ident">oper</span> <span class="op">=</span> <span class="ident">Operation::hook</span>::<span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">SelectHandle</span><span class="op">&gt;</span>(<span class="ident">handle</span>);
-                        <span class="kw">if</span> <span class="ident">sel</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Selected::Operation</span>(<span class="ident">oper</span>) {
+                        <span class="kw">if</span> <span class="ident">sel</span> <span class="op">==</span> <span class="ident">Selected::Operation</span>(<span class="ident">oper</span>) {
                             <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="ident">i</span>);
                         }
                     }
@@ -1693,10 +1693,10 @@
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_select</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
     <span class="ident">handles</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw">dyn</span> <span class="ident">SelectHandle</span>, <span class="ident">usize</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>)],
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SelectedOperation</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">TrySelectError</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SelectedOperation</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">TrySelectError</span><span class="op">&gt;</span> {
     <span class="kw">match</span> <span class="ident">run_select</span>(<span class="ident">handles</span>, <span class="ident">Timeout::Now</span>) {
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">TrySelectError</span>),
-        <span class="prelude-val">Some</span>((<span class="ident">token</span>, <span class="ident">index</span>, <span class="ident">ptr</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">SelectedOperation</span> {
+        <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">TrySelectError</span>),
+        <span class="prelude-val">Some</span>((<span class="ident">token</span>, <span class="ident">index</span>, <span class="ident">ptr</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">SelectedOperation</span> {
             <span class="ident">token</span>,
             <span class="ident">index</span>,
             <span class="ident">ptr</span>,
@@ -1709,7 +1709,7 @@
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">select</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
     <span class="ident">handles</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw">dyn</span> <span class="ident">SelectHandle</span>, <span class="ident">usize</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>)],
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SelectedOperation</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+) -&gt; <span class="ident">SelectedOperation</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="ident">handles</span>.<span class="ident">is_empty</span>() {
         <span class="macro">panic!</span>(<span class="string">&quot;no operations have been added to `Select`&quot;</span>);
     }
@@ -1728,7 +1728,7 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">select_timeout</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
     <span class="ident">handles</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw">dyn</span> <span class="ident">SelectHandle</span>, <span class="ident">usize</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>)],
     <span class="ident">timeout</span>: <span class="ident">Duration</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SelectedOperation</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">SelectTimeoutError</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SelectedOperation</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">SelectTimeoutError</span><span class="op">&gt;</span> {
     <span class="ident">select_deadline</span>(<span class="ident">handles</span>, <span class="ident">Instant::now</span>() <span class="op">+</span> <span class="ident">timeout</span>)
 }
 
@@ -1737,10 +1737,10 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">select_deadline</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
     <span class="ident">handles</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw">dyn</span> <span class="ident">SelectHandle</span>, <span class="ident">usize</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>)],
     <span class="ident">deadline</span>: <span class="ident">Instant</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SelectedOperation</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">SelectTimeoutError</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SelectedOperation</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">SelectTimeoutError</span><span class="op">&gt;</span> {
     <span class="kw">match</span> <span class="ident">run_select</span>(<span class="ident">handles</span>, <span class="ident">Timeout::At</span>(<span class="ident">deadline</span>)) {
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">SelectTimeoutError</span>),
-        <span class="prelude-val">Some</span>((<span class="ident">token</span>, <span class="ident">index</span>, <span class="ident">ptr</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">SelectedOperation</span> {
+        <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">SelectTimeoutError</span>),
+        <span class="prelude-val">Some</span>((<span class="ident">token</span>, <span class="ident">index</span>, <span class="ident">ptr</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">SelectedOperation</span> {
             <span class="ident">token</span>,
             <span class="ident">index</span>,
             <span class="ident">ptr</span>,
@@ -1855,7 +1855,7 @@
     <span class="doccomment">/// // The list of operations is empty, which means no operation can be selected.</span>
     <span class="doccomment">/// assert!(sel.try_select().is_err());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Select</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">Select</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="ident">Select</span> {
             <span class="ident">handles</span>: <span class="ident">Vec::with_capacity</span>(<span class="number">4</span>),
             <span class="ident">next_index</span>: <span class="number">0</span>,
@@ -1876,7 +1876,7 @@
     <span class="doccomment">/// let mut sel = Select::new();</span>
     <span class="doccomment">/// let index = sel.send(&amp;s);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">send</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">send</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">usize</span> {
         <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_index</span>;
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">s</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Sender</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>;
         <span class="self">self</span>.<span class="ident">handles</span>.<span class="ident">push</span>((<span class="ident">s</span>, <span class="ident">i</span>, <span class="ident">ptr</span>));
@@ -1898,7 +1898,7 @@
     <span class="doccomment">/// let mut sel = Select::new();</span>
     <span class="doccomment">/// let index = sel.recv(&amp;r);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recv</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">r</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recv</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">r</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">usize</span> {
         <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_index</span>;
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">r</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>;
         <span class="self">self</span>.<span class="ident">handles</span>.<span class="ident">push</span>((<span class="ident">r</span>, <span class="ident">i</span>, <span class="ident">ptr</span>));
@@ -1954,7 +1954,7 @@
             .<span class="ident">handles</span>
             .<span class="ident">iter</span>()
             .<span class="ident">enumerate</span>()
-            .<span class="ident">find</span>(<span class="op">|</span>(<span class="kw">_</span>, (<span class="kw">_</span>, <span class="ident">i</span>, <span class="kw">_</span>))<span class="op">|</span> <span class="kw-2">*</span><span class="ident">i</span> <span class="op">=</span><span class="op">=</span> <span class="ident">index</span>)
+            .<span class="ident">find</span>(<span class="op">|</span>(<span class="kw">_</span>, (<span class="kw">_</span>, <span class="ident">i</span>, <span class="kw">_</span>))<span class="op">|</span> <span class="kw-2">*</span><span class="ident">i</span> <span class="op">==</span> <span class="ident">index</span>)
             .<span class="ident">expect</span>(<span class="string">&quot;no operation with this index&quot;</span>)
             .<span class="number">0</span>;
 
@@ -1999,7 +1999,7 @@
     <span class="doccomment">///     }</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_select</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SelectedOperation</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">TrySelectError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_select</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SelectedOperation</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">TrySelectError</span><span class="op">&gt;</span> {
         <span class="ident">try_select</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">handles</span>)
     }
 
@@ -2046,7 +2046,7 @@
     <span class="doccomment">///     _ =&gt; unreachable!(),</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">select</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SelectedOperation</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">select</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">SelectedOperation</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="ident">select</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">handles</span>)
     }
 
@@ -2096,7 +2096,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">select_timeout</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">timeout</span>: <span class="ident">Duration</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SelectedOperation</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">SelectTimeoutError</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SelectedOperation</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">SelectTimeoutError</span><span class="op">&gt;</span> {
         <span class="ident">select_timeout</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">handles</span>, <span class="ident">timeout</span>)
     }
 
@@ -2148,7 +2148,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">select_deadline</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">deadline</span>: <span class="ident">Instant</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SelectedOperation</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">SelectTimeoutError</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SelectedOperation</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">SelectTimeoutError</span><span class="op">&gt;</span> {
         <span class="ident">select_deadline</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">handles</span>, <span class="ident">deadline</span>)
     }
 
@@ -2187,10 +2187,10 @@
     <span class="doccomment">///     Ok(_) =&gt; unreachable!(),</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_ready</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">TryReadyError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_ready</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">TryReadyError</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">run_ready</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">handles</span>, <span class="ident">Timeout::Now</span>) {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">TryReadyError</span>),
-            <span class="prelude-val">Some</span>(<span class="ident">index</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">index</span>),
+            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">TryReadyError</span>),
+            <span class="prelude-val">Some</span>(<span class="ident">index</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">index</span>),
         }
     }
 
@@ -2236,7 +2236,7 @@
     <span class="doccomment">///     _ =&gt; unreachable!(),</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ready</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ready</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">handles</span>.<span class="ident">is_empty</span>() {
             <span class="macro">panic!</span>(<span class="string">&quot;no operations have been added to `Select`&quot;</span>);
         }
@@ -2284,7 +2284,7 @@
     <span class="doccomment">///     Ok(_) =&gt; unreachable!(),</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ready_timeout</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">timeout</span>: <span class="ident">Duration</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">ReadyTimeoutError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ready_timeout</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">timeout</span>: <span class="ident">Duration</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">ReadyTimeoutError</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">ready_deadline</span>(<span class="ident">Instant::now</span>() <span class="op">+</span> <span class="ident">timeout</span>)
     }
 
@@ -2330,16 +2330,16 @@
     <span class="doccomment">///     Ok(_) =&gt; unreachable!(),</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ready_deadline</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">deadline</span>: <span class="ident">Instant</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">ReadyTimeoutError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ready_deadline</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">deadline</span>: <span class="ident">Instant</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">ReadyTimeoutError</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">run_ready</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">handles</span>, <span class="ident">Timeout::At</span>(<span class="ident">deadline</span>)) {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ReadyTimeoutError</span>),
-            <span class="prelude-val">Some</span>(<span class="ident">index</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">index</span>),
+            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ReadyTimeoutError</span>),
+            <span class="prelude-val">Some</span>(<span class="ident">index</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">index</span>),
         }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Select</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Select</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Select</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="ident">Select</span> {
             <span class="ident">handles</span>: <span class="self">self</span>.<span class="ident">handles</span>.<span class="ident">clone</span>(),
             <span class="ident">next_index</span>: <span class="self">self</span>.<span class="ident">next_index</span>,
@@ -2348,13 +2348,13 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Select</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Select</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="ident">Select</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="ident">Select::new</span>()
     }
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Select</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">pad</span>(<span class="string">&quot;Select { .. }&quot;</span>)
     }
 }
@@ -2410,7 +2410,7 @@
     <span class="doccomment">/// // Complete the operation.</span>
     <span class="doccomment">/// oper.send(&amp;s3, ()).unwrap();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="ident">index</span>
     }
 
@@ -2438,9 +2438,9 @@
     <span class="doccomment">/// assert_eq!(oper.index(), oper1);</span>
     <span class="doccomment">/// assert_eq!(oper.send(&amp;s, 10), Err(SendError(10)));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">send</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">msg</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SendError</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">send</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">msg</span>: <span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SendError</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="macro">assert!</span>(
-            <span class="ident">s</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">ptr</span>,
+            <span class="ident">s</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">ptr</span>,
             <span class="string">&quot;passed a sender that wasn&#39;t selected&quot;</span>,
         );
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">channel::write</span>(<span class="ident">s</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">token</span>, <span class="ident">msg</span>) };
@@ -2472,9 +2472,9 @@
     <span class="doccomment">/// assert_eq!(oper.index(), oper1);</span>
     <span class="doccomment">/// assert_eq!(oper.recv(&amp;r), Err(RecvError));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recv</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">r</span>: <span class="kw-2">&amp;</span><span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">RecvError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recv</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">r</span>: <span class="kw-2">&amp;</span><span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">RecvError</span><span class="op">&gt;</span> {
         <span class="macro">assert!</span>(
-            <span class="ident">r</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">ptr</span>,
+            <span class="ident">r</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">ptr</span>,
             <span class="string">&quot;passed a receiver that wasn&#39;t selected&quot;</span>,
         );
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">channel::read</span>(<span class="ident">r</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">token</span>) };
@@ -2484,7 +2484,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">SelectedOperation</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">pad</span>(<span class="string">&quot;SelectedOperation { .. }&quot;</span>)
     }
 }

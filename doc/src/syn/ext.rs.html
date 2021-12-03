@@ -185,7 +185,7 @@
     <span class="doccomment">///     Ok(name)</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">parse_any</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">parse_any</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Peeks any identifier including keywords. Usage:</span>
     <span class="doccomment">/// `input.peek(Ident::peek_any)`</span>
@@ -222,18 +222,18 @@
     <span class="doccomment">///     Ident::new(&amp;getter, Span::call_site())</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">unraw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ident</span>;
+    <span class="kw">fn</span> <span class="ident">unraw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Ident</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">IdentExt</span> <span class="kw">for</span> <span class="ident">Ident</span> {
-    <span class="kw">fn</span> <span class="ident">parse_any</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse_any</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="ident">input</span>.<span class="ident">step</span>(<span class="op">|</span><span class="ident">cursor</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">ident</span>() {
-            <span class="prelude-val">Some</span>((<span class="ident">ident</span>, <span class="ident">rest</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>((<span class="ident">ident</span>, <span class="ident">rest</span>)),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">cursor</span>.<span class="ident">error</span>(<span class="string">&quot;expected ident&quot;</span>)),
+            <span class="prelude-val">Some</span>((<span class="ident">ident</span>, <span class="ident">rest</span>)) =&gt; <span class="prelude-val">Ok</span>((<span class="ident">ident</span>, <span class="ident">rest</span>)),
+            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">cursor</span>.<span class="ident">error</span>(<span class="string">&quot;expected ident&quot;</span>)),
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">unraw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ident</span> {
+    <span class="kw">fn</span> <span class="ident">unraw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Ident</span> {
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_string</span>();
         <span class="kw">if</span> <span class="ident">string</span>.<span class="ident">starts_with</span>(<span class="string">&quot;r#&quot;</span>) {
             <span class="ident">Ident::new</span>(<span class="kw-2">&amp;</span><span class="ident">string</span>[<span class="number">2</span>..], <span class="self">self</span>.<span class="ident">span</span>())
@@ -248,11 +248,11 @@
 }
 
 <span class="kw">impl</span> <span class="ident">CustomToken</span> <span class="kw">for</span> <span class="ident">private::IdentAny</span> {
-    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <span class="ident">Cursor</span>) -&gt; <span class="ident">bool</span> {
         <span class="ident">cursor</span>.<span class="ident">ident</span>().<span class="ident">is_some</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">display</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+    <span class="kw">fn</span> <span class="ident">display</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
         <span class="string">&quot;identifier&quot;</span>
     }
 }
@@ -271,7 +271,7 @@
 
     <span class="kw">impl</span> <span class="ident">Copy</span> <span class="kw">for</span> <span class="ident">PeekFn</span> {}
     <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">PeekFn</span> {
-        <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
             <span class="kw-2">*</span><span class="self">self</span>
         }
     }

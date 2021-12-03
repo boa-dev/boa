@@ -412,7 +412,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(&amp;gr2[..], b);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">graphemes</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">is_extended</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Graphemes</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">graphemes</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">is_extended</span>: <span class="ident">bool</span>) -&gt; <span class="ident">Graphemes</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Returns an iterator over the grapheme clusters of `self` and their</span>
     <span class="doccomment">/// byte offsets. See `graphemes()` for more information.</span>
@@ -427,7 +427,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(&amp;gr_inds[..], b);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">grapheme_indices</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">is_extended</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GraphemeIndices</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">grapheme_indices</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">is_extended</span>: <span class="ident">bool</span>) -&gt; <span class="ident">GraphemeIndices</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Returns an iterator over the words of `self`, separated on</span>
     <span class="doccomment">/// [UAX#29 word boundaries](http://www.unicode.org/reports/tr29/#Word_Boundaries).</span>
@@ -449,7 +449,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(&amp;uw1[..], b);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">unicode_words</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">UnicodeWords</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">unicode_words</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) -&gt; <span class="ident">UnicodeWords</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Returns an iterator over the words of `self`, separated on</span>
     <span class="doccomment">/// [UAX#29 word boundaries](http://www.unicode.org/reports/tr29/#Word_Boundaries), and their</span>
@@ -473,7 +473,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(&amp;uwi1[..], b);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">unicode_word_indices</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">UnicodeWordIndices</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">unicode_word_indices</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) -&gt; <span class="ident">UnicodeWordIndices</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Returns an iterator over substrings of `self` separated on</span>
     <span class="doccomment">/// [UAX#29 word boundaries](http://www.unicode.org/reports/tr29/#Word_Boundaries).</span>
@@ -489,7 +489,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(&amp;swu1[..], b);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">split_word_bounds</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">UWordBounds</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">split_word_bounds</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) -&gt; <span class="ident">UWordBounds</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Returns an iterator over substrings of `self`, split on UAX#29 word boundaries,</span>
     <span class="doccomment">/// and their offsets. See `split_word_bounds()` for more information.</span>
@@ -504,7 +504,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(&amp;swi1[..], b);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">split_word_bound_indices</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">UWordBoundIndices</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">split_word_bound_indices</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) -&gt; <span class="ident">UWordBoundIndices</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Returns an iterator over substrings of `self` separated on</span>
     <span class="doccomment">/// [UAX#29 sentence boundaries](http://www.unicode.org/reports/tr29/#Sentence_Boundaries).</span>
@@ -526,7 +526,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(&amp;us1[..], b);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">unicode_sentences</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">UnicodeSentences</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">unicode_sentences</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) -&gt; <span class="ident">UnicodeSentences</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Returns an iterator over substrings of `self` separated on</span>
     <span class="doccomment">/// [UAX#29 sentence boundaries](http://www.unicode.org/reports/tr29/#Sentence_Boundaries).</span>
@@ -543,7 +543,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(&amp;ssb1[..], b);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">split_sentence_bounds</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">USentenceBounds</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">split_sentence_bounds</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) -&gt; <span class="ident">USentenceBounds</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Returns an iterator over substrings of `self`, split on UAX#29 sentence boundaries,</span>
     <span class="doccomment">/// and their offsets. See `split_sentence_bounds()` for more information.</span>
@@ -559,52 +559,52 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(&amp;ssi1[..], b);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">split_sentence_bound_indices</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">USentenceBoundIndices</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">split_sentence_bound_indices</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) -&gt; <span class="ident">USentenceBoundIndices</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">UnicodeSegmentation</span> <span class="kw">for</span> <span class="ident">str</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">graphemes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">is_extended</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Graphemes</span> {
+    <span class="kw">fn</span> <span class="ident">graphemes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">is_extended</span>: <span class="ident">bool</span>) -&gt; <span class="ident">Graphemes</span> {
         <span class="ident">grapheme::new_graphemes</span>(<span class="self">self</span>, <span class="ident">is_extended</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">grapheme_indices</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">is_extended</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GraphemeIndices</span> {
+    <span class="kw">fn</span> <span class="ident">grapheme_indices</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">is_extended</span>: <span class="ident">bool</span>) -&gt; <span class="ident">GraphemeIndices</span> {
         <span class="ident">grapheme::new_grapheme_indices</span>(<span class="self">self</span>, <span class="ident">is_extended</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">unicode_words</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">UnicodeWords</span> {
+    <span class="kw">fn</span> <span class="ident">unicode_words</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">UnicodeWords</span> {
         <span class="ident">word::new_unicode_words</span>(<span class="self">self</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">unicode_word_indices</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">UnicodeWordIndices</span> {
+    <span class="kw">fn</span> <span class="ident">unicode_word_indices</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">UnicodeWordIndices</span> {
         <span class="ident">word::new_unicode_word_indices</span>(<span class="self">self</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">split_word_bounds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">UWordBounds</span> {
+    <span class="kw">fn</span> <span class="ident">split_word_bounds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">UWordBounds</span> {
         <span class="ident">word::new_word_bounds</span>(<span class="self">self</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">split_word_bound_indices</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">UWordBoundIndices</span> {
+    <span class="kw">fn</span> <span class="ident">split_word_bound_indices</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">UWordBoundIndices</span> {
         <span class="ident">word::new_word_bound_indices</span>(<span class="self">self</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">unicode_sentences</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">UnicodeSentences</span> {
+    <span class="kw">fn</span> <span class="ident">unicode_sentences</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">UnicodeSentences</span> {
         <span class="ident">sentence::new_unicode_sentences</span>(<span class="self">self</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">split_sentence_bounds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">USentenceBounds</span> {
+    <span class="kw">fn</span> <span class="ident">split_sentence_bounds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">USentenceBounds</span> {
         <span class="ident">sentence::new_sentence_bounds</span>(<span class="self">self</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">split_sentence_bound_indices</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">USentenceBoundIndices</span> {
+    <span class="kw">fn</span> <span class="ident">split_sentence_bound_indices</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">USentenceBoundIndices</span> {
         <span class="ident">sentence::new_sentence_bound_indices</span>(<span class="self">self</span>)
     }
 }

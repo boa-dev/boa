@@ -278,7 +278,7 @@
     <span class="doccomment">/// Initialization code for the built-in.</span>
     <span class="doccomment">/// This is where the methods, properties, static methods and the constructor</span>
     <span class="doccomment">/// of a built-in must be initialized to be accessible from Javascript.</span>
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span>;
+    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsValue</span>;
 }
 
 <span class="doccomment">/// Utility function that checks if a type implements `BuiltIn` before</span>
@@ -301,7 +301,7 @@
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) {
     <span class="macro">macro_rules!</span> <span class="ident">globals</span> {
-        ($( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">builtin</span>:<span class="ident">ty</span> ),<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        ($( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">builtin</span>:<span class="ident">ty</span> ),<span class="kw-2">*</span>) =&gt; {
             $(<span class="ident">init_builtin</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">builtin</span><span class="op">&gt;</span>(<span class="ident">context</span>)
             );<span class="op">*</span>
         }
@@ -367,11 +367,11 @@
     <span class="doccomment">/// This returns a reference for efficiency, in case</span>
     <span class="doccomment">/// you only need to call methods of `JsValue`, so</span>
     <span class="doccomment">/// try to minimize calling `clone`.</span>
-    <span class="kw">fn</span> <span class="ident">get_or_undefined</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">JsValue</span>;
+    <span class="kw">fn</span> <span class="ident">get_or_undefined</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">JsValue</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">JsArgs</span> <span class="kw">for</span> [<span class="ident">JsValue</span>] {
-    <span class="kw">fn</span> <span class="ident">get_or_undefined</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">JsValue</span> {
+    <span class="kw">fn</span> <span class="ident">get_or_undefined</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">JsValue</span> {
         <span class="kw">const</span> <span class="ident">UNDEFINED</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">JsValue::Undefined</span>;
         <span class="self">self</span>.<span class="ident">get</span>(<span class="ident">index</span>).<span class="ident">unwrap_or</span>(<span class="ident">UNDEFINED</span>)
     }

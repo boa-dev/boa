@@ -327,7 +327,7 @@
 <span class="kw">impl</span> <span class="ident">Forward</span> {
     <span class="doccomment">/// Create a new &quot;generic simd&quot; forward searcher. If one could not be</span>
     <span class="doccomment">/// created from the given inputs, then None is returned.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ninfo</span>: <span class="kw-2">&amp;</span><span class="ident">NeedleInfo</span>, <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Forward</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ninfo</span>: <span class="kw-2">&amp;</span><span class="ident">NeedleInfo</span>, <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Forward</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">rare1i</span>, <span class="ident">rare2i</span>) <span class="op">=</span> <span class="ident">ninfo</span>.<span class="ident">rarebytes</span>.<span class="ident">as_rare_ordered_u8</span>();
         <span class="comment">// If the needle is too short or too long, give up. Also, give up</span>
         <span class="comment">// if the rare bytes detected are at the same position. (It likely</span>
@@ -335,7 +335,7 @@
         <span class="comment">// possible.)</span>
         <span class="kw">if</span> <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">MIN_NEEDLE_LEN</span>
             <span class="op">|</span><span class="op">|</span> <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="ident">MAX_NEEDLE_LEN</span>
-            <span class="op">|</span><span class="op">|</span> <span class="ident">rare1i</span> <span class="op">=</span><span class="op">=</span> <span class="ident">rare2i</span>
+            <span class="op">|</span><span class="op">|</span> <span class="ident">rare1i</span> <span class="op">==</span> <span class="ident">rare2i</span>
         {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
@@ -346,7 +346,7 @@
     <span class="doccomment">/// to work for a particular vector. Passing a haystack with a length</span>
     <span class="doccomment">/// smaller than this will cause `fwd_find` to panic.</span>
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">min_haystack_len</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">Vector</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">min_haystack_len</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">Vector</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="ident">rare2i</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">+</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>()
     }
 }
@@ -370,7 +370,7 @@
     <span class="ident">fwd</span>: <span class="kw-2">&amp;</span><span class="ident">Forward</span>,
     <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
     <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
     <span class="comment">// It would be nice if we didn&#39;t have this check here, since the meta</span>
     <span class="comment">// searcher should handle it for us. But without this, I don&#39;t think we</span>
     <span class="comment">// guarantee that end_ptr.sub(needle.len()) won&#39;t result in UB. We could</span>
@@ -488,7 +488,7 @@
     <span class="ident">rare1chunk</span>: <span class="ident">V</span>,
     <span class="ident">rare2chunk</span>: <span class="ident">V</span>,
     <span class="ident">mask</span>: <span class="ident">u32</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">chunk0</span> <span class="op">=</span> <span class="ident">V::load_unaligned</span>(<span class="ident">ptr</span>.<span class="ident">add</span>(<span class="ident">fwd</span>.<span class="ident">rare1i</span> <span class="kw">as</span> <span class="ident">usize</span>));
     <span class="kw">let</span> <span class="ident">chunk1</span> <span class="op">=</span> <span class="ident">V::load_unaligned</span>(<span class="ident">ptr</span>.<span class="ident">add</span>(<span class="ident">fwd</span>.<span class="ident">rare2i</span> <span class="kw">as</span> <span class="ident">usize</span>));
 
@@ -520,13 +520,13 @@
 <span class="doccomment">/// it does improve some benchmarks, like prebuiltiter/huge-en/common-you.)</span>
 <span class="attribute">#[<span class="ident">cold</span>]</span>
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span>
-<span class="kw">fn</span> <span class="ident">matched</span>(<span class="ident">start_ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>, <span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>, <span class="ident">chunki</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">fn</span> <span class="ident">matched</span>(<span class="ident">start_ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>, <span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>, <span class="ident">chunki</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span> {
     <span class="ident">diff</span>(<span class="ident">ptr</span>, <span class="ident">start_ptr</span>) <span class="op">+</span> <span class="ident">chunki</span>
 }
 
 <span class="doccomment">/// Subtract `b` from `a` and return the difference. `a` must be greater than</span>
 <span class="doccomment">/// or equal to `b`.</span>
-<span class="kw">fn</span> <span class="ident">diff</span>(<span class="ident">a</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>, <span class="ident">b</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">fn</span> <span class="ident">diff</span>(<span class="ident">a</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>, <span class="ident">b</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>) -&gt; <span class="ident">usize</span> {
     <span class="macro">debug_assert!</span>(<span class="ident">a</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">b</span>);
     (<span class="ident">a</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">-</span> (<span class="ident">b</span> <span class="kw">as</span> <span class="ident">usize</span>)
 }

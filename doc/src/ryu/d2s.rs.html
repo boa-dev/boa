@@ -380,7 +380,7 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DOUBLE_POW5_BITCOUNT</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">125</span>;
 
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;no-panic&quot;</span>, <span class="ident">inline</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decimal_length17</span>(<span class="ident">v</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decimal_length17</span>(<span class="ident">v</span>: <span class="ident">u64</span>) -&gt; <span class="ident">u32</span> {
     <span class="comment">// This is slightly faster than a loop.</span>
     <span class="comment">// The average output length is 16.38 digits, so we check high-to-low.</span>
     <span class="comment">// Function precondition: v is not an 18, 19, or 20-digit number.</span>
@@ -433,8 +433,8 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;no-panic&quot;</span>, <span class="ident">inline</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">d2d</span>(<span class="ident">ieee_mantissa</span>: <span class="ident">u64</span>, <span class="ident">ieee_exponent</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FloatingDecimal64</span> {
-    <span class="kw">let</span> (<span class="ident">e2</span>, <span class="ident">m2</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">ieee_exponent</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">d2d</span>(<span class="ident">ieee_mantissa</span>: <span class="ident">u64</span>, <span class="ident">ieee_exponent</span>: <span class="ident">u32</span>) -&gt; <span class="ident">FloatingDecimal64</span> {
+    <span class="kw">let</span> (<span class="ident">e2</span>, <span class="ident">m2</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">ieee_exponent</span> <span class="op">==</span> <span class="number">0</span> {
         (
             <span class="comment">// We subtract 2 so that the bounds computation has 2 additional bits.</span>
             <span class="number">1</span> <span class="op">-</span> <span class="ident">DOUBLE_BIAS</span> <span class="op">-</span> <span class="ident">DOUBLE_MANTISSA_BITS</span> <span class="kw">as</span> <span class="ident">i32</span> <span class="op">-</span> <span class="number">2</span>,
@@ -446,7 +446,7 @@
             (<span class="number">1u64</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">DOUBLE_MANTISSA_BITS</span>) <span class="op">|</span> <span class="ident">ieee_mantissa</span>,
         )
     };
-    <span class="kw">let</span> <span class="ident">even</span> <span class="op">=</span> (<span class="ident">m2</span> <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">=</span><span class="op">=</span> <span class="number">0</span>;
+    <span class="kw">let</span> <span class="ident">even</span> <span class="op">=</span> (<span class="ident">m2</span> <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">==</span> <span class="number">0</span>;
     <span class="kw">let</span> <span class="ident">accept_bounds</span> <span class="op">=</span> <span class="ident">even</span>;
 
     <span class="comment">// Step 2: Determine the interval of valid decimal representations.</span>
@@ -520,7 +520,7 @@
             <span class="comment">// may still be safe, but it&#39;s more difficult to reason about them.</span>
             <span class="comment">// Only one of mp, mv, and mm can be a multiple of 5, if any.</span>
             <span class="kw">let</span> <span class="ident">mv_mod5</span> <span class="op">=</span> (<span class="ident">mv</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">wrapping_sub</span>(<span class="number">5u32</span>.<span class="ident">wrapping_mul</span>(<span class="ident">div5</span>(<span class="ident">mv</span>) <span class="kw">as</span> <span class="ident">u32</span>));
-            <span class="kw">if</span> <span class="ident">mv_mod5</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">if</span> <span class="ident">mv_mod5</span> <span class="op">==</span> <span class="number">0</span> {
                 <span class="ident">vr_is_trailing_zeros</span> <span class="op">=</span> <span class="ident">multiple_of_power_of_5</span>(<span class="ident">mv</span>, <span class="ident">q</span>);
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">accept_bounds</span> {
                 <span class="comment">// Same as min(e2 + (~mm &amp; 1), pow5_factor(mm)) &gt;= q</span>
@@ -580,7 +580,7 @@
             <span class="ident">vr_is_trailing_zeros</span> <span class="op">=</span> <span class="bool-val">true</span>;
             <span class="kw">if</span> <span class="ident">accept_bounds</span> {
                 <span class="comment">// mm = mv - 1 - mm_shift, so it has 1 trailing 0 bit iff mm_shift == 1.</span>
-                <span class="ident">vm_is_trailing_zeros</span> <span class="op">=</span> <span class="ident">mm_shift</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span>;
+                <span class="ident">vm_is_trailing_zeros</span> <span class="op">=</span> <span class="ident">mm_shift</span> <span class="op">==</span> <span class="number">1</span>;
             } <span class="kw">else</span> {
                 <span class="comment">// mp = mv + 2, so it always has at least one trailing 0 bit.</span>
                 <span class="ident">vp</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
@@ -610,8 +610,8 @@
             <span class="kw">let</span> <span class="ident">vm_mod10</span> <span class="op">=</span> (<span class="ident">vm</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">wrapping_sub</span>(<span class="number">10u32</span>.<span class="ident">wrapping_mul</span>(<span class="ident">vm_div10</span> <span class="kw">as</span> <span class="ident">u32</span>));
             <span class="kw">let</span> <span class="ident">vr_div10</span> <span class="op">=</span> <span class="ident">div10</span>(<span class="ident">vr</span>);
             <span class="kw">let</span> <span class="ident">vr_mod10</span> <span class="op">=</span> (<span class="ident">vr</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">wrapping_sub</span>(<span class="number">10u32</span>.<span class="ident">wrapping_mul</span>(<span class="ident">vr_div10</span> <span class="kw">as</span> <span class="ident">u32</span>));
-            <span class="ident">vm_is_trailing_zeros</span> <span class="op">&amp;=</span> <span class="ident">vm_mod10</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>;
-            <span class="ident">vr_is_trailing_zeros</span> <span class="op">&amp;=</span> <span class="ident">last_removed_digit</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>;
+            <span class="ident">vm_is_trailing_zeros</span> <span class="op">&amp;=</span> <span class="ident">vm_mod10</span> <span class="op">==</span> <span class="number">0</span>;
+            <span class="ident">vr_is_trailing_zeros</span> <span class="op">&amp;=</span> <span class="ident">last_removed_digit</span> <span class="op">==</span> <span class="number">0</span>;
             <span class="ident">last_removed_digit</span> <span class="op">=</span> <span class="ident">vr_mod10</span> <span class="kw">as</span> <span class="ident">u8</span>;
             <span class="ident">vr</span> <span class="op">=</span> <span class="ident">vr_div10</span>;
             <span class="ident">vp</span> <span class="op">=</span> <span class="ident">vp_div10</span>;
@@ -628,7 +628,7 @@
                 <span class="kw">let</span> <span class="ident">vp_div10</span> <span class="op">=</span> <span class="ident">div10</span>(<span class="ident">vp</span>);
                 <span class="kw">let</span> <span class="ident">vr_div10</span> <span class="op">=</span> <span class="ident">div10</span>(<span class="ident">vr</span>);
                 <span class="kw">let</span> <span class="ident">vr_mod10</span> <span class="op">=</span> (<span class="ident">vr</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">wrapping_sub</span>(<span class="number">10u32</span>.<span class="ident">wrapping_mul</span>(<span class="ident">vr_div10</span> <span class="kw">as</span> <span class="ident">u32</span>));
-                <span class="ident">vr_is_trailing_zeros</span> <span class="op">&amp;=</span> <span class="ident">last_removed_digit</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>;
+                <span class="ident">vr_is_trailing_zeros</span> <span class="op">&amp;=</span> <span class="ident">last_removed_digit</span> <span class="op">==</span> <span class="number">0</span>;
                 <span class="ident">last_removed_digit</span> <span class="op">=</span> <span class="ident">vr_mod10</span> <span class="kw">as</span> <span class="ident">u8</span>;
                 <span class="ident">vr</span> <span class="op">=</span> <span class="ident">vr_div10</span>;
                 <span class="ident">vp</span> <span class="op">=</span> <span class="ident">vp_div10</span>;
@@ -636,12 +636,12 @@
                 <span class="ident">removed</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
             }
         }
-        <span class="kw">if</span> <span class="ident">vr_is_trailing_zeros</span> <span class="op">&amp;&amp;</span> <span class="ident">last_removed_digit</span> <span class="op">=</span><span class="op">=</span> <span class="number">5</span> <span class="op">&amp;&amp;</span> <span class="ident">vr</span> <span class="op">%</span> <span class="number">2</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">vr_is_trailing_zeros</span> <span class="op">&amp;&amp;</span> <span class="ident">last_removed_digit</span> <span class="op">==</span> <span class="number">5</span> <span class="op">&amp;&amp;</span> <span class="ident">vr</span> <span class="op">%</span> <span class="number">2</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="comment">// Round even if the exact number is .....50..0.</span>
             <span class="ident">last_removed_digit</span> <span class="op">=</span> <span class="number">4</span>;
         }
         <span class="comment">// We need to take vr + 1 if vr is outside bounds or we need to round up.</span>
-        <span class="ident">vr</span> <span class="op">+</span> ((<span class="ident">vr</span> <span class="op">=</span><span class="op">=</span> <span class="ident">vm</span> <span class="op">&amp;&amp;</span> (<span class="op">!</span><span class="ident">accept_bounds</span> <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">vm_is_trailing_zeros</span>)) <span class="op">|</span><span class="op">|</span> <span class="ident">last_removed_digit</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">5</span>)
+        <span class="ident">vr</span> <span class="op">+</span> ((<span class="ident">vr</span> <span class="op">==</span> <span class="ident">vm</span> <span class="op">&amp;&amp;</span> (<span class="op">!</span><span class="ident">accept_bounds</span> <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">vm_is_trailing_zeros</span>)) <span class="op">|</span><span class="op">|</span> <span class="ident">last_removed_digit</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">5</span>)
             <span class="kw">as</span> <span class="ident">u64</span>
     } <span class="kw">else</span> {
         <span class="comment">// Specialized for the common case (~99.3%). Percentages below are relative to this.</span>
@@ -677,7 +677,7 @@
             <span class="ident">removed</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         }
         <span class="comment">// We need to take vr + 1 if vr is outside bounds or we need to round up.</span>
-        <span class="ident">vr</span> <span class="op">+</span> (<span class="ident">vr</span> <span class="op">=</span><span class="op">=</span> <span class="ident">vm</span> <span class="op">|</span><span class="op">|</span> <span class="ident">round_up</span>) <span class="kw">as</span> <span class="ident">u64</span>
+        <span class="ident">vr</span> <span class="op">+</span> (<span class="ident">vr</span> <span class="op">==</span> <span class="ident">vm</span> <span class="op">|</span><span class="op">|</span> <span class="ident">round_up</span>) <span class="kw">as</span> <span class="ident">u64</span>
     };
     <span class="kw">let</span> <span class="ident">exp</span> <span class="op">=</span> <span class="ident">e10</span> <span class="op">+</span> <span class="ident">removed</span>;
 

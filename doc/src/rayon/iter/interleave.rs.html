@@ -362,7 +362,7 @@
     <span class="ident">J</span>: <span class="ident">IndexedParallelIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">I::Item</span><span class="op">&gt;</span>,
 {
     <span class="doccomment">/// Creates a new `Interleave` iterator</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">i</span>: <span class="ident">I</span>, <span class="ident">j</span>: <span class="ident">J</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">i</span>: <span class="ident">I</span>, <span class="ident">j</span>: <span class="ident">J</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">Interleave</span> { <span class="ident">i</span>, <span class="ident">j</span> }
     }
 }
@@ -374,14 +374,14 @@
 {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">I::Item</span>;
 
-    <span class="kw">fn</span> <span class="ident">drive_unindexed</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">C::Result</span>
+    <span class="kw">fn</span> <span class="ident">drive_unindexed</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) -&gt; <span class="ident">C::Result</span>
     <span class="kw">where</span>
         <span class="ident">C</span>: <span class="ident">Consumer</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>,
     {
         <span class="ident">bridge</span>(<span class="self">self</span>, <span class="ident">consumer</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">opt_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">opt_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">len</span>())
     }
 }
@@ -391,18 +391,18 @@
     <span class="ident">I</span>: <span class="ident">IndexedParallelIterator</span>,
     <span class="ident">J</span>: <span class="ident">IndexedParallelIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">I::Item</span><span class="op">&gt;</span>,
 {
-    <span class="kw">fn</span> <span class="ident">drive</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">C::Result</span>
+    <span class="kw">fn</span> <span class="ident">drive</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) -&gt; <span class="ident">C::Result</span>
     <span class="kw">where</span>
         <span class="ident">C</span>: <span class="ident">Consumer</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
         <span class="ident">bridge</span>(<span class="self">self</span>, <span class="ident">consumer</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="ident">i</span>.<span class="ident">len</span>().<span class="ident">checked_add</span>(<span class="self">self</span>.<span class="ident">j</span>.<span class="ident">len</span>()).<span class="ident">expect</span>(<span class="string">&quot;overflow&quot;</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">with_producer</span><span class="op">&lt;</span><span class="ident">CB</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">callback</span>: <span class="ident">CB</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CB::Output</span>
+    <span class="kw">fn</span> <span class="ident">with_producer</span><span class="op">&lt;</span><span class="ident">CB</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">callback</span>: <span class="ident">CB</span>) -&gt; <span class="ident">CB::Output</span>
     <span class="kw">where</span>
         <span class="ident">CB</span>: <span class="ident">ProducerCallback</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
@@ -430,7 +430,7 @@
         {
             <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">CB::Output</span>;
 
-            <span class="kw">fn</span> <span class="ident">callback</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">i_producer</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Output</span>
+            <span class="kw">fn</span> <span class="ident">callback</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">i_producer</span>: <span class="ident">I</span>) -&gt; <span class="ident"><span class="self">Self</span>::Output</span>
             <span class="kw">where</span>
                 <span class="ident">I</span>: <span class="ident">Producer</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">J::Item</span><span class="op">&gt;</span>,
             {
@@ -459,7 +459,7 @@
         {
             <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">CB::Output</span>;
 
-            <span class="kw">fn</span> <span class="ident">callback</span><span class="op">&lt;</span><span class="ident">J</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">j_producer</span>: <span class="ident">J</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Output</span>
+            <span class="kw">fn</span> <span class="ident">callback</span><span class="op">&lt;</span><span class="ident">J</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">j_producer</span>: <span class="ident">J</span>) -&gt; <span class="ident"><span class="self">Self</span>::Output</span>
             <span class="kw">where</span>
                 <span class="ident">J</span>: <span class="ident">Producer</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">I::Item</span><span class="op">&gt;</span>,
             {
@@ -493,7 +493,7 @@
     <span class="ident">I</span>: <span class="ident">Producer</span>,
     <span class="ident">J</span>: <span class="ident">Producer</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">I::Item</span><span class="op">&gt;</span>,
 {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">i</span>: <span class="ident">I</span>, <span class="ident">j</span>: <span class="ident">J</span>, <span class="ident">i_len</span>: <span class="ident">usize</span>, <span class="ident">j_len</span>: <span class="ident">usize</span>, <span class="ident">i_next</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">InterleaveProducer</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">J</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">i</span>: <span class="ident">I</span>, <span class="ident">j</span>: <span class="ident">J</span>, <span class="ident">i_len</span>: <span class="ident">usize</span>, <span class="ident">j_len</span>: <span class="ident">usize</span>, <span class="ident">i_next</span>: <span class="ident">bool</span>) -&gt; <span class="ident">InterleaveProducer</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">J</span><span class="op">&gt;</span> {
         <span class="ident">InterleaveProducer</span> {
             <span class="ident">i</span>,
             <span class="ident">j</span>,
@@ -512,7 +512,7 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">I::Item</span>;
     <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">InterleaveSeq</span><span class="op">&lt;</span><span class="ident">I::IntoIter</span>, <span class="ident">J::IntoIter</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::IntoIter</span> {
+    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::IntoIter</span> {
         <span class="ident">InterleaveSeq</span> {
             <span class="ident">i</span>: <span class="self">self</span>.<span class="ident">i</span>.<span class="ident">into_iter</span>().<span class="ident">fuse</span>(),
             <span class="ident">j</span>: <span class="self">self</span>.<span class="ident">j</span>.<span class="ident">into_iter</span>().<span class="ident">fuse</span>(),
@@ -520,11 +520,11 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">min_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">min_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="ident">cmp::max</span>(<span class="self">self</span>.<span class="ident">i</span>.<span class="ident">min_len</span>(), <span class="self">self</span>.<span class="ident">j</span>.<span class="ident">min_len</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">max_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">max_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="ident">cmp::min</span>(<span class="self">self</span>.<span class="ident">i</span>.<span class="ident">max_len</span>(), <span class="self">self</span>.<span class="ident">j</span>.<span class="ident">max_len</span>())
     }
 
@@ -540,13 +540,13 @@
     <span class="doccomment">/// For odd splits, set a = (index/2)+1, b = index/2, if `i`</span>
     <span class="doccomment">/// should yield the next element, otherwise, if `j` should yield</span>
     <span class="doccomment">/// the next element, set a = index/2 and b = (index/2)+1</span>
-    <span class="kw">fn</span> <span class="ident">split_at</span>(<span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="self">Self</span>, <span class="self">Self</span>) {
+    <span class="kw">fn</span> <span class="ident">split_at</span>(<span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; (<span class="self">Self</span>, <span class="self">Self</span>) {
         <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">fn</span> <span class="ident">odd_offset</span>(<span class="ident">flag</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+        <span class="kw">fn</span> <span class="ident">odd_offset</span>(<span class="ident">flag</span>: <span class="ident">bool</span>) -&gt; <span class="ident">usize</span> {
             (<span class="op">!</span><span class="ident">flag</span>) <span class="kw">as</span> <span class="ident">usize</span>
         }
 
-        <span class="kw">let</span> <span class="ident">even</span> <span class="op">=</span> <span class="ident">index</span> <span class="op">%</span> <span class="number">2</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">let</span> <span class="ident">even</span> <span class="op">=</span> <span class="ident">index</span> <span class="op">%</span> <span class="number">2</span> <span class="op">==</span> <span class="number">0</span>;
         <span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> <span class="ident">index</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">1</span>;
 
         <span class="comment">// desired split</span>
@@ -565,7 +565,7 @@
             (<span class="self">self</span>.<span class="ident">i_len</span>, <span class="ident">index</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">i_len</span>)
         };
 
-        <span class="kw">let</span> <span class="ident">trailing_i_next</span> <span class="op">=</span> <span class="ident">even</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">i_next</span>;
+        <span class="kw">let</span> <span class="ident">trailing_i_next</span> <span class="op">=</span> <span class="ident">even</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">i_next</span>;
         <span class="kw">let</span> (<span class="ident">i_left</span>, <span class="ident">i_right</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">i</span>.<span class="ident">split_at</span>(<span class="ident">i_split</span>);
         <span class="kw">let</span> (<span class="ident">j_left</span>, <span class="ident">j_right</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">j</span>.<span class="ident">split_at</span>(<span class="ident">j_split</span>);
 
@@ -608,27 +608,27 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">I::Item</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">i_next</span> <span class="op">=</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">i_next</span>;
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">i_next</span> {
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">i</span>.<span class="ident">next</span>() {
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">j</span>.<span class="ident">next</span>(),
-                <span class="ident">r</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">r</span>,
+                <span class="prelude-val">None</span> =&gt; <span class="self">self</span>.<span class="ident">j</span>.<span class="ident">next</span>(),
+                <span class="ident">r</span> =&gt; <span class="ident">r</span>,
             }
         } <span class="kw">else</span> {
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">j</span>.<span class="ident">next</span>() {
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">i</span>.<span class="ident">next</span>(),
-                <span class="ident">r</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">r</span>,
+                <span class="prelude-val">None</span> =&gt; <span class="self">self</span>.<span class="ident">i</span>.<span class="ident">next</span>(),
+                <span class="ident">r</span> =&gt; <span class="ident">r</span>,
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
+    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
         <span class="kw">let</span> (<span class="ident">ih</span>, <span class="ident">jh</span>) <span class="op">=</span> (<span class="self">self</span>.<span class="ident">i</span>.<span class="ident">size_hint</span>(), <span class="self">self</span>.<span class="ident">j</span>.<span class="ident">size_hint</span>());
         <span class="kw">let</span> <span class="ident">min</span> <span class="op">=</span> <span class="ident">ih</span>.<span class="number">0</span>.<span class="ident">saturating_add</span>(<span class="ident">jh</span>.<span class="number">0</span>);
         <span class="kw">let</span> <span class="ident">max</span> <span class="op">=</span> <span class="kw">match</span> (<span class="ident">ih</span>.<span class="number">1</span>, <span class="ident">jh</span>.<span class="number">1</span>) {
-            (<span class="prelude-val">Some</span>(<span class="ident">x</span>), <span class="prelude-val">Some</span>(<span class="ident">y</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">checked_add</span>(<span class="ident">y</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            (<span class="prelude-val">Some</span>(<span class="ident">x</span>), <span class="prelude-val">Some</span>(<span class="ident">y</span>)) =&gt; <span class="ident">x</span>.<span class="ident">checked_add</span>(<span class="ident">y</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         };
         (<span class="ident">min</span>, <span class="ident">max</span>)
     }
@@ -645,8 +645,8 @@
     <span class="ident">J</span>: <span class="ident">DoubleEndedIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">I::Item</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">ExactSizeIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">I::Item</span><span class="op">&gt;</span>,
 {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">i</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">j</span>.<span class="ident">len</span>() {
+    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">i</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="self">self</span>.<span class="ident">j</span>.<span class="ident">len</span>() {
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">i_next</span> {
                 <span class="self">self</span>.<span class="ident">i</span>.<span class="ident">next_back</span>()
             } <span class="kw">else</span> {
@@ -666,7 +666,7 @@
     <span class="ident">J</span>: <span class="ident">ExactSizeIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">I::Item</span><span class="op">&gt;</span>,
 {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="ident">i</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="self">self</span>.<span class="ident">j</span>.<span class="ident">len</span>()
     }
 }

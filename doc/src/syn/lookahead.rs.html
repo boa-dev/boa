@@ -228,7 +228,7 @@
     <span class="ident">comparisons</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">scope</span>: <span class="ident">Span</span>, <span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Lookahead1</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">scope</span>: <span class="ident">Span</span>, <span class="ident">cursor</span>: <span class="ident">Cursor</span>) -&gt; <span class="ident">Lookahead1</span> {
     <span class="ident">Lookahead1</span> {
         <span class="ident">scope</span>,
         <span class="ident">cursor</span>,
@@ -238,9 +238,9 @@
 
 <span class="kw">fn</span> <span class="ident">peek_impl</span>(
     <span class="ident">lookahead</span>: <span class="kw-2">&amp;</span><span class="ident">Lookahead1</span>,
-    <span class="ident">peek</span>: <span class="kw">fn</span>(<span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>,
-    <span class="ident">display</span>: <span class="kw">fn</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="ident">peek</span>: <span class="kw">fn</span>(<span class="ident">Cursor</span>) -&gt; <span class="ident">bool</span>,
+    <span class="ident">display</span>: <span class="kw">fn</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
+) -&gt; <span class="ident">bool</span> {
     <span class="kw">if</span> <span class="ident">peek</span>(<span class="ident">lookahead</span>.<span class="ident">cursor</span>) {
         <span class="kw">return</span> <span class="bool-val">true</span>;
     }
@@ -263,7 +263,7 @@
     <span class="doccomment">/// - `input.peek(Ident::peek_any)`</span>
     <span class="doccomment">/// - `input.peek(Lifetime)`</span>
     <span class="doccomment">/// - `input.peek(token::Brace)`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peek</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Peek</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">token</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peek</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Peek</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">token</span>: <span class="ident">T</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">token</span>;
         <span class="ident">peek_impl</span>(<span class="self">self</span>, <span class="ident">T::Token::peek</span>, <span class="ident">T::Token::display</span>)
     }
@@ -272,25 +272,25 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// The error message will identify all of the expected token types that</span>
     <span class="doccomment">/// have been peeked against this lookahead instance.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">error</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">error</span>(<span class="self">self</span>) -&gt; <span class="ident">Error</span> {
         <span class="kw">let</span> <span class="ident">comparisons</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">comparisons</span>.<span class="ident">borrow</span>();
         <span class="kw">match</span> <span class="ident">comparisons</span>.<span class="ident">len</span>() {
-            <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="number">0</span> =&gt; {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">cursor</span>.<span class="ident">eof</span>() {
                     <span class="ident">Error::new</span>(<span class="self">self</span>.<span class="ident">scope</span>, <span class="string">&quot;unexpected end of input&quot;</span>)
                 } <span class="kw">else</span> {
                     <span class="ident">Error::new</span>(<span class="self">self</span>.<span class="ident">cursor</span>.<span class="ident">span</span>(), <span class="string">&quot;unexpected token&quot;</span>)
                 }
             }
-            <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="number">1</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;expected {}&quot;</span>, <span class="ident">comparisons</span>[<span class="number">0</span>]);
                 <span class="ident">error::new_at</span>(<span class="self">self</span>.<span class="ident">scope</span>, <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">message</span>)
             }
-            <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="number">2</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;expected {} or {}&quot;</span>, <span class="ident">comparisons</span>[<span class="number">0</span>], <span class="ident">comparisons</span>[<span class="number">1</span>]);
                 <span class="ident">error::new_at</span>(<span class="self">self</span>.<span class="ident">scope</span>, <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">message</span>)
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">_</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">join</span> <span class="op">=</span> <span class="ident">comparisons</span>.<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>);
                 <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;expected one of: {}&quot;</span>, <span class="ident">join</span>);
                 <span class="ident">error::new_at</span>(<span class="self">self</span>.<span class="ident">scope</span>, <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">message</span>)
@@ -313,23 +313,23 @@
     <span class="kw">type</span> <span class="ident">Token</span>: <span class="ident">Token</span>;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">Copy</span> <span class="op">+</span> <span class="ident">FnOnce</span>(<span class="ident">TokenMarker</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>, <span class="ident">T</span>: <span class="ident">Token</span><span class="op">&gt;</span> <span class="ident">Peek</span> <span class="kw">for</span> <span class="ident">F</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">Copy</span> <span class="op">+</span> <span class="ident">FnOnce</span>(<span class="ident">TokenMarker</span>) -&gt; <span class="ident">T</span>, <span class="ident">T</span>: <span class="ident">Token</span><span class="op">&gt;</span> <span class="ident">Peek</span> <span class="kw">for</span> <span class="ident">F</span> {
     <span class="kw">type</span> <span class="ident">Token</span> <span class="op">=</span> <span class="ident">T</span>;
 }
 
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">TokenMarker</span> {}
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="ident">IntoSpans</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TokenMarker</span> {
-    <span class="kw">fn</span> <span class="ident">into_spans</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">S</span> {
+    <span class="kw">fn</span> <span class="ident">into_spans</span>(<span class="self">self</span>) -&gt; <span class="ident">S</span> {
         <span class="kw">match</span> <span class="self">self</span> {}
     }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_delimiter</span>(<span class="ident">cursor</span>: <span class="ident">Cursor</span>, <span class="ident">delimiter</span>: <span class="ident">Delimiter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_delimiter</span>(<span class="ident">cursor</span>: <span class="ident">Cursor</span>, <span class="ident">delimiter</span>: <span class="ident">Delimiter</span>) -&gt; <span class="ident">bool</span> {
     <span class="ident">cursor</span>.<span class="ident">group</span>(<span class="ident">delimiter</span>).<span class="ident">is_some</span>()
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">Copy</span> <span class="op">+</span> <span class="ident">FnOnce</span>(<span class="ident">TokenMarker</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>, <span class="ident">T</span>: <span class="ident">Token</span><span class="op">&gt;</span> <span class="ident">Sealed</span> <span class="kw">for</span> <span class="ident">F</span> {}
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">Copy</span> <span class="op">+</span> <span class="ident">FnOnce</span>(<span class="ident">TokenMarker</span>) -&gt; <span class="ident">T</span>, <span class="ident">T</span>: <span class="ident">Token</span><span class="op">&gt;</span> <span class="ident">Sealed</span> <span class="kw">for</span> <span class="ident">F</span> {}
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="syn" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>

@@ -287,14 +287,14 @@
 
 <span class="comment">// This will trigger an error in const functions if $x is false.</span>
 <span class="macro">macro_rules!</span> <span class="ident">const_assert_true</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>:<span class="ident">expr</span> $(,)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>:<span class="ident">expr</span> $(,)<span class="kw-2">*</span>) =&gt; {
         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> [()][<span class="op">!</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span> <span class="kw">as</span> <span class="ident">usize</span>];
     };
 }
 
 <span class="kw">impl</span> <span class="ident">CodePointRange</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">start</span>: <span class="ident">u32</span>, <span class="ident">len</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">start</span>: <span class="ident">u32</span>, <span class="ident">len</span>: <span class="ident">u32</span>) -&gt; <span class="self">Self</span> {
         <span class="macro">const_assert_true!</span>(<span class="ident">start</span> <span class="op">&lt;</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">CODE_POINT_BITS</span>));
         <span class="macro">const_assert_true!</span>(<span class="ident">len</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">len</span> <span class="op">&lt;</span><span class="op">=</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">LENGTH_BITS</span>));
         <span class="macro">const_assert_true!</span>((<span class="ident">start</span> <span class="op">+</span> <span class="ident">len</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">&lt;</span> ((<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">CODE_POINT_BITS</span>) <span class="op">-</span> <span class="number">1</span>));
@@ -302,25 +302,25 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">len_minus_1</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">len_minus_1</span>(<span class="self">self</span>) -&gt; <span class="ident">u32</span> {
         <span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> ((<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">LENGTH_BITS</span>) <span class="op">-</span> <span class="number">1</span>)
     }
 
     <span class="comment">// \return the first codepoint in the range.</span>
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">first</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">first</span>(<span class="self">self</span>) -&gt; <span class="ident">u32</span> {
         <span class="self">self</span>.<span class="number">0</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">LENGTH_BITS</span>
     }
 
     <span class="comment">// \return the last codepoint in the range.</span>
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">last</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">last</span>(<span class="self">self</span>) -&gt; <span class="ident">u32</span> {
         <span class="self">self</span>.<span class="ident">first</span>() <span class="op">+</span> <span class="self">self</span>.<span class="ident">len_minus_1</span>() <span class="kw">as</span> <span class="ident">u32</span>
     }
 
     <span class="doccomment">/// \return whether this range is strictly less than, contains, or strictly greater than a given code point.</span>
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compare</span>(<span class="self">self</span>, <span class="ident">cp</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ordering</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compare</span>(<span class="self">self</span>, <span class="ident">cp</span>: <span class="ident">u32</span>) -&gt; <span class="ident">Ordering</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">first</span>() <span class="op">&gt;</span> <span class="ident">cp</span> {
             <span class="ident">Ordering::Greater</span>
         } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">last</span>() <span class="op">&lt;</span> <span class="ident">cp</span> {
@@ -345,10 +345,10 @@
 
 <span class="kw">impl</span> <span class="ident">FoldRange</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">start</span>: <span class="ident">u32</span>, <span class="ident">length</span>: <span class="ident">u32</span>, <span class="ident">delta</span>: <span class="ident">i32</span>, <span class="ident">modulo</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">start</span>: <span class="ident">u32</span>, <span class="ident">length</span>: <span class="ident">u32</span>, <span class="ident">delta</span>: <span class="ident">i32</span>, <span class="ident">modulo</span>: <span class="ident">u8</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">mask</span> <span class="op">=</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">modulo</span>) <span class="op">-</span> <span class="number">1</span>;
         <span class="macro">const_assert_true!</span>(<span class="ident">mask</span> <span class="op">&lt;</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">PREDICATE_MASK_BITS</span>));
-        <span class="macro">const_assert_true!</span>(((<span class="ident">delta</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">PREDICATE_MASK_BITS</span>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">PREDICATE_MASK_BITS</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">delta</span>);
+        <span class="macro">const_assert_true!</span>(((<span class="ident">delta</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">PREDICATE_MASK_BITS</span>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">PREDICATE_MASK_BITS</span>) <span class="op">==</span> <span class="ident">delta</span>);
         <span class="kw">let</span> <span class="ident">extra</span> <span class="op">=</span> <span class="ident">mask</span> <span class="op">|</span> (<span class="ident">delta</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">PREDICATE_MASK_BITS</span>);
         <span class="ident">FoldRange</span> {
             <span class="ident">range</span>: <span class="ident">CodePointRange::from</span>(<span class="ident">start</span>, <span class="ident">length</span>),
@@ -356,33 +356,33 @@
         }
     }
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">first</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">first</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span> {
         <span class="self">self</span>.<span class="ident">range</span>.<span class="ident">first</span>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">last</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">last</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span> {
         <span class="self">self</span>.<span class="ident">range</span>.<span class="ident">last</span>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">delta</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
+    <span class="kw">fn</span> <span class="ident">delta</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">i32</span> {
         <span class="self">self</span>.<span class="ident">extra</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">PREDICATE_MASK_BITS</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">predicate_mask</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">predicate_mask</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span> {
         (<span class="self">self</span>.<span class="ident">extra</span> <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&amp;</span> <span class="ident">PREDICATE_MASK_BITS</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">add_delta</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cu</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">add_delta</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cu</span>: <span class="ident">u32</span>) -&gt; <span class="ident">u32</span> {
         <span class="kw">let</span> <span class="ident">cs</span> <span class="op">=</span> (<span class="ident">cu</span> <span class="kw">as</span> <span class="ident">i32</span>) <span class="op">+</span> <span class="self">self</span>.<span class="ident">delta</span>();
         <span class="macro">std::debug_assert!</span>(<span class="number">0</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">cs</span> <span class="op">&amp;&amp;</span> <span class="ident">cs</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0x10FFFF</span>);
         <span class="ident">cs</span> <span class="kw">as</span> <span class="ident">u32</span>
     }
 
     <span class="doccomment">/// \return the Interval of transformed-to code points.</span>
-    <span class="kw">fn</span> <span class="ident">transformed_to</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Interval</span> {
+    <span class="kw">fn</span> <span class="ident">transformed_to</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Interval</span> {
         <span class="ident">Interval</span> {
             <span class="ident">first</span>: <span class="self">self</span>.<span class="ident">add_delta</span>(<span class="self">self</span>.<span class="ident">first</span>()),
             <span class="ident">last</span>: <span class="self">self</span>.<span class="ident">add_delta</span>(<span class="self">self</span>.<span class="ident">last</span>()),
@@ -390,21 +390,21 @@
     }
 
     <span class="doccomment">/// \return the Interval of transformed-from code points.</span>
-    <span class="kw">fn</span> <span class="ident">transformed_from</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Interval</span> {
+    <span class="kw">fn</span> <span class="ident">transformed_from</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Interval</span> {
         <span class="ident">Interval</span> {
             <span class="ident">first</span>: <span class="self">self</span>.<span class="ident">first</span>(),
             <span class="ident">last</span>: <span class="self">self</span>.<span class="ident">last</span>(),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">can_apply</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cu</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">can_apply</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cu</span>: <span class="ident">u32</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">transformed_from</span>().<span class="ident">contains</span>(<span class="ident">cu</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">apply</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cu</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">apply</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cu</span>: <span class="ident">u32</span>) -&gt; <span class="ident">u32</span> {
         <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">can_apply</span>(<span class="ident">cu</span>), <span class="string">&quot;Cannot apply to this code point&quot;</span>);
         <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">cu</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">first</span>();
-        <span class="kw">if</span> (<span class="ident">offset</span> <span class="op">&amp;</span> <span class="self">self</span>.<span class="ident">predicate_mask</span>()) <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> (<span class="ident">offset</span> <span class="op">&amp;</span> <span class="self">self</span>.<span class="ident">predicate_mask</span>()) <span class="op">==</span> <span class="number">0</span> {
             <span class="self">self</span>.<span class="ident">add_delta</span>(<span class="ident">cu</span>)
         } <span class="kw">else</span> {
             <span class="ident">cu</span>
@@ -412,7 +412,7 @@
     }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fold</span>(<span class="ident">c</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">char</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fold</span>(<span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="ident">char</span> {
     <span class="kw">let</span> <span class="ident">cu</span> <span class="op">=</span> <span class="ident">c</span> <span class="kw">as</span> <span class="ident">u32</span>;
     <span class="kw">let</span> <span class="ident">searched</span> <span class="op">=</span> <span class="ident">FOLDS</span>.<span class="ident">binary_search_by</span>(<span class="op">|</span><span class="ident">fr</span><span class="op">|</span> {
         <span class="kw">if</span> <span class="ident">fr</span>.<span class="ident">first</span>() <span class="op">&gt;</span> <span class="ident">cu</span> {
@@ -489,7 +489,7 @@
 
 <span class="doccomment">/// \return all the characters which fold to c&#39;s fold.</span>
 <span class="doccomment">/// This is a slow linear search across all ranges.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unfold_char</span>(<span class="ident">c</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unfold_char</span>(<span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">c</span>];
     <span class="kw">let</span> <span class="ident">fc</span> <span class="op">=</span> <span class="ident">fold</span>(<span class="ident">c</span>);
     <span class="kw">if</span> <span class="ident">fc</span> <span class="op">!</span><span class="op">=</span> <span class="ident">c</span> {
@@ -504,7 +504,7 @@
         <span class="kw">for</span> <span class="ident">cp</span> <span class="kw">in</span> <span class="ident">tr</span>.<span class="ident">transformed_from</span>().<span class="ident">codepoints</span>() {
             <span class="comment">// TODO: this can be optimized.</span>
             <span class="kw">let</span> <span class="ident">tcp</span> <span class="op">=</span> <span class="ident">tr</span>.<span class="ident">apply</span>(<span class="ident">cp</span>);
-            <span class="kw">if</span> <span class="ident">tcp</span> <span class="op">=</span><span class="op">=</span> <span class="ident">fcp</span> {
+            <span class="kw">if</span> <span class="ident">tcp</span> <span class="op">==</span> <span class="ident">fcp</span> {
                 <span class="ident">res</span>.<span class="ident">push</span>(<span class="ident">std::char::from_u32</span>(<span class="ident">cp</span>).<span class="ident">unwrap</span>());
             }
         }
@@ -515,7 +515,7 @@
 }
 
 <span class="comment">// Fold every character in \p input, then find all the prefolds.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fold_code_points</span>(<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">CodePointSet</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CodePointSet</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fold_code_points</span>(<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">CodePointSet</span>) -&gt; <span class="ident">CodePointSet</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">folded</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">clone</span>();
     <span class="kw">for</span> <span class="ident">iv</span> <span class="kw">in</span> <span class="ident">input</span>.<span class="ident">intervals</span>() {
         <span class="ident">fold_interval</span>(<span class="kw-2">*</span><span class="ident">iv</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">folded</span>)
@@ -530,13 +530,13 @@
 }
 
 <span class="doccomment">/// \return whether c has the &#39;ID_Start&#39; Unicode property.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_id_start</span>(<span class="ident">c</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_id_start</span>(<span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="ident">bool</span> {
     <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="ident">c</span> <span class="kw">as</span> <span class="ident">u32</span>;
     <span class="ident">ID_START</span>.<span class="ident">binary_search_by</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">cpr</span><span class="op">|</span> <span class="ident">cpr</span>.<span class="ident">compare</span>(<span class="ident">i</span>)).<span class="ident">is_ok</span>()
 }
 
 <span class="doccomment">/// \return whether c has the &#39;ID_Continue&#39; Unicode property.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_id_continue</span>(<span class="ident">c</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_id_continue</span>(<span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="ident">bool</span> {
     <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="ident">c</span> <span class="kw">as</span> <span class="ident">u32</span>;
     <span class="ident">ID_CONTINUE</span>.<span class="ident">binary_search_by</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">cpr</span><span class="op">|</span> <span class="ident">cpr</span>.<span class="ident">compare</span>(<span class="ident">i</span>)).<span class="ident">is_ok</span>()
 }

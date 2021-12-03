@@ -511,7 +511,7 @@
     <span class="doccomment">/// Invokes the callback with the given producer as argument. The</span>
     <span class="doccomment">/// key point of this trait is that this method is generic over</span>
     <span class="doccomment">/// `P`, and hence implementors must be defined for any producer.</span>
-    <span class="kw">fn</span> <span class="ident">callback</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">producer</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Output</span>
+    <span class="kw">fn</span> <span class="ident">callback</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">producer</span>: <span class="ident">P</span>) -&gt; <span class="ident"><span class="self">Self</span>::Output</span>
     <span class="kw">where</span>
         <span class="ident">P</span>: <span class="ident">Producer</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>;
 }
@@ -550,7 +550,7 @@
 
     <span class="doccomment">/// Convert `self` into an iterator; at this point, no more parallel splits</span>
     <span class="doccomment">/// are possible.</span>
-    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::IntoIter</span>;
+    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::IntoIter</span>;
 
     <span class="doccomment">/// The minimum number of items that we will process</span>
     <span class="doccomment">/// sequentially. Defaults to 1, which means that we will split</span>
@@ -562,7 +562,7 @@
     <span class="doccomment">/// needed.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`with_min_len`]: ../trait.IndexedParallelIterator.html#method.with_min_len</span>
-    <span class="kw">fn</span> <span class="ident">min_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">min_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="number">1</span>
     }
 
@@ -575,19 +575,19 @@
     <span class="doccomment">/// overhead, so this should not be needed.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`with_max_len`]: ../trait.IndexedParallelIterator.html#method.with_max_len</span>
-    <span class="kw">fn</span> <span class="ident">max_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">max_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="ident">usize::MAX</span>
     }
 
     <span class="doccomment">/// Split into two producers; one produces items `0..index`, the</span>
     <span class="doccomment">/// other `index..N`. Index must be less than or equal to `N`.</span>
-    <span class="kw">fn</span> <span class="ident">split_at</span>(<span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="self">Self</span>, <span class="self">Self</span>);
+    <span class="kw">fn</span> <span class="ident">split_at</span>(<span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; (<span class="self">Self</span>, <span class="self">Self</span>);
 
     <span class="doccomment">/// Iterate the producer, feeding each element to `folder`, and</span>
     <span class="doccomment">/// stop when the folder is full (or all elements have been consumed).</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The provided implementation is sufficient for most iterables.</span>
-    <span class="kw">fn</span> <span class="ident">fold_with</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">folder</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">F</span>
+    <span class="kw">fn</span> <span class="ident">fold_with</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">folder</span>: <span class="ident">F</span>) -&gt; <span class="ident">F</span>
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">Folder</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
@@ -623,15 +623,15 @@
     <span class="doccomment">/// `0..index` and one processing items from `index..`. Also</span>
     <span class="doccomment">/// produces a reducer that can be used to reduce the results at</span>
     <span class="doccomment">/// the end.</span>
-    <span class="kw">fn</span> <span class="ident">split_at</span>(<span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="self">Self</span>, <span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Reducer</span>);
+    <span class="kw">fn</span> <span class="ident">split_at</span>(<span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; (<span class="self">Self</span>, <span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Reducer</span>);
 
     <span class="doccomment">/// Convert the consumer into a folder that can consume items</span>
     <span class="doccomment">/// sequentially, eventually producing a final result.</span>
-    <span class="kw">fn</span> <span class="ident">into_folder</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Folder</span>;
+    <span class="kw">fn</span> <span class="ident">into_folder</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Folder</span>;
 
     <span class="doccomment">/// Hint whether this `Consumer` would like to stop processing</span>
     <span class="doccomment">/// further items, e.g. if a search has been completed.</span>
-    <span class="kw">fn</span> <span class="ident">full</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">full</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span>;
 }
 
 <span class="doccomment">/// The `Folder` trait encapsulates [the standard fold</span>
@@ -645,7 +645,7 @@
     <span class="kw">type</span> <span class="prelude-ty">Result</span>;
 
     <span class="doccomment">/// Consume next item and return new sequential state.</span>
-    <span class="kw">fn</span> <span class="ident">consume</span>(<span class="self">self</span>, <span class="ident">item</span>: <span class="ident">Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">consume</span>(<span class="self">self</span>, <span class="ident">item</span>: <span class="ident">Item</span>) -&gt; <span class="self">Self</span>;
 
     <span class="doccomment">/// Consume items from the iterator until full, and return new sequential state.</span>
     <span class="doccomment">///</span>
@@ -655,7 +655,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// The main reason to override it is if you can provide a more</span>
     <span class="doccomment">/// specialized, efficient implementation.</span>
-    <span class="kw">fn</span> <span class="ident">consume_iter</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">iter</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">fn</span> <span class="ident">consume_iter</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">iter</span>: <span class="ident">I</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Item</span><span class="op">&gt;</span>,
     {
@@ -669,11 +669,11 @@
     }
 
     <span class="doccomment">/// Finish consuming items, produce final result.</span>
-    <span class="kw">fn</span> <span class="ident">complete</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Result</span>;
+    <span class="kw">fn</span> <span class="ident">complete</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Result</span>;
 
     <span class="doccomment">/// Hint whether this `Folder` would like to stop processing</span>
     <span class="doccomment">/// further items, e.g. if a search has been completed.</span>
-    <span class="kw">fn</span> <span class="ident">full</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">full</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span>;
 }
 
 <span class="doccomment">/// The reducer is the final step of a `Consumer` -- after a consumer</span>
@@ -686,7 +686,7 @@
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Reducer</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Reduce two final results into one; this is executed after a</span>
     <span class="doccomment">/// split.</span>
-    <span class="kw">fn</span> <span class="ident">reduce</span>(<span class="self">self</span>, <span class="ident">left</span>: <span class="prelude-ty">Result</span>, <span class="ident">right</span>: <span class="prelude-ty">Result</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span>;
+    <span class="kw">fn</span> <span class="ident">reduce</span>(<span class="self">self</span>, <span class="ident">left</span>: <span class="prelude-ty">Result</span>, <span class="ident">right</span>: <span class="prelude-ty">Result</span>) -&gt; <span class="prelude-ty">Result</span>;
 }
 
 <span class="doccomment">/// A stateless consumer can be freely copied. These consumers can be</span>
@@ -702,11 +702,11 @@
     <span class="doccomment">/// over values produced by `self`.) Once the left and right</span>
     <span class="doccomment">/// halves have been fully consumed, you should reduce the results</span>
     <span class="doccomment">/// with the result of `to_reducer`.</span>
-    <span class="kw">fn</span> <span class="ident">split_off_left</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">split_off_left</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>;
 
     <span class="doccomment">/// Creates a reducer that can be used to combine the results from</span>
     <span class="doccomment">/// a split consumer.</span>
-    <span class="kw">fn</span> <span class="ident">to_reducer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Reducer</span>;
+    <span class="kw">fn</span> <span class="ident">to_reducer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Reducer</span>;
 }
 
 <span class="doccomment">/// A variant on `Producer` which does not know its exact length or</span>
@@ -722,11 +722,11 @@
     <span class="kw">type</span> <span class="ident">Item</span>;
 
     <span class="doccomment">/// Split midway into a new producer if possible, otherwise return `None`.</span>
-    <span class="kw">fn</span> <span class="ident">split</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="self">Self</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>);
+    <span class="kw">fn</span> <span class="ident">split</span>(<span class="self">self</span>) -&gt; (<span class="self">Self</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>);
 
     <span class="doccomment">/// Iterate the producer, feeding each element to `folder`, and</span>
     <span class="doccomment">/// stop when the folder is full (or all elements have been consumed).</span>
-    <span class="kw">fn</span> <span class="ident">fold_with</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">folder</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">F</span>
+    <span class="kw">fn</span> <span class="ident">fold_with</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">folder</span>: <span class="ident">F</span>) -&gt; <span class="ident">F</span>
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">Folder</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>;
 }
@@ -746,14 +746,14 @@
 
 <span class="kw">impl</span> <span class="ident">Splitter</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Splitter</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">Splitter</span> {
         <span class="ident">Splitter</span> {
             <span class="ident">splits</span>: <span class="ident"><span class="kw">crate</span>::current_num_threads</span>(),
         }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">try_split</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">stolen</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">try_split</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">stolen</span>: <span class="ident">bool</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="ident">Splitter</span> { <span class="ident">splits</span> } <span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span>;
 
         <span class="kw">if</span> <span class="ident">stolen</span> {
@@ -794,7 +794,7 @@
     <span class="doccomment">/// The adaptive algorithm may very well split even further, but never</span>
     <span class="doccomment">/// smaller than the `min`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">min</span>: <span class="ident">usize</span>, <span class="ident">max</span>: <span class="ident">usize</span>, <span class="ident">len</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LengthSplitter</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">min</span>: <span class="ident">usize</span>, <span class="ident">max</span>: <span class="ident">usize</span>, <span class="ident">len</span>: <span class="ident">usize</span>) -&gt; <span class="ident">LengthSplitter</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">splitter</span> <span class="op">=</span> <span class="ident">LengthSplitter</span> {
             <span class="ident">inner</span>: <span class="ident">Splitter::new</span>(),
             <span class="ident">min</span>: <span class="ident">cmp::max</span>(<span class="ident">min</span>, <span class="number">1</span>),
@@ -815,7 +815,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">try_split</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">len</span>: <span class="ident">usize</span>, <span class="ident">stolen</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">try_split</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">len</span>: <span class="ident">usize</span>, <span class="ident">stolen</span>: <span class="ident">bool</span>) -&gt; <span class="ident">bool</span> {
         <span class="comment">// If splitting wouldn&#39;t make us too small, try the inner splitter.</span>
         <span class="ident">len</span> <span class="op">/</span> <span class="number">2</span> <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">min</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">try_split</span>(<span class="ident">stolen</span>)
     }
@@ -832,7 +832,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`drive_unindexed`]: ../trait.ParallelIterator.html#tymethod.drive_unindexed</span>
 <span class="doccomment">/// [`drive`]: ../trait.IndexedParallelIterator.html#tymethod.drive</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bridge</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">C</span><span class="op">&gt;</span>(<span class="ident">par_iter</span>: <span class="ident">I</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">C::Result</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bridge</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">C</span><span class="op">&gt;</span>(<span class="ident">par_iter</span>: <span class="ident">I</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) -&gt; <span class="ident">C::Result</span>
 <span class="kw">where</span>
     <span class="ident">I</span>: <span class="ident">IndexedParallelIterator</span>,
     <span class="ident">C</span>: <span class="ident">Consumer</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>,
@@ -850,7 +850,7 @@
         <span class="ident">C</span>: <span class="ident">Consumer</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>,
     {
         <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">C::Result</span>;
-        <span class="kw">fn</span> <span class="ident">callback</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">producer</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">C::Result</span>
+        <span class="kw">fn</span> <span class="ident">callback</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">producer</span>: <span class="ident">P</span>) -&gt; <span class="ident">C::Result</span>
         <span class="kw">where</span>
             <span class="ident">P</span>: <span class="ident">Producer</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">I</span><span class="op">&gt;</span>,
         {
@@ -872,7 +872,7 @@
 <span class="doccomment">/// [`bridge`]: fn.bridge.html</span>
 <span class="doccomment">/// [`drive_unindexed`]: ../trait.ParallelIterator.html#tymethod.drive_unindexed</span>
 <span class="doccomment">/// [`drive`]: ../trait.IndexedParallelIterator.html#tymethod.drive</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bridge_producer_consumer</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">C</span><span class="op">&gt;</span>(<span class="ident">len</span>: <span class="ident">usize</span>, <span class="ident">producer</span>: <span class="ident">P</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">C::Result</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bridge_producer_consumer</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">C</span><span class="op">&gt;</span>(<span class="ident">len</span>: <span class="ident">usize</span>, <span class="ident">producer</span>: <span class="ident">P</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) -&gt; <span class="ident">C::Result</span>
 <span class="kw">where</span>
     <span class="ident">P</span>: <span class="ident">Producer</span>,
     <span class="ident">C</span>: <span class="ident">Consumer</span><span class="op">&lt;</span><span class="ident">P::Item</span><span class="op">&gt;</span>,
@@ -886,7 +886,7 @@
         <span class="kw-2">mut</span> <span class="ident">splitter</span>: <span class="ident">LengthSplitter</span>,
         <span class="ident">producer</span>: <span class="ident">P</span>,
         <span class="ident">consumer</span>: <span class="ident">C</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">C::Result</span>
+    ) -&gt; <span class="ident">C::Result</span>
     <span class="kw">where</span>
         <span class="ident">P</span>: <span class="ident">Producer</span>,
         <span class="ident">C</span>: <span class="ident">Consumer</span><span class="op">&lt;</span><span class="ident">P::Item</span><span class="op">&gt;</span>,
@@ -927,7 +927,7 @@
 <span class="doccomment">/// A variant of [`bridge_producer_consumer`] where the producer is an unindexed producer.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`bridge_producer_consumer`]: fn.bridge_producer_consumer.html</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bridge_unindexed</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">C</span><span class="op">&gt;</span>(<span class="ident">producer</span>: <span class="ident">P</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">C::Result</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bridge_unindexed</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">C</span><span class="op">&gt;</span>(<span class="ident">producer</span>: <span class="ident">P</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) -&gt; <span class="ident">C::Result</span>
 <span class="kw">where</span>
     <span class="ident">P</span>: <span class="ident">UnindexedProducer</span>,
     <span class="ident">C</span>: <span class="ident">UnindexedConsumer</span><span class="op">&lt;</span><span class="ident">P::Item</span><span class="op">&gt;</span>,
@@ -941,7 +941,7 @@
     <span class="kw-2">mut</span> <span class="ident">splitter</span>: <span class="ident">Splitter</span>,
     <span class="ident">producer</span>: <span class="ident">P</span>,
     <span class="ident">consumer</span>: <span class="ident">C</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">C::Result</span>
+) -&gt; <span class="ident">C::Result</span>
 <span class="kw">where</span>
     <span class="ident">P</span>: <span class="ident">UnindexedProducer</span>,
     <span class="ident">C</span>: <span class="ident">UnindexedConsumer</span><span class="op">&lt;</span><span class="ident">P::Item</span><span class="op">&gt;</span>,
@@ -950,7 +950,7 @@
         <span class="ident">consumer</span>.<span class="ident">into_folder</span>().<span class="ident">complete</span>()
     } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">splitter</span>.<span class="ident">try_split</span>(<span class="ident">migrated</span>) {
         <span class="kw">match</span> <span class="ident">producer</span>.<span class="ident">split</span>() {
-            (<span class="ident">left_producer</span>, <span class="prelude-val">Some</span>(<span class="ident">right_producer</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            (<span class="ident">left_producer</span>, <span class="prelude-val">Some</span>(<span class="ident">right_producer</span>)) =&gt; {
                 <span class="kw">let</span> (<span class="ident">reducer</span>, <span class="ident">left_consumer</span>, <span class="ident">right_consumer</span>) <span class="op">=</span>
                     (<span class="ident">consumer</span>.<span class="ident">to_reducer</span>(), <span class="ident">consumer</span>.<span class="ident">split_off_left</span>(), <span class="ident">consumer</span>);
                 <span class="kw">let</span> <span class="ident">bridge</span> <span class="op">=</span> <span class="ident">bridge_unindexed_producer_consumer</span>;
@@ -960,7 +960,7 @@
                 );
                 <span class="ident">reducer</span>.<span class="ident">reduce</span>(<span class="ident">left_result</span>, <span class="ident">right_result</span>)
             }
-            (<span class="ident">producer</span>, <span class="prelude-val">None</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">producer</span>.<span class="ident">fold_with</span>(<span class="ident">consumer</span>.<span class="ident">into_folder</span>()).<span class="ident">complete</span>(),
+            (<span class="ident">producer</span>, <span class="prelude-val">None</span>) =&gt; <span class="ident">producer</span>.<span class="ident">fold_with</span>(<span class="ident">consumer</span>.<span class="ident">into_folder</span>()).<span class="ident">complete</span>(),
         }
     } <span class="kw">else</span> {
         <span class="ident">producer</span>.<span class="ident">fold_with</span>(<span class="ident">consumer</span>.<span class="ident">into_folder</span>()).<span class="ident">complete</span>()

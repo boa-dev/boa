@@ -118,7 +118,7 @@
 <span class="kw">use</span> <span class="ident">std::iter</span>::{<span class="self">self</span>, <span class="ident">Product</span>};
 <span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">product</span><span class="op">&lt;</span><span class="ident">PI</span>, <span class="ident">P</span><span class="op">&gt;</span>(<span class="ident">pi</span>: <span class="ident">PI</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">P</span>
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">product</span><span class="op">&lt;</span><span class="ident">PI</span>, <span class="ident">P</span><span class="op">&gt;</span>(<span class="ident">pi</span>: <span class="ident">PI</span>) -&gt; <span class="ident">P</span>
 <span class="kw">where</span>
     <span class="ident">PI</span>: <span class="ident">ParallelIterator</span>,
     <span class="ident">P</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Product</span><span class="op">&lt;</span><span class="ident">PI::Item</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Product</span>,
@@ -126,7 +126,7 @@
     <span class="ident">pi</span>.<span class="ident">drive_unindexed</span>(<span class="ident">ProductConsumer::new</span>())
 }
 
-<span class="kw">fn</span> <span class="ident">mul</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Product</span><span class="op">&gt;</span>(<span class="ident">left</span>: <span class="ident">T</span>, <span class="ident">right</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
+<span class="kw">fn</span> <span class="ident">mul</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Product</span><span class="op">&gt;</span>(<span class="ident">left</span>: <span class="ident">T</span>, <span class="ident">right</span>: <span class="ident">T</span>) -&gt; <span class="ident">T</span> {
     <span class="ident">iter::once</span>(<span class="ident">left</span>).<span class="ident">chain</span>(<span class="ident">iter::once</span>(<span class="ident">right</span>)).<span class="ident">product</span>()
 }
 
@@ -137,7 +137,7 @@
 <span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">Send</span><span class="op">&gt;</span> <span class="ident">Send</span> <span class="kw">for</span> <span class="ident">ProductConsumer</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> {}
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">Send</span><span class="op">&gt;</span> <span class="ident">ProductConsumer</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ProductConsumer</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">ProductConsumer</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> {
         <span class="ident">ProductConsumer</span> {
             <span class="ident">_marker</span>: <span class="ident">PhantomData</span>,
         }
@@ -152,7 +152,7 @@
     <span class="kw">type</span> <span class="ident">Reducer</span> <span class="op">=</span> <span class="self">Self</span>;
     <span class="kw">type</span> <span class="prelude-ty">Result</span> <span class="op">=</span> <span class="ident">P</span>;
 
-    <span class="kw">fn</span> <span class="ident">split_at</span>(<span class="self">self</span>, <span class="ident">_index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="self">Self</span>, <span class="self">Self</span>, <span class="self">Self</span>) {
+    <span class="kw">fn</span> <span class="ident">split_at</span>(<span class="self">self</span>, <span class="ident">_index</span>: <span class="ident">usize</span>) -&gt; (<span class="self">Self</span>, <span class="self">Self</span>, <span class="self">Self</span>) {
         (
             <span class="ident">ProductConsumer::new</span>(),
             <span class="ident">ProductConsumer::new</span>(),
@@ -160,13 +160,13 @@
         )
     }
 
-    <span class="kw">fn</span> <span class="ident">into_folder</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Folder</span> {
+    <span class="kw">fn</span> <span class="ident">into_folder</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Folder</span> {
         <span class="ident">ProductFolder</span> {
             <span class="ident">product</span>: <span class="ident">iter::empty</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>().<span class="ident">product</span>(),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">full</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">full</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="bool-val">false</span>
     }
 }
@@ -175,11 +175,11 @@
 <span class="kw">where</span>
     <span class="ident">P</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Product</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Product</span>,
 {
-    <span class="kw">fn</span> <span class="ident">split_off_left</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">split_off_left</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">ProductConsumer::new</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">to_reducer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Reducer</span> {
+    <span class="kw">fn</span> <span class="ident">to_reducer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Reducer</span> {
         <span class="ident">ProductConsumer::new</span>()
     }
 }
@@ -188,7 +188,7 @@
 <span class="kw">where</span>
     <span class="ident">P</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Product</span>,
 {
-    <span class="kw">fn</span> <span class="ident">reduce</span>(<span class="self">self</span>, <span class="ident">left</span>: <span class="ident">P</span>, <span class="ident">right</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">P</span> {
+    <span class="kw">fn</span> <span class="ident">reduce</span>(<span class="self">self</span>, <span class="ident">left</span>: <span class="ident">P</span>, <span class="ident">right</span>: <span class="ident">P</span>) -&gt; <span class="ident">P</span> {
         <span class="ident">mul</span>(<span class="ident">left</span>, <span class="ident">right</span>)
     }
 }
@@ -203,13 +203,13 @@
 {
     <span class="kw">type</span> <span class="prelude-ty">Result</span> <span class="op">=</span> <span class="ident">P</span>;
 
-    <span class="kw">fn</span> <span class="ident">consume</span>(<span class="self">self</span>, <span class="ident">item</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">consume</span>(<span class="self">self</span>, <span class="ident">item</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">ProductFolder</span> {
             <span class="ident">product</span>: <span class="ident">mul</span>(<span class="self">self</span>.<span class="ident">product</span>, <span class="ident">iter::once</span>(<span class="ident">item</span>).<span class="ident">product</span>()),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">consume_iter</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">iter</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">fn</span> <span class="ident">consume_iter</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">iter</span>: <span class="ident">I</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>,
     {
@@ -218,11 +218,11 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">complete</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">P</span> {
+    <span class="kw">fn</span> <span class="ident">complete</span>(<span class="self">self</span>) -&gt; <span class="ident">P</span> {
         <span class="self">self</span>.<span class="ident">product</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">full</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">full</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="bool-val">false</span>
     }
 }

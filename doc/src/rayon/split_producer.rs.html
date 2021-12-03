@@ -147,12 +147,12 @@
 
 <span class="doccomment">/// Helper trait so `&amp;str`, `&amp;[T]`, and `&amp;mut [T]` can share `SplitProducer`.</span>
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">trait</span> <span class="ident">Fissile</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>: <span class="ident">Sized</span> {
-    <span class="kw">fn</span> <span class="ident">length</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span>;
-    <span class="kw">fn</span> <span class="ident">midpoint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">end</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span>;
-    <span class="kw">fn</span> <span class="ident">find</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">separator</span>: <span class="kw-2">&amp;</span><span class="ident">P</span>, <span class="ident">start</span>: <span class="ident">usize</span>, <span class="ident">end</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>;
-    <span class="kw">fn</span> <span class="ident">rfind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">separator</span>: <span class="kw-2">&amp;</span><span class="ident">P</span>, <span class="ident">end</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>;
-    <span class="kw">fn</span> <span class="ident">split_once</span>(<span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="self">Self</span>, <span class="self">Self</span>);
-    <span class="kw">fn</span> <span class="ident">fold_splits</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">separator</span>: <span class="kw-2">&amp;</span><span class="ident">P</span>, <span class="ident">folder</span>: <span class="ident">F</span>, <span class="ident">skip_last</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">F</span>
+    <span class="kw">fn</span> <span class="ident">length</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span>;
+    <span class="kw">fn</span> <span class="ident">midpoint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">end</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span>;
+    <span class="kw">fn</span> <span class="ident">find</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">separator</span>: <span class="kw-2">&amp;</span><span class="ident">P</span>, <span class="ident">start</span>: <span class="ident">usize</span>, <span class="ident">end</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">rfind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">separator</span>: <span class="kw-2">&amp;</span><span class="ident">P</span>, <span class="ident">end</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">split_once</span>(<span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; (<span class="self">Self</span>, <span class="self">Self</span>);
+    <span class="kw">fn</span> <span class="ident">fold_splits</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">separator</span>: <span class="kw-2">&amp;</span><span class="ident">P</span>, <span class="ident">folder</span>: <span class="ident">F</span>, <span class="ident">skip_last</span>: <span class="ident">bool</span>) -&gt; <span class="ident">F</span>
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">Folder</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>,
         <span class="self">Self</span>: <span class="ident">Send</span>;
@@ -162,7 +162,7 @@
 <span class="kw">where</span>
     <span class="ident">V</span>: <span class="ident">Fissile</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span>,
 {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">data</span>: <span class="ident">V</span>, <span class="ident">separator</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">data</span>: <span class="ident">V</span>, <span class="ident">separator</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <span class="ident">P</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">SplitProducer</span> {
             <span class="ident">tail</span>: <span class="ident">data</span>.<span class="ident">length</span>(),
             <span class="ident">data</span>,
@@ -172,7 +172,7 @@
 
     <span class="doccomment">/// Common `fold_with` implementation, integrating `SplitTerminator`&#39;s</span>
     <span class="doccomment">/// need to sometimes skip its final empty item.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">fold_with</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">folder</span>: <span class="ident">F</span>, <span class="ident">skip_last</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">F</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">fold_with</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">folder</span>: <span class="ident">F</span>, <span class="ident">skip_last</span>: <span class="ident">bool</span>) -&gt; <span class="ident">F</span>
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">Folder</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>,
     {
@@ -182,7 +182,7 @@
             <span class="ident">tail</span>,
         } <span class="op">=</span> <span class="self">self</span>;
 
-        <span class="kw">if</span> <span class="ident">tail</span> <span class="op">=</span><span class="op">=</span> <span class="ident">data</span>.<span class="ident">length</span>() {
+        <span class="kw">if</span> <span class="ident">tail</span> <span class="op">==</span> <span class="ident">data</span>.<span class="ident">length</span>() {
             <span class="comment">// No tail section, so just let `fold_splits` handle it.</span>
             <span class="ident">data</span>.<span class="ident">fold_splits</span>(<span class="ident">separator</span>, <span class="ident">folder</span>, <span class="ident">skip_last</span>)
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">data</span>.<span class="ident">rfind</span>(<span class="ident">separator</span>, <span class="ident">tail</span>) {
@@ -213,12 +213,12 @@
 {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">V</span>;
 
-    <span class="kw">fn</span> <span class="ident">split</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="self">Self</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) {
+    <span class="kw">fn</span> <span class="ident">split</span>(<span class="self">self</span>) -&gt; (<span class="self">Self</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) {
         <span class="comment">// Look forward for the separator, and failing that look backward.</span>
         <span class="kw">let</span> <span class="ident">mid</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">midpoint</span>(<span class="self">self</span>.<span class="ident">tail</span>);
         <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">find</span>(<span class="self">self</span>.<span class="ident">separator</span>, <span class="ident">mid</span>, <span class="self">self</span>.<span class="ident">tail</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">mid</span> <span class="op">+</span> <span class="ident">i</span>),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">rfind</span>(<span class="self">self</span>.<span class="ident">separator</span>, <span class="ident">mid</span>),
+            <span class="prelude-val">Some</span>(<span class="ident">i</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">mid</span> <span class="op">+</span> <span class="ident">i</span>),
+            <span class="prelude-val">None</span> =&gt; <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">rfind</span>(<span class="self">self</span>.<span class="ident">separator</span>, <span class="ident">mid</span>),
         };
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">index</span> {
@@ -255,7 +255,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">fold_with</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">folder</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">F</span>
+    <span class="kw">fn</span> <span class="ident">fold_with</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">folder</span>: <span class="ident">F</span>) -&gt; <span class="ident">F</span>
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">Folder</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {

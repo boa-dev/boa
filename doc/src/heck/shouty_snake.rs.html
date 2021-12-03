@@ -79,7 +79,7 @@
 <span class="doccomment">/// ```</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ShoutySnakeCase</span>: <span class="ident">ToOwned</span> {
     <span class="doccomment">/// Convert this type to shouty snake case.</span>
-    <span class="kw">fn</span> <span class="ident">to_shouty_snake_case</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Owned</span>;
+    <span class="kw">fn</span> <span class="ident">to_shouty_snake_case</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Owned</span>;
 }
 
 <span class="doccomment">/// Oh heck, ShoutySnekCase is an alias for ShoutySnakeCase. See ShoutySnakeCase</span>
@@ -87,17 +87,17 @@
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ShoutySnekCase</span>: <span class="ident">ToOwned</span> {
     <span class="doccomment">/// CONVERT THIS TYPE TO SNEK CASE.</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_snake_case</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">TO_SHOUTY_SNEK_CASE</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Owned</span>;
+    <span class="kw">fn</span> <span class="ident">TO_SHOUTY_SNEK_CASE</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Owned</span>;
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">ShoutySnakeCase</span><span class="op">&gt;</span> <span class="ident">ShoutySnekCase</span> <span class="kw">for</span> <span class="ident">T</span> {
-    <span class="kw">fn</span> <span class="ident">TO_SHOUTY_SNEK_CASE</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Owned</span> {
+    <span class="kw">fn</span> <span class="ident">TO_SHOUTY_SNEK_CASE</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Owned</span> {
         <span class="self">self</span>.<span class="ident">to_shouty_snake_case</span>()
     }
 }
 
 <span class="kw">impl</span> <span class="ident">ShoutySnakeCase</span> <span class="kw">for</span> <span class="ident">str</span> {
-    <span class="kw">fn</span> <span class="ident">to_shouty_snake_case</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Owned</span> {
+    <span class="kw">fn</span> <span class="ident">to_shouty_snake_case</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Owned</span> {
         <span class="ident">transform</span>(<span class="self">self</span>, <span class="ident">uppercase</span>, <span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">push</span>(<span class="string">&#39;_&#39;</span>))
     }
 }
@@ -107,7 +107,7 @@
     <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::ShoutySnakeCase</span>;
 
     <span class="macro">macro_rules!</span> <span class="ident">t</span> {
-        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ident</span> : <span class="macro-nonterminal">$</span><span class="macro-nonterminal">s1</span>:<span class="ident">expr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">s2</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ident</span> : <span class="macro-nonterminal">$</span><span class="macro-nonterminal">s1</span>:<span class="ident">expr</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">s2</span>:<span class="ident">expr</span>) =&gt; {
             <span class="attribute">#[<span class="ident">test</span>]</span>
             <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>() {
                 <span class="macro">assert_eq!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s1</span>.<span class="ident">to_shouty_snake_case</span>(), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">s2</span>)
@@ -115,16 +115,16 @@
         };
     }
 
-    <span class="macro">t!</span>(<span class="ident">test1</span>: <span class="string">&quot;CamelCase&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;CAMEL_CASE&quot;</span>);
-    <span class="macro">t!</span>(<span class="ident">test2</span>: <span class="string">&quot;This is Human case.&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;THIS_IS_HUMAN_CASE&quot;</span>);
-    <span class="macro">t!</span>(<span class="ident">test3</span>: <span class="string">&quot;MixedUP CamelCase, with some Spaces&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;MIXED_UP_CAMEL_CASE_WITH_SOME_SPACES&quot;</span>);
-    <span class="macro">t!</span>(<span class="ident">test4</span>: <span class="string">&quot;mixed_up_snake_case with some _spaces&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;MIXED_UP_SNAKE_CASE_WITH_SOME_SPACES&quot;</span>);
-    <span class="macro">t!</span>(<span class="ident">test5</span>: <span class="string">&quot;kebab-case&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;KEBAB_CASE&quot;</span>);
-    <span class="macro">t!</span>(<span class="ident">test6</span>: <span class="string">&quot;SHOUTY_SNAKE_CASE&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;SHOUTY_SNAKE_CASE&quot;</span>);
-    <span class="macro">t!</span>(<span class="ident">test7</span>: <span class="string">&quot;snake_case&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;SNAKE_CASE&quot;</span>);
-    <span class="macro">t!</span>(<span class="ident">test8</span>: <span class="string">&quot;this-contains_ ALLKinds OfWord_Boundaries&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;THIS_CONTAINS_ALL_KINDS_OF_WORD_BOUNDARIES&quot;</span>);
-    <span class="macro">t!</span>(<span class="ident">test9</span>: <span class="string">&quot;XΣXΣ baﬄe&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;XΣXΣ_BAFFLE&quot;</span>);
-    <span class="macro">t!</span>(<span class="ident">test10</span>: <span class="string">&quot;XMLHttpRequest&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;XML_HTTP_REQUEST&quot;</span>);
+    <span class="macro">t!</span>(<span class="ident">test1</span>: <span class="string">&quot;CamelCase&quot;</span> =&gt; <span class="string">&quot;CAMEL_CASE&quot;</span>);
+    <span class="macro">t!</span>(<span class="ident">test2</span>: <span class="string">&quot;This is Human case.&quot;</span> =&gt; <span class="string">&quot;THIS_IS_HUMAN_CASE&quot;</span>);
+    <span class="macro">t!</span>(<span class="ident">test3</span>: <span class="string">&quot;MixedUP CamelCase, with some Spaces&quot;</span> =&gt; <span class="string">&quot;MIXED_UP_CAMEL_CASE_WITH_SOME_SPACES&quot;</span>);
+    <span class="macro">t!</span>(<span class="ident">test4</span>: <span class="string">&quot;mixed_up_snake_case with some _spaces&quot;</span> =&gt; <span class="string">&quot;MIXED_UP_SNAKE_CASE_WITH_SOME_SPACES&quot;</span>);
+    <span class="macro">t!</span>(<span class="ident">test5</span>: <span class="string">&quot;kebab-case&quot;</span> =&gt; <span class="string">&quot;KEBAB_CASE&quot;</span>);
+    <span class="macro">t!</span>(<span class="ident">test6</span>: <span class="string">&quot;SHOUTY_SNAKE_CASE&quot;</span> =&gt; <span class="string">&quot;SHOUTY_SNAKE_CASE&quot;</span>);
+    <span class="macro">t!</span>(<span class="ident">test7</span>: <span class="string">&quot;snake_case&quot;</span> =&gt; <span class="string">&quot;SNAKE_CASE&quot;</span>);
+    <span class="macro">t!</span>(<span class="ident">test8</span>: <span class="string">&quot;this-contains_ ALLKinds OfWord_Boundaries&quot;</span> =&gt; <span class="string">&quot;THIS_CONTAINS_ALL_KINDS_OF_WORD_BOUNDARIES&quot;</span>);
+    <span class="macro">t!</span>(<span class="ident">test9</span>: <span class="string">&quot;XΣXΣ baﬄe&quot;</span> =&gt; <span class="string">&quot;XΣXΣ_BAFFLE&quot;</span>);
+    <span class="macro">t!</span>(<span class="ident">test10</span>: <span class="string">&quot;XMLHttpRequest&quot;</span> =&gt; <span class="string">&quot;XML_HTTP_REQUEST&quot;</span>);
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="heck" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>

@@ -151,7 +151,7 @@
 <span class="doccomment">/// Look up the canonical combining class for a codepoint.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// The value returned is as defined in the Unicode Character Database.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">canonical_combining_class</span>(<span class="ident">c</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">canonical_combining_class</span>(<span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="ident">u8</span> {
     <span class="ident">mph_lookup</span>(
         <span class="ident">c</span>.<span class="ident">into</span>(),
         <span class="ident">CANONICAL_COMBINING_CLASS_SALT</span>,
@@ -162,7 +162,7 @@
     )
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">composition_table</span>(<span class="ident">c1</span>: <span class="ident">char</span>, <span class="ident">c2</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">composition_table</span>(<span class="ident">c1</span>: <span class="ident">char</span>, <span class="ident">c2</span>: <span class="ident">char</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="ident">c1</span> <span class="op">&lt;</span> <span class="string">&#39;\u{10000}&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">c2</span> <span class="op">&lt;</span> <span class="string">&#39;\u{10000}&#39;</span> {
         <span class="ident">mph_lookup</span>(
             (<span class="ident">c1</span> <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">16</span> <span class="op">|</span> (<span class="ident">c2</span> <span class="kw">as</span> <span class="ident">u32</span>),
@@ -177,7 +177,7 @@
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">canonical_fully_decomposed</span>(<span class="ident">c</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">char</span>]<span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">canonical_fully_decomposed</span>(<span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">char</span>]<span class="op">&gt;</span> {
     <span class="ident">mph_lookup</span>(
         <span class="ident">c</span>.<span class="ident">into</span>(),
         <span class="ident">CANONICAL_DECOMPOSED_SALT</span>,
@@ -188,7 +188,7 @@
     )
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">compatibility_fully_decomposed</span>(<span class="ident">c</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">char</span>]<span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">compatibility_fully_decomposed</span>(<span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">char</span>]<span class="op">&gt;</span> {
     <span class="ident">mph_lookup</span>(
         <span class="ident">c</span>.<span class="ident">into</span>(),
         <span class="ident">COMPATIBILITY_DECOMPOSED_SALT</span>,
@@ -199,7 +199,7 @@
     )
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">cjk_compat_variants_fully_decomposed</span>(<span class="ident">c</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">char</span>]<span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">cjk_compat_variants_fully_decomposed</span>(<span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">char</span>]<span class="op">&gt;</span> {
     <span class="ident">mph_lookup</span>(
         <span class="ident">c</span>.<span class="ident">into</span>(),
         <span class="ident">CJK_COMPAT_VARIANTS_DECOMPOSED_SALT</span>,
@@ -211,7 +211,7 @@
 }
 
 <span class="doccomment">/// Return whether the given character is a combining mark (`General_Category=Mark`)</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_combining_mark</span>(<span class="ident">c</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_combining_mark</span>(<span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="ident">bool</span> {
     <span class="ident">mph_lookup</span>(
         <span class="ident">c</span>.<span class="ident">into</span>(),
         <span class="ident">COMBINING_MARK_SALT</span>,
@@ -222,7 +222,7 @@
     )
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stream_safe_trailing_nonstarters</span>(<span class="ident">c</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stream_safe_trailing_nonstarters</span>(<span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="ident">usize</span> {
     <span class="ident">mph_lookup</span>(
         <span class="ident">c</span>.<span class="ident">into</span>(),
         <span class="ident">TRAILING_NONSTARTERS_SALT</span>,
@@ -235,37 +235,37 @@
 
 <span class="doccomment">/// Extract the key in a 24 bit key and 8 bit value packed in a u32.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">u8_lookup_fk</span>(<span class="ident">kv</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+<span class="kw">fn</span> <span class="ident">u8_lookup_fk</span>(<span class="ident">kv</span>: <span class="ident">u32</span>) -&gt; <span class="ident">u32</span> {
     <span class="ident">kv</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">8</span>
 }
 
 <span class="doccomment">/// Extract the value in a 24 bit key and 8 bit value packed in a u32.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">u8_lookup_fv</span>(<span class="ident">kv</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span> {
+<span class="kw">fn</span> <span class="ident">u8_lookup_fv</span>(<span class="ident">kv</span>: <span class="ident">u32</span>) -&gt; <span class="ident">u8</span> {
     (<span class="ident">kv</span> <span class="op">&amp;</span> <span class="number">0xff</span>) <span class="kw">as</span> <span class="ident">u8</span>
 }
 
 <span class="doccomment">/// Extract the key for a boolean lookup.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">bool_lookup_fk</span>(<span class="ident">kv</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+<span class="kw">fn</span> <span class="ident">bool_lookup_fk</span>(<span class="ident">kv</span>: <span class="ident">u32</span>) -&gt; <span class="ident">u32</span> {
     <span class="ident">kv</span>
 }
 
 <span class="doccomment">/// Extract the value for a boolean lookup.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">bool_lookup_fv</span>(<span class="ident">_kv</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">fn</span> <span class="ident">bool_lookup_fv</span>(<span class="ident">_kv</span>: <span class="ident">u32</span>) -&gt; <span class="ident">bool</span> {
     <span class="bool-val">true</span>
 }
 
 <span class="doccomment">/// Extract the key in a pair.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">pair_lookup_fk</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">kv</span>: (<span class="ident">u32</span>, <span class="ident">T</span>)) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+<span class="kw">fn</span> <span class="ident">pair_lookup_fk</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">kv</span>: (<span class="ident">u32</span>, <span class="ident">T</span>)) -&gt; <span class="ident">u32</span> {
     <span class="ident">kv</span>.<span class="number">0</span>
 }
 
 <span class="doccomment">/// Extract the value in a pair, returning an option.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">pair_lookup_fv_opt</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">kv</span>: (<span class="ident">u32</span>, <span class="ident">T</span>)) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">pair_lookup_fv_opt</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">kv</span>: (<span class="ident">u32</span>, <span class="ident">T</span>)) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="prelude-val">Some</span>(<span class="ident">kv</span>.<span class="number">1</span>)
 }
 </code></pre></div>

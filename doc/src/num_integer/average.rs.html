@@ -98,7 +98,7 @@
     <span class="doccomment">/// assert_eq!(i8::min_value().average_ceil(&amp;i8::max_value()), 0);</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
-    <span class="kw">fn</span> <span class="ident">average_ceil</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">average_ceil</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self</span>;
 
     <span class="doccomment">/// Returns the floor value of the average of `self` and `other`.</span>
     <span class="doccomment">/// -- `⌊(self + other)/2⌋`</span>
@@ -117,7 +117,7 @@
     <span class="doccomment">/// assert_eq!(i8::min_value().average_floor(&amp;i8::max_value()), -1);</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
-    <span class="kw">fn</span> <span class="ident">average_floor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">average_floor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self</span>;
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="ident">Average</span> <span class="kw">for</span> <span class="ident">I</span>
@@ -131,13 +131,13 @@
 
     <span class="doccomment">/// Returns the floor value of the average of `self` and `other`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">average_floor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">I</span> {
+    <span class="kw">fn</span> <span class="ident">average_floor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">I</span>) -&gt; <span class="ident">I</span> {
         (<span class="self">self</span> <span class="op">&amp;</span> <span class="ident">other</span>) <span class="op">+</span> ((<span class="self">self</span> <span class="op">^</span> <span class="ident">other</span>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">1</span>)
     }
 
     <span class="doccomment">/// Returns the ceil value of the average of `self` and `other`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">average_ceil</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">I</span> {
+    <span class="kw">fn</span> <span class="ident">average_ceil</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">I</span>) -&gt; <span class="ident">I</span> {
         (<span class="self">self</span> <span class="op">|</span> <span class="ident">other</span>) <span class="op">-</span> ((<span class="self">self</span> <span class="op">^</span> <span class="ident">other</span>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">1</span>)
     }
 }
@@ -145,13 +145,13 @@
 <span class="doccomment">/// Returns the floor value of the average of `x` and `y` --</span>
 <span class="doccomment">/// see [Average::average_floor](trait.Average.html#tymethod.average_floor).</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">average_floor</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Average</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">y</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">average_floor</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Average</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">y</span>: <span class="ident">T</span>) -&gt; <span class="ident">T</span> {
     <span class="ident">x</span>.<span class="ident">average_floor</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>)
 }
 <span class="doccomment">/// Returns the ceiling value of the average of `x` and `y` --</span>
 <span class="doccomment">/// see [Average::average_ceil](trait.Average.html#tymethod.average_ceil).</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">average_ceil</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Average</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">y</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">average_ceil</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Average</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">y</span>: <span class="ident">T</span>) -&gt; <span class="ident">T</span> {
     <span class="ident">x</span>.<span class="ident">average_ceil</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>)
 }
 </code></pre></div>

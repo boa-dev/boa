@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;git2-0.13.24&#x2F;src&#x2F;refspec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>refspec.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../git2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;git2-0.13.25&#x2F;src&#x2F;refspec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>refspec.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../git2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -139,69 +139,69 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;remote</span><span class="op">&gt;</span> <span class="ident">Refspec</span><span class="op">&lt;</span><span class="lifetime">&#39;remote</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Get the refspec&#39;s direction.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">direction</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Direction</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">direction</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Direction</span> {
         <span class="kw">match</span> <span class="kw">unsafe</span> { <span class="ident">raw::git_refspec_direction</span>(<span class="self">self</span>.<span class="ident">raw</span>) } {
-            <span class="ident">raw::GIT_DIRECTION_FETCH</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Direction::Fetch</span>,
-            <span class="ident">raw::GIT_DIRECTION_PUSH</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Direction::Push</span>,
-            <span class="ident">n</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;unknown refspec direction: {}&quot;</span>, <span class="ident">n</span>),
+            <span class="ident">raw::GIT_DIRECTION_FETCH</span> =&gt; <span class="ident">Direction::Fetch</span>,
+            <span class="ident">raw::GIT_DIRECTION_PUSH</span> =&gt; <span class="ident">Direction::Push</span>,
+            <span class="ident">n</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;unknown refspec direction: {}&quot;</span>, <span class="ident">n</span>),
         }
     }
 
     <span class="doccomment">/// Get the destination specifier.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// If the destination is not utf-8, None is returned.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dst</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dst</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
         <span class="ident">str::from_utf8</span>(<span class="self">self</span>.<span class="ident">dst_bytes</span>()).<span class="ident">ok</span>()
     }
 
     <span class="doccomment">/// Get the destination specifier, in bytes.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dst_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dst_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
         <span class="kw">unsafe</span> { <span class="ident"><span class="kw">crate</span>::opt_bytes</span>(<span class="self">self</span>, <span class="ident">raw::git_refspec_dst</span>(<span class="self">self</span>.<span class="ident">raw</span>)).<span class="ident">unwrap</span>() }
     }
 
     <span class="doccomment">/// Check if a refspec&#39;s destination descriptor matches a reference</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dst_matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">refname</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dst_matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">refname</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="ident">refname</span> <span class="op">=</span> <span class="ident">CString::new</span>(<span class="ident">refname</span>).<span class="ident">unwrap</span>();
-        <span class="kw">unsafe</span> { <span class="ident">raw::git_refspec_dst_matches</span>(<span class="self">self</span>.<span class="ident">raw</span>, <span class="ident">refname</span>.<span class="ident">as_ptr</span>()) <span class="op">=</span><span class="op">=</span> <span class="number">1</span> }
+        <span class="kw">unsafe</span> { <span class="ident">raw::git_refspec_dst_matches</span>(<span class="self">self</span>.<span class="ident">raw</span>, <span class="ident">refname</span>.<span class="ident">as_ptr</span>()) <span class="op">==</span> <span class="number">1</span> }
     }
 
     <span class="doccomment">/// Get the source specifier.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// If the source is not utf-8, None is returned.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">src</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">src</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
         <span class="ident">str::from_utf8</span>(<span class="self">self</span>.<span class="ident">src_bytes</span>()).<span class="ident">ok</span>()
     }
 
     <span class="doccomment">/// Get the source specifier, in bytes.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">src_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">src_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
         <span class="kw">unsafe</span> { <span class="ident"><span class="kw">crate</span>::opt_bytes</span>(<span class="self">self</span>, <span class="ident">raw::git_refspec_src</span>(<span class="self">self</span>.<span class="ident">raw</span>)).<span class="ident">unwrap</span>() }
     }
 
     <span class="doccomment">/// Check if a refspec&#39;s source descriptor matches a reference</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">src_matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">refname</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">src_matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">refname</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="ident">refname</span> <span class="op">=</span> <span class="ident">CString::new</span>(<span class="ident">refname</span>).<span class="ident">unwrap</span>();
-        <span class="kw">unsafe</span> { <span class="ident">raw::git_refspec_src_matches</span>(<span class="self">self</span>.<span class="ident">raw</span>, <span class="ident">refname</span>.<span class="ident">as_ptr</span>()) <span class="op">=</span><span class="op">=</span> <span class="number">1</span> }
+        <span class="kw">unsafe</span> { <span class="ident">raw::git_refspec_src_matches</span>(<span class="self">self</span>.<span class="ident">raw</span>, <span class="ident">refname</span>.<span class="ident">as_ptr</span>()) <span class="op">==</span> <span class="number">1</span> }
     }
 
     <span class="doccomment">/// Get the force update setting.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_force</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">unsafe</span> { <span class="ident">raw::git_refspec_force</span>(<span class="self">self</span>.<span class="ident">raw</span>) <span class="op">=</span><span class="op">=</span> <span class="number">1</span> }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_force</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="kw">unsafe</span> { <span class="ident">raw::git_refspec_force</span>(<span class="self">self</span>.<span class="ident">raw</span>) <span class="op">==</span> <span class="number">1</span> }
     }
 
     <span class="doccomment">/// Get the refspec&#39;s string.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns None if the string is not valid utf8.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
         <span class="ident">str::from_utf8</span>(<span class="self">self</span>.<span class="ident">bytes</span>()).<span class="ident">ok</span>()
     }
 
     <span class="doccomment">/// Get the refspec&#39;s string as a byte array</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
         <span class="kw">unsafe</span> { <span class="ident"><span class="kw">crate</span>::opt_bytes</span>(<span class="self">self</span>, <span class="ident">raw::git_refspec_string</span>(<span class="self">self</span>.<span class="ident">raw</span>)).<span class="ident">unwrap</span>() }
     }
 
     <span class="doccomment">/// Transform a reference to its target following the refspec&#39;s rules</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Buf</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Buf</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">CString::new</span>(<span class="ident">name</span>).<span class="ident">unwrap</span>();
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">Buf::new</span>();
@@ -215,7 +215,7 @@
     }
 
     <span class="doccomment">/// Transform a target reference to its source reference following the refspec&#39;s rules</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rtransform</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Buf</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rtransform</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Buf</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">CString::new</span>(<span class="ident">name</span>).<span class="ident">unwrap</span>();
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">Buf::new</span>();
@@ -232,13 +232,13 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;remote</span><span class="op">&gt;</span> <span class="ident">Binding</span> <span class="kw">for</span> <span class="ident">Refspec</span><span class="op">&lt;</span><span class="lifetime">&#39;remote</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Raw</span> <span class="op">=</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">raw::git_refspec</span>;
 
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">raw::git_refspec</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Refspec</span><span class="op">&lt;</span><span class="lifetime">&#39;remote</span><span class="op">&gt;</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">raw::git_refspec</span>) -&gt; <span class="ident">Refspec</span><span class="op">&lt;</span><span class="lifetime">&#39;remote</span><span class="op">&gt;</span> {
         <span class="ident">Refspec</span> {
             <span class="ident">raw</span>,
             <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span>,
         }
     }
-    <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">raw::git_refspec</span> {
+    <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">raw::git_refspec</span> {
         <span class="self">self</span>.<span class="ident">raw</span>
     }
 }

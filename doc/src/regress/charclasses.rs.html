@@ -46,7 +46,7 @@
 <span class="comment">// Character classes like \d or \S.</span>
 
 <span class="doccomment">/// Construct an interval from an inclusive range of char.</span>
-<span class="kw">const</span> <span class="kw">fn</span> <span class="ident">r</span>(<span class="ident">first</span>: <span class="ident">char</span>, <span class="ident">last</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Interval</span> {
+<span class="kw">const</span> <span class="kw">fn</span> <span class="ident">r</span>(<span class="ident">first</span>: <span class="ident">char</span>, <span class="ident">last</span>: <span class="ident">char</span>) -&gt; <span class="ident">Interval</span> {
     <span class="ident">Interval</span> {
         <span class="ident">first</span>: <span class="ident">first</span> <span class="kw">as</span> <span class="ident">u32</span>,
         <span class="ident">last</span>: <span class="ident">last</span> <span class="kw">as</span> <span class="ident">u32</span>,
@@ -54,7 +54,7 @@
 }
 
 <span class="doccomment">/// Construct an interval from a single char.</span>
-<span class="kw">const</span> <span class="kw">fn</span> <span class="ident">r1</span>(<span class="ident">c</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Interval</span> {
+<span class="kw">const</span> <span class="kw">fn</span> <span class="ident">r1</span>(<span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="ident">Interval</span> {
     <span class="ident">Interval</span> {
         <span class="ident">first</span>: <span class="ident">c</span> <span class="kw">as</span> <span class="ident">u32</span>,
         <span class="ident">last</span>: <span class="ident">c</span> <span class="kw">as</span> <span class="ident">u32</span>,

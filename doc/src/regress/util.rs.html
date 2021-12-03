@@ -237,14 +237,14 @@
 
 <span class="comment">// A macro which expresses either checked or unchecked reachability, depending on prohibit-unsafe.</span>
 <span class="macro">macro_rules!</span> <span class="ident">rs_unreachable</span> {
-    () <span class="op">=</span><span class="op">&gt;</span> {{
+    () =&gt; {{
         <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;prohibit-unsafe&quot;</span>) {
             <span class="macro">unreachable!</span>();
         } <span class="kw">else</span> {
             <span class="kw">unsafe</span> { <span class="ident">std::hint::unreachable_unchecked</span>() }
         }
     }};
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">msg</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">msg</span>:<span class="ident">expr</span>) =&gt; {
         <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;prohibit-unsafe&quot;</span>) {
             <span class="macro">unreachable!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">msg</span>);
         } <span class="kw">else</span> {
@@ -255,8 +255,8 @@
 
 <span class="doccomment">/// A trait which performs bounds checking only in debug mode.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">DebugCheckIndex</span><span class="op">&lt;</span><span class="ident">Idx</span><span class="op">&gt;</span>: <span class="ident">Index</span><span class="op">&lt;</span><span class="ident">Idx</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">IndexMut</span><span class="op">&lt;</span><span class="ident">Idx</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">iat</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">Idx</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Output</span>;
-    <span class="kw">fn</span> <span class="ident">mat</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">Idx</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident"><span class="self">Self</span>::Output</span>;
+    <span class="kw">fn</span> <span class="ident">iat</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">Idx</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Output</span>;
+    <span class="kw">fn</span> <span class="ident">mat</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">Idx</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident"><span class="self">Self</span>::Output</span>;
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Idx</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">DebugCheckIndex</span><span class="op">&lt;</span><span class="ident">Idx</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
@@ -264,7 +264,7 @@
     <span class="ident">Idx</span>: <span class="ident">SliceIndex</span><span class="op">&lt;</span>[<span class="ident">T</span>]<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span>,
 {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">iat</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">idx</span>: <span class="ident">Idx</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Output</span> {
+    <span class="kw">fn</span> <span class="ident">iat</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">idx</span>: <span class="ident">Idx</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Output</span> {
         <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">get</span>(<span class="ident">idx</span>.<span class="ident">clone</span>()).<span class="ident">is_some</span>(), <span class="string">&quot;Index out of bounds&quot;</span>);
         <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;prohibit-unsafe&quot;</span>) {
             <span class="self">self</span>.<span class="ident">index</span>(<span class="ident">idx</span>)
@@ -274,7 +274,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">mat</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">idx</span>: <span class="ident">Idx</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident"><span class="self">Self</span>::Output</span> {
+    <span class="kw">fn</span> <span class="ident">mat</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">idx</span>: <span class="ident">Idx</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident"><span class="self">Self</span>::Output</span> {
         <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">get</span>(<span class="ident">idx</span>.<span class="ident">clone</span>()).<span class="ident">is_some</span>(), <span class="string">&quot;Index out of bounds&quot;</span>);
         <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;prohibit-unsafe&quot;</span>) {
             <span class="self">self</span>.<span class="ident">index_mut</span>(<span class="ident">idx</span>)
@@ -289,7 +289,7 @@
     <span class="ident">Idx</span>: <span class="ident">SliceIndex</span><span class="op">&lt;</span>[<span class="ident">T</span>]<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span>,
 {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">iat</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">idx</span>: <span class="ident">Idx</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Output</span> {
+    <span class="kw">fn</span> <span class="ident">iat</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">idx</span>: <span class="ident">Idx</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Output</span> {
         <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">get</span>(<span class="ident">idx</span>.<span class="ident">clone</span>()).<span class="ident">is_some</span>(), <span class="string">&quot;Index out of bounds&quot;</span>);
         <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;prohibit-unsafe&quot;</span>) {
             <span class="self">self</span>.<span class="ident">index</span>(<span class="ident">idx</span>)
@@ -299,7 +299,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">mat</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">idx</span>: <span class="ident">Idx</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident"><span class="self">Self</span>::Output</span> {
+    <span class="kw">fn</span> <span class="ident">mat</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">idx</span>: <span class="ident">Idx</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident"><span class="self">Self</span>::Output</span> {
         <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">get</span>(<span class="ident">idx</span>.<span class="ident">clone</span>()).<span class="ident">is_some</span>(), <span class="string">&quot;Index out of bounds&quot;</span>);
         <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;prohibit-unsafe&quot;</span>) {
             <span class="self">self</span>.<span class="ident">index_mut</span>(<span class="ident">idx</span>)
@@ -311,7 +311,7 @@
 
 <span class="doccomment">/// \return the first byte of a UTF-8 encoded code point.</span>
 <span class="doccomment">/// We do not use char because we don&#39;t want to deal with failing on surrogates.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">utf8_first_byte</span>(<span class="ident">cp</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">utf8_first_byte</span>(<span class="ident">cp</span>: <span class="ident">u32</span>) -&gt; <span class="ident">u8</span> {
     <span class="macro">debug_assert!</span>(<span class="ident">cp</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">CODE_POINT_MAX</span>);
     <span class="kw">if</span> <span class="ident">cp</span> <span class="op">&lt;</span> <span class="number">0x80</span> {
         <span class="comment">// One byte encoding.</span>
@@ -333,16 +333,16 @@
 
     <span class="doccomment">/// Given that self is sorted according to f, returns the range of indexes</span>
     <span class="doccomment">/// where f indicates equal elements.</span>
-    <span class="kw">fn</span> <span class="ident">equal_range_by</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std::ops::Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">equal_range_by</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">std::ops::Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ordering</span>;
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident"><span class="self">Self</span>::Item</span>) -&gt; <span class="ident">Ordering</span>;
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">SliceHelp</span> <span class="kw">for</span> [<span class="ident">T</span>] {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span>;
-    <span class="kw">fn</span> <span class="ident">equal_range_by</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std::ops::Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">equal_range_by</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">std::ops::Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ordering</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident"><span class="self">Self</span>::Item</span>) -&gt; <span class="ident">Ordering</span>,
     {
         <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">binary_search_by</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">f</span>(<span class="ident">v</span>).<span class="ident">then</span>(<span class="ident">Ordering::Greater</span>))
@@ -356,7 +356,7 @@
 }
 
 <span class="comment">// Given a byte \p b, keep its low \p mask bits, and then shift left by \p shift.</span>
-<span class="kw">const</span> <span class="kw">fn</span> <span class="ident">mask_shift</span>(<span class="ident">b</span>: <span class="ident">u8</span>, <span class="ident">mask</span>: <span class="ident">u8</span>, <span class="ident">shift</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+<span class="kw">const</span> <span class="kw">fn</span> <span class="ident">mask_shift</span>(<span class="ident">b</span>: <span class="ident">u8</span>, <span class="ident">mask</span>: <span class="ident">u8</span>, <span class="ident">shift</span>: <span class="ident">u8</span>) -&gt; <span class="ident">u32</span> {
     <span class="kw">let</span> <span class="ident">masked</span> <span class="op">=</span> <span class="ident">b</span> <span class="op">&amp;</span> ((<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">mask</span>) <span class="op">-</span> <span class="number">1</span>);
     (<span class="ident">masked</span> <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span><span class="op">&lt;</span> (<span class="ident">shift</span> <span class="kw">as</span> <span class="ident">u32</span>)
 }
@@ -366,38 +366,38 @@
 
 <span class="doccomment">/// \return true if \p b is a UTF8 continutation byte.</span>
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_utf8_continuation</span>(<span class="ident">b</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-    (<span class="ident">b</span> <span class="op">&amp;</span> <span class="number">0b1100_0000</span>) <span class="op">=</span><span class="op">=</span> <span class="number">0b1000_0000</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_utf8_continuation</span>(<span class="ident">b</span>: <span class="ident">u8</span>) -&gt; <span class="ident">bool</span> {
+    (<span class="ident">b</span> <span class="op">&amp;</span> <span class="number">0b1100_0000</span>) <span class="op">==</span> <span class="number">0b1000_0000</span>
 }
 
 <span class="comment">// Construct a code point from a list of bytes.</span>
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">utf8_w2</span>(<span class="ident">b0</span>: <span class="ident">u8</span>, <span class="ident">b1</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">utf8_w2</span>(<span class="ident">b0</span>: <span class="ident">u8</span>, <span class="ident">b1</span>: <span class="ident">u8</span>) -&gt; <span class="ident">u32</span> {
     <span class="macro">debug_assert!</span>(<span class="op">!</span><span class="ident">is_utf8_continuation</span>(<span class="ident">b0</span>) <span class="op">&amp;&amp;</span> <span class="ident">is_utf8_continuation</span>(<span class="ident">b1</span>));
-    <span class="macro">debug_assert!</span>(<span class="ident">b0</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">5</span> <span class="op">=</span><span class="op">=</span> <span class="number">0b110</span>);
+    <span class="macro">debug_assert!</span>(<span class="ident">b0</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">5</span> <span class="op">==</span> <span class="number">0b110</span>);
     <span class="ident">mask_shift</span>(<span class="ident">b0</span>, <span class="number">5</span>, <span class="ident">UTF8_CONT_SIGBITS</span>) <span class="op">|</span> <span class="ident">mask_shift</span>(<span class="ident">b1</span>, <span class="ident">UTF8_CONT_SIGBITS</span>, <span class="number">0</span>)
 }
 
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">utf8_w3</span>(<span class="ident">b0</span>: <span class="ident">u8</span>, <span class="ident">b1</span>: <span class="ident">u8</span>, <span class="ident">b2</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">utf8_w3</span>(<span class="ident">b0</span>: <span class="ident">u8</span>, <span class="ident">b1</span>: <span class="ident">u8</span>, <span class="ident">b2</span>: <span class="ident">u8</span>) -&gt; <span class="ident">u32</span> {
     <span class="macro">debug_assert!</span>(
         <span class="op">!</span><span class="ident">is_utf8_continuation</span>(<span class="ident">b0</span>) <span class="op">&amp;&amp;</span> <span class="ident">is_utf8_continuation</span>(<span class="ident">b1</span>) <span class="op">&amp;&amp;</span> <span class="ident">is_utf8_continuation</span>(<span class="ident">b2</span>)
     );
-    <span class="macro">debug_assert!</span>(<span class="ident">b0</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">4</span> <span class="op">=</span><span class="op">=</span> <span class="number">0b1110</span>);
+    <span class="macro">debug_assert!</span>(<span class="ident">b0</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">4</span> <span class="op">==</span> <span class="number">0b1110</span>);
     <span class="ident">mask_shift</span>(<span class="ident">b0</span>, <span class="number">4</span>, <span class="number">2</span> <span class="op">*</span> <span class="ident">UTF8_CONT_SIGBITS</span>)
         <span class="op">|</span> <span class="ident">mask_shift</span>(<span class="ident">b1</span>, <span class="ident">UTF8_CONT_SIGBITS</span>, <span class="ident">UTF8_CONT_SIGBITS</span>)
         <span class="op">|</span> <span class="ident">mask_shift</span>(<span class="ident">b2</span>, <span class="ident">UTF8_CONT_SIGBITS</span>, <span class="number">0</span>)
 }
 
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">utf8_w4</span>(<span class="ident">b0</span>: <span class="ident">u8</span>, <span class="ident">b1</span>: <span class="ident">u8</span>, <span class="ident">b2</span>: <span class="ident">u8</span>, <span class="ident">b3</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">utf8_w4</span>(<span class="ident">b0</span>: <span class="ident">u8</span>, <span class="ident">b1</span>: <span class="ident">u8</span>, <span class="ident">b2</span>: <span class="ident">u8</span>, <span class="ident">b3</span>: <span class="ident">u8</span>) -&gt; <span class="ident">u32</span> {
     <span class="macro">debug_assert!</span>(
         <span class="op">!</span><span class="ident">is_utf8_continuation</span>(<span class="ident">b0</span>)
             <span class="op">&amp;&amp;</span> <span class="ident">is_utf8_continuation</span>(<span class="ident">b1</span>)
             <span class="op">&amp;&amp;</span> <span class="ident">is_utf8_continuation</span>(<span class="ident">b2</span>)
             <span class="op">&amp;&amp;</span> <span class="ident">is_utf8_continuation</span>(<span class="ident">b3</span>)
     );
-    <span class="macro">debug_assert!</span>(<span class="ident">b0</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">3</span> <span class="op">=</span><span class="op">=</span> <span class="number">0b11110</span>);
+    <span class="macro">debug_assert!</span>(<span class="ident">b0</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">3</span> <span class="op">==</span> <span class="number">0b11110</span>);
     <span class="ident">mask_shift</span>(<span class="ident">b0</span>, <span class="number">3</span>, <span class="number">3</span> <span class="op">*</span> <span class="ident">UTF8_CONT_SIGBITS</span>)
         <span class="op">|</span> <span class="ident">mask_shift</span>(<span class="ident">b1</span>, <span class="ident">UTF8_CONT_SIGBITS</span>, <span class="number">2</span> <span class="op">*</span> <span class="ident">UTF8_CONT_SIGBITS</span>)
         <span class="op">|</span> <span class="ident">mask_shift</span>(<span class="ident">b2</span>, <span class="ident">UTF8_CONT_SIGBITS</span>, <span class="ident">UTF8_CONT_SIGBITS</span>)
@@ -417,7 +417,7 @@
                 <span class="ident">left</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>
             }
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">right</span> <span class="op">=</span> <span class="ident">left</span>;
-            <span class="kw">while</span> <span class="ident">right</span> <span class="op">&lt;</span> <span class="ident">vals</span>.<span class="ident">len</span>() <span class="op">&amp;&amp;</span> <span class="ident">vals</span>[<span class="ident">right</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">needle</span> {
+            <span class="kw">while</span> <span class="ident">right</span> <span class="op">&lt;</span> <span class="ident">vals</span>.<span class="ident">len</span>() <span class="op">&amp;&amp;</span> <span class="ident">vals</span>[<span class="ident">right</span>] <span class="op">==</span> <span class="ident">needle</span> {
                 <span class="ident">right</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>
             }
             <span class="ident">left</span>..<span class="ident">right</span>
@@ -453,11 +453,11 @@
             <span class="macro">assert_eq!</span>(<span class="ident">bytes</span>[<span class="number">0</span>], <span class="ident"><span class="kw">super</span>::utf8_first_byte</span>(<span class="ident">cp</span>));
 
             <span class="kw">match</span> <span class="ident">bytes</span>.<span class="ident">len</span>() {
-                <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">assert_eq!</span>(<span class="ident">bytes</span>[<span class="number">0</span>] <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">cp</span>),
-                <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">assert_eq!</span>(<span class="ident">utf8_w2</span>(<span class="ident">bytes</span>[<span class="number">0</span>], <span class="ident">bytes</span>[<span class="number">1</span>]), <span class="ident">cp</span>),
-                <span class="number">3</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">assert_eq!</span>(<span class="ident">utf8_w3</span>(<span class="ident">bytes</span>[<span class="number">0</span>], <span class="ident">bytes</span>[<span class="number">1</span>], <span class="ident">bytes</span>[<span class="number">2</span>]), <span class="ident">cp</span>),
-                <span class="number">4</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">assert_eq!</span>(<span class="ident">utf8_w4</span>(<span class="ident">bytes</span>[<span class="number">0</span>], <span class="ident">bytes</span>[<span class="number">1</span>], <span class="ident">bytes</span>[<span class="number">2</span>], <span class="ident">bytes</span>[<span class="number">3</span>]), <span class="ident">cp</span>),
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;Unexpected utf8 sequence length&quot;</span>),
+                <span class="number">1</span> =&gt; <span class="macro">assert_eq!</span>(<span class="ident">bytes</span>[<span class="number">0</span>] <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">cp</span>),
+                <span class="number">2</span> =&gt; <span class="macro">assert_eq!</span>(<span class="ident">utf8_w2</span>(<span class="ident">bytes</span>[<span class="number">0</span>], <span class="ident">bytes</span>[<span class="number">1</span>]), <span class="ident">cp</span>),
+                <span class="number">3</span> =&gt; <span class="macro">assert_eq!</span>(<span class="ident">utf8_w3</span>(<span class="ident">bytes</span>[<span class="number">0</span>], <span class="ident">bytes</span>[<span class="number">1</span>], <span class="ident">bytes</span>[<span class="number">2</span>]), <span class="ident">cp</span>),
+                <span class="number">4</span> =&gt; <span class="macro">assert_eq!</span>(<span class="ident">utf8_w4</span>(<span class="ident">bytes</span>[<span class="number">0</span>], <span class="ident">bytes</span>[<span class="number">1</span>], <span class="ident">bytes</span>[<span class="number">2</span>], <span class="ident">bytes</span>[<span class="number">3</span>]), <span class="ident">cp</span>),
+                <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected utf8 sequence length&quot;</span>),
             }
         }
     }

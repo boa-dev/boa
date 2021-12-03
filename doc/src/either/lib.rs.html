@@ -1202,10 +1202,10 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">either</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">pattern</span>:<span class="ident">pat</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">result</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">pattern</span>:<span class="ident">pat</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">result</span>:<span class="ident">expr</span>) =&gt; {
         <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span> {
-            <span class="ident">Either::Left</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">pattern</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">result</span>,
-            <span class="ident">Either::Right</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">pattern</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">result</span>,
+            <span class="ident">Either::Left</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">pattern</span>) =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">result</span>,
+            <span class="ident">Either::Right</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">pattern</span>) =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">result</span>,
         }
     };
 }
@@ -1235,10 +1235,10 @@
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">try_left</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">expr</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">expr</span>:<span class="ident">expr</span>) =&gt; {
         <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expr</span> {
-            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Left</span>(<span class="ident">val</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">val</span>,
-            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Right</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Right</span>(<span class="ident">::std::convert::From::from</span>(<span class="ident">err</span>)),
+            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Left</span>(<span class="ident">val</span>) =&gt; <span class="ident">val</span>,
+            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Right</span>(<span class="ident">err</span>) =&gt; <span class="kw">return</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Right</span>(<span class="ident">::std::convert::From::from</span>(<span class="ident">err</span>)),
         }
     };
 }
@@ -1246,10 +1246,10 @@
 <span class="doccomment">/// Dual to `try_left!`, see its documentation for more information.</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">try_right</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">expr</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">expr</span>:<span class="ident">expr</span>) =&gt; {
         <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expr</span> {
-            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Left</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Left</span>(<span class="ident">::std::convert::From::from</span>(<span class="ident">err</span>)),
-            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Right</span>(<span class="ident">val</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">val</span>,
+            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Left</span>(<span class="ident">err</span>) =&gt; <span class="kw">return</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Left</span>(<span class="ident">::std::convert::From::from</span>(<span class="ident">err</span>)),
+            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Right</span>(<span class="ident">val</span>) =&gt; <span class="ident">val</span>,
         }
     };
 }
@@ -1264,10 +1264,10 @@
     <span class="doccomment">/// assert_eq!(values[0].is_left(), true);</span>
     <span class="doccomment">/// assert_eq!(values[1].is_left(), false);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_left</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_left</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Left</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="ident">Right</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident">Left</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+            <span class="ident">Right</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
         }
     }
 
@@ -1280,7 +1280,7 @@
     <span class="doccomment">/// assert_eq!(values[0].is_right(), false);</span>
     <span class="doccomment">/// assert_eq!(values[1].is_right(), true);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_right</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_right</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="op">!</span><span class="self">self</span>.<span class="ident">is_left</span>()
     }
 
@@ -1295,10 +1295,10 @@
     <span class="doccomment">/// let right: Either&lt;(), _&gt; = Right(321);</span>
     <span class="doccomment">/// assert_eq!(right.left(), None);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">left</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">L</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">left</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">L</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Left</span>(<span class="ident">l</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">l</span>),
-            <span class="ident">Right</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">Left</span>(<span class="ident">l</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">l</span>),
+            <span class="ident">Right</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
         }
     }
 
@@ -1313,10 +1313,10 @@
     <span class="doccomment">/// let right: Either&lt;(), _&gt; = Right(321);</span>
     <span class="doccomment">/// assert_eq!(right.right(), Some(321));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">right</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">right</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Left</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="ident">Right</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">r</span>),
+            <span class="ident">Left</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+            <span class="ident">Right</span>(<span class="ident">r</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">r</span>),
         }
     }
 
@@ -1331,10 +1331,10 @@
     <span class="doccomment">/// let right: Either&lt;(), _&gt; = Right(&quot;some value&quot;);</span>
     <span class="doccomment">/// assert_eq!(right.as_ref(), Right(&amp;&quot;some value&quot;));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Either</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">L</span>, <span class="kw-2">&amp;</span><span class="ident">R</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Either</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">L</span>, <span class="kw-2">&amp;</span><span class="ident">R</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Left</span>(<span class="kw-2">ref</span> <span class="ident">inner</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Left</span>(<span class="ident">inner</span>),
-            <span class="ident">Right</span>(<span class="kw-2">ref</span> <span class="ident">inner</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Right</span>(<span class="ident">inner</span>),
+            <span class="ident">Left</span>(<span class="kw-2">ref</span> <span class="ident">inner</span>) =&gt; <span class="ident">Left</span>(<span class="ident">inner</span>),
+            <span class="ident">Right</span>(<span class="kw-2">ref</span> <span class="ident">inner</span>) =&gt; <span class="ident">Right</span>(<span class="ident">inner</span>),
         }
     }
 
@@ -1356,10 +1356,10 @@
     <span class="doccomment">/// assert_eq!(left, Left(999));</span>
     <span class="doccomment">/// assert_eq!(right, Right(123));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Either</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">L</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Either</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">L</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Left</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Left</span>(<span class="ident">inner</span>),
-            <span class="ident">Right</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Right</span>(<span class="ident">inner</span>),
+            <span class="ident">Left</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span>) =&gt; <span class="ident">Left</span>(<span class="ident">inner</span>),
+            <span class="ident">Right</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span>) =&gt; <span class="ident">Right</span>(<span class="ident">inner</span>),
         }
     }
 
@@ -1374,10 +1374,10 @@
     <span class="doccomment">/// let right: Either&lt;(), _&gt; = Right(&quot;some value&quot;);</span>
     <span class="doccomment">/// assert_eq!(right.flip(), Left(&quot;some value&quot;));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">flip</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">L</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">flip</span>(<span class="self">self</span>) -&gt; <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">L</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Left</span>(<span class="ident">l</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Right</span>(<span class="ident">l</span>),
-            <span class="ident">Right</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Left</span>(<span class="ident">r</span>),
+            <span class="ident">Left</span>(<span class="ident">l</span>) =&gt; <span class="ident">Right</span>(<span class="ident">l</span>),
+            <span class="ident">Right</span>(<span class="ident">r</span>) =&gt; <span class="ident">Left</span>(<span class="ident">r</span>),
         }
     }
 
@@ -1393,13 +1393,13 @@
     <span class="doccomment">/// let right: Either&lt;u32, _&gt; = Right(123);</span>
     <span class="doccomment">/// assert_eq!(right.map_left(|x| x * 2), Right(123));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map_left</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">M</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">M</span>, <span class="ident">R</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map_left</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">M</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">M</span>, <span class="ident">R</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">L</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">M</span>,
+        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">L</span>) -&gt; <span class="ident">M</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Left</span>(<span class="ident">l</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Left</span>(<span class="ident">f</span>(<span class="ident">l</span>)),
-            <span class="ident">Right</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Right</span>(<span class="ident">r</span>),
+            <span class="ident">Left</span>(<span class="ident">l</span>) =&gt; <span class="ident">Left</span>(<span class="ident">f</span>(<span class="ident">l</span>)),
+            <span class="ident">Right</span>(<span class="ident">r</span>) =&gt; <span class="ident">Right</span>(<span class="ident">r</span>),
         }
     }
 
@@ -1415,13 +1415,13 @@
     <span class="doccomment">/// let right: Either&lt;u32, _&gt; = Right(123);</span>
     <span class="doccomment">/// assert_eq!(right.map_right(|x| x * 2), Right(246));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map_right</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">S</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">L</span>, <span class="ident">S</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map_right</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">S</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">L</span>, <span class="ident">S</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">S</span>,
+        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">R</span>) -&gt; <span class="ident">S</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Left</span>(<span class="ident">l</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Left</span>(<span class="ident">l</span>),
-            <span class="ident">Right</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Right</span>(<span class="ident">f</span>(<span class="ident">r</span>)),
+            <span class="ident">Left</span>(<span class="ident">l</span>) =&gt; <span class="ident">Left</span>(<span class="ident">l</span>),
+            <span class="ident">Right</span>(<span class="ident">r</span>) =&gt; <span class="ident">Right</span>(<span class="ident">f</span>(<span class="ident">r</span>)),
         }
     }
 
@@ -1441,14 +1441,14 @@
     <span class="doccomment">/// let right: Either&lt;u32, i32&gt; = Right(-4);</span>
     <span class="doccomment">/// assert_eq!(right.either(square, negate), 4);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">either</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">G</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>, <span class="ident">g</span>: <span class="ident">G</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">either</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">G</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>, <span class="ident">g</span>: <span class="ident">G</span>) -&gt; <span class="ident">T</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">L</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>,
-        <span class="ident">G</span>: <span class="ident">FnOnce</span>(<span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>,
+        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">L</span>) -&gt; <span class="ident">T</span>,
+        <span class="ident">G</span>: <span class="ident">FnOnce</span>(<span class="ident">R</span>) -&gt; <span class="ident">T</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Left</span>(<span class="ident">l</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>(<span class="ident">l</span>),
-            <span class="ident">Right</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">g</span>(<span class="ident">r</span>),
+            <span class="ident">Left</span>(<span class="ident">l</span>) =&gt; <span class="ident">f</span>(<span class="ident">l</span>),
+            <span class="ident">Right</span>(<span class="ident">r</span>) =&gt; <span class="ident">g</span>(<span class="ident">r</span>),
         }
     }
 
@@ -1471,14 +1471,14 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(result, vec![2, 3]);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">either_with</span><span class="op">&lt;</span><span class="ident">Ctx</span>, <span class="ident">F</span>, <span class="ident">G</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">ctx</span>: <span class="ident">Ctx</span>, <span class="ident">f</span>: <span class="ident">F</span>, <span class="ident">g</span>: <span class="ident">G</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">either_with</span><span class="op">&lt;</span><span class="ident">Ctx</span>, <span class="ident">F</span>, <span class="ident">G</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">ctx</span>: <span class="ident">Ctx</span>, <span class="ident">f</span>: <span class="ident">F</span>, <span class="ident">g</span>: <span class="ident">G</span>) -&gt; <span class="ident">T</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">Ctx</span>, <span class="ident">L</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>,
-        <span class="ident">G</span>: <span class="ident">FnOnce</span>(<span class="ident">Ctx</span>, <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>,
+        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">Ctx</span>, <span class="ident">L</span>) -&gt; <span class="ident">T</span>,
+        <span class="ident">G</span>: <span class="ident">FnOnce</span>(<span class="ident">Ctx</span>, <span class="ident">R</span>) -&gt; <span class="ident">T</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Left</span>(<span class="ident">l</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>(<span class="ident">ctx</span>, <span class="ident">l</span>),
-            <span class="ident">Right</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">g</span>(<span class="ident">ctx</span>, <span class="ident">r</span>),
+            <span class="ident">Left</span>(<span class="ident">l</span>) =&gt; <span class="ident">f</span>(<span class="ident">ctx</span>, <span class="ident">l</span>),
+            <span class="ident">Right</span>(<span class="ident">r</span>) =&gt; <span class="ident">g</span>(<span class="ident">ctx</span>, <span class="ident">r</span>),
         }
     }
 
@@ -1493,13 +1493,13 @@
     <span class="doccomment">/// let right: Either&lt;u32, _&gt; = Right(123);</span>
     <span class="doccomment">/// assert_eq!(right.left_and_then(|x| Right::&lt;(), _&gt;(x * 2)), Right(123));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">left_and_then</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">S</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">R</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">left_and_then</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">S</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">R</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">L</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">R</span><span class="op">&gt;</span>,
+        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">L</span>) -&gt; <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">R</span><span class="op">&gt;</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Left</span>(<span class="ident">l</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>(<span class="ident">l</span>),
-            <span class="ident">Right</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Right</span>(<span class="ident">r</span>),
+            <span class="ident">Left</span>(<span class="ident">l</span>) =&gt; <span class="ident">f</span>(<span class="ident">l</span>),
+            <span class="ident">Right</span>(<span class="ident">r</span>) =&gt; <span class="ident">Right</span>(<span class="ident">r</span>),
         }
     }
 
@@ -1514,13 +1514,13 @@
     <span class="doccomment">/// let right: Either&lt;u32, _&gt; = Right(123);</span>
     <span class="doccomment">/// assert_eq!(right.right_and_then(|x| Right(x * 2)), Right(246));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">right_and_then</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">S</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">L</span>, <span class="ident">S</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">right_and_then</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">S</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">L</span>, <span class="ident">S</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">L</span>, <span class="ident">S</span><span class="op">&gt;</span>,
+        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">R</span>) -&gt; <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">L</span>, <span class="ident">S</span><span class="op">&gt;</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Left</span>(<span class="ident">l</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Left</span>(<span class="ident">l</span>),
-            <span class="ident">Right</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>(<span class="ident">r</span>),
+            <span class="ident">Left</span>(<span class="ident">l</span>) =&gt; <span class="ident">Left</span>(<span class="ident">l</span>),
+            <span class="ident">Right</span>(<span class="ident">r</span>) =&gt; <span class="ident">f</span>(<span class="ident">r</span>),
         }
     }
 
@@ -1534,14 +1534,14 @@
     <span class="doccomment">/// right.extend(left.into_iter());</span>
     <span class="doccomment">/// assert_eq!(right, Right(vec![1, 2, 3, 4, 5]));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">L::IntoIter</span>, <span class="ident">R::IntoIter</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) -&gt; <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">L::IntoIter</span>, <span class="ident">R::IntoIter</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">L</span>: <span class="ident">IntoIterator</span>,
         <span class="ident">R</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">L::Item</span><span class="op">&gt;</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Left</span>(<span class="ident">l</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Left</span>(<span class="ident">l</span>.<span class="ident">into_iter</span>()),
-            <span class="ident">Right</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Right</span>(<span class="ident">r</span>.<span class="ident">into_iter</span>()),
+            <span class="ident">Left</span>(<span class="ident">l</span>) =&gt; <span class="ident">Left</span>(<span class="ident">l</span>.<span class="ident">into_iter</span>()),
+            <span class="ident">Right</span>(<span class="ident">r</span>) =&gt; <span class="ident">Right</span>(<span class="ident">r</span>.<span class="ident">into_iter</span>()),
         }
     }
 
@@ -1563,10 +1563,10 @@
     <span class="doccomment">/// let right: Either&lt;&amp;str, &amp;str&gt; = Right(&quot;right&quot;);</span>
     <span class="doccomment">/// assert_eq!(right.left_or(&quot;left&quot;), &quot;left&quot;);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">left_or</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="ident">L</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">L</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">left_or</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="ident">L</span>) -&gt; <span class="ident">L</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Either::Left</span>(<span class="ident">l</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">l</span>,
-            <span class="ident">Either::Right</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">other</span>,
+            <span class="ident">Either::Left</span>(<span class="ident">l</span>) =&gt; <span class="ident">l</span>,
+            <span class="ident">Either::Right</span>(<span class="kw">_</span>) =&gt; <span class="ident">other</span>,
         }
     }
 
@@ -1582,13 +1582,13 @@
     <span class="doccomment">/// let right: Either&lt;String, u32&gt; = Right(42);</span>
     <span class="doccomment">/// assert_eq!(right.left_or_default(), String::default());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">left_or_default</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">L</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">left_or_default</span>(<span class="self">self</span>) -&gt; <span class="ident">L</span>
     <span class="kw">where</span>
         <span class="ident">L</span>: <span class="ident">Default</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Either::Left</span>(<span class="ident">l</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">l</span>,
-            <span class="ident">Either::Right</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">L::default</span>(),
+            <span class="ident">Either::Left</span>(<span class="ident">l</span>) =&gt; <span class="ident">l</span>,
+            <span class="ident">Either::Right</span>(<span class="kw">_</span>) =&gt; <span class="ident">L::default</span>(),
         }
     }
 
@@ -1604,13 +1604,13 @@
     <span class="doccomment">/// let right: Either&lt;String, u32&gt; = Right(3);</span>
     <span class="doccomment">/// assert_eq!(right.left_or_else(|x| x.to_string()), &quot;3&quot;);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">left_or_else</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">L</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">left_or_else</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">L</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">L</span>,
+        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">R</span>) -&gt; <span class="ident">L</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Either::Left</span>(<span class="ident">l</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">l</span>,
-            <span class="ident">Either::Right</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>(<span class="ident">r</span>),
+            <span class="ident">Either::Left</span>(<span class="ident">l</span>) =&gt; <span class="ident">l</span>,
+            <span class="ident">Either::Right</span>(<span class="ident">r</span>) =&gt; <span class="ident">f</span>(<span class="ident">r</span>),
         }
     }
 
@@ -1632,10 +1632,10 @@
     <span class="doccomment">/// let left: Either&lt;&amp;str, &amp;str&gt; = Left(&quot;left&quot;);</span>
     <span class="doccomment">/// assert_eq!(left.right_or(&quot;right&quot;), &quot;right&quot;);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">right_or</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">right_or</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="ident">R</span>) -&gt; <span class="ident">R</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Either::Left</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">other</span>,
-            <span class="ident">Either::Right</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">r</span>,
+            <span class="ident">Either::Left</span>(<span class="kw">_</span>) =&gt; <span class="ident">other</span>,
+            <span class="ident">Either::Right</span>(<span class="ident">r</span>) =&gt; <span class="ident">r</span>,
         }
     }
 
@@ -1651,13 +1651,13 @@
     <span class="doccomment">/// let right: Either&lt;String, u32&gt; = Right(42);</span>
     <span class="doccomment">/// assert_eq!(right.right_or_default(), 42);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">right_or_default</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">right_or_default</span>(<span class="self">self</span>) -&gt; <span class="ident">R</span>
     <span class="kw">where</span>
         <span class="ident">R</span>: <span class="ident">Default</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Either::Left</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">R::default</span>(),
-            <span class="ident">Either::Right</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">r</span>,
+            <span class="ident">Either::Left</span>(<span class="kw">_</span>) =&gt; <span class="ident">R::default</span>(),
+            <span class="ident">Either::Right</span>(<span class="ident">r</span>) =&gt; <span class="ident">r</span>,
         }
     }
 
@@ -1673,13 +1673,13 @@
     <span class="doccomment">/// let right: Either&lt;String, u32&gt; = Right(3);</span>
     <span class="doccomment">/// assert_eq!(right.right_or_else(|_| unreachable!()), 3);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">right_or_else</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">right_or_else</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">R</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">L</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>,
+        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">L</span>) -&gt; <span class="ident">R</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Either::Left</span>(<span class="ident">l</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>(<span class="ident">l</span>),
-            <span class="ident">Either::Right</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">r</span>,
+            <span class="ident">Either::Left</span>(<span class="ident">l</span>) =&gt; <span class="ident">f</span>(<span class="ident">l</span>),
+            <span class="ident">Either::Right</span>(<span class="ident">r</span>) =&gt; <span class="ident">r</span>,
         }
     }
 
@@ -1702,13 +1702,13 @@
     <span class="doccomment">/// let right: Either&lt;(), _&gt; = Right(3);</span>
     <span class="doccomment">/// right.unwrap_left();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unwrap_left</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">L</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unwrap_left</span>(<span class="self">self</span>) -&gt; <span class="ident">L</span>
     <span class="kw">where</span>
         <span class="ident">R</span>: <span class="ident">std::fmt::Debug</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Either::Left</span>(<span class="ident">l</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">l</span>,
-            <span class="ident">Either::Right</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Either::Left</span>(<span class="ident">l</span>) =&gt; <span class="ident">l</span>,
+            <span class="ident">Either::Right</span>(<span class="ident">r</span>) =&gt; {
                 <span class="macro">panic!</span>(<span class="string">&quot;called `Either::unwrap_left()` on a `Right` value: {:?}&quot;</span>, <span class="ident">r</span>)
             }
         }
@@ -1733,13 +1733,13 @@
     <span class="doccomment">/// let left: Either&lt;_, ()&gt; = Left(3);</span>
     <span class="doccomment">/// left.unwrap_right();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unwrap_right</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unwrap_right</span>(<span class="self">self</span>) -&gt; <span class="ident">R</span>
     <span class="kw">where</span>
         <span class="ident">L</span>: <span class="ident">std::fmt::Debug</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Either::Right</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">r</span>,
-            <span class="ident">Either::Left</span>(<span class="ident">l</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;called `Either::unwrap_right()` on a `Left` value: {:?}&quot;</span>, <span class="ident">l</span>),
+            <span class="ident">Either::Right</span>(<span class="ident">r</span>) =&gt; <span class="ident">r</span>,
+            <span class="ident">Either::Left</span>(<span class="ident">l</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;called `Either::unwrap_right()` on a `Left` value: {:?}&quot;</span>, <span class="ident">l</span>),
         }
     }
 
@@ -1762,13 +1762,13 @@
     <span class="doccomment">/// let right: Either&lt;(), _&gt; = Right(3);</span>
     <span class="doccomment">/// right.expect_left(&quot;value was Right&quot;);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expect_left</span>(<span class="self">self</span>, <span class="ident">msg</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">L</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expect_left</span>(<span class="self">self</span>, <span class="ident">msg</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">L</span>
     <span class="kw">where</span>
         <span class="ident">R</span>: <span class="ident">std::fmt::Debug</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Either::Left</span>(<span class="ident">l</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">l</span>,
-            <span class="ident">Either::Right</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;{}: {:?}&quot;</span>, <span class="ident">msg</span>, <span class="ident">r</span>),
+            <span class="ident">Either::Left</span>(<span class="ident">l</span>) =&gt; <span class="ident">l</span>,
+            <span class="ident">Either::Right</span>(<span class="ident">r</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;{}: {:?}&quot;</span>, <span class="ident">msg</span>, <span class="ident">r</span>),
         }
     }
 
@@ -1791,13 +1791,13 @@
     <span class="doccomment">/// let left: Either&lt;_, ()&gt; = Left(3);</span>
     <span class="doccomment">/// left.expect_right(&quot;value was Right&quot;);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expect_right</span>(<span class="self">self</span>, <span class="ident">msg</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expect_right</span>(<span class="self">self</span>, <span class="ident">msg</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">R</span>
     <span class="kw">where</span>
         <span class="ident">L</span>: <span class="ident">std::fmt::Debug</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Either::Right</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">r</span>,
-            <span class="ident">Either::Left</span>(<span class="ident">l</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;{}: {:?}&quot;</span>, <span class="ident">msg</span>, <span class="ident">l</span>),
+            <span class="ident">Either::Right</span>(<span class="ident">r</span>) =&gt; <span class="ident">r</span>,
+            <span class="ident">Either::Left</span>(<span class="ident">l</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;{}: {:?}&quot;</span>, <span class="ident">msg</span>, <span class="ident">l</span>),
         }
     }
 }
@@ -1815,10 +1815,10 @@
     <span class="doccomment">/// let right: Either&lt;(u32, Vec&lt;u8&gt;), _&gt; = Right((123, String::new()));</span>
     <span class="doccomment">/// assert_eq!(right.factor_first().0, 123);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">factor_first</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">T</span>, <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">L</span>, <span class="ident">R</span><span class="op">&gt;</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">factor_first</span>(<span class="self">self</span>) -&gt; (<span class="ident">T</span>, <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">L</span>, <span class="ident">R</span><span class="op">&gt;</span>) {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Left</span>((<span class="ident">t</span>, <span class="ident">l</span>)) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">t</span>, <span class="ident">Left</span>(<span class="ident">l</span>)),
-            <span class="ident">Right</span>((<span class="ident">t</span>, <span class="ident">r</span>)) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">t</span>, <span class="ident">Right</span>(<span class="ident">r</span>)),
+            <span class="ident">Left</span>((<span class="ident">t</span>, <span class="ident">l</span>)) =&gt; (<span class="ident">t</span>, <span class="ident">Left</span>(<span class="ident">l</span>)),
+            <span class="ident">Right</span>((<span class="ident">t</span>, <span class="ident">r</span>)) =&gt; (<span class="ident">t</span>, <span class="ident">Right</span>(<span class="ident">r</span>)),
         }
     }
 }
@@ -1836,10 +1836,10 @@
     <span class="doccomment">/// let right: Either&lt;(Vec&lt;u8&gt;, u32), _&gt; = Right((String::new(), 123));</span>
     <span class="doccomment">/// assert_eq!(right.factor_second().1, 123);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">factor_second</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">Either</span><span class="op">&lt;</span><span class="ident">L</span>, <span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">T</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">factor_second</span>(<span class="self">self</span>) -&gt; (<span class="ident">Either</span><span class="op">&lt;</span><span class="ident">L</span>, <span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">T</span>) {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Left</span>((<span class="ident">l</span>, <span class="ident">t</span>)) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">Left</span>(<span class="ident">l</span>), <span class="ident">t</span>),
-            <span class="ident">Right</span>((<span class="ident">r</span>, <span class="ident">t</span>)) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">Right</span>(<span class="ident">r</span>), <span class="ident">t</span>),
+            <span class="ident">Left</span>((<span class="ident">l</span>, <span class="ident">t</span>)) =&gt; (<span class="ident">Left</span>(<span class="ident">l</span>), <span class="ident">t</span>),
+            <span class="ident">Right</span>((<span class="ident">r</span>, <span class="ident">t</span>)) =&gt; (<span class="ident">Right</span>(<span class="ident">r</span>), <span class="ident">t</span>),
         }
     }
 }
@@ -1856,8 +1856,8 @@
     <span class="doccomment">/// let right: Either&lt;u32, _&gt; = Right(123);</span>
     <span class="doccomment">/// assert_eq!(right.into_inner(), 123);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
-        <span class="macro">either!</span>(<span class="self">self</span>, <span class="ident">inner</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">inner</span>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; <span class="ident">T</span> {
+        <span class="macro">either!</span>(<span class="self">self</span>, <span class="ident">inner</span> =&gt; <span class="ident">inner</span>)
     }
 
     <span class="doccomment">/// Map `f` over the contained value and return the result in the</span>
@@ -1871,33 +1871,33 @@
     <span class="doccomment">/// let other = value.map(|x| x * 2);</span>
     <span class="doccomment">/// assert_eq!(other, Right(84));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">M</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">M</span>, <span class="ident">M</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">M</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">M</span>, <span class="ident">M</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">M</span>,
+        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">T</span>) -&gt; <span class="ident">M</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Left</span>(<span class="ident">l</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Left</span>(<span class="ident">f</span>(<span class="ident">l</span>)),
-            <span class="ident">Right</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Right</span>(<span class="ident">f</span>(<span class="ident">r</span>)),
+            <span class="ident">Left</span>(<span class="ident">l</span>) =&gt; <span class="ident">Left</span>(<span class="ident">f</span>(<span class="ident">l</span>)),
+            <span class="ident">Right</span>(<span class="ident">r</span>) =&gt; <span class="ident">Right</span>(<span class="ident">f</span>(<span class="ident">r</span>)),
         }
     }
 }
 
 <span class="doccomment">/// Convert from `Result` to `Either` with `Ok =&gt; Right` and `Err =&gt; Left`.</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">L</span>, <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">L</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">L</span>, <span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">r</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">L</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">r</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">L</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">match</span> <span class="ident">r</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Left</span>(<span class="ident">e</span>),
-            <span class="prelude-val">Ok</span>(<span class="ident">o</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Right</span>(<span class="ident">o</span>),
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="ident">Left</span>(<span class="ident">e</span>),
+            <span class="prelude-val">Ok</span>(<span class="ident">o</span>) =&gt; <span class="ident">Right</span>(<span class="ident">o</span>),
         }
     }
 }
 
 <span class="doccomment">/// Convert from `Either` to `Result` with `Right =&gt; Ok` and `Left =&gt; Err`.</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">L</span>, <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">L</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">L</span>, <span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">into</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">L</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">into</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">L</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Left</span>(<span class="ident">l</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">l</span>),
-            <span class="ident">Right</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">r</span>),
+            <span class="ident">Left</span>(<span class="ident">l</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">l</span>),
+            <span class="ident">Right</span>(<span class="ident">r</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">r</span>),
         }
     }
 }
@@ -1911,7 +1911,7 @@
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">A</span><span class="op">&gt;</span>,
     {
-        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">inner</span>.<span class="ident">extend</span>(<span class="ident">iter</span>))
+        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span> =&gt; <span class="ident">inner</span>.<span class="ident">extend</span>(<span class="ident">iter</span>))
     }
 }
 
@@ -1923,45 +1923,45 @@
 {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">L::Item</span>;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">inner</span>.<span class="ident">next</span>())
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
+        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span> =&gt; <span class="ident">inner</span>.<span class="ident">next</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
-        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="ident">inner</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">inner</span>.<span class="ident">size_hint</span>())
+    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
+        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="ident">inner</span> =&gt; <span class="ident">inner</span>.<span class="ident">size_hint</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">fold</span><span class="op">&lt;</span><span class="ident">Acc</span>, <span class="ident">G</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">init</span>: <span class="ident">Acc</span>, <span class="ident">f</span>: <span class="ident">G</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Acc</span>
+    <span class="kw">fn</span> <span class="ident">fold</span><span class="op">&lt;</span><span class="ident">Acc</span>, <span class="ident">G</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">init</span>: <span class="ident">Acc</span>, <span class="ident">f</span>: <span class="ident">G</span>) -&gt; <span class="ident">Acc</span>
     <span class="kw">where</span>
-        <span class="ident">G</span>: <span class="ident">FnMut</span>(<span class="ident">Acc</span>, <span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Acc</span>,
+        <span class="ident">G</span>: <span class="ident">FnMut</span>(<span class="ident">Acc</span>, <span class="ident"><span class="self">Self</span>::Item</span>) -&gt; <span class="ident">Acc</span>,
     {
-        <span class="macro">either!</span>(<span class="self">self</span>, <span class="ident">inner</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">inner</span>.<span class="ident">fold</span>(<span class="ident">init</span>, <span class="ident">f</span>))
+        <span class="macro">either!</span>(<span class="self">self</span>, <span class="ident">inner</span> =&gt; <span class="ident">inner</span>.<span class="ident">fold</span>(<span class="ident">init</span>, <span class="ident">f</span>))
     }
 
-    <span class="kw">fn</span> <span class="ident">count</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
-        <span class="macro">either!</span>(<span class="self">self</span>, <span class="ident">inner</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">inner</span>.<span class="ident">count</span>())
+    <span class="kw">fn</span> <span class="ident">count</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
+        <span class="macro">either!</span>(<span class="self">self</span>, <span class="ident">inner</span> =&gt; <span class="ident">inner</span>.<span class="ident">count</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">last</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="macro">either!</span>(<span class="self">self</span>, <span class="ident">inner</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">inner</span>.<span class="ident">last</span>())
+    <span class="kw">fn</span> <span class="ident">last</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
+        <span class="macro">either!</span>(<span class="self">self</span>, <span class="ident">inner</span> =&gt; <span class="ident">inner</span>.<span class="ident">last</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">nth</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">inner</span>.<span class="ident">nth</span>(<span class="ident">n</span>))
+    <span class="kw">fn</span> <span class="ident">nth</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
+        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span> =&gt; <span class="ident">inner</span>.<span class="ident">nth</span>(<span class="ident">n</span>))
     }
 
-    <span class="kw">fn</span> <span class="ident">collect</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">B</span>
+    <span class="kw">fn</span> <span class="ident">collect</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="self">self</span>) -&gt; <span class="ident">B</span>
     <span class="kw">where</span>
         <span class="ident">B</span>: <span class="ident">iter::FromIterator</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
-        <span class="macro">either!</span>(<span class="self">self</span>, <span class="ident">inner</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">inner</span>.<span class="ident">collect</span>())
+        <span class="macro">either!</span>(<span class="self">self</span>, <span class="ident">inner</span> =&gt; <span class="ident">inner</span>.<span class="ident">collect</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">all</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>
+    <span class="kw">fn</span> <span class="ident">all</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">bool</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident"><span class="self">Self</span>::Item</span>) -&gt; <span class="ident">bool</span>,
     {
-        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">inner</span>.<span class="ident">all</span>(<span class="ident">f</span>))
+        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span> =&gt; <span class="ident">inner</span>.<span class="ident">all</span>(<span class="ident">f</span>))
     }
 }
 
@@ -1970,8 +1970,8 @@
     <span class="ident">L</span>: <span class="ident">DoubleEndedIterator</span>,
     <span class="ident">R</span>: <span class="ident">DoubleEndedIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">L::Item</span><span class="op">&gt;</span>,
 {
-    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">inner</span>.<span class="ident">next_back</span>())
+    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
+        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span> =&gt; <span class="ident">inner</span>.<span class="ident">next_back</span>())
     }
 }
 
@@ -1991,12 +1991,12 @@
     <span class="ident">L</span>: <span class="ident">Read</span>,
     <span class="ident">R</span>: <span class="ident">Read</span>,
 {
-    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">inner</span>.<span class="ident">read</span>(<span class="ident">buf</span>))
+    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span> =&gt; <span class="ident">inner</span>.<span class="ident">read</span>(<span class="ident">buf</span>))
     }
 
-    <span class="kw">fn</span> <span class="ident">read_to_end</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">inner</span>.<span class="ident">read_to_end</span>(<span class="ident">buf</span>))
+    <span class="kw">fn</span> <span class="ident">read_to_end</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span> =&gt; <span class="ident">inner</span>.<span class="ident">read_to_end</span>(<span class="ident">buf</span>))
     }
 }
 
@@ -2007,12 +2007,12 @@
     <span class="ident">L</span>: <span class="ident">BufRead</span>,
     <span class="ident">R</span>: <span class="ident">BufRead</span>,
 {
-    <span class="kw">fn</span> <span class="ident">fill_buf</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> {
-        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">inner</span>.<span class="ident">fill_buf</span>())
+    <span class="kw">fn</span> <span class="ident">fill_buf</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> {
+        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span> =&gt; <span class="ident">inner</span>.<span class="ident">fill_buf</span>())
     }
 
     <span class="kw">fn</span> <span class="ident">consume</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">amt</span>: <span class="ident">usize</span>) {
-        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">inner</span>.<span class="ident">consume</span>(<span class="ident">amt</span>))
+        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span> =&gt; <span class="ident">inner</span>.<span class="ident">consume</span>(<span class="ident">amt</span>))
     }
 }
 
@@ -2025,12 +2025,12 @@
     <span class="ident">L</span>: <span class="ident">Write</span>,
     <span class="ident">R</span>: <span class="ident">Write</span>,
 {
-    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">inner</span>.<span class="ident">write</span>(<span class="ident">buf</span>))
+    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span> =&gt; <span class="ident">inner</span>.<span class="ident">write</span>(<span class="ident">buf</span>))
     }
 
-    <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">inner</span>.<span class="ident">flush</span>())
+    <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span> =&gt; <span class="ident">inner</span>.<span class="ident">flush</span>())
     }
 }
 
@@ -2039,19 +2039,19 @@
     <span class="ident">L</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Target</span><span class="op">&gt;</span>,
     <span class="ident">R</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Target</span><span class="op">&gt;</span>,
 {
-    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Target</span> {
-        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="ident">inner</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">inner</span>.<span class="ident">as_ref</span>())
+    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Target</span> {
+        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="ident">inner</span> =&gt; <span class="ident">inner</span>.<span class="ident">as_ref</span>())
     }
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">impl_specific_ref_and_mut</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">attr</span>:<span class="ident">meta</span>),<span class="op">*</span> ) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">attr</span>:<span class="ident">meta</span>),<span class="op">*</span> ) =&gt; {
         $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">attr</span>]</span>)<span class="op">*</span>
         <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">L</span>, <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">L</span>, <span class="ident">R</span><span class="op">&gt;</span>
             <span class="kw">where</span> <span class="ident">L</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span>, <span class="ident">R</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span>
         {
-            <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
-                <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="ident">inner</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">inner</span>.<span class="ident">as_ref</span>())
+            <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
+                <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="ident">inner</span> =&gt; <span class="ident">inner</span>.<span class="ident">as_ref</span>())
             }
         }
 
@@ -2059,8 +2059,8 @@
         <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">L</span>, <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">AsMut</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">L</span>, <span class="ident">R</span><span class="op">&gt;</span>
             <span class="kw">where</span> <span class="ident">L</span>: <span class="ident">AsMut</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span>, <span class="ident">R</span>: <span class="ident">AsMut</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span>
         {
-            <span class="kw">fn</span> <span class="ident">as_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
-                <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">inner</span>.<span class="ident">as_mut</span>())
+            <span class="kw">fn</span> <span class="ident">as_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
+                <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span> =&gt; <span class="ident">inner</span>.<span class="ident">as_mut</span>())
             }
         }
     };
@@ -2088,8 +2088,8 @@
     <span class="ident">L</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">Target</span>]<span class="op">&gt;</span>,
     <span class="ident">R</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">Target</span>]<span class="op">&gt;</span>,
 {
-    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">Target</span>] {
-        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="ident">inner</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">inner</span>.<span class="ident">as_ref</span>())
+    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">Target</span>] {
+        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="ident">inner</span> =&gt; <span class="ident">inner</span>.<span class="ident">as_ref</span>())
     }
 }
 
@@ -2098,8 +2098,8 @@
     <span class="ident">L</span>: <span class="ident">AsMut</span><span class="op">&lt;</span><span class="ident">Target</span><span class="op">&gt;</span>,
     <span class="ident">R</span>: <span class="ident">AsMut</span><span class="op">&lt;</span><span class="ident">Target</span><span class="op">&gt;</span>,
 {
-    <span class="kw">fn</span> <span class="ident">as_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Target</span> {
-        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">inner</span>.<span class="ident">as_mut</span>())
+    <span class="kw">fn</span> <span class="ident">as_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Target</span> {
+        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span> =&gt; <span class="ident">inner</span>.<span class="ident">as_mut</span>())
     }
 }
 
@@ -2108,8 +2108,8 @@
     <span class="ident">L</span>: <span class="ident">AsMut</span><span class="op">&lt;</span>[<span class="ident">Target</span>]<span class="op">&gt;</span>,
     <span class="ident">R</span>: <span class="ident">AsMut</span><span class="op">&lt;</span>[<span class="ident">Target</span>]<span class="op">&gt;</span>,
 {
-    <span class="kw">fn</span> <span class="ident">as_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">Target</span>] {
-        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">inner</span>.<span class="ident">as_mut</span>())
+    <span class="kw">fn</span> <span class="ident">as_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">Target</span>] {
+        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span> =&gt; <span class="ident">inner</span>.<span class="ident">as_mut</span>())
     }
 }
 
@@ -2120,8 +2120,8 @@
 {
     <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">L::Target</span>;
 
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Target</span> {
-        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="ident">inner</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">inner</span>)
+    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Target</span> {
+        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="ident">inner</span> =&gt; <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">inner</span>)
     }
 }
 
@@ -2130,8 +2130,8 @@
     <span class="ident">L</span>: <span class="ident">DerefMut</span>,
     <span class="ident">R</span>: <span class="ident">DerefMut</span><span class="op">&lt;</span><span class="ident">Target</span> <span class="op">=</span> <span class="ident">L::Target</span><span class="op">&gt;</span>,
 {
-    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident"><span class="self">Self</span>::Target</span> {
-        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">inner</span>)
+    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident"><span class="self">Self</span>::Target</span> {
+        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span> =&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">inner</span>)
     }
 }
 
@@ -2143,14 +2143,14 @@
     <span class="ident">R</span>: <span class="ident">Error</span>,
 {
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
-        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="ident">inner</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">inner</span>.<span class="ident">description</span>())
+    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
+        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="ident">inner</span> =&gt; <span class="ident">inner</span>.<span class="ident">description</span>())
     }
 
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unknown_lints</span>, <span class="ident">bare_trait_objects</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">cause</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="ident">inner</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">inner</span>.<span class="ident">cause</span>())
+    <span class="kw">fn</span> <span class="ident">cause</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Error</span><span class="op">&gt;</span> {
+        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="ident">inner</span> =&gt; <span class="ident">inner</span>.<span class="ident">cause</span>())
     }
 }
 
@@ -2159,8 +2159,8 @@
     <span class="ident">L</span>: <span class="ident">fmt::Display</span>,
     <span class="ident">R</span>: <span class="ident">fmt::Display</span>,
 {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
-        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="ident">inner</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">inner</span>.<span class="ident">fmt</span>(<span class="ident">f</span>))
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
+        <span class="macro">either!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref</span> <span class="ident">inner</span> =&gt; <span class="ident">inner</span>.<span class="ident">fmt</span>(<span class="ident">f</span>))
     }
 }
 
@@ -2179,13 +2179,13 @@
 
 <span class="attribute">#[<span class="ident">test</span>]</span>
 <span class="kw">fn</span> <span class="ident">macros</span>() {
-    <span class="kw">fn</span> <span class="ident">a</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">u32</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">a</span>() -&gt; <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">u32</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">x</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="macro">try_left!</span>(<span class="ident">Right</span>(<span class="number">1337u32</span>));
         <span class="ident">Left</span>(<span class="ident">x</span> <span class="op">*</span> <span class="number">2</span>)
     }
     <span class="macro">assert_eq!</span>(<span class="ident">a</span>(), <span class="ident">Right</span>(<span class="number">1337</span>));
 
-    <span class="kw">fn</span> <span class="ident">b</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">b</span>() -&gt; <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
         <span class="ident">Right</span>(<span class="macro">try_right!</span>(<span class="ident">Left</span>(<span class="string">&quot;foo bar&quot;</span>)))
     }
     <span class="macro">assert_eq!</span>(<span class="ident">b</span>(), <span class="ident">Left</span>(<span class="ident">String::from</span>(<span class="string">&quot;foo bar&quot;</span>)));
@@ -2202,8 +2202,8 @@
 <span class="kw">fn</span> <span class="ident">iter</span>() {
     <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="number">3</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">x</span> {
-        <span class="number">3</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Left</span>(<span class="number">0</span>..<span class="number">10</span>),
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Right</span>(<span class="number">17</span>..),
+        <span class="number">3</span> =&gt; <span class="ident">Left</span>(<span class="number">0</span>..<span class="number">10</span>),
+        <span class="kw">_</span> =&gt; <span class="ident">Right</span>(<span class="number">17</span>..),
     };
 
     <span class="macro">assert_eq!</span>(<span class="ident">iter</span>.<span class="ident">next</span>(), <span class="prelude-val">Some</span>(<span class="number">0</span>));
@@ -2255,7 +2255,7 @@
 
 <span class="doccomment">/// A helper macro to check if AsRef and AsMut are implemented for a given type.</span>
 <span class="macro">macro_rules!</span> <span class="ident">check_t</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> {{
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>) =&gt; {{
         <span class="kw">fn</span> <span class="ident">check_ref</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span><span class="op">&gt;</span>() {}
         <span class="kw">fn</span> <span class="ident">propagate_ref</span><span class="op">&lt;</span><span class="ident">T1</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span>, <span class="ident">T2</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span><span class="op">&gt;</span>() {
             <span class="ident">check_ref</span>::<span class="op">&lt;</span><span class="ident">Either</span><span class="op">&lt;</span><span class="ident">T1</span>, <span class="ident">T2</span><span class="op">&gt;</span><span class="op">&gt;</span>()

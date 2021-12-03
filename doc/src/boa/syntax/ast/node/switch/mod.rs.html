@@ -238,7 +238,7 @@
 
 <span class="kw">impl</span> <span class="ident">Case</span> {
     <span class="doccomment">/// Creates a `Case` AST node.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="ident">condition</span>: <span class="ident">C</span>, <span class="ident">body</span>: <span class="ident">B</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="ident">condition</span>: <span class="ident">C</span>, <span class="ident">body</span>: <span class="ident">B</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">C</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
         <span class="ident">B</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">StatementList</span><span class="op">&gt;</span>,
@@ -250,12 +250,12 @@
     }
 
     <span class="doccomment">/// Gets the condition of the case.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">condition</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Node</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">condition</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Node</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">condition</span>
     }
 
     <span class="doccomment">/// Gets the statement listin the body of the case.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">body</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">StatementList</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">body</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StatementList</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">body</span>
     }
 }
@@ -286,7 +286,7 @@
 
 <span class="kw">impl</span> <span class="ident">Switch</span> {
     <span class="doccomment">/// Creates a `Switch` AST node.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">V</span>, <span class="ident">C</span>, <span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">val</span>: <span class="ident">V</span>, <span class="ident">cases</span>: <span class="ident">C</span>, <span class="ident">default</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">V</span>, <span class="ident">C</span>, <span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">val</span>: <span class="ident">V</span>, <span class="ident">cases</span>: <span class="ident">C</span>, <span class="ident">default</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
         <span class="ident">C</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">Case</span>]<span class="op">&gt;</span><span class="op">&gt;</span>,
@@ -300,17 +300,17 @@
     }
 
     <span class="doccomment">/// Gets the value to switch.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">val</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Node</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">val</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Node</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">val</span>
     }
 
     <span class="doccomment">/// Gets the list of cases for the switch statement.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cases</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">Case</span>] {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cases</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">Case</span>] {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">cases</span>
     }
 
     <span class="doccomment">/// Gets the default statement list, if any.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">Node</span>]<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">Node</span>]<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">default</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="ident">StatementList::items</span>)
     }
 
@@ -319,7 +319,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
         <span class="ident">indentation</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    ) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">let</span> <span class="ident">indent</span> <span class="op">=</span> <span class="string">&quot;    &quot;</span>.<span class="ident">repeat</span>(<span class="ident">indentation</span>);
         <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;switch ({}) {{&quot;</span>, <span class="self">self</span>.<span class="ident">val</span>())<span class="question-mark">?</span>;
         <span class="kw">for</span> <span class="ident">e</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">cases</span>().<span class="ident">iter</span>() {
@@ -336,7 +336,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Executable</span> <span class="kw">for</span> <span class="ident">Switch</span> {
-    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">val</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">JsValue::null</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">matched</span> <span class="op">=</span> <span class="bool-val">false</span>;
@@ -355,11 +355,11 @@
                 <span class="ident">matched</span> <span class="op">=</span> <span class="bool-val">true</span>;
                 <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">block</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
                 <span class="kw">match</span> <span class="ident">context</span>.<span class="ident">executor</span>().<span class="ident">get_current_state</span>() {
-                    <span class="ident">InterpreterState::Return</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">InterpreterState::Return</span> =&gt; {
                         <span class="comment">// Early return.</span>
                         <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">result</span>);
                     }
-                    <span class="ident">InterpreterState::Break</span>(<span class="ident">_label</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">InterpreterState::Break</span>(<span class="ident">_label</span>) =&gt; {
                         <span class="comment">// TODO, break to a label.</span>
                         <span class="comment">// Break statement encountered so therefore end switch statement.</span>
                         <span class="ident">context</span>
@@ -367,11 +367,11 @@
                             .<span class="ident">set_current_state</span>(<span class="ident">InterpreterState::Executing</span>);
                         <span class="kw">break</span>;
                     }
-                    <span class="ident">InterpreterState::Continue</span>(<span class="ident">_label</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">InterpreterState::Continue</span>(<span class="ident">_label</span>) =&gt; {
                         <span class="comment">// TODO, continue to a label.</span>
                         <span class="kw">break</span>;
                     }
-                    <span class="ident">InterpreterState::Executing</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">InterpreterState::Executing</span> =&gt; {
                         <span class="comment">// Continuing execution / falling through to next case statement(s).</span>
                         <span class="ident">fall_through</span> <span class="op">=</span> <span class="bool-val">true</span>;
                     }
@@ -387,22 +387,22 @@
                 <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">item</span>) <span class="kw">in</span> <span class="ident">default</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
                     <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">item</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
                     <span class="kw">match</span> <span class="ident">context</span>.<span class="ident">executor</span>().<span class="ident">get_current_state</span>() {
-                        <span class="ident">InterpreterState::Return</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">InterpreterState::Return</span> =&gt; {
                             <span class="comment">// Early return.</span>
                             <span class="ident">result</span> <span class="op">=</span> <span class="ident">val</span>;
                             <span class="kw">break</span>;
                         }
-                        <span class="ident">InterpreterState::Break</span>(<span class="ident">_label</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">InterpreterState::Break</span>(<span class="ident">_label</span>) =&gt; {
                             <span class="comment">// TODO, break to a label.</span>
 
                             <span class="comment">// Early break.</span>
                             <span class="kw">break</span>;
                         }
-                        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="kw">_</span> =&gt; {
                             <span class="comment">// Continue execution</span>
                         }
                     }
-                    <span class="kw">if</span> <span class="ident">i</span> <span class="op">=</span><span class="op">=</span> <span class="ident">default</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span> {
+                    <span class="kw">if</span> <span class="ident">i</span> <span class="op">==</span> <span class="ident">default</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span> {
                         <span class="ident">result</span> <span class="op">=</span> <span class="ident">val</span>;
                     }
                 }
@@ -414,13 +414,13 @@
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Switch</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="self">self</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="number">0</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Switch</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Node</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">switch</span>: <span class="ident">Switch</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">switch</span>: <span class="ident">Switch</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::Switch</span>(<span class="ident">switch</span>)
     }
 }

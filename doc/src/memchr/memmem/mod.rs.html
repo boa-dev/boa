@@ -1382,37 +1382,37 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
 <span class="doccomment">/// somewhere more convenient.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">test</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span>
 <span class="macro">macro_rules!</span> <span class="ident">define_memmem_quickcheck_tests</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fwd</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rev</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fwd</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rev</span>:<span class="ident">expr</span>) =&gt; {
         <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::memmem::proptests</span>;
 
         <span class="macro">quickcheck::quickcheck!</span> {
-            <span class="kw">fn</span> <span class="ident">qc_fwd_prefix_is_substring</span>(<span class="ident">bs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+            <span class="kw">fn</span> <span class="ident">qc_fwd_prefix_is_substring</span>(<span class="ident">bs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) -&gt; <span class="ident">bool</span> {
                 <span class="ident">proptests::prefix_is_substring</span>(<span class="bool-val">false</span>, <span class="kw-2">&amp;</span><span class="ident">bs</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fwd</span>)
             }
 
-            <span class="kw">fn</span> <span class="ident">qc_fwd_suffix_is_substring</span>(<span class="ident">bs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+            <span class="kw">fn</span> <span class="ident">qc_fwd_suffix_is_substring</span>(<span class="ident">bs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) -&gt; <span class="ident">bool</span> {
                 <span class="ident">proptests::suffix_is_substring</span>(<span class="bool-val">false</span>, <span class="kw-2">&amp;</span><span class="ident">bs</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fwd</span>)
             }
 
             <span class="kw">fn</span> <span class="ident">qc_fwd_matches_naive</span>(
                 <span class="ident">haystack</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
                 <span class="ident">needle</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>
-            ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+            ) -&gt; <span class="ident">bool</span> {
                 <span class="ident">proptests::matches_naive</span>(<span class="bool-val">false</span>, <span class="kw-2">&amp;</span><span class="ident">haystack</span>, <span class="kw-2">&amp;</span><span class="ident">needle</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fwd</span>)
             }
 
-            <span class="kw">fn</span> <span class="ident">qc_rev_prefix_is_substring</span>(<span class="ident">bs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+            <span class="kw">fn</span> <span class="ident">qc_rev_prefix_is_substring</span>(<span class="ident">bs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) -&gt; <span class="ident">bool</span> {
                 <span class="ident">proptests::prefix_is_substring</span>(<span class="bool-val">true</span>, <span class="kw-2">&amp;</span><span class="ident">bs</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rev</span>)
             }
 
-            <span class="kw">fn</span> <span class="ident">qc_rev_suffix_is_substring</span>(<span class="ident">bs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+            <span class="kw">fn</span> <span class="ident">qc_rev_suffix_is_substring</span>(<span class="ident">bs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) -&gt; <span class="ident">bool</span> {
                 <span class="ident">proptests::suffix_is_substring</span>(<span class="bool-val">true</span>, <span class="kw-2">&amp;</span><span class="ident">bs</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rev</span>)
             }
 
             <span class="kw">fn</span> <span class="ident">qc_rev_matches_naive</span>(
                 <span class="ident">haystack</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
                 <span class="ident">needle</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>
-            ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+            ) -&gt; <span class="ident">bool</span> {
                 <span class="ident">proptests::matches_naive</span>(<span class="bool-val">true</span>, <span class="kw-2">&amp;</span><span class="ident">haystack</span>, <span class="kw-2">&amp;</span><span class="ident">needle</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rev</span>)
             }
         }
@@ -1426,7 +1426,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
 <span class="doccomment">/// define_memmem_quickcheck_tests is defined here.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="macro">macro_rules!</span> <span class="ident">define_memmem_simple_tests</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fwd</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rev</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fwd</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rev</span>:<span class="ident">expr</span>) =&gt; {
         <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::memmem::testsimples</span>;
 
         <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -1484,7 +1484,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_iter</span><span class="op">&lt;</span><span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;n</span>, <span class="ident">N</span>: <span class="lifetime">&#39;n</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span>(
     <span class="ident">haystack</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;h</span> [<span class="ident">u8</span>],
     <span class="ident">needle</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;n</span> <span class="ident">N</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FindIter</span><span class="op">&lt;</span><span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;n</span><span class="op">&gt;</span> {
+) -&gt; <span class="ident">FindIter</span><span class="op">&lt;</span><span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;n</span><span class="op">&gt;</span> {
     <span class="ident">FindIter::new</span>(<span class="ident">haystack</span>, <span class="ident">Finder::new</span>(<span class="ident">needle</span>))
 }
 
@@ -1518,7 +1518,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rfind_iter</span><span class="op">&lt;</span><span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;n</span>, <span class="ident">N</span>: <span class="lifetime">&#39;n</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span>(
     <span class="ident">haystack</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;h</span> [<span class="ident">u8</span>],
     <span class="ident">needle</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;n</span> <span class="ident">N</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FindRevIter</span><span class="op">&lt;</span><span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;n</span><span class="op">&gt;</span> {
+) -&gt; <span class="ident">FindRevIter</span><span class="op">&lt;</span><span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;n</span><span class="op">&gt;</span> {
     <span class="ident">FindRevIter::new</span>(<span class="ident">haystack</span>, <span class="ident">FinderRev::new</span>(<span class="ident">needle</span>))
 }
 
@@ -1550,7 +1550,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
 <span class="doccomment">/// assert_eq!(None, memmem::find(haystack, b&quot;quux&quot;));</span>
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find</span>(<span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find</span>(<span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="ident">haystack</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">64</span> {
         <span class="ident">rabinkarp::find</span>(<span class="ident">haystack</span>, <span class="ident">needle</span>)
     } <span class="kw">else</span> {
@@ -1587,7 +1587,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
 <span class="doccomment">/// assert_eq!(None, memmem::rfind(haystack, b&quot;quux&quot;));</span>
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rfind</span>(<span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rfind</span>(<span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="ident">haystack</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">64</span> {
         <span class="ident">rabinkarp::rfind</span>(<span class="ident">haystack</span>, <span class="ident">needle</span>)
     } <span class="kw">else</span> {
@@ -1614,7 +1614,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;h</span> [<span class="ident">u8</span>],
         <span class="ident">finder</span>: <span class="ident">Finder</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FindIter</span><span class="op">&lt;</span><span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;n</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">FindIter</span><span class="op">&lt;</span><span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;n</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">prestate</span> <span class="op">=</span> <span class="ident">finder</span>.<span class="ident">searcher</span>.<span class="ident">prefilter_state</span>();
         <span class="ident">FindIter</span> { <span class="ident">haystack</span>, <span class="ident">prestate</span>, <span class="ident">finder</span>, <span class="ident">pos</span>: <span class="number">0</span> }
     }
@@ -1623,7 +1623,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;n</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">FindIter</span><span class="op">&lt;</span><span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;n</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">usize</span>;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">pos</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">haystack</span>.<span class="ident">len</span>() {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
@@ -1632,8 +1632,8 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
             .<span class="ident">searcher</span>
             .<span class="ident">find</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">prestate</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">haystack</span>[<span class="self">self</span>.<span class="ident">pos</span>..]);
         <span class="kw">match</span> <span class="ident">result</span> {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="prelude-val">Some</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">None</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">i</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pos</span> <span class="op">+</span> <span class="ident">i</span>;
                 <span class="self">self</span>.<span class="ident">pos</span> <span class="op">=</span> <span class="ident">pos</span> <span class="op">+</span> <span class="ident">core::cmp::max</span>(<span class="number">1</span>, <span class="self">self</span>.<span class="ident">finder</span>.<span class="ident">needle</span>().<span class="ident">len</span>());
                 <span class="prelude-val">Some</span>(<span class="ident">pos</span>)
@@ -1662,7 +1662,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;h</span> [<span class="ident">u8</span>],
         <span class="ident">finder</span>: <span class="ident">FinderRev</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FindRevIter</span><span class="op">&lt;</span><span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;n</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">FindRevIter</span><span class="op">&lt;</span><span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;n</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">haystack</span>.<span class="ident">len</span>());
         <span class="ident">FindRevIter</span> { <span class="ident">haystack</span>, <span class="ident">finder</span>, <span class="ident">pos</span> }
     }
@@ -1671,16 +1671,16 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;n</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">FindRevIter</span><span class="op">&lt;</span><span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;n</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">usize</span>;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">pos</span> {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
-            <span class="prelude-val">Some</span>(<span class="ident">pos</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">pos</span>,
+            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">pos</span>) =&gt; <span class="ident">pos</span>,
         };
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">finder</span>.<span class="ident">rfind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">haystack</span>[..<span class="ident">pos</span>]);
         <span class="kw">match</span> <span class="ident">result</span> {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="prelude-val">Some</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <span class="ident">pos</span> <span class="op">=</span><span class="op">=</span> <span class="ident">i</span> {
+            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">None</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">i</span>) =&gt; {
+                <span class="kw">if</span> <span class="ident">pos</span> <span class="op">==</span> <span class="ident">i</span> {
                     <span class="self">self</span>.<span class="ident">pos</span> <span class="op">=</span> <span class="ident">pos</span>.<span class="ident">checked_sub</span>(<span class="number">1</span>);
                 } <span class="kw">else</span> {
                     <span class="self">self</span>.<span class="ident">pos</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">i</span>);
@@ -1712,7 +1712,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span><span class="op">&gt;</span> <span class="ident">Finder</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Create a new finder for the given needle.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">needle</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;n</span> <span class="ident">B</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Finder</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">needle</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;n</span> <span class="ident">B</span>) -&gt; <span class="ident">Finder</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span><span class="op">&gt;</span> {
         <span class="ident">FinderBuilder::new</span>().<span class="ident">build_forward</span>(<span class="ident">needle</span>)
     }
 
@@ -1740,7 +1740,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     <span class="doccomment">/// assert_eq!(Some(4), Finder::new(&quot;bar&quot;).find(haystack));</span>
     <span class="doccomment">/// assert_eq!(None, Finder::new(&quot;quux&quot;).find(haystack));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">searcher</span>.<span class="ident">find</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">searcher</span>.<span class="ident">prefilter_state</span>(), <span class="ident">haystack</span>)
     }
 
@@ -1774,7 +1774,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;h</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;h</span> [<span class="ident">u8</span>],
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FindIter</span><span class="op">&lt;</span><span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">FindIter</span><span class="op">&lt;</span><span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="ident">FindIter::new</span>(<span class="ident">haystack</span>, <span class="self">self</span>.<span class="ident">as_ref</span>())
     }
 
@@ -1787,7 +1787,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     <span class="doccomment">/// This is only available when the `std` feature is enabled.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_owned</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Finder</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_owned</span>(<span class="self">self</span>) -&gt; <span class="ident">Finder</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
         <span class="ident">Finder</span> { <span class="ident">searcher</span>: <span class="self">self</span>.<span class="ident">searcher</span>.<span class="ident">into_owned</span>() }
     }
 
@@ -1802,7 +1802,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     <span class="doccomment">/// owned, so the lifetime of the needle returned must necessarily be the</span>
     <span class="doccomment">/// shorter of the two.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Finder</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Finder</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
         <span class="ident">Finder</span> { <span class="ident">searcher</span>: <span class="self">self</span>.<span class="ident">searcher</span>.<span class="ident">as_ref</span>() }
     }
 
@@ -1813,7 +1813,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     <span class="doccomment">/// finder&#39;s needle can be either borrowed or owned, so the lifetime of the</span>
     <span class="doccomment">/// needle returned must necessarily be the shorter of the two.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">needle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">needle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
         <span class="self">self</span>.<span class="ident">searcher</span>.<span class="ident">needle</span>()
     }
 }
@@ -1839,7 +1839,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span><span class="op">&gt;</span> <span class="ident">FinderRev</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Create a new reverse finder for the given needle.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">needle</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;n</span> <span class="ident">B</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FinderRev</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">needle</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;n</span> <span class="ident">B</span>) -&gt; <span class="ident">FinderRev</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span><span class="op">&gt;</span> {
         <span class="ident">FinderBuilder::new</span>().<span class="ident">build_reverse</span>(<span class="ident">needle</span>)
     }
 
@@ -1870,7 +1870,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     <span class="doccomment">/// assert_eq!(Some(4), FinderRev::new(&quot;bar&quot;).rfind(haystack));</span>
     <span class="doccomment">/// assert_eq!(None, FinderRev::new(&quot;quux&quot;).rfind(haystack));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rfind</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">haystack</span>: <span class="ident">B</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rfind</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">haystack</span>: <span class="ident">B</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">searcher</span>.<span class="ident">rfind</span>(<span class="ident">haystack</span>.<span class="ident">as_ref</span>())
     }
 
@@ -1905,7 +1905,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rfind_iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;h</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;h</span> [<span class="ident">u8</span>],
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FindRevIter</span><span class="op">&lt;</span><span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">FindRevIter</span><span class="op">&lt;</span><span class="lifetime">&#39;h</span>, <span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="ident">FindRevIter::new</span>(<span class="ident">haystack</span>, <span class="self">self</span>.<span class="ident">as_ref</span>())
     }
 
@@ -1918,7 +1918,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     <span class="doccomment">/// This is only available when the `std` feature is enabled.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_owned</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FinderRev</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_owned</span>(<span class="self">self</span>) -&gt; <span class="ident">FinderRev</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
         <span class="ident">FinderRev</span> { <span class="ident">searcher</span>: <span class="self">self</span>.<span class="ident">searcher</span>.<span class="ident">into_owned</span>() }
     }
 
@@ -1933,7 +1933,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     <span class="doccomment">/// owned, so the lifetime of the needle returned must necessarily be the</span>
     <span class="doccomment">/// shorter of the two.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FinderRev</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">FinderRev</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
         <span class="ident">FinderRev</span> { <span class="ident">searcher</span>: <span class="self">self</span>.<span class="ident">searcher</span>.<span class="ident">as_ref</span>() }
     }
 
@@ -1944,7 +1944,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     <span class="doccomment">/// finder&#39;s needle can be either borrowed or owned, so the lifetime of the</span>
     <span class="doccomment">/// needle returned must necessarily be the shorter of the two.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">needle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">needle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
         <span class="self">self</span>.<span class="ident">searcher</span>.<span class="ident">needle</span>()
     }
 }
@@ -1961,7 +1961,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
 
 <span class="kw">impl</span> <span class="ident">FinderBuilder</span> {
     <span class="doccomment">/// Create a new finder builder with default settings.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FinderBuilder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">FinderBuilder</span> {
         <span class="ident">FinderBuilder::default</span>()
     }
 
@@ -1970,7 +1970,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_forward</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span>, <span class="ident">B</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">needle</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;n</span> <span class="ident">B</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Finder</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">Finder</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span><span class="op">&gt;</span> {
         <span class="ident">Finder</span> { <span class="ident">searcher</span>: <span class="ident">Searcher::new</span>(<span class="self">self</span>.<span class="ident">config</span>, <span class="ident">needle</span>.<span class="ident">as_ref</span>()) }
     }
 
@@ -1979,7 +1979,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_reverse</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span>, <span class="ident">B</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">needle</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;n</span> <span class="ident">B</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FinderRev</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">FinderRev</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span><span class="op">&gt;</span> {
         <span class="ident">FinderRev</span> { <span class="ident">searcher</span>: <span class="ident">SearcherRev::new</span>(<span class="ident">needle</span>.<span class="ident">as_ref</span>()) }
     }
 
@@ -1987,7 +1987,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     <span class="doccomment">///</span>
     <span class="doccomment">/// See the documentation for [`Prefilter`] for more discussion on why</span>
     <span class="doccomment">/// you might want to configure this.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prefilter</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">prefilter</span>: <span class="ident">Prefilter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">FinderBuilder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prefilter</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">prefilter</span>: <span class="ident">Prefilter</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">FinderBuilder</span> {
         <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">prefilter</span> <span class="op">=</span> <span class="ident">prefilter</span>;
         <span class="self">self</span>
     }
@@ -2075,15 +2075,15 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span><span class="op">&gt;</span> <span class="ident">Searcher</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">not</span>(<span class="ident">miri</span>), <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>, <span class="ident">memchr_runtime_simd</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">config</span>: <span class="ident">SearcherConfig</span>, <span class="ident">needle</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;n</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Searcher</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">config</span>: <span class="ident">SearcherConfig</span>, <span class="ident">needle</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;n</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">Searcher</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident"><span class="self">self</span>::SearcherKind</span>::<span class="kw-2">*</span>;
 
         <span class="kw">let</span> <span class="ident">ninfo</span> <span class="op">=</span> <span class="ident">NeedleInfo::new</span>(<span class="ident">needle</span>);
         <span class="kw">let</span> <span class="ident">prefn</span> <span class="op">=</span>
             <span class="ident">prefilter::forward</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>.<span class="ident">prefilter</span>, <span class="kw-2">&amp;</span><span class="ident">ninfo</span>.<span class="ident">rarebytes</span>, <span class="ident">needle</span>);
-        <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span> {
             <span class="ident">Empty</span>
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
             <span class="ident">OneByte</span>(<span class="ident">needle</span>[<span class="number">0</span>])
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">fwd</span>) <span class="op">=</span> <span class="ident">x86::avx::Forward::new</span>(<span class="kw-2">&amp;</span><span class="ident">ninfo</span>, <span class="ident">needle</span>) {
             <span class="ident">GenericSIMD256</span>(<span class="ident">fwd</span>)
@@ -2096,15 +2096,15 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">not</span>(<span class="ident">miri</span>), <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>, <span class="ident">memchr_runtime_simd</span>)))]</span>
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">config</span>: <span class="ident">SearcherConfig</span>, <span class="ident">needle</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;n</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Searcher</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">config</span>: <span class="ident">SearcherConfig</span>, <span class="ident">needle</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;n</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">Searcher</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident"><span class="self">self</span>::SearcherKind</span>::<span class="kw-2">*</span>;
 
         <span class="kw">let</span> <span class="ident">ninfo</span> <span class="op">=</span> <span class="ident">NeedleInfo::new</span>(<span class="ident">needle</span>);
         <span class="kw">let</span> <span class="ident">prefn</span> <span class="op">=</span>
             <span class="ident">prefilter::forward</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>.<span class="ident">prefilter</span>, <span class="kw-2">&amp;</span><span class="ident">ninfo</span>.<span class="ident">rarebytes</span>, <span class="ident">needle</span>);
-        <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span> {
             <span class="ident">Empty</span>
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
             <span class="ident">OneByte</span>(<span class="ident">needle</span>[<span class="number">0</span>])
         } <span class="kw">else</span> {
             <span class="ident">TwoWay</span>(<span class="ident">twoway::Forward::new</span>(<span class="ident">needle</span>))
@@ -2121,7 +2121,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     <span class="doccomment">///</span>
     <span class="doccomment">/// This always initializes a valid (but possibly inert) prefilter state</span>
     <span class="doccomment">/// even if this searcher does not have a prefilter enabled.</span>
-    <span class="kw">fn</span> <span class="ident">prefilter_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PrefilterState</span> {
+    <span class="kw">fn</span> <span class="ident">prefilter_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">PrefilterState</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">prefn</span>.<span class="ident">is_none</span>() {
             <span class="ident">PrefilterState::inert</span>()
         } <span class="kw">else</span> {
@@ -2129,29 +2129,29 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">needle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
+    <span class="kw">fn</span> <span class="ident">needle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
         <span class="self">self</span>.<span class="ident">needle</span>.<span class="ident">as_slice</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Searcher</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Searcher</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident"><span class="self">self</span>::SearcherKind</span>::<span class="kw-2">*</span>;
 
         <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">kind</span> {
-            <span class="ident">Empty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Empty</span>,
-            <span class="ident">OneByte</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">OneByte</span>(<span class="ident">b</span>),
-            <span class="ident">TwoWay</span>(<span class="ident">tw</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TwoWay</span>(<span class="ident">tw</span>),
+            <span class="ident">Empty</span> =&gt; <span class="ident">Empty</span>,
+            <span class="ident">OneByte</span>(<span class="ident">b</span>) =&gt; <span class="ident">OneByte</span>(<span class="ident">b</span>),
+            <span class="ident">TwoWay</span>(<span class="ident">tw</span>) =&gt; <span class="ident">TwoWay</span>(<span class="ident">tw</span>),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(
                 <span class="ident">not</span>(<span class="ident">miri</span>),
                 <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>,
                 <span class="ident">memchr_runtime_simd</span>
             ))]</span>
-            <span class="ident">GenericSIMD128</span>(<span class="ident">gs</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">GenericSIMD128</span>(<span class="ident">gs</span>),
+            <span class="ident">GenericSIMD128</span>(<span class="ident">gs</span>) =&gt; <span class="ident">GenericSIMD128</span>(<span class="ident">gs</span>),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(
                 <span class="ident">not</span>(<span class="ident">miri</span>),
                 <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>,
                 <span class="ident">memchr_runtime_simd</span>
             ))]</span>
-            <span class="ident">GenericSIMD256</span>(<span class="ident">gs</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">GenericSIMD256</span>(<span class="ident">gs</span>),
+            <span class="ident">GenericSIMD256</span>(<span class="ident">gs</span>) =&gt; <span class="ident">GenericSIMD256</span>(<span class="ident">gs</span>),
         };
         <span class="ident">Searcher</span> {
             <span class="ident">needle</span>: <span class="ident">CowBytes::new</span>(<span class="self">self</span>.<span class="ident">needle</span>()),
@@ -2162,25 +2162,25 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">into_owned</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Searcher</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">into_owned</span>(<span class="self">self</span>) -&gt; <span class="ident">Searcher</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident"><span class="self">self</span>::SearcherKind</span>::<span class="kw-2">*</span>;
 
         <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">kind</span> {
-            <span class="ident">Empty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Empty</span>,
-            <span class="ident">OneByte</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">OneByte</span>(<span class="ident">b</span>),
-            <span class="ident">TwoWay</span>(<span class="ident">tw</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TwoWay</span>(<span class="ident">tw</span>),
+            <span class="ident">Empty</span> =&gt; <span class="ident">Empty</span>,
+            <span class="ident">OneByte</span>(<span class="ident">b</span>) =&gt; <span class="ident">OneByte</span>(<span class="ident">b</span>),
+            <span class="ident">TwoWay</span>(<span class="ident">tw</span>) =&gt; <span class="ident">TwoWay</span>(<span class="ident">tw</span>),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(
                 <span class="ident">not</span>(<span class="ident">miri</span>),
                 <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>,
                 <span class="ident">memchr_runtime_simd</span>
             ))]</span>
-            <span class="ident">GenericSIMD128</span>(<span class="ident">gs</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">GenericSIMD128</span>(<span class="ident">gs</span>),
+            <span class="ident">GenericSIMD128</span>(<span class="ident">gs</span>) =&gt; <span class="ident">GenericSIMD128</span>(<span class="ident">gs</span>),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(
                 <span class="ident">not</span>(<span class="ident">miri</span>),
                 <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>,
                 <span class="ident">memchr_runtime_simd</span>
             ))]</span>
-            <span class="ident">GenericSIMD256</span>(<span class="ident">gs</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">GenericSIMD256</span>(<span class="ident">gs</span>),
+            <span class="ident">GenericSIMD256</span>(<span class="ident">gs</span>) =&gt; <span class="ident">GenericSIMD256</span>(<span class="ident">gs</span>),
         };
         <span class="ident">Searcher</span> {
             <span class="ident">needle</span>: <span class="self">self</span>.<span class="ident">needle</span>.<span class="ident">into_owned</span>(),
@@ -2198,7 +2198,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PrefilterState</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident"><span class="self">self</span>::SearcherKind</span>::<span class="kw-2">*</span>;
 
         <span class="kw">let</span> <span class="ident">needle</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">needle</span>();
@@ -2206,9 +2206,9 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">kind</span> {
-            <span class="ident">Empty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="number">0</span>),
-            <span class="ident">OneByte</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">crate</span>::memchr</span>(<span class="ident">b</span>, <span class="ident">haystack</span>),
-            <span class="ident">TwoWay</span>(<span class="kw-2">ref</span> <span class="ident">tw</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Empty</span> =&gt; <span class="prelude-val">Some</span>(<span class="number">0</span>),
+            <span class="ident">OneByte</span>(<span class="ident">b</span>) =&gt; <span class="ident"><span class="kw">crate</span>::memchr</span>(<span class="ident">b</span>, <span class="ident">haystack</span>),
+            <span class="ident">TwoWay</span>(<span class="kw-2">ref</span> <span class="ident">tw</span>) =&gt; {
                 <span class="comment">// For very short haystacks (e.g., where the prefilter probably</span>
                 <span class="comment">// can&#39;t run), it&#39;s faster to just run RK.</span>
                 <span class="kw">if</span> <span class="ident">rabinkarp::is_fast</span>(<span class="ident">haystack</span>, <span class="ident">needle</span>) {
@@ -2222,7 +2222,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
                 <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>,
                 <span class="ident">memchr_runtime_simd</span>
             ))]</span>
-            <span class="ident">GenericSIMD128</span>(<span class="kw-2">ref</span> <span class="ident">gs</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">GenericSIMD128</span>(<span class="kw-2">ref</span> <span class="ident">gs</span>) =&gt; {
                 <span class="comment">// The SIMD matcher can&#39;t handle particularly short haystacks,</span>
                 <span class="comment">// so we fall back to RK in these cases.</span>
                 <span class="kw">if</span> <span class="ident">haystack</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">gs</span>.<span class="ident">min_haystack_len</span>() {
@@ -2236,7 +2236,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
                 <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>,
                 <span class="ident">memchr_runtime_simd</span>
             ))]</span>
-            <span class="ident">GenericSIMD256</span>(<span class="kw-2">ref</span> <span class="ident">gs</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">GenericSIMD256</span>(<span class="kw-2">ref</span> <span class="ident">gs</span>) =&gt; {
                 <span class="comment">// The SIMD matcher can&#39;t handle particularly short haystacks,</span>
                 <span class="comment">// so we fall back to RK in these cases.</span>
                 <span class="kw">if</span> <span class="ident">haystack</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">gs</span>.<span class="ident">min_haystack_len</span>() {
@@ -2264,7 +2264,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
         <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PrefilterState</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">prefn</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">prefn</span> {
             <span class="comment">// We used to look at the length of a haystack here. That is, if</span>
             <span class="comment">// it was too small, then don&#39;t bother with the prefilter. But two</span>
@@ -2281,7 +2281,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
 }
 
 <span class="kw">impl</span> <span class="ident">NeedleInfo</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NeedleInfo</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">NeedleInfo</span> {
         <span class="ident">NeedleInfo</span> {
             <span class="ident">rarebytes</span>: <span class="ident">RareNeedleBytes::forward</span>(<span class="ident">needle</span>),
             <span class="ident">nhash</span>: <span class="ident">NeedleHash::forward</span>(<span class="ident">needle</span>),
@@ -2321,12 +2321,12 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span><span class="op">&gt;</span> <span class="ident">SearcherRev</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">needle</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;n</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SearcherRev</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">needle</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;n</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">SearcherRev</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident"><span class="self">self</span>::SearcherRevKind</span>::<span class="kw-2">*</span>;
 
-        <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span> {
             <span class="ident">Empty</span>
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
             <span class="ident">OneByte</span>(<span class="ident">needle</span>[<span class="number">0</span>])
         } <span class="kw">else</span> {
             <span class="ident">TwoWay</span>(<span class="ident">twoway::Reverse::new</span>(<span class="ident">needle</span>))
@@ -2338,17 +2338,17 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">needle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
+    <span class="kw">fn</span> <span class="ident">needle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
         <span class="self">self</span>.<span class="ident">needle</span>.<span class="ident">as_slice</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SearcherRev</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">SearcherRev</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident"><span class="self">self</span>::SearcherRevKind</span>::<span class="kw-2">*</span>;
 
         <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">kind</span> {
-            <span class="ident">Empty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Empty</span>,
-            <span class="ident">OneByte</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">OneByte</span>(<span class="ident">b</span>),
-            <span class="ident">TwoWay</span>(<span class="ident">tw</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TwoWay</span>(<span class="ident">tw</span>),
+            <span class="ident">Empty</span> =&gt; <span class="ident">Empty</span>,
+            <span class="ident">OneByte</span>(<span class="ident">b</span>) =&gt; <span class="ident">OneByte</span>(<span class="ident">b</span>),
+            <span class="ident">TwoWay</span>(<span class="ident">tw</span>) =&gt; <span class="ident">TwoWay</span>(<span class="ident">tw</span>),
         };
         <span class="ident">SearcherRev</span> {
             <span class="ident">needle</span>: <span class="ident">CowBytes::new</span>(<span class="self">self</span>.<span class="ident">needle</span>()),
@@ -2358,13 +2358,13 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">into_owned</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SearcherRev</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">into_owned</span>(<span class="self">self</span>) -&gt; <span class="ident">SearcherRev</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident"><span class="self">self</span>::SearcherRevKind</span>::<span class="kw-2">*</span>;
 
         <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">kind</span> {
-            <span class="ident">Empty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Empty</span>,
-            <span class="ident">OneByte</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">OneByte</span>(<span class="ident">b</span>),
-            <span class="ident">TwoWay</span>(<span class="ident">tw</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TwoWay</span>(<span class="ident">tw</span>),
+            <span class="ident">Empty</span> =&gt; <span class="ident">Empty</span>,
+            <span class="ident">OneByte</span>(<span class="ident">b</span>) =&gt; <span class="ident">OneByte</span>(<span class="ident">b</span>),
+            <span class="ident">TwoWay</span>(<span class="ident">tw</span>) =&gt; <span class="ident">TwoWay</span>(<span class="ident">tw</span>),
         };
         <span class="ident">SearcherRev</span> {
             <span class="ident">needle</span>: <span class="self">self</span>.<span class="ident">needle</span>.<span class="ident">into_owned</span>(),
@@ -2377,7 +2377,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     <span class="doccomment">/// chosen at construction and executing it on the given haystack with the</span>
     <span class="doccomment">/// prefilter&#39;s current state of effectiveness.</span>
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">rfind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">rfind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident"><span class="self">self</span>::SearcherRevKind</span>::<span class="kw-2">*</span>;
 
         <span class="kw">let</span> <span class="ident">needle</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">needle</span>();
@@ -2385,9 +2385,9 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">kind</span> {
-            <span class="ident">Empty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">haystack</span>.<span class="ident">len</span>()),
-            <span class="ident">OneByte</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">crate</span>::memrchr</span>(<span class="ident">b</span>, <span class="ident">haystack</span>),
-            <span class="ident">TwoWay</span>(<span class="kw-2">ref</span> <span class="ident">tw</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Empty</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">haystack</span>.<span class="ident">len</span>()),
+            <span class="ident">OneByte</span>(<span class="ident">b</span>) =&gt; <span class="ident"><span class="kw">crate</span>::memrchr</span>(<span class="ident">b</span>, <span class="ident">haystack</span>),
+            <span class="ident">TwoWay</span>(<span class="kw-2">ref</span> <span class="ident">tw</span>) =&gt; {
                 <span class="comment">// For very short haystacks (e.g., where the prefilter probably</span>
                 <span class="comment">// can&#39;t run), it&#39;s faster to just run RK.</span>
                 <span class="kw">if</span> <span class="ident">rabinkarp::is_fast</span>(<span class="ident">haystack</span>, <span class="ident">needle</span>) {
@@ -2416,8 +2416,8 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">prefix_is_substring</span>(
         <span class="ident">reverse</span>: <span class="ident">bool</span>,
         <span class="ident">bs</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-        <span class="kw-2">mut</span> <span class="ident">search</span>: <span class="kw">impl</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw-2">mut</span> <span class="ident">search</span>: <span class="kw">impl</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
+    ) -&gt; <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="ident">bs</span>.<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="bool-val">true</span>;
         }
@@ -2436,8 +2436,8 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">suffix_is_substring</span>(
         <span class="ident">reverse</span>: <span class="ident">bool</span>,
         <span class="ident">bs</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-        <span class="kw-2">mut</span> <span class="ident">search</span>: <span class="kw">impl</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw-2">mut</span> <span class="ident">search</span>: <span class="kw">impl</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
+    ) -&gt; <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="ident">bs</span>.<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="bool-val">true</span>;
         }
@@ -2458,24 +2458,24 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
         <span class="ident">reverse</span>: <span class="ident">bool</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-        <span class="kw-2">mut</span> <span class="ident">search</span>: <span class="kw">impl</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw-2">mut</span> <span class="ident">search</span>: <span class="kw">impl</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
+    ) -&gt; <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="ident">reverse</span> {
-            <span class="ident">naive_rfind</span>(<span class="ident">haystack</span>, <span class="ident">needle</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">search</span>(<span class="ident">haystack</span>, <span class="ident">needle</span>)
+            <span class="ident">naive_rfind</span>(<span class="ident">haystack</span>, <span class="ident">needle</span>) <span class="op">==</span> <span class="ident">search</span>(<span class="ident">haystack</span>, <span class="ident">needle</span>)
         } <span class="kw">else</span> {
-            <span class="ident">naive_find</span>(<span class="ident">haystack</span>, <span class="ident">needle</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">search</span>(<span class="ident">haystack</span>, <span class="ident">needle</span>)
+            <span class="ident">naive_find</span>(<span class="ident">haystack</span>, <span class="ident">needle</span>) <span class="op">==</span> <span class="ident">search</span>(<span class="ident">haystack</span>, <span class="ident">needle</span>)
         }
     }
 
     <span class="doccomment">/// Naively search forwards for the given needle in the given haystack.</span>
-    <span class="kw">fn</span> <span class="ident">naive_find</span>(<span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">naive_find</span>(<span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">needle</span>.<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="number">0</span>);
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">haystack</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">needle</span>.<span class="ident">len</span>() {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..(<span class="ident">haystack</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span>) {
-            <span class="kw">if</span> <span class="ident">needle</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">haystack</span>[<span class="ident">i</span>..<span class="ident">i</span> <span class="op">+</span> <span class="ident">needle</span>.<span class="ident">len</span>()] {
+            <span class="kw">if</span> <span class="ident">needle</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">haystack</span>[<span class="ident">i</span>..<span class="ident">i</span> <span class="op">+</span> <span class="ident">needle</span>.<span class="ident">len</span>()] {
                 <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">i</span>);
             }
         }
@@ -2483,14 +2483,14 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     }
 
     <span class="doccomment">/// Naively search in reverse for the given needle in the given haystack.</span>
-    <span class="kw">fn</span> <span class="ident">naive_rfind</span>(<span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">naive_rfind</span>(<span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">needle</span>.<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">haystack</span>.<span class="ident">len</span>());
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">haystack</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">needle</span>.<span class="ident">len</span>() {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> (<span class="number">0</span>..(<span class="ident">haystack</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span>)).<span class="ident">rev</span>() {
-            <span class="kw">if</span> <span class="ident">needle</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">haystack</span>[<span class="ident">i</span>..<span class="ident">i</span> <span class="op">+</span> <span class="ident">needle</span>.<span class="ident">len</span>()] {
+            <span class="kw">if</span> <span class="ident">needle</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">haystack</span>[<span class="ident">i</span>..<span class="ident">i</span> <span class="op">+</span> <span class="ident">needle</span>.<span class="ident">len</span>()] {
                 <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">i</span>);
             }
         }
@@ -2555,7 +2555,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     <span class="doccomment">/// of the first occurrence of needle in the haystack, or `None` if one</span>
     <span class="doccomment">/// doesn&#39;t exist.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">run_search_tests_fwd</span>(
-        <span class="kw-2">mut</span> <span class="ident">search</span>: <span class="kw">impl</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
+        <span class="kw-2">mut</span> <span class="ident">search</span>: <span class="kw">impl</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
     ) {
         <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">needle</span>, <span class="ident">haystack</span>, <span class="ident">expected_fwd</span>, <span class="kw">_</span>) <span class="kw">in</span> <span class="ident">SEARCH_TESTS</span> {
             <span class="kw">let</span> (<span class="ident">n</span>, <span class="ident">h</span>) <span class="op">=</span> (<span class="ident">needle</span>.<span class="ident">as_bytes</span>(), <span class="ident">haystack</span>.<span class="ident">as_bytes</span>());
@@ -2575,7 +2575,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     <span class="doccomment">/// the last occurrence of needle in the haystack, or `None` if one doesn&#39;t</span>
     <span class="doccomment">/// exist.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">run_search_tests_rev</span>(
-        <span class="kw-2">mut</span> <span class="ident">search</span>: <span class="kw">impl</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
+        <span class="kw-2">mut</span> <span class="ident">search</span>: <span class="kw">impl</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
     ) {
         <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">needle</span>, <span class="ident">haystack</span>, <span class="kw">_</span>, <span class="ident">expected_rev</span>) <span class="kw">in</span> <span class="ident">SEARCH_TESTS</span> {
             <span class="kw">let</span> (<span class="ident">n</span>, <span class="ident">h</span>) <span class="op">=</span> (<span class="ident">needle</span>.<span class="ident">as_bytes</span>(), <span class="ident">haystack</span>.<span class="ident">as_bytes</span>());

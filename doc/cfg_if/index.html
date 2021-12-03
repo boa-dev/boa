@@ -4,7 +4,7 @@ preprocessor macro by allowing definition of a cascade of <code>#[cfg]</code> ca
 emitting the implementation which matches first.</p>
 <p>This allows you to conveniently provide a long list <code>#[cfg]</code>’d blocks of code
 without having to rewrite each clause multiple times.</p>
-<h1 id="example" class="section-header"><a href="#example">Example</a></h1>
+<h2 id="example" class="section-header"><a href="#example">Example</a></h2>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="macro">cfg_if::cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span> {
         <span class="kw">fn</span> <span class="ident">foo</span>() { <span class="comment">/* unix specific functionality */</span> }
@@ -16,8 +16,8 @@ without having to rewrite each clause multiple times.</p>
 }
 </code></pre></div>
 </div></details><h2 id="macros" class="section-header"><a href="#macros">Macros</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="macro" href="macro.cfg_if.html" title="cfg_if::cfg_if macro">cfg_if</a></div><div class="item-right docblock-short"><p>The main macro provided by this crate. See crate documentation for more
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="macro" href="macro.cfg_if.html" title="cfg_if::cfg_if macro">cfg_if</a></div><div class="item-right docblock-short"><p>The main macro provided by this crate. See crate documentation for more
 information.</p>
-</div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="cfg_if" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
+</div></div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="cfg_if" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
     <script src="../main.js"></script>
 </body></html>

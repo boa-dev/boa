@@ -152,8 +152,8 @@
 
     <span class="kw">const</span> <span class="ident">MAX_MANTISSA_FAST_PATH</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">2_u64</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident"><span class="self">Self</span>::MANTISSA_EXPLICIT_BITS</span>;
 
-    <span class="kw">fn</span> <span class="ident">from_u64</span>(<span class="ident">v</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
-    <span class="kw">fn</span> <span class="ident">pow10_fast_path</span>(<span class="ident">exponent</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">from_u64</span>(<span class="ident">v</span>: <span class="ident">u64</span>) -&gt; <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">pow10_fast_path</span>(<span class="ident">exponent</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">private::Sealed</span> <span class="kw">for</span> <span class="ident">f32</span> {}
@@ -176,12 +176,12 @@
     <span class="kw">const</span> <span class="ident">LARGEST_POWER_OF_TEN</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">38</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_u64</span>(<span class="ident">v</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from_u64</span>(<span class="ident">v</span>: <span class="ident">u64</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">v</span> <span class="kw">as</span> <span class="kw">_</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">pow10_fast_path</span>(<span class="ident">exponent</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">pow10_fast_path</span>(<span class="ident">exponent</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::use_self</span>)]</span>
         <span class="kw">const</span> <span class="ident">TABLE</span>: [<span class="ident">f32</span>; <span class="number">16</span>] <span class="op">=</span> [
             <span class="number">1e0</span>, <span class="number">1e1</span>, <span class="number">1e2</span>, <span class="number">1e3</span>, <span class="number">1e4</span>, <span class="number">1e5</span>, <span class="number">1e6</span>, <span class="number">1e7</span>, <span class="number">1e8</span>, <span class="number">1e9</span>, <span class="number">1e10</span>, <span class="number">0.</span>, <span class="number">0.</span>, <span class="number">0.</span>, <span class="number">0.</span>, <span class="number">0.</span>,
@@ -210,12 +210,12 @@
     <span class="kw">const</span> <span class="ident">LARGEST_POWER_OF_TEN</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">308</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_u64</span>(<span class="ident">v</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from_u64</span>(<span class="ident">v</span>: <span class="ident">u64</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">v</span> <span class="kw">as</span> <span class="kw">_</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">pow10_fast_path</span>(<span class="ident">exponent</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">pow10_fast_path</span>(<span class="ident">exponent</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::use_self</span>)]</span>
         <span class="kw">const</span> <span class="ident">TABLE</span>: [<span class="ident">f64</span>; <span class="number">32</span>] <span class="op">=</span> [
             <span class="number">1e0</span>, <span class="number">1e1</span>, <span class="number">1e2</span>, <span class="number">1e3</span>, <span class="number">1e4</span>, <span class="number">1e5</span>, <span class="number">1e6</span>, <span class="number">1e7</span>, <span class="number">1e8</span>, <span class="number">1e9</span>, <span class="number">1e10</span>, <span class="number">1e11</span>, <span class="number">1e12</span>, <span class="number">1e13</span>, <span class="number">1e14</span>, <span class="number">1e15</span>,

@@ -75,15 +75,15 @@
         <span class="ident">_phantom</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>,
     }
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Weight</span><span class="op">&gt;</span> <span class="ident">WeightedIndex</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">_weights</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">WeightedError</span><span class="op">&gt;</span> {
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">_weights</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">WeightedError</span><span class="op">&gt;</span> {
             <span class="prelude-val">Err</span>(<span class="ident">WeightedError::NoItem</span>)
         }
     }
 
     <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Weight</span> {}
     <span class="macro">macro_rules!</span> <span class="ident">impl_weight</span> {
-        () <span class="op">=</span><span class="op">&gt;</span> {};
-        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">more</span>:<span class="ident">ident</span>,)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        () =&gt; {};
+        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">more</span>:<span class="ident">ident</span>,)<span class="kw-2">*</span>) =&gt; {
             <span class="kw">impl</span> <span class="ident">Weight</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {}
             <span class="macro">impl_weight!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">more</span>,)<span class="kw-2">*</span>);
         };

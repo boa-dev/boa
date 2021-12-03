@@ -443,21 +443,21 @@
 }
 
 <span class="kw">impl</span> <span class="ident">ParseBigIntError</span> {
-    <span class="kw">fn</span> <span class="ident">__description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+    <span class="kw">fn</span> <span class="ident">__description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::BigIntErrorKind</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">kind</span> {
-            <span class="ident">Empty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;cannot parse integer from empty string&quot;</span>,
-            <span class="ident">InvalidDigit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;invalid digit found in string&quot;</span>,
+            <span class="ident">Empty</span> =&gt; <span class="string">&quot;cannot parse integer from empty string&quot;</span>,
+            <span class="ident">InvalidDigit</span> =&gt; <span class="string">&quot;invalid digit found in string&quot;</span>,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">empty</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">empty</span>() -&gt; <span class="self">Self</span> {
         <span class="ident">ParseBigIntError</span> {
             <span class="ident">kind</span>: <span class="ident">BigIntErrorKind::Empty</span>,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">invalid</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">invalid</span>() -&gt; <span class="self">Self</span> {
         <span class="ident">ParseBigIntError</span> {
             <span class="ident">kind</span>: <span class="ident">BigIntErrorKind::InvalidDigit</span>,
         }
@@ -465,14 +465,14 @@
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">ParseBigIntError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="self">self</span>.<span class="ident">__description</span>().<span class="ident">fmt</span>(<span class="ident">f</span>)
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
 <span class="kw">impl</span> <span class="ident">Error</span> <span class="kw">for</span> <span class="ident">ParseBigIntError</span> {
-    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="self">self</span>.<span class="ident">__description</span>()
     }
 }
@@ -486,11 +486,11 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_try_from</span>)]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">TryFromBigIntError</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">original</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">original</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">TryFromBigIntError</span> { <span class="ident">original</span> }
     }
 
-    <span class="kw">fn</span> <span class="ident">__description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+    <span class="kw">fn</span> <span class="ident">__description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="string">&quot;out of range conversion regarding big integer attempted&quot;</span>
     }
 
@@ -499,7 +499,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`BigInt`]: struct.BigInt.html</span>
     <span class="doccomment">/// [`BigUint`]: struct.BigUint.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_original</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_original</span>(<span class="self">self</span>) -&gt; <span class="ident">T</span> {
         <span class="self">self</span>.<span class="ident">original</span>
     }
 }
@@ -509,14 +509,14 @@
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">fmt::Debug</span>,
 {
-    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="self">self</span>.<span class="ident">__description</span>()
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_try_from</span>)]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">TryFromBigIntError</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="self">self</span>.<span class="ident">__description</span>().<span class="ident">fmt</span>(<span class="ident">f</span>)
     }
 }
@@ -566,23 +566,23 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">MAX</span>: <span class="ident">BigDigit</span> <span class="op">=</span> <span class="ident">LO_MASK</span> <span class="kw">as</span> <span class="ident">BigDigit</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">get_hi</span>(<span class="ident">n</span>: <span class="ident">DoubleBigDigit</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BigDigit</span> {
+    <span class="kw">fn</span> <span class="ident">get_hi</span>(<span class="ident">n</span>: <span class="ident">DoubleBigDigit</span>) -&gt; <span class="ident">BigDigit</span> {
         (<span class="ident">n</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">BITS</span>) <span class="kw">as</span> <span class="ident">BigDigit</span>
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">get_lo</span>(<span class="ident">n</span>: <span class="ident">DoubleBigDigit</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BigDigit</span> {
+    <span class="kw">fn</span> <span class="ident">get_lo</span>(<span class="ident">n</span>: <span class="ident">DoubleBigDigit</span>) -&gt; <span class="ident">BigDigit</span> {
         (<span class="ident">n</span> <span class="op">&amp;</span> <span class="ident">LO_MASK</span>) <span class="kw">as</span> <span class="ident">BigDigit</span>
     }
 
     <span class="doccomment">/// Split one `DoubleBigDigit` into two `BigDigit`s.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">from_doublebigdigit</span>(<span class="ident">n</span>: <span class="ident">DoubleBigDigit</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">BigDigit</span>, <span class="ident">BigDigit</span>) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">from_doublebigdigit</span>(<span class="ident">n</span>: <span class="ident">DoubleBigDigit</span>) -&gt; (<span class="ident">BigDigit</span>, <span class="ident">BigDigit</span>) {
         (<span class="ident">get_hi</span>(<span class="ident">n</span>), <span class="ident">get_lo</span>(<span class="ident">n</span>))
     }
 
     <span class="doccomment">/// Join two `BigDigit`s into one `DoubleBigDigit`</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_doublebigdigit</span>(<span class="ident">hi</span>: <span class="ident">BigDigit</span>, <span class="ident">lo</span>: <span class="ident">BigDigit</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DoubleBigDigit</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_doublebigdigit</span>(<span class="ident">hi</span>: <span class="ident">BigDigit</span>, <span class="ident">lo</span>: <span class="ident">BigDigit</span>) -&gt; <span class="ident">DoubleBigDigit</span> {
         <span class="ident">DoubleBigDigit::from</span>(<span class="ident">lo</span>) <span class="op">|</span> (<span class="ident">DoubleBigDigit::from</span>(<span class="ident">hi</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">BITS</span>)
     }
 }

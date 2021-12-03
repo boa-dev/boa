@@ -887,7 +887,7 @@
 <span class="doccomment">/// `num_threads()` method for details][snt]).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [snt]: struct.ThreadPoolBuilder.html#method.num_threads</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">current_num_threads</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">current_num_threads</span>() -&gt; <span class="ident">usize</span> {
     <span class="ident"><span class="kw">crate</span>::registry::Registry::current_num_threads</span>()
 }
 
@@ -932,7 +932,7 @@
     <span class="ident">panic_handler</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">PanicHandler</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Closure to compute the name of a thread.</span>
-    <span class="ident">get_thread_name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">FnMut</span>(<span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">get_thread_name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">FnMut</span>(<span class="ident">usize</span>) -&gt; <span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// The stack size for the created worker threads</span>
     <span class="ident">stack_size</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
@@ -976,7 +976,7 @@
 
 <span class="comment">// NB: We can&#39;t `#[derive(Default)]` because `S` is left ambiguous.</span>
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">ThreadPoolBuilder</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="ident">ThreadPoolBuilder</span> {
             <span class="ident">num_threads</span>: <span class="number">0</span>,
             <span class="ident">panic_handler</span>: <span class="prelude-val">None</span>,
@@ -992,7 +992,7 @@
 
 <span class="kw">impl</span> <span class="ident">ThreadPoolBuilder</span> {
     <span class="doccomment">/// Creates and returns a valid rayon thread pool builder, but does not initialize it.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::default</span>()
     }
 }
@@ -1004,7 +1004,7 @@
     <span class="ident">S</span>: <span class="ident">ThreadSpawn</span>,
 {
     <span class="doccomment">/// Creates a new `ThreadPool` initialized using this configuration.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ThreadPool</span>, <span class="ident">ThreadPoolBuildError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ThreadPool</span>, <span class="ident">ThreadPoolBuildError</span><span class="op">&gt;</span> {
         <span class="ident">ThreadPool::build</span>(<span class="self">self</span>)
     }
 
@@ -1025,7 +1025,7 @@
     <span class="doccomment">/// changed. Therefore, if you call `build_global` a second time, it</span>
     <span class="doccomment">/// will return an error. An `Ok` result indicates that this</span>
     <span class="doccomment">/// is the first initialization of the thread pool.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_global</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ThreadPoolBuildError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_global</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ThreadPoolBuildError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">registry</span> <span class="op">=</span> <span class="ident">registry::init_global_registry</span>(<span class="self">self</span>)<span class="question-mark">?</span>;
         <span class="ident">registry</span>.<span class="ident">wait_until_primed</span>();
         <span class="prelude-val">Ok</span>(())
@@ -1070,10 +1070,10 @@
     <span class="doccomment">///     Ok(())</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_scoped</span><span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">wrapper</span>: <span class="ident">W</span>, <span class="ident">with_pool</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">ThreadPoolBuildError</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_scoped</span><span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">wrapper</span>: <span class="ident">W</span>, <span class="ident">with_pool</span>: <span class="ident">F</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">ThreadPoolBuildError</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">W</span>: <span class="ident">Fn</span>(<span class="ident">ThreadBuilder</span>) <span class="op">+</span> <span class="ident">Sync</span>, <span class="comment">// expected to call `run()`</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">ThreadPool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>,
+        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">ThreadPool</span>) -&gt; <span class="ident">R</span>,
     {
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">crossbeam_utils::thread::scope</span>(<span class="op">|</span><span class="ident">scope</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">wrapper</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">wrapper</span>;
@@ -1094,8 +1094,8 @@
         });
 
         <span class="kw">match</span> <span class="ident">result</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">result</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">result</span>,
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">unwind::resume_unwinding</span>(<span class="ident">err</span>),
+            <span class="prelude-val">Ok</span>(<span class="ident">result</span>) =&gt; <span class="ident">result</span>,
+            <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="ident">unwind::resume_unwinding</span>(<span class="ident">err</span>),
         }
     }
 }
@@ -1155,9 +1155,9 @@
     <span class="doccomment">///     Ok(())</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">spawn_handler</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">spawn</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ThreadPoolBuilder</span><span class="op">&lt;</span><span class="ident">CustomSpawn</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">spawn_handler</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">spawn</span>: <span class="ident">F</span>) -&gt; <span class="ident">ThreadPoolBuilder</span><span class="op">&lt;</span><span class="ident">CustomSpawn</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">ThreadBuilder</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">ThreadBuilder</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>,
     {
         <span class="ident">ThreadPoolBuilder</span> {
             <span class="ident">spawn_handler</span>: <span class="ident">CustomSpawn::new</span>(<span class="ident">spawn</span>),
@@ -1173,13 +1173,13 @@
     }
 
     <span class="doccomment">/// Returns a reference to the current spawn handler.</span>
-    <span class="kw">fn</span> <span class="ident">get_spawn_handler</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">S</span> {
+    <span class="kw">fn</span> <span class="ident">get_spawn_handler</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">S</span> {
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">spawn_handler</span>
     }
 
     <span class="doccomment">/// Get the number of threads that will be used for the thread</span>
     <span class="doccomment">/// pool. See `num_threads()` for more information.</span>
-    <span class="kw">fn</span> <span class="ident">get_num_threads</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">get_num_threads</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">num_threads</span> <span class="op">&gt;</span> <span class="number">0</span> {
             <span class="self">self</span>.<span class="ident">num_threads</span>
         } <span class="kw">else</span> {
@@ -1187,9 +1187,9 @@
                 .<span class="ident">ok</span>()
                 .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">usize::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>).<span class="ident">ok</span>())
             {
-                <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="kw">if</span> <span class="ident">x</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">x</span>,
-                <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="kw">if</span> <span class="ident">x</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">num_cpus::get</span>(),
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+                <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="kw">if</span> <span class="ident">x</span> <span class="op">&gt;</span> <span class="number">0</span> =&gt; <span class="kw">return</span> <span class="ident">x</span>,
+                <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="kw">if</span> <span class="ident">x</span> <span class="op">==</span> <span class="number">0</span> =&gt; <span class="kw">return</span> <span class="ident">num_cpus::get</span>(),
+                <span class="kw">_</span> =&gt; {}
             }
 
             <span class="comment">// Support for deprecated `RAYON_RS_NUM_CPUS`.</span>
@@ -1197,23 +1197,23 @@
                 .<span class="ident">ok</span>()
                 .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">usize::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>).<span class="ident">ok</span>())
             {
-                <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="kw">if</span> <span class="ident">x</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>,
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">num_cpus::get</span>(),
+                <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="kw">if</span> <span class="ident">x</span> <span class="op">&gt;</span> <span class="number">0</span> =&gt; <span class="ident">x</span>,
+                <span class="kw">_</span> =&gt; <span class="ident">num_cpus::get</span>(),
             }
         }
     }
 
     <span class="doccomment">/// Get the thread name for the thread with the given index.</span>
-    <span class="kw">fn</span> <span class="ident">get_thread_name</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">get_thread_name</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_thread_name</span>.<span class="ident">as_mut</span>()<span class="question-mark">?</span>;
         <span class="prelude-val">Some</span>(<span class="ident">f</span>(<span class="ident">index</span>))
     }
 
     <span class="doccomment">/// Sets a closure which takes a thread index and returns</span>
     <span class="doccomment">/// the thread&#39;s name.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thread_name</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">closure</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thread_name</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">closure</span>: <span class="ident">F</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">usize</span>) -&gt; <span class="ident">String</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     {
         <span class="self">self</span>.<span class="ident">get_thread_name</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">closure</span>));
         <span class="self">self</span>
@@ -1245,13 +1245,13 @@
     <span class="doccomment">/// replacement of the now deprecated `RAYON_RS_NUM_CPUS` environment</span>
     <span class="doccomment">/// variable. If both variables are specified, `RAYON_NUM_THREADS` will</span>
     <span class="doccomment">/// be prefered.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">num_threads</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">num_threads</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">num_threads</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">num_threads</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">num_threads</span> <span class="op">=</span> <span class="ident">num_threads</span>;
         <span class="self">self</span>
     }
 
     <span class="doccomment">/// Returns a copy of the current panic handler.</span>
-    <span class="kw">fn</span> <span class="ident">take_panic_handler</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">PanicHandler</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">take_panic_handler</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">PanicHandler</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">panic_handler</span>.<span class="ident">take</span>()
     }
 
@@ -1269,7 +1269,7 @@
     <span class="doccomment">/// If the panic handler itself panics, this will abort the</span>
     <span class="doccomment">/// process. To prevent this, wrap the body of your panic handler</span>
     <span class="doccomment">/// in a call to `std::panic::catch_unwind()`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">panic_handler</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">panic_handler</span>: <span class="ident">H</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">panic_handler</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">panic_handler</span>: <span class="ident">H</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">H</span>: <span class="ident">Fn</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Any</span> <span class="op">+</span> <span class="ident">Send</span><span class="op">&gt;</span>) <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     {
@@ -1278,12 +1278,12 @@
     }
 
     <span class="doccomment">/// Get the stack size of the worker threads</span>
-    <span class="kw">fn</span> <span class="ident">get_stack_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">get_stack_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">stack_size</span>
     }
 
     <span class="doccomment">/// Sets the stack size of the worker threads</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stack_size</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">stack_size</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stack_size</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">stack_size</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">stack_size</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">stack_size</span>);
         <span class="self">self</span>
     }
@@ -1317,17 +1317,17 @@
     <span class="doccomment">/// [RFC #1]: https://github.com/rayon-rs/rfcs/blob/master/accepted/rfc0001-scope-scheduling.md</span>
     <span class="doccomment">/// [`scope_fifo()`]: fn.scope_fifo.html</span>
     <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;use `scope_fifo` and `spawn_fifo` for similar effect&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">breadth_first</span>(<span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">breadth_first</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">breadth_first</span> <span class="op">=</span> <span class="bool-val">true</span>;
         <span class="self">self</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">get_breadth_first</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">get_breadth_first</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">breadth_first</span>
     }
 
     <span class="doccomment">/// Takes the current thread start callback, leaving `None`.</span>
-    <span class="kw">fn</span> <span class="ident">take_start_handler</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">StartHandler</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">take_start_handler</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">StartHandler</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">start_handler</span>.<span class="ident">take</span>()
     }
 
@@ -1337,7 +1337,7 @@
     <span class="doccomment">/// Note that this same closure may be invoked multiple times in parallel.</span>
     <span class="doccomment">/// If this closure panics, the panic will be passed to the panic handler.</span>
     <span class="doccomment">/// If that handler returns, then startup will continue normally.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">start_handler</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">start_handler</span>: <span class="ident">H</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">start_handler</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">start_handler</span>: <span class="ident">H</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">H</span>: <span class="ident">Fn</span>(<span class="ident">usize</span>) <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     {
@@ -1346,7 +1346,7 @@
     }
 
     <span class="doccomment">/// Returns a current thread exit callback, leaving `None`.</span>
-    <span class="kw">fn</span> <span class="ident">take_exit_handler</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">ExitHandler</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">take_exit_handler</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">ExitHandler</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">exit_handler</span>.<span class="ident">take</span>()
     }
 
@@ -1356,7 +1356,7 @@
     <span class="doccomment">/// Note that this same closure may be invoked multiple times in parallel.</span>
     <span class="doccomment">/// If this closure panics, the panic will be passed to the panic handler.</span>
     <span class="doccomment">/// If that handler returns, then the thread will exit normally.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">exit_handler</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">exit_handler</span>: <span class="ident">H</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">exit_handler</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">exit_handler</span>: <span class="ident">H</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">H</span>: <span class="ident">Fn</span>(<span class="ident">usize</span>) <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     {
@@ -1368,34 +1368,34 @@
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
 <span class="kw">impl</span> <span class="ident">Configuration</span> {
     <span class="doccomment">/// Creates and return a valid rayon thread pool configuration, but does not initialize it.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Configuration</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">Configuration</span> {
         <span class="ident">Configuration</span> {
             <span class="ident">builder</span>: <span class="ident">ThreadPoolBuilder::new</span>(),
         }
     }
 
     <span class="doccomment">/// Deprecated in favor of `ThreadPoolBuilder::build`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ThreadPool</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ThreadPool</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">build</span>().<span class="ident">map_err</span>(<span class="ident">Box::from</span>)
     }
 
     <span class="doccomment">/// Deprecated in favor of `ThreadPoolBuilder::thread_name`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thread_name</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">closure</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thread_name</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">closure</span>: <span class="ident">F</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">usize</span>) -&gt; <span class="ident">String</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     {
         <span class="self">self</span>.<span class="ident">builder</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">thread_name</span>(<span class="ident">closure</span>);
         <span class="self">self</span>
     }
 
     <span class="doccomment">/// Deprecated in favor of `ThreadPoolBuilder::num_threads`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">num_threads</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">num_threads</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Configuration</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">num_threads</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">num_threads</span>: <span class="ident">usize</span>) -&gt; <span class="ident">Configuration</span> {
         <span class="self">self</span>.<span class="ident">builder</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">num_threads</span>(<span class="ident">num_threads</span>);
         <span class="self">self</span>
     }
 
     <span class="doccomment">/// Deprecated in favor of `ThreadPoolBuilder::panic_handler`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">panic_handler</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">panic_handler</span>: <span class="ident">H</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Configuration</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">panic_handler</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">panic_handler</span>: <span class="ident">H</span>) -&gt; <span class="ident">Configuration</span>
     <span class="kw">where</span>
         <span class="ident">H</span>: <span class="ident">Fn</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Any</span> <span class="op">+</span> <span class="ident">Send</span><span class="op">&gt;</span>) <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     {
@@ -1404,19 +1404,19 @@
     }
 
     <span class="doccomment">/// Deprecated in favor of `ThreadPoolBuilder::stack_size`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stack_size</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">stack_size</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stack_size</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">stack_size</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">builder</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">stack_size</span>(<span class="ident">stack_size</span>);
         <span class="self">self</span>
     }
 
     <span class="doccomment">/// Deprecated in favor of `ThreadPoolBuilder::breadth_first`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">breadth_first</span>(<span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">breadth_first</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">builder</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">breadth_first</span>();
         <span class="self">self</span>
     }
 
     <span class="doccomment">/// Deprecated in favor of `ThreadPoolBuilder::start_handler`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">start_handler</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">start_handler</span>: <span class="ident">H</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Configuration</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">start_handler</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">start_handler</span>: <span class="ident">H</span>) -&gt; <span class="ident">Configuration</span>
     <span class="kw">where</span>
         <span class="ident">H</span>: <span class="ident">Fn</span>(<span class="ident">usize</span>) <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     {
@@ -1425,7 +1425,7 @@
     }
 
     <span class="doccomment">/// Deprecated in favor of `ThreadPoolBuilder::exit_handler`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">exit_handler</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">exit_handler</span>: <span class="ident">H</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Configuration</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">exit_handler</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">exit_handler</span>: <span class="ident">H</span>) -&gt; <span class="ident">Configuration</span>
     <span class="kw">where</span>
         <span class="ident">H</span>: <span class="ident">Fn</span>(<span class="ident">usize</span>) <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     {
@@ -1434,13 +1434,13 @@
     }
 
     <span class="doccomment">/// Returns a ThreadPoolBuilder with identical parameters.</span>
-    <span class="kw">fn</span> <span class="ident">into_builder</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ThreadPoolBuilder</span> {
+    <span class="kw">fn</span> <span class="ident">into_builder</span>(<span class="self">self</span>) -&gt; <span class="ident">ThreadPoolBuilder</span> {
         <span class="self">self</span>.<span class="ident">builder</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">ThreadPoolBuildError</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">kind</span>: <span class="ident">ErrorKind</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ThreadPoolBuildError</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">kind</span>: <span class="ident">ErrorKind</span>) -&gt; <span class="ident">ThreadPoolBuildError</span> {
         <span class="ident">ThreadPoolBuildError</span> { <span class="ident">kind</span> }
     }
 }
@@ -1450,26 +1450,26 @@
 
 <span class="kw">impl</span> <span class="ident">Error</span> <span class="kw">for</span> <span class="ident">ThreadPoolBuildError</span> {
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">kind</span> {
-            <span class="ident">ErrorKind::GlobalPoolAlreadyInitialized</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">GLOBAL_POOL_ALREADY_INITIALIZED</span>,
-            <span class="ident">ErrorKind::IOError</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">e</span>.<span class="ident">description</span>(),
+            <span class="ident">ErrorKind::GlobalPoolAlreadyInitialized</span> =&gt; <span class="ident">GLOBAL_POOL_ALREADY_INITIALIZED</span>,
+            <span class="ident">ErrorKind::IOError</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">description</span>(),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">Error</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">Error</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">kind</span> {
-            <span class="ident">ErrorKind::GlobalPoolAlreadyInitialized</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="ident">ErrorKind::IOError</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">e</span>),
+            <span class="ident">ErrorKind::GlobalPoolAlreadyInitialized</span> =&gt; <span class="prelude-val">None</span>,
+            <span class="ident">ErrorKind::IOError</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">e</span>),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">ThreadPoolBuildError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">kind</span> {
-            <span class="ident">ErrorKind::GlobalPoolAlreadyInitialized</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">GLOBAL_POOL_ALREADY_INITIALIZED</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
-            <span class="ident">ErrorKind::IOError</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">e</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
+            <span class="ident">ErrorKind::GlobalPoolAlreadyInitialized</span> =&gt; <span class="ident">GLOBAL_POOL_ALREADY_INITIALIZED</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
+            <span class="ident">ErrorKind::IOError</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
         }
     }
 }
@@ -1477,12 +1477,12 @@
 <span class="doccomment">/// Deprecated in favor of `ThreadPoolBuilder::build_global`.</span>
 <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;use `ThreadPoolBuilder::build_global`&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">initialize</span>(<span class="ident">config</span>: <span class="ident">Configuration</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">initialize</span>(<span class="ident">config</span>: <span class="ident">Configuration</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="ident">config</span>.<span class="ident">into_builder</span>().<span class="ident">build_global</span>().<span class="ident">map_err</span>(<span class="ident">Box::from</span>)
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">ThreadPoolBuilder</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">let</span> <span class="ident">ThreadPoolBuilder</span> {
             <span class="kw-2">ref</span> <span class="ident">num_threads</span>,
             <span class="kw-2">ref</span> <span class="ident">get_thread_name</span>,
@@ -1498,7 +1498,7 @@
         <span class="comment">// output.</span>
         <span class="kw">struct</span> <span class="ident">ClosurePlaceholder</span>;
         <span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">ClosurePlaceholder</span> {
-            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
                 <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;&lt;closure&gt;&quot;</span>)
             }
         }
@@ -1521,7 +1521,7 @@
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Configuration</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="ident">Configuration</span> {
             <span class="ident">builder</span>: <span class="ident">Default::default</span>(),
         }
@@ -1530,7 +1530,7 @@
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
 <span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Configuration</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">fmt</span>(<span class="ident">f</span>)
     }
 }
@@ -1546,7 +1546,7 @@
 
 <span class="kw">impl</span> <span class="ident">FnContext</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">migrated</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">migrated</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">FnContext</span> {
             <span class="ident">migrated</span>,
             <span class="ident">_marker</span>: <span class="ident">PhantomData</span>,
@@ -1558,7 +1558,7 @@
     <span class="doccomment">/// Returns `true` if the closure was called from a different thread</span>
     <span class="doccomment">/// than it was provided from.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">migrated</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">migrated</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">migrated</span>
     }
 }

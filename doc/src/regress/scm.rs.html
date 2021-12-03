@@ -171,7 +171,7 @@
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">SingleCharMatcher</span><span class="op">&lt;</span><span class="ident">Input</span>: <span class="ident">InputIndexer</span>, <span class="ident">Dir</span>: <span class="ident">Direction</span><span class="op">&gt;</span> {
     <span class="doccomment">/// \return whether we match the character at the given position, advancing</span>
     <span class="doccomment">/// the position if so. On a false return, the position is unspecified.</span>
-    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">Input</span>, <span class="ident">dir</span>: <span class="ident">Dir</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Input::Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">Input</span>, <span class="ident">dir</span>: <span class="ident">Dir</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Input::Position</span>) -&gt; <span class="ident">bool</span>;
 }
 
 <span class="doccomment">/// Insn::Char</span>
@@ -180,10 +180,10 @@
 }
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Input</span>: <span class="ident">InputIndexer</span>, <span class="ident">Dir</span>: <span class="ident">Direction</span><span class="op">&gt;</span> <span class="ident">SingleCharMatcher</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">Dir</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Char</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">Input</span>, <span class="ident">dir</span>: <span class="ident">Dir</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Input::Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">Input</span>, <span class="ident">dir</span>: <span class="ident">Dir</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Input::Position</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="ident">cursor::next</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="ident">pos</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">c2</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c2</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">c</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">c2</span>) =&gt; <span class="ident">c2</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">c</span>,
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
 }
@@ -194,10 +194,10 @@
 }
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Input</span>: <span class="ident">InputIndexer</span>, <span class="ident">Dir</span>: <span class="ident">Direction</span><span class="op">&gt;</span> <span class="ident">SingleCharMatcher</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">Dir</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CharICase</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">Input</span>, <span class="ident">dir</span>: <span class="ident">Dir</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Input::Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">Input</span>, <span class="ident">dir</span>: <span class="ident">Dir</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Input::Position</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="ident">cursor::next</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="ident">pos</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">c2</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c2</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">c</span> <span class="op">|</span><span class="op">|</span> <span class="ident">Input::CharProps::fold</span>(<span class="ident">c2</span>) <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">c</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">c2</span>) =&gt; <span class="ident">c2</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">c</span> <span class="op">|</span><span class="op">|</span> <span class="ident">Input::CharProps::fold</span>(<span class="ident">c2</span>) <span class="op">==</span> <span class="self">self</span>.<span class="ident">c</span>,
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
 }
@@ -209,10 +209,10 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Input</span>: <span class="ident">InputIndexer</span>, <span class="ident">Dir</span>: <span class="ident">Direction</span><span class="op">&gt;</span> <span class="ident">SingleCharMatcher</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">Dir</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CharSet</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">Input</span>, <span class="ident">dir</span>: <span class="ident">Dir</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Input::Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">Input</span>, <span class="ident">dir</span>: <span class="ident">Dir</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Input::Position</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="ident">cursor::next</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="ident">pos</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">charset_contains</span>(<span class="self">self</span>.<span class="ident">chars</span>, <span class="ident">c</span>.<span class="ident">as_char</span>()),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">c</span>) =&gt; <span class="ident">charset_contains</span>(<span class="self">self</span>.<span class="ident">chars</span>, <span class="ident">c</span>.<span class="ident">as_char</span>()),
+            <span class="prelude-val">None</span> =&gt; <span class="bool-val">false</span>,
         }
     }
 }
@@ -224,10 +224,10 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Input</span>: <span class="ident">InputIndexer</span>, <span class="ident">Dir</span>: <span class="ident">Direction</span><span class="op">&gt;</span> <span class="ident">SingleCharMatcher</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">Dir</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Bracket</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">Input</span>, <span class="ident">dir</span>: <span class="ident">Dir</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Input::Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">Input</span>, <span class="ident">dir</span>: <span class="ident">Dir</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Input::Position</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="ident">cursor::next</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="ident">pos</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Input::CharProps::bracket</span>(<span class="self">self</span>.<span class="ident">bc</span>, <span class="ident">c</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">c</span>) =&gt; <span class="ident">Input::CharProps::bracket</span>(<span class="self">self</span>.<span class="ident">bc</span>, <span class="ident">c</span>),
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
 }
@@ -235,13 +235,13 @@
 <span class="doccomment">/// Insn::MatchAny</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MatchAny</span> {}
 <span class="kw">impl</span> <span class="ident">MatchAny</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {}
     }
 }
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Input</span>: <span class="ident">InputIndexer</span>, <span class="ident">Dir</span>: <span class="ident">Direction</span><span class="op">&gt;</span> <span class="ident">SingleCharMatcher</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">Dir</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MatchAny</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">Input</span>, <span class="ident">dir</span>: <span class="ident">Dir</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Input::Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">Input</span>, <span class="ident">dir</span>: <span class="ident">Dir</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Input::Position</span>) -&gt; <span class="ident">bool</span> {
         <span class="comment">// If there is a character, it counts as a match.</span>
         <span class="ident">cursor::next</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="ident">pos</span>).<span class="ident">is_some</span>()
     }
@@ -250,7 +250,7 @@
 <span class="doccomment">/// Insn::MatchAnyExceptLineTerminator</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MatchAnyExceptLineTerminator</span> {}
 <span class="kw">impl</span> <span class="ident">MatchAnyExceptLineTerminator</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {}
     }
 }
@@ -258,10 +258,10 @@
     <span class="kw">for</span> <span class="ident">MatchAnyExceptLineTerminator</span>
 {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">Input</span>, <span class="ident">dir</span>: <span class="ident">Dir</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Input::Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">Input</span>, <span class="ident">dir</span>: <span class="ident">Dir</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Input::Position</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="ident">cursor::next</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="ident">pos</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">c2</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="op">!</span><span class="ident">Input::CharProps::is_line_terminator</span>(<span class="ident">c2</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">c2</span>) =&gt; <span class="op">!</span><span class="ident">Input::CharProps::is_line_terminator</span>(<span class="ident">c2</span>),
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
 }
@@ -275,7 +275,7 @@
     <span class="kw">for</span> <span class="ident">MatchByteSet</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Bytes</span><span class="op">&gt;</span>
 {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">Input</span>, <span class="ident">dir</span>: <span class="ident">Dir</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Input::Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">Input</span>, <span class="ident">dir</span>: <span class="ident">Dir</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Input::Position</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">b</span>) <span class="op">=</span> <span class="ident">cursor::next_byte</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="ident">pos</span>) {
             <span class="self">self</span>.<span class="ident">bytes</span>.<span class="ident">contains</span>(<span class="ident">b</span>)
         } <span class="kw">else</span> {
@@ -294,7 +294,7 @@
     <span class="kw">for</span> <span class="ident">MatchByteArraySet</span><span class="op">&lt;</span><span class="ident">ArraySet</span><span class="op">&gt;</span>
 {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">Input</span>, <span class="ident">dir</span>: <span class="ident">Dir</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Input::Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">Input</span>, <span class="ident">dir</span>: <span class="ident">Dir</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Input::Position</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">b</span>) <span class="op">=</span> <span class="ident">cursor::next_byte</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="ident">pos</span>) {
             <span class="self">self</span>.<span class="ident">bytes</span>.<span class="number">0</span>.<span class="ident">contains</span>(<span class="ident">b</span>)
         } <span class="kw">else</span> {
@@ -312,7 +312,7 @@
     <span class="kw">for</span> <span class="ident">MatchByteSeq</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Bytes</span><span class="op">&gt;</span>
 {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">Input</span>, <span class="ident">dir</span>: <span class="ident">Dir</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Input::Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">Input</span>, <span class="ident">dir</span>: <span class="ident">Dir</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Input::Position</span>) -&gt; <span class="ident">bool</span> {
         <span class="macro">debug_assert!</span>(
             <span class="ident">Bytes::LENGTH</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">4</span>,
             <span class="string">&quot;This looks like it could match more than one char&quot;</span>

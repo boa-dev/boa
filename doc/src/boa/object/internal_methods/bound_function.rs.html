@@ -135,7 +135,7 @@
     <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
     <span class="ident">arguments_list</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
     <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
     <span class="kw">let</span> <span class="ident">bound_function</span> <span class="op">=</span> <span class="ident">obj</span>
         .<span class="ident">as_bound_function</span>()
@@ -171,7 +171,7 @@
     <span class="ident">arguments_list</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
     <span class="ident">new_target</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
     <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
     <span class="kw">let</span> <span class="ident">bound_function</span> <span class="op">=</span> <span class="ident">object</span>
         .<span class="ident">as_bound_function</span>()
@@ -191,8 +191,8 @@
 
     <span class="comment">// 5. If SameValue(F, newTarget) is true, set newTarget to target.</span>
     <span class="kw">let</span> <span class="ident">new_target</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">new_target</span> {
-        <span class="ident">JsValue::Object</span>(<span class="ident">new_target</span>) <span class="kw">if</span> <span class="ident">JsObject::equals</span>(<span class="ident">obj</span>, <span class="ident">new_target</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">target</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">new_target</span>.<span class="ident">clone</span>(),
+        <span class="ident">JsValue::Object</span>(<span class="ident">new_target</span>) <span class="kw">if</span> <span class="ident">JsObject::equals</span>(<span class="ident">obj</span>, <span class="ident">new_target</span>) =&gt; <span class="ident">target</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
+        <span class="kw">_</span> =&gt; <span class="ident">new_target</span>.<span class="ident">clone</span>(),
     };
 
     <span class="comment">// 6. Return ? Construct(target, args, newTarget).</span>

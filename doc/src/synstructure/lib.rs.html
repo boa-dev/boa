@@ -2700,10 +2700,10 @@
 <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">BindStyle</span> {
     <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TokenStream</span>) {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">BindStyle::Move</span> <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="ident">BindStyle::MoveMut</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">quote_spanned!</span>(<span class="ident">Span::call_site</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">mut</span>).<span class="ident">to_tokens</span>(<span class="ident">tokens</span>),
-            <span class="ident">BindStyle::Ref</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">quote_spanned!</span>(<span class="ident">Span::call_site</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">ref</span>).<span class="ident">to_tokens</span>(<span class="ident">tokens</span>),
-            <span class="ident">BindStyle::RefMut</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">quote_spanned!</span>(<span class="ident">Span::call_site</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">ref</span> <span class="kw-2">mut</span>).<span class="ident">to_tokens</span>(<span class="ident">tokens</span>),
+            <span class="ident">BindStyle::Move</span> =&gt; {}
+            <span class="ident">BindStyle::MoveMut</span> =&gt; <span class="macro">quote_spanned!</span>(<span class="ident">Span::call_site</span>() =&gt; <span class="kw-2">mut</span>).<span class="ident">to_tokens</span>(<span class="ident">tokens</span>),
+            <span class="ident">BindStyle::Ref</span> =&gt; <span class="macro">quote_spanned!</span>(<span class="ident">Span::call_site</span>() =&gt; <span class="kw-2">ref</span>).<span class="ident">to_tokens</span>(<span class="ident">tokens</span>),
+            <span class="ident">BindStyle::RefMut</span> =&gt; <span class="macro">quote_spanned!</span>(<span class="ident">Span::call_site</span>() =&gt; <span class="kw-2">ref</span> <span class="kw-2">mut</span>).<span class="ident">to_tokens</span>(<span class="ident">tokens</span>),
         }
     }
 }
@@ -2711,7 +2711,7 @@
 <span class="comment">// Internal method for merging seen_generics arrays together.</span>
 <span class="kw">fn</span> <span class="ident">generics_fuse</span>(<span class="ident">res</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>, <span class="ident">new</span>: <span class="kw-2">&amp;</span>[<span class="ident">bool</span>]) {
     <span class="kw">for</span> (<span class="ident">i</span>, <span class="kw-2">&amp;</span><span class="ident">flag</span>) <span class="kw">in</span> <span class="ident">new</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-        <span class="kw">if</span> <span class="ident">i</span> <span class="op">=</span><span class="op">=</span> <span class="ident">res</span>.<span class="ident">len</span>() {
+        <span class="kw">if</span> <span class="ident">i</span> <span class="op">==</span> <span class="ident">res</span>.<span class="ident">len</span>() {
             <span class="ident">res</span>.<span class="ident">push</span>(<span class="bool-val">false</span>);
         }
         <span class="kw">if</span> <span class="ident">flag</span> {
@@ -2721,7 +2721,7 @@
 }
 
 <span class="comment">// Internal method for extracting the set of generics which have been matched.</span>
-<span class="kw">fn</span> <span class="ident">fetch_generics</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">set</span>: <span class="kw-2">&amp;</span>[<span class="ident">bool</span>], <span class="ident">generics</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Generics</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Ident</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">fetch_generics</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">set</span>: <span class="kw-2">&amp;</span>[<span class="ident">bool</span>], <span class="ident">generics</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Generics</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Ident</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tys</span> <span class="op">=</span> <span class="macro">vec!</span>[];
     <span class="kw">for</span> (<span class="kw-2">&amp;</span><span class="ident">seen</span>, <span class="ident">param</span>) <span class="kw">in</span> <span class="ident">set</span>.<span class="ident">iter</span>().<span class="ident">zip</span>(<span class="ident">generics</span>.<span class="ident">params</span>.<span class="ident">iter</span>()) {
         <span class="kw">if</span> <span class="ident">seen</span> {
@@ -2734,14 +2734,14 @@
 }
 
 <span class="comment">// Internal method for sanitizing an identifier for hygiene purposes.</span>
-<span class="kw">fn</span> <span class="ident">sanitize_ident</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ident</span> {
+<span class="kw">fn</span> <span class="ident">sanitize_ident</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">Ident</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">String::with_capacity</span>(<span class="ident">s</span>.<span class="ident">len</span>());
     <span class="kw">for</span> <span class="kw-2">mut</span> <span class="ident">c</span> <span class="kw">in</span> <span class="ident">s</span>.<span class="ident">chars</span>() {
         <span class="kw">if</span> <span class="op">!</span><span class="ident">UnicodeXID::is_xid_continue</span>(<span class="ident">c</span>) {
             <span class="ident">c</span> <span class="op">=</span> <span class="string">&#39;_&#39;</span>
         }
         <span class="comment">// Deduplicate consecutive _ characters.</span>
-        <span class="kw">if</span> <span class="ident">res</span>.<span class="ident">ends_with</span>(<span class="string">&#39;_&#39;</span>) <span class="op">&amp;&amp;</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;_&#39;</span> {
+        <span class="kw">if</span> <span class="ident">res</span>.<span class="ident">ends_with</span>(<span class="string">&#39;_&#39;</span>) <span class="op">&amp;&amp;</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;_&#39;</span> {
             <span class="kw">continue</span>;
         }
         <span class="ident">res</span>.<span class="ident">push</span>(<span class="ident">c</span>);
@@ -2750,14 +2750,14 @@
 }
 
 <span class="comment">// Internal method to merge two Generics objects together intelligently.</span>
-<span class="kw">fn</span> <span class="ident">merge_generics</span>(<span class="ident">into</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Generics</span>, <span class="ident">from</span>: <span class="kw-2">&amp;</span><span class="ident">Generics</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">merge_generics</span>(<span class="ident">into</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Generics</span>, <span class="ident">from</span>: <span class="kw-2">&amp;</span><span class="ident">Generics</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="comment">// Try to add the param into `into`, and merge parmas with identical names.</span>
     <span class="kw">for</span> <span class="ident">p</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">from</span>.<span class="ident">params</span> {
         <span class="kw">for</span> <span class="ident">op</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">into</span>.<span class="ident">params</span> {
             <span class="kw">match</span> (<span class="ident">op</span>, <span class="ident">p</span>) {
-                (<span class="ident">GenericParam::Type</span>(<span class="ident">otp</span>), <span class="ident">GenericParam::Type</span>(<span class="ident">tp</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                (<span class="ident">GenericParam::Type</span>(<span class="ident">otp</span>), <span class="ident">GenericParam::Type</span>(<span class="ident">tp</span>)) =&gt; {
                     <span class="comment">// NOTE: This is only OK because syn ignores the span for equality purposes.</span>
-                    <span class="kw">if</span> <span class="ident">otp</span>.<span class="ident">ident</span> <span class="op">=</span><span class="op">=</span> <span class="ident">tp</span>.<span class="ident">ident</span> {
+                    <span class="kw">if</span> <span class="ident">otp</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">tp</span>.<span class="ident">ident</span> {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::new_spanned</span>(
                             <span class="ident">p</span>,
                             <span class="macro">format!</span>(
@@ -2768,9 +2768,9 @@
                         ));
                     }
                 }
-                (<span class="ident">GenericParam::Lifetime</span>(<span class="ident">olp</span>), <span class="ident">GenericParam::Lifetime</span>(<span class="ident">lp</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                (<span class="ident">GenericParam::Lifetime</span>(<span class="ident">olp</span>), <span class="ident">GenericParam::Lifetime</span>(<span class="ident">lp</span>)) =&gt; {
                     <span class="comment">// NOTE: This is only OK because syn ignores the span for equality purposes.</span>
-                    <span class="kw">if</span> <span class="ident">olp</span>.<span class="ident">lifetime</span> <span class="op">=</span><span class="op">=</span> <span class="ident">lp</span>.<span class="ident">lifetime</span> {
+                    <span class="kw">if</span> <span class="ident">olp</span>.<span class="ident">lifetime</span> <span class="op">==</span> <span class="ident">lp</span>.<span class="ident">lifetime</span> {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::new_spanned</span>(
                             <span class="ident">p</span>,
                             <span class="macro">format!</span>(
@@ -2782,7 +2782,7 @@
                     }
                 }
                 <span class="comment">// We don&#39;t support merging Const parameters, because that wouldn&#39;t make much sense.</span>
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> (),
+                <span class="kw">_</span> =&gt; (),
             }
         }
         <span class="ident">into</span>.<span class="ident">params</span>.<span class="ident">push</span>(<span class="ident">p</span>.<span class="ident">clone</span>());
@@ -2801,17 +2801,17 @@
 <span class="doccomment">/// Helper method which does the same thing as rustc 1.20&#39;s</span>
 <span class="doccomment">/// `Option::get_or_insert_with`. This method is used to keep backwards</span>
 <span class="doccomment">/// compatibility with rustc 1.15.</span>
-<span class="kw">fn</span> <span class="ident">get_or_insert_with</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">opt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>
+<span class="kw">fn</span> <span class="ident">get_or_insert_with</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">opt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>
 <span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>,
+    <span class="ident">F</span>: <span class="ident">FnOnce</span>() -&gt; <span class="ident">T</span>,
 {
     <span class="kw">if</span> <span class="ident">opt</span>.<span class="ident">is_none</span>() {
         <span class="kw-2">*</span><span class="ident">opt</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">f</span>());
     }
 
     <span class="kw">match</span> <span class="ident">opt</span> {
-        <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>,
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+        <span class="prelude-val">Some</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span>,
+        <span class="prelude-val">None</span> =&gt; <span class="macro">unreachable!</span>(),
     }
 }
 
@@ -2848,7 +2848,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">BindingInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Returns a reference to the underlying `syn` AST node which this</span>
     <span class="doccomment">/// `BindingInfo` references</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ast</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Field</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ast</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Field</span> {
         <span class="self">self</span>.<span class="ident">field</span>
     }
 
@@ -2872,7 +2872,7 @@
     <span class="doccomment">///     }.to_string()</span>
     <span class="doccomment">/// );</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pat</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pat</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">TokenStream</span> {
         <span class="kw">let</span> <span class="ident">BindingInfo</span> { <span class="ident">binding</span>, <span class="ident">style</span>, .. } <span class="op">=</span> <span class="self">self</span>;
         <span class="macro">quote!</span>(#<span class="ident">style</span> #<span class="ident">binding</span>)
     }
@@ -2902,7 +2902,7 @@
     <span class="doccomment">///     &amp;[&amp;quote::format_ident!(&quot;T&quot;)]</span>
     <span class="doccomment">/// );</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">referenced_ty_params</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Ident</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">referenced_ty_params</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Ident</span><span class="op">&gt;</span> {
         <span class="ident">fetch_generics</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">seen_generics</span>, <span class="self">self</span>.<span class="ident">generics</span>)
     }
 }
@@ -2934,7 +2934,7 @@
 <span class="doccomment">/// Helper function used by the VariantInfo constructor. Walks all of the types</span>
 <span class="doccomment">/// in `field` and returns a list of the type parameters from `ty_params` which</span>
 <span class="doccomment">/// are referenced in the field.</span>
-<span class="kw">fn</span> <span class="ident">get_ty_params</span>(<span class="ident">field</span>: <span class="kw-2">&amp;</span><span class="ident">Field</span>, <span class="ident">generics</span>: <span class="kw-2">&amp;</span><span class="ident">Generics</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">get_ty_params</span>(<span class="ident">field</span>: <span class="kw-2">&amp;</span><span class="ident">Field</span>, <span class="ident">generics</span>: <span class="kw-2">&amp;</span><span class="ident">Generics</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
     <span class="comment">// Helper type. Discovers all identifiers inside of the visited type,</span>
     <span class="comment">// and calls a callback with them.</span>
     <span class="kw">struct</span> <span class="ident">BoundTypeLocator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
@@ -2948,7 +2948,7 @@
         <span class="kw">fn</span> <span class="ident">visit_ident</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="kw-2">&amp;</span><span class="ident">Ident</span>) {
             <span class="kw">for</span> (<span class="ident">idx</span>, <span class="ident">i</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">generics</span>.<span class="ident">params</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="ident">GenericParam::Type</span>(<span class="ident">tparam</span>) <span class="op">=</span> <span class="ident">i</span> {
-                    <span class="kw">if</span> <span class="ident">tparam</span>.<span class="ident">ident</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">*</span><span class="ident">id</span> {
+                    <span class="kw">if</span> <span class="ident">tparam</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="kw-2">*</span><span class="ident">id</span> {
                         <span class="self">self</span>.<span class="ident">result</span>[<span class="ident">idx</span>] <span class="op">=</span> <span class="bool-val">true</span>;
                     }
                 }
@@ -2976,13 +2976,13 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">VariantInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ast</span>: <span class="ident">VariantAst</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">prefix</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Ident</span><span class="op">&gt;</span>, <span class="ident">generics</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Generics</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ast</span>: <span class="ident">VariantAst</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">prefix</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Ident</span><span class="op">&gt;</span>, <span class="ident">generics</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Generics</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">bindings</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">ast</span>.<span class="ident">fields</span> {
-            <span class="ident">Fields::Unit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">vec!</span>[],
+            <span class="ident">Fields::Unit</span> =&gt; <span class="macro">vec!</span>[],
             <span class="ident">Fields::Unnamed</span>(<span class="ident">FieldsUnnamed</span> {
                 <span class="ident">unnamed</span>: <span class="ident">fields</span>, ..
             })
-            <span class="op">|</span> <span class="ident">Fields::Named</span>(<span class="ident">FieldsNamed</span> { <span class="ident">named</span>: <span class="ident">fields</span>, .. }) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="op">|</span> <span class="ident">Fields::Named</span>(<span class="ident">FieldsNamed</span> { <span class="ident">named</span>: <span class="ident">fields</span>, .. }) =&gt; {
                 <span class="ident">fields</span>
                     .<span class="ident">into_iter</span>()
                     .<span class="ident">enumerate</span>()
@@ -3013,23 +3013,23 @@
     }
 
     <span class="doccomment">/// Returns a slice of the bindings in this Variant.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bindings</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">BindingInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>] {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bindings</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">BindingInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>] {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">bindings</span>
     }
 
     <span class="doccomment">/// Returns a mut slice of the bindings in this Variant.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bindings_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">BindingInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>] {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bindings_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">BindingInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>] {
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">bindings</span>
     }
 
     <span class="doccomment">/// Returns a `VariantAst` object which contains references to the</span>
     <span class="doccomment">/// underlying `syn` AST node which this `Variant` was created from.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ast</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">VariantAst</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ast</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">VariantAst</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">ast</span>
     }
 
     <span class="doccomment">/// True if any bindings were omitted due to a `filter` call.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">omitted_bindings</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">omitted_bindings</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">original_length</span> <span class="op">!</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">bindings</span>.<span class="ident">len</span>()
     }
 
@@ -3053,7 +3053,7 @@
     <span class="doccomment">///     }.to_string()</span>
     <span class="doccomment">/// );</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pat</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pat</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">TokenStream</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">TokenStream::new</span>();
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">prefix</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">prefix</span> {
             <span class="ident">prefix</span>.<span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>);
@@ -3061,10 +3061,10 @@
         }
         <span class="self">self</span>.<span class="ident">ast</span>.<span class="ident">ident</span>.<span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>);
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">ast</span>.<span class="ident">fields</span> {
-            <span class="ident">Fields::Unit</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Fields::Unit</span> =&gt; {
                 <span class="macro">assert!</span>(<span class="self">self</span>.<span class="ident">bindings</span>.<span class="ident">is_empty</span>());
             }
-            <span class="ident">Fields::Unnamed</span>(..) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">token::Paren</span>(<span class="ident">Span::call_site</span>()).<span class="ident">surround</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>, <span class="op">|</span><span class="ident">t</span><span class="op">|</span> {
+            <span class="ident">Fields::Unnamed</span>(..) =&gt; <span class="ident">token::Paren</span>(<span class="ident">Span::call_site</span>()).<span class="ident">surround</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>, <span class="op">|</span><span class="ident">t</span><span class="op">|</span> {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected_index</span> <span class="op">=</span> <span class="number">0</span>;
                 <span class="kw">for</span> <span class="ident">binding</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">bindings</span> {
                     <span class="kw">while</span> <span class="ident">expected_index</span> <span class="op">&lt;</span> <span class="ident">binding</span>.<span class="ident">index</span> {
@@ -3079,7 +3079,7 @@
                     <span class="macro">quote!</span>(..).<span class="ident">to_tokens</span>(<span class="ident">t</span>);
                 }
             }),
-            <span class="ident">Fields::Named</span>(..) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">token::Brace</span>(<span class="ident">Span::call_site</span>()).<span class="ident">surround</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>, <span class="op">|</span><span class="ident">t</span><span class="op">|</span> {
+            <span class="ident">Fields::Named</span>(..) =&gt; <span class="ident">token::Brace</span>(<span class="ident">Span::call_site</span>()).<span class="ident">surround</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>, <span class="op">|</span><span class="ident">t</span><span class="op">|</span> {
                 <span class="kw">for</span> <span class="ident">binding</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">bindings</span> {
                     <span class="ident">binding</span>.<span class="ident">field</span>.<span class="ident">ident</span>.<span class="ident">to_tokens</span>(<span class="ident">t</span>);
                     <span class="macro">quote!</span>(:).<span class="ident">to_tokens</span>(<span class="ident">t</span>);
@@ -3126,9 +3126,9 @@
     <span class="doccomment">///     }.to_string()</span>
     <span class="doccomment">/// );</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">construct</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">func</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">construct</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">func</span>: <span class="ident">F</span>) -&gt; <span class="ident">TokenStream</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">Field</span>, <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">Field</span>, <span class="ident">usize</span>) -&gt; <span class="ident">T</span>,
         <span class="ident">T</span>: <span class="ident">ToTokens</span>,
     {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">TokenStream::new</span>();
@@ -3138,8 +3138,8 @@
         <span class="self">self</span>.<span class="ident">ast</span>.<span class="ident">ident</span>.<span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>);
 
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ast</span>.<span class="ident">fields</span> {
-            <span class="ident">Fields::Unit</span> <span class="op">=</span><span class="op">&gt;</span> (),
-            <span class="ident">Fields::Unnamed</span>(<span class="ident">FieldsUnnamed</span> { <span class="ident">unnamed</span>, .. }) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Fields::Unit</span> =&gt; (),
+            <span class="ident">Fields::Unnamed</span>(<span class="ident">FieldsUnnamed</span> { <span class="ident">unnamed</span>, .. }) =&gt; {
                 <span class="ident">token::Paren::default</span>().<span class="ident">surround</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>, <span class="op">|</span><span class="ident">t</span><span class="op">|</span> {
                     <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">field</span>) <span class="kw">in</span> <span class="ident">unnamed</span>.<span class="ident">into_iter</span>().<span class="ident">enumerate</span>() {
                         <span class="ident">func</span>(<span class="ident">field</span>, <span class="ident">i</span>).<span class="ident">to_tokens</span>(<span class="ident">t</span>);
@@ -3147,7 +3147,7 @@
                     }
                 })
             }
-            <span class="ident">Fields::Named</span>(<span class="ident">FieldsNamed</span> { <span class="ident">named</span>, .. }) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Fields::Named</span>(<span class="ident">FieldsNamed</span> { <span class="ident">named</span>, .. }) =&gt; {
                 <span class="ident">token::Brace::default</span>().<span class="ident">surround</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>, <span class="op">|</span><span class="ident">t</span><span class="op">|</span> {
                     <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">field</span>) <span class="kw">in</span> <span class="ident">named</span>.<span class="ident">into_iter</span>().<span class="ident">enumerate</span>() {
                         <span class="ident">field</span>.<span class="ident">ident</span>.<span class="ident">to_tokens</span>(<span class="ident">t</span>);
@@ -3189,9 +3189,9 @@
     <span class="doccomment">///     }.to_string()</span>
     <span class="doccomment">/// );</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">each</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">each</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">TokenStream</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">BindingInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">BindingInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">R</span>,
         <span class="ident">R</span>: <span class="ident">ToTokens</span>,
     {
         <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pat</span>();
@@ -3201,7 +3201,7 @@
                 <span class="ident">f</span>(<span class="ident">binding</span>).<span class="ident">to_tokens</span>(<span class="ident">body</span>);
             });
         }
-        <span class="macro">quote!</span>(#<span class="ident">pat</span> <span class="op">=</span><span class="op">&gt;</span> { #<span class="ident">body</span> })
+        <span class="macro">quote!</span>(#<span class="ident">pat</span> =&gt; { #<span class="ident">body</span> })
     }
 
     <span class="doccomment">/// Runs the passed-in function once for each bound field, passing in the</span>
@@ -3232,9 +3232,9 @@
     <span class="doccomment">///     }.to_string()</span>
     <span class="doccomment">/// );</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fold</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">I</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">init</span>: <span class="ident">I</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fold</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">I</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">init</span>: <span class="ident">I</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">TokenStream</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">TokenStream</span>, <span class="kw-2">&amp;</span><span class="ident">BindingInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">TokenStream</span>, <span class="kw-2">&amp;</span><span class="ident">BindingInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">R</span>,
         <span class="ident">I</span>: <span class="ident">ToTokens</span>,
         <span class="ident">R</span>: <span class="ident">ToTokens</span>,
     {
@@ -3243,7 +3243,7 @@
             <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">f</span>(<span class="ident">i</span>, <span class="ident">bi</span>);
             <span class="macro">quote!</span>(#<span class="ident">r</span>)
         });
-        <span class="macro">quote!</span>(#<span class="ident">pat</span> <span class="op">=</span><span class="op">&gt;</span> { #<span class="ident">body</span> })
+        <span class="macro">quote!</span>(#<span class="ident">pat</span> =&gt; { #<span class="ident">body</span> })
     }
 
     <span class="doccomment">/// Filter the bindings created by this `Variant` object. This has 2 effects:</span>
@@ -3283,9 +3283,9 @@
     <span class="doccomment">///     }.to_string()</span>
     <span class="doccomment">/// );</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">filter</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">filter</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">BindingInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">BindingInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">bool</span>,
     {
         <span class="self">self</span>.<span class="ident">bindings</span>.<span class="ident">retain</span>(<span class="ident">f</span>);
         <span class="self">self</span>
@@ -3296,7 +3296,7 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics if the index is out of range.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_binding</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">idx</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_binding</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">idx</span>: <span class="ident">usize</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">bindings</span>.<span class="ident">remove</span>(<span class="ident">idx</span>);
         <span class="self">self</span>
     }
@@ -3331,9 +3331,9 @@
     <span class="doccomment">///     }.to_string()</span>
     <span class="doccomment">/// );</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bind_with</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bind_with</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">BindingInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BindStyle</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">BindingInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">BindStyle</span>,
     {
         <span class="kw">for</span> <span class="ident">binding</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">bindings</span> {
             <span class="ident">binding</span>.<span class="ident">style</span> <span class="op">=</span> <span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="ident">binding</span>);
@@ -3377,9 +3377,9 @@
     <span class="doccomment">///     }.to_string()</span>
     <span class="doccomment">/// );</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">binding_name</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">binding_name</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">Field</span>, <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ident</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">Field</span>, <span class="ident">usize</span>) -&gt; <span class="ident">Ident</span>,
     {
         <span class="kw">for</span> (<span class="ident">it</span>, <span class="ident">binding</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">bindings</span>.<span class="ident">iter_mut</span>().<span class="ident">enumerate</span>() {
             <span class="ident">binding</span>.<span class="ident">binding</span> <span class="op">=</span> <span class="ident">f</span>(<span class="ident">binding</span>.<span class="ident">field</span>, <span class="ident">it</span>);
@@ -3412,7 +3412,7 @@
     <span class="doccomment">///     &amp;[&amp;quote::format_ident!(&quot;T&quot;)]</span>
     <span class="doccomment">/// );</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">referenced_ty_params</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Ident</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">referenced_ty_params</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Ident</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
         <span class="kw">for</span> <span class="ident">binding</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">bindings</span> {
             <span class="ident">generics_fuse</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">flags</span>, <span class="kw-2">&amp;</span><span class="ident">binding</span>.<span class="ident">seen_generics</span>);
@@ -3442,7 +3442,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This method will panic if the provided AST node represents an untagged</span>
     <span class="doccomment">/// union.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">DeriveInput</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">DeriveInput</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::try_new</span>(<span class="ident">ast</span>).<span class="ident">expect</span>(<span class="string">&quot;Unable to create synstructure::Structure&quot;</span>)
     }
 
@@ -3451,9 +3451,9 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Unlike `Structure::new`, this method does not panic if the provided AST</span>
     <span class="doccomment">/// node represents an untagged union.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_new</span>(<span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">DeriveInput</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_new</span>(<span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">DeriveInput</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">variants</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">ast</span>.<span class="ident">data</span> {
-            <span class="ident">Data::Enum</span>(<span class="ident">data</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span><span class="ident">data</span>.<span class="ident">variants</span>)
+            <span class="ident">Data::Enum</span>(<span class="ident">data</span>) =&gt; (<span class="kw-2">&amp;</span><span class="ident">data</span>.<span class="ident">variants</span>)
                 .<span class="ident">into_iter</span>()
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> {
                     <span class="ident">VariantInfo::new</span>(
@@ -3468,7 +3468,7 @@
                     )
                 })
                 .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
-            <span class="ident">Data::Struct</span>(<span class="ident">data</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Data::Struct</span>(<span class="ident">data</span>) =&gt; {
                 <span class="comment">// SAFETY NOTE: Normally putting an `Expr` in static storage</span>
                 <span class="comment">// wouldn&#39;t be safe, because it could contain `Term` objects</span>
                 <span class="comment">// which use thread-local interning. However, this static always</span>
@@ -3489,7 +3489,7 @@
                     <span class="kw-2">&amp;</span><span class="ident">ast</span>.<span class="ident">generics</span>,
                 )]
             }
-            <span class="ident">Data::Union</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Data::Union</span>(<span class="kw">_</span>) =&gt; {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::new_spanned</span>(
                     <span class="ident">ast</span>,
                     <span class="string">&quot;unexpected unsupported untagged union&quot;</span>,
@@ -3509,23 +3509,23 @@
     }
 
     <span class="doccomment">/// Returns a slice of the variants in this Structure.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">variants</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">VariantInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>] {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">variants</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">VariantInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>] {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">variants</span>
     }
 
     <span class="doccomment">/// Returns a mut slice of the variants in this Structure.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">variants_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">VariantInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>] {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">variants_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">VariantInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>] {
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">variants</span>
     }
 
     <span class="doccomment">/// Returns a reference to the underlying `syn` AST node which this</span>
     <span class="doccomment">/// `Structure` was created from.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ast</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">DeriveInput</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ast</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">DeriveInput</span> {
         <span class="self">self</span>.<span class="ident">ast</span>
     }
 
     <span class="doccomment">/// True if any variants were omitted due to a `filter_variants` call.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">omitted_variants</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">omitted_variants</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">omitted_variants</span>
     }
 
@@ -3560,9 +3560,9 @@
     <span class="doccomment">///     }.to_string()</span>
     <span class="doccomment">/// );</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">each</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">each</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">TokenStream</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">BindingInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">BindingInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">R</span>,
         <span class="ident">R</span>: <span class="ident">ToTokens</span>,
     {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">TokenStream::new</span>();
@@ -3570,7 +3570,7 @@
             <span class="ident">variant</span>.<span class="ident">each</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">f</span>).<span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>);
         }
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">omitted_variants</span> {
-            <span class="macro">quote!</span>(<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}).<span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>);
+            <span class="macro">quote!</span>(<span class="kw">_</span> =&gt; {}).<span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>);
         }
         <span class="ident">t</span>
     }
@@ -3608,9 +3608,9 @@
     <span class="doccomment">///     }.to_string()</span>
     <span class="doccomment">/// );</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fold</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">I</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">init</span>: <span class="ident">I</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fold</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">I</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">init</span>: <span class="ident">I</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">TokenStream</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">TokenStream</span>, <span class="kw-2">&amp;</span><span class="ident">BindingInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">TokenStream</span>, <span class="kw-2">&amp;</span><span class="ident">BindingInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">R</span>,
         <span class="ident">I</span>: <span class="ident">ToTokens</span>,
         <span class="ident">R</span>: <span class="ident">ToTokens</span>,
     {
@@ -3619,7 +3619,7 @@
             <span class="ident">variant</span>.<span class="ident">fold</span>(<span class="kw-2">&amp;</span><span class="ident">init</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">f</span>).<span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>);
         }
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">omitted_variants</span> {
-            <span class="macro">quote!</span>(<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> { #<span class="ident">init</span> }).<span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>);
+            <span class="macro">quote!</span>(<span class="kw">_</span> =&gt; { #<span class="ident">init</span> }).<span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>);
         }
         <span class="ident">t</span>
     }
@@ -3658,19 +3658,19 @@
     <span class="doccomment">///     }.to_string()</span>
     <span class="doccomment">/// );</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">each_variant</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">each_variant</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">TokenStream</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">VariantInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">VariantInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">R</span>,
         <span class="ident">R</span>: <span class="ident">ToTokens</span>,
     {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">TokenStream::new</span>();
         <span class="kw">for</span> <span class="ident">variant</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">variants</span> {
             <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <span class="ident">variant</span>.<span class="ident">pat</span>();
             <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">f</span>(<span class="ident">variant</span>);
-            <span class="macro">quote!</span>(#<span class="ident">pat</span> <span class="op">=</span><span class="op">&gt;</span> { #<span class="ident">body</span> }).<span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>);
+            <span class="macro">quote!</span>(#<span class="ident">pat</span> =&gt; { #<span class="ident">body</span> }).<span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>);
         }
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">omitted_variants</span> {
-            <span class="macro">quote!</span>(<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}).<span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>);
+            <span class="macro">quote!</span>(<span class="kw">_</span> =&gt; {}).<span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>);
         }
         <span class="ident">t</span>
     }
@@ -3712,9 +3712,9 @@
     <span class="doccomment">///     }.to_string()</span>
     <span class="doccomment">/// );</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">filter</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">filter</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">BindingInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">BindingInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">bool</span>,
     {
         <span class="kw">for</span> <span class="ident">variant</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">variants</span> {
             <span class="ident">variant</span>.<span class="ident">filter</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">f</span>);
@@ -3761,7 +3761,7 @@
     <span class="doccomment">///     }.to_string()</span>
     <span class="doccomment">/// );</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_where_predicate</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">pred</span>: <span class="ident">WherePredicate</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_where_predicate</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">pred</span>: <span class="ident">WherePredicate</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">extra_predicates</span>.<span class="ident">push</span>(<span class="ident">pred</span>);
         <span class="self">self</span>
     }
@@ -3805,7 +3805,7 @@
     <span class="doccomment">///     }.to_string()</span>
     <span class="doccomment">/// );</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_bounds</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">mode</span>: <span class="ident">AddBounds</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_bounds</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">mode</span>: <span class="ident">AddBounds</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">add_bounds</span> <span class="op">=</span> <span class="ident">mode</span>;
         <span class="self">self</span>
     }
@@ -3844,9 +3844,9 @@
     <span class="doccomment">///     }.to_string()</span>
     <span class="doccomment">/// );</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">filter_variants</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">filter_variants</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">VariantInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">VariantInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">bool</span>,
     {
         <span class="kw">let</span> <span class="ident">before_len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">variants</span>.<span class="ident">len</span>();
         <span class="self">self</span>.<span class="ident">variants</span>.<span class="ident">retain</span>(<span class="ident">f</span>);
@@ -3861,7 +3861,7 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics if the index is out of range.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_variant</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">idx</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_variant</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">idx</span>: <span class="ident">usize</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">variants</span>.<span class="ident">remove</span>(<span class="ident">idx</span>);
         <span class="self">self</span>.<span class="ident">omitted_variants</span> <span class="op">=</span> <span class="bool-val">true</span>;
         <span class="self">self</span>
@@ -3897,9 +3897,9 @@
     <span class="doccomment">///     }.to_string()</span>
     <span class="doccomment">/// );</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bind_with</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bind_with</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">BindingInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BindStyle</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">BindingInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">BindStyle</span>,
     {
         <span class="kw">for</span> <span class="ident">variant</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">variants</span> {
             <span class="ident">variant</span>.<span class="ident">bind_with</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">f</span>);
@@ -3943,9 +3943,9 @@
     <span class="doccomment">///     }.to_string()</span>
     <span class="doccomment">/// );</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">binding_name</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">binding_name</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">Field</span>, <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ident</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">Field</span>, <span class="ident">usize</span>) -&gt; <span class="ident">Ident</span>,
     {
         <span class="kw">for</span> <span class="ident">variant</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">variants</span> {
             <span class="ident">variant</span>.<span class="ident">binding_name</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">f</span>);
@@ -3980,7 +3980,7 @@
     <span class="doccomment">///     &amp;[&amp;quote::format_ident!(&quot;T&quot;)]</span>
     <span class="doccomment">/// );</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">referenced_ty_params</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Ident</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">referenced_ty_params</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Ident</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
         <span class="kw">for</span> <span class="ident">variant</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">variants</span> {
             <span class="kw">for</span> <span class="ident">binding</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">variant</span>.<span class="ident">bindings</span> {
@@ -4028,7 +4028,7 @@
     <span class="doccomment">///     }.to_string()</span>
     <span class="doccomment">/// );</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_impl_generic</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">param</span>: <span class="ident">GenericParam</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_impl_generic</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">param</span>: <span class="ident">GenericParam</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">extra_impl</span>.<span class="ident">push</span>(<span class="ident">param</span>);
         <span class="self">self</span>
     }
@@ -4082,7 +4082,7 @@
         <span class="kw">for</span> <span class="ident">variant</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">variants</span> {
             <span class="kw">for</span> <span class="ident">binding</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">variant</span>.<span class="ident">bindings</span> {
                 <span class="kw">match</span> <span class="ident">mode</span> {
-                    <span class="ident">AddBounds::Both</span> <span class="op">|</span> <span class="ident">AddBounds::Fields</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">AddBounds::Both</span> <span class="op">|</span> <span class="ident">AddBounds::Fields</span> =&gt; {
                         <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">seen</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">binding</span>.<span class="ident">seen_generics</span> {
                             <span class="kw">if</span> <span class="ident">seen</span> {
                                 <span class="ident">pred</span>(<span class="ident">binding</span>.<span class="ident">ast</span>().<span class="ident">ty</span>.<span class="ident">clone</span>());
@@ -4090,11 +4090,11 @@
                             }
                         }
                     }
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+                    <span class="kw">_</span> =&gt; {}
                 }
 
                 <span class="kw">match</span> <span class="ident">mode</span> {
-                    <span class="ident">AddBounds::Both</span> <span class="op">|</span> <span class="ident">AddBounds::Generics</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">AddBounds::Both</span> <span class="op">|</span> <span class="ident">AddBounds::Generics</span> =&gt; {
                         <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <span class="ident">binding</span>.<span class="ident">referenced_ty_params</span>() {
                             <span class="ident">pred</span>(<span class="ident">Type::Path</span>(<span class="ident">TypePath</span> {
                                 <span class="ident">qself</span>: <span class="prelude-val">None</span>,
@@ -4102,7 +4102,7 @@
                             }));
                         }
                     }
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+                    <span class="kw">_</span> =&gt; {}
                 }
             }
         }
@@ -4149,7 +4149,7 @@
     <span class="doccomment">///     .to_string()</span>
     <span class="doccomment">/// );</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">underscore_const</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">enabled</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">underscore_const</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">enabled</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">underscore_const</span> <span class="op">=</span> <span class="ident">enabled</span>;
         <span class="self">self</span>
     }
@@ -4215,7 +4215,7 @@
     <span class="doccomment">///     }.to_string()</span>
     <span class="doccomment">/// );</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bound_impl</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">ToTokens</span>, <span class="ident">B</span>: <span class="ident">ToTokens</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="ident">P</span>, <span class="ident">body</span>: <span class="ident">B</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bound_impl</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">ToTokens</span>, <span class="ident">B</span>: <span class="ident">ToTokens</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="ident">P</span>, <span class="ident">body</span>: <span class="ident">B</span>) -&gt; <span class="ident">TokenStream</span> {
         <span class="self">self</span>.<span class="ident">impl_internal</span>(
             <span class="ident">path</span>.<span class="ident">into_token_stream</span>(),
             <span class="ident">body</span>.<span class="ident">into_token_stream</span>(),
@@ -4285,7 +4285,7 @@
     <span class="doccomment">///     }.to_string()</span>
     <span class="doccomment">/// );</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unsafe_bound_impl</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">ToTokens</span>, <span class="ident">B</span>: <span class="ident">ToTokens</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="ident">P</span>, <span class="ident">body</span>: <span class="ident">B</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unsafe_bound_impl</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">ToTokens</span>, <span class="ident">B</span>: <span class="ident">ToTokens</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="ident">P</span>, <span class="ident">body</span>: <span class="ident">B</span>) -&gt; <span class="ident">TokenStream</span> {
         <span class="self">self</span>.<span class="ident">impl_internal</span>(
             <span class="ident">path</span>.<span class="ident">into_token_stream</span>(),
             <span class="ident">body</span>.<span class="ident">into_token_stream</span>(),
@@ -4345,7 +4345,7 @@
     <span class="doccomment">///     }.to_string()</span>
     <span class="doccomment">/// );</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unbound_impl</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">ToTokens</span>, <span class="ident">B</span>: <span class="ident">ToTokens</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="ident">P</span>, <span class="ident">body</span>: <span class="ident">B</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unbound_impl</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">ToTokens</span>, <span class="ident">B</span>: <span class="ident">ToTokens</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="ident">P</span>, <span class="ident">body</span>: <span class="ident">B</span>) -&gt; <span class="ident">TokenStream</span> {
         <span class="self">self</span>.<span class="ident">impl_internal</span>(
             <span class="ident">path</span>.<span class="ident">into_token_stream</span>(),
             <span class="ident">body</span>.<span class="ident">into_token_stream</span>(),
@@ -4406,7 +4406,7 @@
     <span class="doccomment">/// );</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">deprecated</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unsafe_unbound_impl</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">ToTokens</span>, <span class="ident">B</span>: <span class="ident">ToTokens</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="ident">P</span>, <span class="ident">body</span>: <span class="ident">B</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unsafe_unbound_impl</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">ToTokens</span>, <span class="ident">B</span>: <span class="ident">ToTokens</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="ident">P</span>, <span class="ident">body</span>: <span class="ident">B</span>) -&gt; <span class="ident">TokenStream</span> {
         <span class="self">self</span>.<span class="ident">impl_internal</span>(
             <span class="ident">path</span>.<span class="ident">into_token_stream</span>(),
             <span class="ident">body</span>.<span class="ident">into_token_stream</span>(),
@@ -4421,7 +4421,7 @@
         <span class="ident">body</span>: <span class="ident">TokenStream</span>,
         <span class="ident">safety</span>: <span class="ident">TokenStream</span>,
         <span class="ident">mode</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AddBounds</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span> {
+    ) -&gt; <span class="ident">TokenStream</span> {
         <span class="kw">let</span> <span class="ident">mode</span> <span class="op">=</span> <span class="ident">mode</span>.<span class="ident">unwrap_or</span>(<span class="self">self</span>.<span class="ident">add_bounds</span>);
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ast</span>.<span class="ident">ident</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gen_clone</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ast</span>.<span class="ident">generics</span>.<span class="ident">clone</span>();
@@ -4690,16 +4690,16 @@
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Use `add_bounds` to change which bounds are generated.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gen_impl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cfg</span>: <span class="ident">TokenStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gen_impl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cfg</span>: <span class="ident">TokenStream</span>) -&gt; <span class="ident">TokenStream</span> {
         <span class="ident">Parser::parse2</span>(
-            <span class="op">|</span><span class="ident">input</span>: <span class="ident">ParseStream</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">|</span> <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TokenStream</span><span class="op">&gt;</span> { <span class="self">self</span>.<span class="ident">gen_impl_parse</span>(<span class="ident">input</span>, <span class="bool-val">true</span>) },
+            <span class="op">|</span><span class="ident">input</span>: <span class="ident">ParseStream</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">|</span> -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TokenStream</span><span class="op">&gt;</span> { <span class="self">self</span>.<span class="ident">gen_impl_parse</span>(<span class="ident">input</span>, <span class="bool-val">true</span>) },
             <span class="ident">cfg</span>,
         )
         .<span class="ident">expect</span>(<span class="string">&quot;Failed to parse gen_impl&quot;</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">gen_impl_parse</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <span class="ident">ParseStream</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">wrap</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TokenStream</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">parse_prefix</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token!</span>[<span class="kw">unsafe</span>]<span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">gen_impl_parse</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <span class="ident">ParseStream</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">wrap</span>: <span class="ident">bool</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TokenStream</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">parse_prefix</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token!</span>[<span class="kw">unsafe</span>]<span class="op">&gt;</span><span class="op">&gt;</span> {
             <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span>()<span class="question-mark">?</span> <span class="op">!</span><span class="op">=</span> <span class="string">&quot;gen&quot;</span> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">input</span>.<span class="ident">error</span>(<span class="string">&quot;Expected keyword `gen`&quot;</span>));
             }
@@ -4847,7 +4847,7 @@
 <span class="doccomment">/// &quot;</span>
 <span class="doccomment">/// )</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unpretty_print</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">std::fmt::Display</span><span class="op">&gt;</span>(<span class="ident">ts</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unpretty_print</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">std::fmt::Display</span><span class="op">&gt;</span>(<span class="ident">ts</span>: <span class="ident">T</span>) -&gt; <span class="ident">String</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">String::new</span>();
 
     <span class="kw">let</span> <span class="ident">raw_s</span> <span class="op">=</span> <span class="ident">ts</span>.<span class="ident">to_string</span>();
@@ -4855,9 +4855,9 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">indent</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">i</span>) <span class="op">=</span> <span class="ident">s</span>.<span class="ident">find</span>(<span class="kw-2">&amp;</span>[<span class="string">&#39;(&#39;</span>, <span class="string">&#39;{&#39;</span>, <span class="string">&#39;[&#39;</span>, <span class="string">&#39;)&#39;</span>, <span class="string">&#39;}&#39;</span>, <span class="string">&#39;]&#39;</span>, <span class="string">&#39;;&#39;</span>][..]) {
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="ident">i</span>..<span class="op">=</span><span class="ident">i</span>] {
-            <span class="string">&quot;(&quot;</span> <span class="op">|</span> <span class="string">&quot;{&quot;</span> <span class="op">|</span> <span class="string">&quot;[&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">indent</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>,
-            <span class="string">&quot;)&quot;</span> <span class="op">|</span> <span class="string">&quot;}&quot;</span> <span class="op">|</span> <span class="string">&quot;]&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">indent</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="string">&quot;(&quot;</span> <span class="op">|</span> <span class="string">&quot;{&quot;</span> <span class="op">|</span> <span class="string">&quot;[&quot;</span> =&gt; <span class="ident">indent</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>,
+            <span class="string">&quot;)&quot;</span> <span class="op">|</span> <span class="string">&quot;}&quot;</span> <span class="op">|</span> <span class="string">&quot;]&quot;</span> =&gt; <span class="ident">indent</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>,
+            <span class="kw">_</span> =&gt; {}
         }
         <span class="ident">res</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>[..<span class="op">=</span><span class="ident">i</span>]);
         <span class="ident">res</span>.<span class="ident">push</span>(<span class="string">&#39;\n&#39;</span>);
@@ -4874,7 +4874,7 @@
 <span class="doccomment">/// This helper silences the warning, as we need to continue using</span>
 <span class="doccomment">/// `trim_left_matches` for rust 1.15 support.</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-<span class="kw">fn</span> <span class="ident">trim_start_matches</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">c</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+<span class="kw">fn</span> <span class="ident">trim_start_matches</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
     <span class="ident">s</span>.<span class="ident">trim_left_matches</span>(<span class="ident">c</span>)
 }
 
@@ -4882,7 +4882,7 @@
 <span class="doccomment">/// methods used by this crate&#39;s macros.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">MacroResult</span> {
     <span class="doccomment">/// Convert this result into a `Result` for further processing / validation.</span>
-    <span class="kw">fn</span> <span class="ident">into_result</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TokenStream</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">into_result</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TokenStream</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Convert this result into a `proc_macro::TokenStream`, ready to return</span>
     <span class="doccomment">/// from a native `proc_macro` implementation.</span>
@@ -4896,13 +4896,13 @@
         <span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>, <span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;unknown&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;wasi&quot;</span>))),
         <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;proc-macro&quot;</span>
     ))]</span>
-    <span class="kw">fn</span> <span class="ident">into_stream</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">proc_macro::TokenStream</span>
+    <span class="kw">fn</span> <span class="ident">into_stream</span>(<span class="self">self</span>) -&gt; <span class="ident">proc_macro::TokenStream</span>
     <span class="kw">where</span>
         <span class="self">Self</span>: <span class="ident">Sized</span>,
     {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">into_result</span>() {
-            <span class="prelude-val">Ok</span>(<span class="ident">ts</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ts</span>.<span class="ident">into</span>(),
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">err</span>.<span class="ident">to_compile_error</span>().<span class="ident">into</span>(),
+            <span class="prelude-val">Ok</span>(<span class="ident">ts</span>) =&gt; <span class="ident">ts</span>.<span class="ident">into</span>(),
+            <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="ident">err</span>.<span class="ident">to_compile_error</span>().<span class="ident">into</span>(),
         }
     }
 }
@@ -4912,26 +4912,26 @@
     <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;proc-macro&quot;</span>
 ))]</span>
 <span class="kw">impl</span> <span class="ident">MacroResult</span> <span class="kw">for</span> <span class="ident">proc_macro::TokenStream</span> {
-    <span class="kw">fn</span> <span class="ident">into_result</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TokenStream</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">into_result</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TokenStream</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">into</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">into_stream</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">proc_macro::TokenStream</span> {
+    <span class="kw">fn</span> <span class="ident">into_stream</span>(<span class="self">self</span>) -&gt; <span class="ident">proc_macro::TokenStream</span> {
         <span class="self">self</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">MacroResult</span> <span class="kw">for</span> <span class="ident">TokenStream</span> {
-    <span class="kw">fn</span> <span class="ident">into_result</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TokenStream</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">into_result</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TokenStream</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="self">self</span>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">MacroResult</span><span class="op">&gt;</span> <span class="ident">MacroResult</span> <span class="kw">for</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">into_result</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TokenStream</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">into_result</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TokenStream</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>.<span class="ident">into_result</span>(),
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>),
+            <span class="prelude-val">Ok</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span>.<span class="ident">into_result</span>(),
+            <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">err</span>),
         }
     }
 }
@@ -4953,15 +4953,15 @@
         };
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">Structure::new</span>(<span class="kw-2">&amp;</span><span class="ident">di</span>);
 
-        <span class="ident">s</span>.<span class="ident">filter</span>(<span class="op">|</span><span class="ident">bi</span><span class="op">|</span> <span class="ident">bi</span>.<span class="ident">ast</span>().<span class="ident">ty</span>.<span class="ident">to_token_stream</span>().<span class="ident">to_string</span>() <span class="op">=</span><span class="op">=</span> <span class="string">&quot;bool&quot;</span>);
+        <span class="ident">s</span>.<span class="ident">filter</span>(<span class="op">|</span><span class="ident">bi</span><span class="op">|</span> <span class="ident">bi</span>.<span class="ident">ast</span>().<span class="ident">ty</span>.<span class="ident">to_token_stream</span>().<span class="ident">to_string</span>() <span class="op">==</span> <span class="string">&quot;bool&quot;</span>);
 
         <span class="macro">assert_eq!</span>(
             <span class="ident">s</span>.<span class="ident">each</span>(<span class="op">|</span><span class="ident">bi</span><span class="op">|</span> <span class="macro">quote!</span>(<span class="ident">do_something</span>(#<span class="ident">bi</span>))).<span class="ident">to_string</span>(),
             <span class="macro">quote!</span> {
-                <span class="ident">A::Foo</span>(<span class="kw">_</span>, <span class="kw-2">ref</span> <span class="ident">__binding_1</span>,) <span class="op">=</span><span class="op">&gt;</span> { { <span class="ident">do_something</span>(<span class="ident">__binding_1</span>) } }
-                <span class="ident">A::Bar</span>(<span class="kw-2">ref</span> <span class="ident">__binding_0</span>, ..) <span class="op">=</span><span class="op">&gt;</span> { { <span class="ident">do_something</span>(<span class="ident">__binding_0</span>) } }
-                <span class="ident">A::Baz</span>(<span class="kw">_</span>, <span class="kw-2">ref</span> <span class="ident">__binding_1</span>, ..) <span class="op">=</span><span class="op">&gt;</span> { { <span class="ident">do_something</span>(<span class="ident">__binding_1</span>) } }
-                <span class="ident">A::Quux</span>(<span class="kw-2">ref</span> <span class="ident">__binding_0</span>, <span class="kw">_</span>, <span class="kw-2">ref</span> <span class="ident">__binding_2</span>,) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">A::Foo</span>(<span class="kw">_</span>, <span class="kw-2">ref</span> <span class="ident">__binding_1</span>,) =&gt; { { <span class="ident">do_something</span>(<span class="ident">__binding_1</span>) } }
+                <span class="ident">A::Bar</span>(<span class="kw-2">ref</span> <span class="ident">__binding_0</span>, ..) =&gt; { { <span class="ident">do_something</span>(<span class="ident">__binding_0</span>) } }
+                <span class="ident">A::Baz</span>(<span class="kw">_</span>, <span class="kw-2">ref</span> <span class="ident">__binding_1</span>, ..) =&gt; { { <span class="ident">do_something</span>(<span class="ident">__binding_1</span>) } }
+                <span class="ident">A::Quux</span>(<span class="kw-2">ref</span> <span class="ident">__binding_0</span>, <span class="kw">_</span>, <span class="kw-2">ref</span> <span class="ident">__binding_2</span>,) =&gt; {
                     {
                         <span class="ident">do_something</span>(<span class="ident">__binding_0</span>)
                     }

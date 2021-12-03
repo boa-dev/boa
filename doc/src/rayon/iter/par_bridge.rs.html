@@ -262,14 +262,14 @@
 <span class="doccomment">/// ```</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ParallelBridge</span>: <span class="ident">Sized</span> {
     <span class="doccomment">/// Creates a bridge from this type to a `ParallelIterator`.</span>
-    <span class="kw">fn</span> <span class="ident">par_bridge</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IterBridge</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">par_bridge</span>(<span class="self">self</span>) -&gt; <span class="ident">IterBridge</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Iterator</span> <span class="op">+</span> <span class="ident">Send</span><span class="op">&gt;</span> <span class="ident">ParallelBridge</span> <span class="kw">for</span> <span class="ident">T</span>
 <span class="kw">where</span>
     <span class="ident">T::Item</span>: <span class="ident">Send</span>,
 {
-    <span class="kw">fn</span> <span class="ident">par_bridge</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IterBridge</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">par_bridge</span>(<span class="self">self</span>) -&gt; <span class="ident">IterBridge</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="ident">IterBridge</span> { <span class="ident">iter</span>: <span class="self">self</span> }
     }
 }
@@ -291,7 +291,7 @@
 {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">Iter::Item</span>;
 
-    <span class="kw">fn</span> <span class="ident">drive_unindexed</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">C::Result</span>
+    <span class="kw">fn</span> <span class="ident">drive_unindexed</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) -&gt; <span class="ident">C::Result</span>
     <span class="kw">where</span>
         <span class="ident">C</span>: <span class="ident">UnindexedConsumer</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
@@ -322,7 +322,7 @@
 
 <span class="comment">// manual clone because T doesn&#39;t need to be Clone, but the derive assumes it should be</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Iter</span>: <span class="ident">Iterator</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">IterParallelProducer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Iter</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">IterParallelProducer</span> {
             <span class="ident">split_count</span>: <span class="self">self</span>.<span class="ident">split_count</span>,
             <span class="ident">done</span>: <span class="self">self</span>.<span class="ident">done</span>,
@@ -338,7 +338,7 @@
 {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">Iter::Item</span>;
 
-    <span class="kw">fn</span> <span class="ident">split</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="self">Self</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) {
+    <span class="kw">fn</span> <span class="ident">split</span>(<span class="self">self</span>) -&gt; (<span class="self">Self</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">count</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">split_count</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>);
 
         <span class="kw">loop</span> {
@@ -346,37 +346,37 @@
             <span class="kw">let</span> <span class="ident">done</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">done</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>) <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">items</span>.<span class="ident">is_empty</span>();
 
             <span class="kw">match</span> <span class="ident">count</span>.<span class="ident">checked_sub</span>(<span class="number">1</span>) {
-                <span class="prelude-val">Some</span>(<span class="ident">new_count</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">done</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">new_count</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">done</span> =&gt; {
                     <span class="kw">match</span> <span class="self">self</span>.<span class="ident">split_count</span>.<span class="ident">compare_exchange_weak</span>(
                         <span class="ident">count</span>,
                         <span class="ident">new_count</span>,
                         <span class="ident">Ordering::SeqCst</span>,
                         <span class="ident">Ordering::SeqCst</span>,
                     ) {
-                        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> (<span class="self">self</span>.<span class="ident">clone</span>(), <span class="prelude-val">Some</span>(<span class="self">self</span>)),
-                        <span class="prelude-val">Err</span>(<span class="ident">last_count</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">count</span> <span class="op">=</span> <span class="ident">last_count</span>,
+                        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> (<span class="self">self</span>.<span class="ident">clone</span>(), <span class="prelude-val">Some</span>(<span class="self">self</span>)),
+                        <span class="prelude-val">Err</span>(<span class="ident">last_count</span>) =&gt; <span class="ident">count</span> <span class="op">=</span> <span class="ident">last_count</span>,
                     }
                 }
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">_</span> =&gt; {
                     <span class="kw">return</span> (<span class="self">self</span>, <span class="prelude-val">None</span>);
                 }
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">fold_with</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">folder</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">F</span>
+    <span class="kw">fn</span> <span class="ident">fold_with</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">folder</span>: <span class="ident">F</span>) -&gt; <span class="ident">F</span>
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">Folder</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
         <span class="kw">loop</span> {
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">items</span>.<span class="ident">steal</span>() {
-                <span class="ident">Steal::Success</span>(<span class="ident">it</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Steal::Success</span>(<span class="ident">it</span>) =&gt; {
                     <span class="ident">folder</span> <span class="op">=</span> <span class="ident">folder</span>.<span class="ident">consume</span>(<span class="ident">it</span>);
                     <span class="kw">if</span> <span class="ident">folder</span>.<span class="ident">full</span>() {
                         <span class="kw">return</span> <span class="ident">folder</span>;
                     }
                 }
-                <span class="ident">Steal::Empty</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Steal::Empty</span> =&gt; {
                     <span class="comment">// Don&#39;t storm the mutex if we&#39;re already done.</span>
                     <span class="kw">if</span> <span class="self">self</span>.<span class="ident">done</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>) {
                         <span class="comment">// Someone might have pushed more between our `steal()` and `done.load()`</span>
@@ -387,7 +387,7 @@
                     } <span class="kw">else</span> {
                         <span class="comment">// our cache is out of items, time to load more from the iterator</span>
                         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">try_lock</span>() {
-                            <span class="prelude-val">Ok</span>(<span class="kw-2">mut</span> <span class="ident">guard</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="prelude-val">Ok</span>(<span class="kw-2">mut</span> <span class="ident">guard</span>) =&gt; {
                                 <span class="comment">// Check `done` again in case we raced with the previous lock</span>
                                 <span class="comment">// holder on its way out.</span>
                                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">done</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>) {
@@ -415,11 +415,11 @@
                                     }
                                 }
                             }
-                            <span class="prelude-val">Err</span>(<span class="ident">TryLockError::WouldBlock</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="prelude-val">Err</span>(<span class="ident">TryLockError::WouldBlock</span>) =&gt; {
                                 <span class="comment">// someone else has the mutex, just sit tight until it&#39;s ready</span>
                                 <span class="ident">yield_now</span>(); <span class="comment">//TODO: use a thread-pool-aware yield? (#548)</span>
                             }
-                            <span class="prelude-val">Err</span>(<span class="ident">TryLockError::Poisoned</span>(<span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="prelude-val">Err</span>(<span class="ident">TryLockError::Poisoned</span>(<span class="kw">_</span>)) =&gt; {
                                 <span class="comment">// any panics from other threads will have been caught by the pool,</span>
                                 <span class="comment">// and will be re-thrown when joined - just exit</span>
                                 <span class="kw">return</span> <span class="ident">folder</span>;
@@ -427,7 +427,7 @@
                         }
                     }
                 }
-                <span class="ident">Steal::Retry</span> <span class="op">=</span><span class="op">&gt;</span> (),
+                <span class="ident">Steal::Retry</span> =&gt; (),
             }
         }
     }

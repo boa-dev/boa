@@ -127,31 +127,31 @@
 <span class="doccomment">/// [uax31]: http://unicode.org/reports/tr31</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">UnicodeProperties</span>: <span class="ident">Sized</span> <span class="op">+</span> <span class="ident">Copy</span> {
     <span class="doccomment">/// Returns `true` if this value is a member of &quot;ID_Start&quot;.</span>
-    <span class="kw">fn</span> <span class="ident">is_id_start</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">is_id_start</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span>;
 
     <span class="doccomment">/// Returns `true` if this value is a member of &quot;ID_Continue&quot;.</span>
-    <span class="kw">fn</span> <span class="ident">is_id_continue</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">is_id_continue</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span>;
 
     <span class="doccomment">/// Returns `true` if this value is a member of &quot;Other_ID_Start&quot;.</span>
-    <span class="kw">fn</span> <span class="ident">is_other_id_start</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">is_other_id_start</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span>;
 
     <span class="doccomment">/// Returns `true` if this value is a member of &quot;Other_ID_Continue&quot;.</span>
-    <span class="kw">fn</span> <span class="ident">is_other_id_continue</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">is_other_id_continue</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span>;
 
     <span class="doccomment">/// Returns `true` if this value is a member of &quot;Pattern_Syntax&quot;.</span>
-    <span class="kw">fn</span> <span class="ident">is_pattern_syntax</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">is_pattern_syntax</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span>;
 
     <span class="doccomment">/// Returns `true` if this value is a member of &quot;Pattern_White_Space&quot;.</span>
-    <span class="kw">fn</span> <span class="ident">is_pattern_whitespace</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">is_pattern_whitespace</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span>;
 }
 
-<span class="kw">fn</span> <span class="ident">table_binary_search</span>(<span class="ident">target</span>: <span class="ident">char</span>, <span class="ident">table</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">char</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">fn</span> <span class="ident">table_binary_search</span>(<span class="ident">target</span>: <span class="ident">char</span>, <span class="ident">table</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">char</span>]) -&gt; <span class="ident">bool</span> {
     <span class="ident">table</span>.<span class="ident">binary_search</span>(<span class="kw-2">&amp;</span><span class="ident">target</span>).<span class="ident">is_ok</span>()
 }
 
 <span class="kw">impl</span> <span class="ident">UnicodeProperties</span> <span class="kw">for</span> <span class="ident">char</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_id_start</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">is_id_start</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="op">!</span><span class="self">self</span>.<span class="ident">is_pattern_syntax</span>()
             <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_pattern_whitespace</span>()
             <span class="op">&amp;&amp;</span> (<span class="self">self</span>.<span class="ident">is_other_id_start</span>()
@@ -167,7 +167,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_id_continue</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">is_id_continue</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="op">!</span><span class="self">self</span>.<span class="ident">is_pattern_syntax</span>()
             <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_pattern_whitespace</span>()
             <span class="op">&amp;&amp;</span> (<span class="self">self</span>.<span class="ident">is_id_start</span>()
@@ -182,19 +182,19 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_other_id_start</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">is_other_id_start</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="ident">table_binary_search</span>(<span class="self">self</span>, <span class="ident">tables::OTHER_ID_START</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_other_id_continue</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">is_other_id_continue</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="ident">table_binary_search</span>(<span class="self">self</span>, <span class="ident">tables::OTHER_ID_CONTINUE</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_pattern_syntax</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">is_pattern_syntax</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="ident">table_binary_search</span>(<span class="self">self</span>, <span class="ident">tables::PATTERN_SYNTAX</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_pattern_whitespace</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">is_pattern_whitespace</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="ident">table_binary_search</span>(<span class="self">self</span>, <span class="ident">tables::PATTERN_WHITE_SPACE</span>)
     }
 }

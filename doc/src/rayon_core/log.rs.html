@@ -534,15 +534,15 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Logger</span> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">num_workers</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Logger</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">num_workers</span>: <span class="ident">usize</span>) -&gt; <span class="ident">Logger</span> {
         <span class="kw">if</span> <span class="op">!</span><span class="ident">LOG_ENABLED</span> {
             <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::disabled</span>();
         }
 
         <span class="comment">// see the doc comment for the format</span>
         <span class="kw">let</span> <span class="ident">env_log</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">env::var</span>(<span class="string">&quot;RAYON_LOG&quot;</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>,
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::disabled</span>(),
+            <span class="prelude-val">Ok</span>(<span class="ident">s</span>) =&gt; <span class="ident">s</span>,
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::disabled</span>(),
         };
 
         <span class="kw">let</span> (<span class="ident">sender</span>, <span class="ident">receiver</span>) <span class="op">=</span> <span class="ident">crossbeam_channel::unbounded</span>();
@@ -552,7 +552,7 @@
             <span class="ident">::std::thread::spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
                 <span class="ident"><span class="self">Self</span>::tail_logger_thread</span>(<span class="ident">num_workers</span>, <span class="ident">filename</span>, <span class="number">10_000</span>, <span class="ident">receiver</span>)
             });
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">env_log</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;all&quot;</span> {
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">env_log</span> <span class="op">==</span> <span class="string">&quot;all&quot;</span> {
             <span class="ident">::std::thread::spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident"><span class="self">Self</span>::all_logger_thread</span>(<span class="ident">num_workers</span>, <span class="ident">receiver</span>));
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">env_log</span>.<span class="ident">starts_with</span>(<span class="string">&quot;profile:&quot;</span>) {
             <span class="kw">let</span> <span class="ident">filename</span> <span class="op">=</span> <span class="ident">env_log</span>[<span class="string">&quot;profile:&quot;</span>.<span class="ident">len</span>()..].<span class="ident">to_string</span>();
@@ -568,12 +568,12 @@
         };
     }
 
-    <span class="kw">fn</span> <span class="ident">disabled</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Logger</span> {
+    <span class="kw">fn</span> <span class="ident">disabled</span>() -&gt; <span class="ident">Logger</span> {
         <span class="ident">Logger</span> { <span class="ident">sender</span>: <span class="prelude-val">None</span> }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">log</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">event</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Event</span>) {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">log</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">event</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>() -&gt; <span class="ident">Event</span>) {
         <span class="kw">if</span> <span class="op">!</span><span class="ident">LOG_ENABLED</span> {
             <span class="kw">return</span>;
         }
@@ -600,7 +600,7 @@
         <span class="kw">loop</span> {
             <span class="kw">loop</span> {
                 <span class="kw">match</span> <span class="ident">receiver</span>.<span class="ident">recv_timeout</span>(<span class="ident">timeout</span>) {
-                    <span class="prelude-val">Ok</span>(<span class="ident">event</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Ok</span>(<span class="ident">event</span>) =&gt; {
                         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Event::Flush</span> <span class="op">=</span> <span class="ident">event</span> {
                             <span class="kw">break</span>;
                         } <span class="kw">else</span> {
@@ -608,10 +608,10 @@
                         }
                     }
 
-                    <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
+                    <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">break</span>,
                 }
 
-                <span class="kw">if</span> <span class="ident">events</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">capacity</span> {
+                <span class="kw">if</span> <span class="ident">events</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="ident">capacity</span> {
                     <span class="kw">break</span>;
                 }
             }
@@ -644,14 +644,14 @@
         <span class="kw">loop</span> {
             <span class="kw">loop</span> {
                 <span class="kw">match</span> <span class="ident">receiver</span>.<span class="ident">recv_timeout</span>(<span class="ident">timeout</span>) {
-                    <span class="prelude-val">Ok</span>(<span class="ident">event</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Ok</span>(<span class="ident">event</span>) =&gt; {
                         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Event::Flush</span> <span class="op">=</span> <span class="ident">event</span> {
                             <span class="comment">// We ignore Flush events in tail mode --</span>
                             <span class="comment">// we&#39;re really just looking for</span>
                             <span class="comment">// deadlocks.</span>
                             <span class="kw">continue</span>;
                         } <span class="kw">else</span> {
-                            <span class="kw">if</span> <span class="ident">events</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">capacity</span> {
+                            <span class="kw">if</span> <span class="ident">events</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="ident">capacity</span> {
                                 <span class="kw">let</span> <span class="ident">event</span> <span class="op">=</span> <span class="ident">events</span>.<span class="ident">pop_front</span>().<span class="ident">unwrap</span>();
                                 <span class="ident">state</span>.<span class="ident">simulate</span>(<span class="kw-2">&amp;</span><span class="ident">event</span>);
                                 <span class="ident">skipped</span> <span class="op">=</span> <span class="bool-val">true</span>;
@@ -661,7 +661,7 @@
                         }
                     }
 
-                    <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
+                    <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">break</span>,
                 }
             }
 
@@ -704,13 +704,13 @@
 }
 
 <span class="kw">impl</span> <span class="ident">State</span> {
-    <span class="kw">fn</span> <span class="ident">letter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">char</span> {
+    <span class="kw">fn</span> <span class="ident">letter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">char</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">State::Working</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&#39;W&#39;</span>,
-            <span class="ident">State::Idle</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&#39;I&#39;</span>,
-            <span class="ident">State::Notified</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&#39;N&#39;</span>,
-            <span class="ident">State::Sleeping</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&#39;S&#39;</span>,
-            <span class="ident">State::Terminated</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&#39;T&#39;</span>,
+            <span class="ident">State::Working</span> =&gt; <span class="string">&#39;W&#39;</span>,
+            <span class="ident">State::Idle</span> =&gt; <span class="string">&#39;I&#39;</span>,
+            <span class="ident">State::Notified</span> =&gt; <span class="string">&#39;N&#39;</span>,
+            <span class="ident">State::Sleeping</span> =&gt; <span class="string">&#39;S&#39;</span>,
+            <span class="ident">State::Terminated</span> =&gt; <span class="string">&#39;T&#39;</span>,
         }
     }
 }
@@ -722,7 +722,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">SimulatorState</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">num_workers</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">num_workers</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">local_queue_size</span>: (<span class="number">0</span>..<span class="ident">num_workers</span>).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="number">0</span>).<span class="ident">collect</span>(),
             <span class="ident">thread_states</span>: (<span class="number">0</span>..<span class="ident">num_workers</span>).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">State::Working</span>).<span class="ident">collect</span>(),
@@ -730,62 +730,62 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">simulate</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">event</span>: <span class="kw-2">&amp;</span><span class="ident">Event</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">simulate</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">event</span>: <span class="kw-2">&amp;</span><span class="ident">Event</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">event</span> {
-            <span class="ident">Event::ThreadIdle</span> { <span class="ident">worker</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Event::ThreadIdle</span> { <span class="ident">worker</span>, .. } =&gt; {
                 <span class="macro">assert_eq!</span>(<span class="self">self</span>.<span class="ident">thread_states</span>[<span class="ident">worker</span>], <span class="ident">State::Working</span>);
                 <span class="self">self</span>.<span class="ident">thread_states</span>[<span class="ident">worker</span>] <span class="op">=</span> <span class="ident">State::Idle</span>;
                 <span class="bool-val">true</span>
             }
 
-            <span class="ident">Event::ThreadStart</span> { <span class="ident">worker</span>, .. } <span class="op">|</span> <span class="ident">Event::ThreadFoundWork</span> { <span class="ident">worker</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Event::ThreadStart</span> { <span class="ident">worker</span>, .. } <span class="op">|</span> <span class="ident">Event::ThreadFoundWork</span> { <span class="ident">worker</span>, .. } =&gt; {
                 <span class="self">self</span>.<span class="ident">thread_states</span>[<span class="ident">worker</span>] <span class="op">=</span> <span class="ident">State::Working</span>;
                 <span class="bool-val">true</span>
             }
 
-            <span class="ident">Event::ThreadTerminate</span> { <span class="ident">worker</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Event::ThreadTerminate</span> { <span class="ident">worker</span>, .. } =&gt; {
                 <span class="self">self</span>.<span class="ident">thread_states</span>[<span class="ident">worker</span>] <span class="op">=</span> <span class="ident">State::Terminated</span>;
                 <span class="bool-val">true</span>
             }
 
-            <span class="ident">Event::ThreadSleeping</span> { <span class="ident">worker</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Event::ThreadSleeping</span> { <span class="ident">worker</span>, .. } =&gt; {
                 <span class="macro">assert_eq!</span>(<span class="self">self</span>.<span class="ident">thread_states</span>[<span class="ident">worker</span>], <span class="ident">State::Idle</span>);
                 <span class="self">self</span>.<span class="ident">thread_states</span>[<span class="ident">worker</span>] <span class="op">=</span> <span class="ident">State::Sleeping</span>;
                 <span class="bool-val">true</span>
             }
 
-            <span class="ident">Event::ThreadAwoken</span> { <span class="ident">worker</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Event::ThreadAwoken</span> { <span class="ident">worker</span>, .. } =&gt; {
                 <span class="macro">assert_eq!</span>(<span class="self">self</span>.<span class="ident">thread_states</span>[<span class="ident">worker</span>], <span class="ident">State::Notified</span>);
                 <span class="self">self</span>.<span class="ident">thread_states</span>[<span class="ident">worker</span>] <span class="op">=</span> <span class="ident">State::Idle</span>;
                 <span class="bool-val">true</span>
             }
 
-            <span class="ident">Event::JobPushed</span> { <span class="ident">worker</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Event::JobPushed</span> { <span class="ident">worker</span> } =&gt; {
                 <span class="self">self</span>.<span class="ident">local_queue_size</span>[<span class="ident">worker</span>] <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 <span class="bool-val">true</span>
             }
 
-            <span class="ident">Event::JobPopped</span> { <span class="ident">worker</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Event::JobPopped</span> { <span class="ident">worker</span> } =&gt; {
                 <span class="self">self</span>.<span class="ident">local_queue_size</span>[<span class="ident">worker</span>] <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
                 <span class="bool-val">true</span>
             }
 
-            <span class="ident">Event::JobStolen</span> { <span class="ident">victim</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Event::JobStolen</span> { <span class="ident">victim</span>, .. } =&gt; {
                 <span class="self">self</span>.<span class="ident">local_queue_size</span>[<span class="ident">victim</span>] <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
                 <span class="bool-val">true</span>
             }
 
-            <span class="ident">Event::JobsInjected</span> { <span class="ident">count</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Event::JobsInjected</span> { <span class="ident">count</span> } =&gt; {
                 <span class="self">self</span>.<span class="ident">injector_size</span> <span class="op">+</span><span class="op">=</span> <span class="ident">count</span>;
                 <span class="bool-val">true</span>
             }
 
-            <span class="ident">Event::JobUninjected</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Event::JobUninjected</span> { .. } =&gt; {
                 <span class="self">self</span>.<span class="ident">injector_size</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
                 <span class="bool-val">true</span>
             }
 
-            <span class="ident">Event::ThreadNotify</span> { <span class="ident">worker</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Event::ThreadNotify</span> { <span class="ident">worker</span> } =&gt; {
                 <span class="comment">// Currently, this log event occurs while holding the</span>
                 <span class="comment">// thread lock, so we should *always* see it before</span>
                 <span class="comment">// the worker awakens.</span>
@@ -796,27 +796,27 @@
 
             <span class="comment">// remaining events are no-ops from pov of simulating the</span>
             <span class="comment">// thread state</span>
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">dump</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">w</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">impl</span> <span class="ident">Write</span>, <span class="ident">event</span>: <span class="kw-2">&amp;</span><span class="ident">Event</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">dump</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">w</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">impl</span> <span class="ident">Write</span>, <span class="ident">event</span>: <span class="kw-2">&amp;</span><span class="ident">Event</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">num_idle_threads</span> <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">thread_states</span>
             .<span class="ident">iter</span>()
-            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">s</span> <span class="op">=</span><span class="op">=</span> <span class="ident">State::Idle</span>)
+            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">s</span> <span class="op">==</span> <span class="ident">State::Idle</span>)
             .<span class="ident">count</span>();
 
         <span class="kw">let</span> <span class="ident">num_sleeping_threads</span> <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">thread_states</span>
             .<span class="ident">iter</span>()
-            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">s</span> <span class="op">=</span><span class="op">=</span> <span class="ident">State::Sleeping</span>)
+            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">s</span> <span class="op">==</span> <span class="ident">State::Sleeping</span>)
             .<span class="ident">count</span>();
 
         <span class="kw">let</span> <span class="ident">num_notified_threads</span> <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">thread_states</span>
             .<span class="ident">iter</span>()
-            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">s</span> <span class="op">=</span><span class="op">=</span> <span class="ident">State::Notified</span>)
+            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">s</span> <span class="op">==</span> <span class="ident">State::Notified</span>)
             .<span class="ident">count</span>();
 
         <span class="kw">let</span> <span class="ident">num_pending_jobs</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">local_queue_size</span>.<span class="ident">iter</span>().<span class="ident">sum</span>();

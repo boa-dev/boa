@@ -547,26 +547,26 @@
 
     <span class="doccomment">/// All implementors of `Visitor` must provide a `finish` method, which</span>
     <span class="doccomment">/// yields the result of visiting the AST or an error.</span>
-    <span class="kw">fn</span> <span class="ident">finish</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">finish</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// This method is called before beginning traversal of the AST.</span>
     <span class="kw">fn</span> <span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {}
 
     <span class="doccomment">/// This method is called on an `Ast` before descending into child `Ast`</span>
     <span class="doccomment">/// nodes.</span>
-    <span class="kw">fn</span> <span class="ident">visit_pre</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">_ast</span>: <span class="kw-2">&amp;</span><span class="ident">Ast</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">visit_pre</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">_ast</span>: <span class="kw-2">&amp;</span><span class="ident">Ast</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// This method is called on an `Ast` after descending all of its child</span>
     <span class="doccomment">/// `Ast` nodes.</span>
-    <span class="kw">fn</span> <span class="ident">visit_post</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">_ast</span>: <span class="kw-2">&amp;</span><span class="ident">Ast</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">visit_post</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">_ast</span>: <span class="kw-2">&amp;</span><span class="ident">Ast</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// This method is called between child nodes of an</span>
     <span class="doccomment">/// [`Alternation`](struct.Alternation.html).</span>
-    <span class="kw">fn</span> <span class="ident">visit_alternation_in</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">visit_alternation_in</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -576,7 +576,7 @@
     <span class="kw">fn</span> <span class="ident">visit_class_set_item_pre</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">_ast</span>: <span class="kw-2">&amp;</span><span class="ident">ast::ClassSetItem</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -586,7 +586,7 @@
     <span class="kw">fn</span> <span class="ident">visit_class_set_item_post</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">_ast</span>: <span class="kw-2">&amp;</span><span class="ident">ast::ClassSetItem</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -596,7 +596,7 @@
     <span class="kw">fn</span> <span class="ident">visit_class_set_binary_op_pre</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">_ast</span>: <span class="kw-2">&amp;</span><span class="ident">ast::ClassSetBinaryOp</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -606,7 +606,7 @@
     <span class="kw">fn</span> <span class="ident">visit_class_set_binary_op_post</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">_ast</span>: <span class="kw-2">&amp;</span><span class="ident">ast::ClassSetBinaryOp</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -615,7 +615,7 @@
     <span class="kw">fn</span> <span class="ident">visit_class_set_binary_op_in</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">_ast</span>: <span class="kw-2">&amp;</span><span class="ident">ast::ClassSetBinaryOp</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(())
     }
 }
@@ -635,7 +635,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// If the visitor returns an error at any point, then visiting is stopped and</span>
 <span class="doccomment">/// the error is returned.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visit</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&gt;</span>(<span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="ident">Ast</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Output</span>, <span class="ident">V::Err</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visit</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&gt;</span>(<span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="ident">Ast</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Output</span>, <span class="ident">V::Err</span><span class="op">&gt;</span> {
     <span class="ident">HeapVisitor::new</span>().<span class="ident">visit</span>(<span class="ident">ast</span>, <span class="ident">visitor</span>)
 }
 
@@ -718,7 +718,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">HeapVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">HeapVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">HeapVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="ident">HeapVisitor</span> { <span class="ident">stack</span>: <span class="macro">vec!</span>[], <span class="ident">stack_class</span>: <span class="macro">vec!</span>[] }
     }
 
@@ -726,7 +726,7 @@
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="kw-2">mut</span> <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Ast</span>,
         <span class="kw-2">mut</span> <span class="ident">visitor</span>: <span class="ident">V</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Output</span>, <span class="ident">V::Err</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Output</span>, <span class="ident">V::Err</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">stack</span>.<span class="ident">clear</span>();
         <span class="self">self</span>.<span class="ident">stack_class</span>.<span class="ident">clear</span>();
 
@@ -747,8 +747,8 @@
             <span class="comment">// either empty or we hit another inductive case.</span>
             <span class="kw">loop</span> {
                 <span class="kw">let</span> (<span class="ident">post_ast</span>, <span class="ident">frame</span>) <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">stack</span>.<span class="ident">pop</span>() {
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">visitor</span>.<span class="ident">finish</span>(),
-                    <span class="prelude-val">Some</span>((<span class="ident">post_ast</span>, <span class="ident">frame</span>)) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">post_ast</span>, <span class="ident">frame</span>),
+                    <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="ident">visitor</span>.<span class="ident">finish</span>(),
+                    <span class="prelude-val">Some</span>((<span class="ident">post_ast</span>, <span class="ident">frame</span>)) =&gt; (<span class="ident">post_ast</span>, <span class="ident">frame</span>),
                 };
                 <span class="comment">// If this is a concat/alternate, then we might have additional</span>
                 <span class="comment">// inductive steps to process.</span>
@@ -776,41 +776,41 @@
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Ast</span>,
         <span class="ident">visitor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">V</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">V::Err</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">V::Err</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="kw-2">*</span><span class="ident">ast</span> {
-            <span class="ident">Ast::Class</span>(<span class="ident">ast::Class::Bracketed</span>(<span class="kw-2">ref</span> <span class="ident">x</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Ast::Class</span>(<span class="ident">ast::Class::Bracketed</span>(<span class="kw-2">ref</span> <span class="ident">x</span>)) =&gt; {
                 <span class="self">self</span>.<span class="ident">visit_class</span>(<span class="ident">x</span>, <span class="ident">visitor</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">None</span>
             }
-            <span class="ident">Ast::Repetition</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Frame::Repetition</span>(<span class="ident">x</span>)),
-            <span class="ident">Ast::Group</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Frame::Group</span>(<span class="ident">x</span>)),
-            <span class="ident">Ast::Concat</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">asts</span>.<span class="ident">is_empty</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="ident">Ast::Concat</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Ast::Repetition</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Frame::Repetition</span>(<span class="ident">x</span>)),
+            <span class="ident">Ast::Group</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Frame::Group</span>(<span class="ident">x</span>)),
+            <span class="ident">Ast::Concat</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">asts</span>.<span class="ident">is_empty</span>() =&gt; <span class="prelude-val">None</span>,
+            <span class="ident">Ast::Concat</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) =&gt; {
                 <span class="prelude-val">Some</span>(<span class="ident">Frame::Concat</span> { <span class="ident">head</span>: <span class="kw-2">&amp;</span><span class="ident">x</span>.<span class="ident">asts</span>[<span class="number">0</span>], <span class="ident">tail</span>: <span class="kw-2">&amp;</span><span class="ident">x</span>.<span class="ident">asts</span>[<span class="number">1</span>..] })
             }
-            <span class="ident">Ast::Alternation</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">asts</span>.<span class="ident">is_empty</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="ident">Ast::Alternation</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Frame::Alternation</span> {
+            <span class="ident">Ast::Alternation</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">asts</span>.<span class="ident">is_empty</span>() =&gt; <span class="prelude-val">None</span>,
+            <span class="ident">Ast::Alternation</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Frame::Alternation</span> {
                 <span class="ident">head</span>: <span class="kw-2">&amp;</span><span class="ident">x</span>.<span class="ident">asts</span>[<span class="number">0</span>],
                 <span class="ident">tail</span>: <span class="kw-2">&amp;</span><span class="ident">x</span>.<span class="ident">asts</span>[<span class="number">1</span>..],
             }),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         })
     }
 
     <span class="doccomment">/// Pops the given frame. If the frame has an additional inductive step,</span>
     <span class="doccomment">/// then return it, otherwise return `None`.</span>
-    <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">induct</span>: <span class="ident">Frame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">induct</span>: <span class="ident">Frame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">induct</span> {
-            <span class="ident">Frame::Repetition</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="ident">Frame::Group</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="ident">Frame::Concat</span> { <span class="ident">tail</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Frame::Repetition</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+            <span class="ident">Frame::Group</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+            <span class="ident">Frame::Concat</span> { <span class="ident">tail</span>, .. } =&gt; {
                 <span class="kw">if</span> <span class="ident">tail</span>.<span class="ident">is_empty</span>() {
                     <span class="prelude-val">None</span>
                 } <span class="kw">else</span> {
                     <span class="prelude-val">Some</span>(<span class="ident">Frame::Concat</span> { <span class="ident">head</span>: <span class="kw-2">&amp;</span><span class="ident">tail</span>[<span class="number">0</span>], <span class="ident">tail</span>: <span class="kw-2">&amp;</span><span class="ident">tail</span>[<span class="number">1</span>..] })
                 }
             }
-            <span class="ident">Frame::Alternation</span> { <span class="ident">tail</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Frame::Alternation</span> { <span class="ident">tail</span>, .. } =&gt; {
                 <span class="kw">if</span> <span class="ident">tail</span>.<span class="ident">is_empty</span>() {
                     <span class="prelude-val">None</span>
                 } <span class="kw">else</span> {
@@ -827,7 +827,7 @@
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::ClassBracketed</span>,
         <span class="ident">visitor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">V</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">V::Err</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">V::Err</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ast</span> <span class="op">=</span> <span class="ident">ClassInduct::from_bracketed</span>(<span class="ident">ast</span>);
         <span class="kw">loop</span> {
             <span class="self">self</span>.<span class="ident">visit_class_pre</span>(<span class="kw-2">&amp;</span><span class="ident">ast</span>, <span class="ident">visitor</span>)<span class="question-mark">?</span>;
@@ -843,8 +843,8 @@
             <span class="comment">// either empty or we hit another inductive case.</span>
             <span class="kw">loop</span> {
                 <span class="kw">let</span> (<span class="ident">post_ast</span>, <span class="ident">frame</span>) <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">stack_class</span>.<span class="ident">pop</span>() {
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(()),
-                    <span class="prelude-val">Some</span>((<span class="ident">post_ast</span>, <span class="ident">frame</span>)) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">post_ast</span>, <span class="ident">frame</span>),
+                    <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(()),
+                    <span class="prelude-val">Some</span>((<span class="ident">post_ast</span>, <span class="ident">frame</span>)) =&gt; (<span class="ident">post_ast</span>, <span class="ident">frame</span>),
                 };
                 <span class="comment">// If this is a union or a binary op, then we might have</span>
                 <span class="comment">// additional inductive steps to process.</span>
@@ -868,12 +868,12 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="ident">ClassInduct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
         <span class="ident">visitor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">V</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">V::Err</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">V::Err</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">ast</span> {
-            <span class="ident">ClassInduct::Item</span>(<span class="ident">item</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ClassInduct::Item</span>(<span class="ident">item</span>) =&gt; {
                 <span class="ident">visitor</span>.<span class="ident">visit_class_set_item_pre</span>(<span class="ident">item</span>)<span class="question-mark">?</span>;
             }
-            <span class="ident">ClassInduct::BinaryOp</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ClassInduct::BinaryOp</span>(<span class="ident">op</span>) =&gt; {
                 <span class="ident">visitor</span>.<span class="ident">visit_class_set_binary_op_pre</span>(<span class="ident">op</span>)<span class="question-mark">?</span>;
             }
         }
@@ -885,12 +885,12 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="ident">ClassInduct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
         <span class="ident">visitor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">V</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">V::Err</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">V::Err</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">ast</span> {
-            <span class="ident">ClassInduct::Item</span>(<span class="ident">item</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ClassInduct::Item</span>(<span class="ident">item</span>) =&gt; {
                 <span class="ident">visitor</span>.<span class="ident">visit_class_set_item_post</span>(<span class="ident">item</span>)<span class="question-mark">?</span>;
             }
-            <span class="ident">ClassInduct::BinaryOp</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ClassInduct::BinaryOp</span>(<span class="ident">op</span>) =&gt; {
                 <span class="ident">visitor</span>.<span class="ident">visit_class_set_binary_op_post</span>(<span class="ident">op</span>)<span class="question-mark">?</span>;
             }
         }
@@ -899,19 +899,19 @@
 
     <span class="doccomment">/// Build a stack frame for the given class node if one is needed (which</span>
     <span class="doccomment">/// occurs if and only if there are child nodes). Otherwise, return None.</span>
-    <span class="kw">fn</span> <span class="ident">induct_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="ident">ClassInduct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ClassFrame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">induct_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="ident">ClassInduct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ClassFrame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">ast</span> {
-            <span class="ident">ClassInduct::Item</span>(<span class="kw-2">&amp;</span><span class="ident">ast::ClassSetItem::Bracketed</span>(<span class="kw-2">ref</span> <span class="ident">x</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ClassInduct::Item</span>(<span class="kw-2">&amp;</span><span class="ident">ast::ClassSetItem::Bracketed</span>(<span class="kw-2">ref</span> <span class="ident">x</span>)) =&gt; {
                 <span class="kw">match</span> <span class="ident">x</span>.<span class="ident">kind</span> {
-                    <span class="ident">ast::ClassSet::Item</span>(<span class="kw-2">ref</span> <span class="ident">item</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">ast::ClassSet::Item</span>(<span class="kw-2">ref</span> <span class="ident">item</span>) =&gt; {
                         <span class="prelude-val">Some</span>(<span class="ident">ClassFrame::Union</span> { <span class="ident">head</span>: <span class="ident">item</span>, <span class="ident">tail</span>: <span class="kw-2">&amp;</span>[] })
                     }
-                    <span class="ident">ast::ClassSet::BinaryOp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">ast::ClassSet::BinaryOp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) =&gt; {
                         <span class="prelude-val">Some</span>(<span class="ident">ClassFrame::Binary</span> { <span class="ident">op</span>: <span class="ident">op</span> })
                     }
                 }
             }
-            <span class="ident">ClassInduct::Item</span>(<span class="kw-2">&amp;</span><span class="ident">ast::ClassSetItem::Union</span>(<span class="kw-2">ref</span> <span class="ident">x</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ClassInduct::Item</span>(<span class="kw-2">&amp;</span><span class="ident">ast::ClassSetItem::Union</span>(<span class="kw-2">ref</span> <span class="ident">x</span>)) =&gt; {
                 <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">items</span>.<span class="ident">is_empty</span>() {
                     <span class="prelude-val">None</span>
                 } <span class="kw">else</span> {
@@ -921,20 +921,20 @@
                     })
                 }
             }
-            <span class="ident">ClassInduct::BinaryOp</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ClassFrame::BinaryLHS</span> {
+            <span class="ident">ClassInduct::BinaryOp</span>(<span class="ident">op</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">ClassFrame::BinaryLHS</span> {
                 <span class="ident">op</span>: <span class="ident">op</span>,
                 <span class="ident">lhs</span>: <span class="kw-2">&amp;</span><span class="ident">op</span>.<span class="ident">lhs</span>,
                 <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="ident">op</span>.<span class="ident">rhs</span>,
             }),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 
     <span class="doccomment">/// Pops the given frame. If the frame has an additional inductive step,</span>
     <span class="doccomment">/// then return it, otherwise return `None`.</span>
-    <span class="kw">fn</span> <span class="ident">pop_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">induct</span>: <span class="ident">ClassFrame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ClassFrame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">pop_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">induct</span>: <span class="ident">ClassFrame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ClassFrame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">induct</span> {
-            <span class="ident">ClassFrame::Union</span> { <span class="ident">tail</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ClassFrame::Union</span> { <span class="ident">tail</span>, .. } =&gt; {
                 <span class="kw">if</span> <span class="ident">tail</span>.<span class="ident">is_empty</span>() {
                     <span class="prelude-val">None</span>
                 } <span class="kw">else</span> {
@@ -944,11 +944,11 @@
                     })
                 }
             }
-            <span class="ident">ClassFrame::Binary</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="ident">ClassFrame::BinaryLHS</span> { <span class="ident">op</span>, <span class="ident">rhs</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ClassFrame::Binary</span> { .. } =&gt; <span class="prelude-val">None</span>,
+            <span class="ident">ClassFrame::BinaryLHS</span> { <span class="ident">op</span>, <span class="ident">rhs</span>, .. } =&gt; {
                 <span class="prelude-val">Some</span>(<span class="ident">ClassFrame::BinaryRHS</span> { <span class="ident">op</span>: <span class="ident">op</span>, <span class="ident">rhs</span>: <span class="ident">rhs</span> })
             }
-            <span class="ident">ClassFrame::BinaryRHS</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">ClassFrame::BinaryRHS</span> { .. } =&gt; <span class="prelude-val">None</span>,
         }
     }
 }
@@ -956,12 +956,12 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Frame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Perform the next inductive step on this frame and return the next</span>
     <span class="doccomment">/// child AST node to visit.</span>
-    <span class="kw">fn</span> <span class="ident">child</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Ast</span> {
+    <span class="kw">fn</span> <span class="ident">child</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Ast</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Frame::Repetition</span>(<span class="ident">rep</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">rep</span>.<span class="ident">ast</span>,
-            <span class="ident">Frame::Group</span>(<span class="ident">group</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">group</span>.<span class="ident">ast</span>,
-            <span class="ident">Frame::Concat</span> { <span class="ident">head</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">head</span>,
-            <span class="ident">Frame::Alternation</span> { <span class="ident">head</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">head</span>,
+            <span class="ident">Frame::Repetition</span>(<span class="ident">rep</span>) =&gt; <span class="kw-2">&amp;</span><span class="ident">rep</span>.<span class="ident">ast</span>,
+            <span class="ident">Frame::Group</span>(<span class="ident">group</span>) =&gt; <span class="kw-2">&amp;</span><span class="ident">group</span>.<span class="ident">ast</span>,
+            <span class="ident">Frame::Concat</span> { <span class="ident">head</span>, .. } =&gt; <span class="ident">head</span>,
+            <span class="ident">Frame::Alternation</span> { <span class="ident">head</span>, .. } =&gt; <span class="ident">head</span>,
         }
     }
 }
@@ -969,14 +969,14 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">ClassFrame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Perform the next inductive step on this frame and return the next</span>
     <span class="doccomment">/// child class node to visit.</span>
-    <span class="kw">fn</span> <span class="ident">child</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClassInduct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">child</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">ClassInduct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">ClassFrame::Union</span> { <span class="ident">head</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ClassInduct::Item</span>(<span class="ident">head</span>),
-            <span class="ident">ClassFrame::Binary</span> { <span class="ident">op</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ClassInduct::BinaryOp</span>(<span class="ident">op</span>),
-            <span class="ident">ClassFrame::BinaryLHS</span> { <span class="kw-2">ref</span> <span class="ident">lhs</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ClassFrame::Union</span> { <span class="ident">head</span>, .. } =&gt; <span class="ident">ClassInduct::Item</span>(<span class="ident">head</span>),
+            <span class="ident">ClassFrame::Binary</span> { <span class="ident">op</span>, .. } =&gt; <span class="ident">ClassInduct::BinaryOp</span>(<span class="ident">op</span>),
+            <span class="ident">ClassFrame::BinaryLHS</span> { <span class="kw-2">ref</span> <span class="ident">lhs</span>, .. } =&gt; {
                 <span class="ident">ClassInduct::from_set</span>(<span class="ident">lhs</span>)
             }
-            <span class="ident">ClassFrame::BinaryRHS</span> { <span class="kw-2">ref</span> <span class="ident">rhs</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ClassFrame::BinaryRHS</span> { <span class="kw-2">ref</span> <span class="ident">rhs</span>, .. } =&gt; {
                 <span class="ident">ClassInduct::from_set</span>(<span class="ident">rhs</span>)
             }
         }
@@ -984,51 +984,51 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">ClassInduct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from_bracketed</span>(<span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::ClassBracketed</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClassInduct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_bracketed</span>(<span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::ClassBracketed</span>) -&gt; <span class="ident">ClassInduct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="ident">ClassInduct::from_set</span>(<span class="kw-2">&amp;</span><span class="ident">ast</span>.<span class="ident">kind</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">from_set</span>(<span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::ClassSet</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClassInduct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_set</span>(<span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::ClassSet</span>) -&gt; <span class="ident">ClassInduct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">ast</span> {
-            <span class="ident">ast::ClassSet::Item</span>(<span class="kw-2">ref</span> <span class="ident">item</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ClassInduct::Item</span>(<span class="ident">item</span>),
-            <span class="ident">ast::ClassSet::BinaryOp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ClassInduct::BinaryOp</span>(<span class="ident">op</span>),
+            <span class="ident">ast::ClassSet::Item</span>(<span class="kw-2">ref</span> <span class="ident">item</span>) =&gt; <span class="ident">ClassInduct::Item</span>(<span class="ident">item</span>),
+            <span class="ident">ast::ClassSet::BinaryOp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) =&gt; <span class="ident">ClassInduct::BinaryOp</span>(<span class="ident">op</span>),
         }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">ClassFrame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">ClassFrame::Union</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Union&quot;</span>,
-            <span class="ident">ClassFrame::Binary</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Binary&quot;</span>,
-            <span class="ident">ClassFrame::BinaryLHS</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;BinaryLHS&quot;</span>,
-            <span class="ident">ClassFrame::BinaryRHS</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;BinaryRHS&quot;</span>,
+            <span class="ident">ClassFrame::Union</span> { .. } =&gt; <span class="string">&quot;Union&quot;</span>,
+            <span class="ident">ClassFrame::Binary</span> { .. } =&gt; <span class="string">&quot;Binary&quot;</span>,
+            <span class="ident">ClassFrame::BinaryLHS</span> { .. } =&gt; <span class="string">&quot;BinaryLHS&quot;</span>,
+            <span class="ident">ClassFrame::BinaryRHS</span> { .. } =&gt; <span class="string">&quot;BinaryRHS&quot;</span>,
         };
         <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">x</span>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">ClassInduct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">ClassInduct::Item</span>(<span class="ident">it</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">it</span> {
-                <span class="ident">ast::ClassSetItem::Empty</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Item(Empty)&quot;</span>,
-                <span class="ident">ast::ClassSetItem::Literal</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Item(Literal)&quot;</span>,
-                <span class="ident">ast::ClassSetItem::Range</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Item(Range)&quot;</span>,
-                <span class="ident">ast::ClassSetItem::Ascii</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Item(Ascii)&quot;</span>,
-                <span class="ident">ast::ClassSetItem::Perl</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Item(Perl)&quot;</span>,
-                <span class="ident">ast::ClassSetItem::Unicode</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Item(Unicode)&quot;</span>,
-                <span class="ident">ast::ClassSetItem::Bracketed</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Item(Bracketed)&quot;</span>,
-                <span class="ident">ast::ClassSetItem::Union</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Item(Union)&quot;</span>,
+            <span class="ident">ClassInduct::Item</span>(<span class="ident">it</span>) =&gt; <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">it</span> {
+                <span class="ident">ast::ClassSetItem::Empty</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Empty)&quot;</span>,
+                <span class="ident">ast::ClassSetItem::Literal</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Literal)&quot;</span>,
+                <span class="ident">ast::ClassSetItem::Range</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Range)&quot;</span>,
+                <span class="ident">ast::ClassSetItem::Ascii</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Ascii)&quot;</span>,
+                <span class="ident">ast::ClassSetItem::Perl</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Perl)&quot;</span>,
+                <span class="ident">ast::ClassSetItem::Unicode</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Unicode)&quot;</span>,
+                <span class="ident">ast::ClassSetItem::Bracketed</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Bracketed)&quot;</span>,
+                <span class="ident">ast::ClassSetItem::Union</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Item(Union)&quot;</span>,
             },
-            <span class="ident">ClassInduct::BinaryOp</span>(<span class="ident">it</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">it</span>.<span class="ident">kind</span> {
-                <span class="ident">ast::ClassSetBinaryOpKind::Intersection</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ClassInduct::BinaryOp</span>(<span class="ident">it</span>) =&gt; <span class="kw">match</span> <span class="ident">it</span>.<span class="ident">kind</span> {
+                <span class="ident">ast::ClassSetBinaryOpKind::Intersection</span> =&gt; {
                     <span class="string">&quot;BinaryOp(Intersection)&quot;</span>
                 }
-                <span class="ident">ast::ClassSetBinaryOpKind::Difference</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">ast::ClassSetBinaryOpKind::Difference</span> =&gt; {
                     <span class="string">&quot;BinaryOp(Difference)&quot;</span>
                 }
-                <span class="ident">ast::ClassSetBinaryOpKind::SymmetricDifference</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">ast::ClassSetBinaryOpKind::SymmetricDifference</span> =&gt; {
                     <span class="string">&quot;BinaryOp(SymmetricDifference)&quot;</span>
                 }
             },

@@ -14,7 +14,7 @@ lets callers configure this.</p>
 Users should consider in what context the encoded string will be used,
 real relevant specifications, and define their own set.
 This is done by using the <code>add</code> method of an existing set.</p>
-<h1 id="examples" class="section-header"><a href="#examples">Examples</a></h1>
+<h2 id="examples" class="section-header"><a href="#examples">Examples</a></h2>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">percent_encoding</span>::{<span class="ident">utf8_percent_encode</span>, <span class="ident">AsciiSet</span>, <span class="ident">CONTROLS</span>};
 
 <span class="doccomment">/// https://url.spec.whatwg.org/#fragment-percent-encode-set</span>
@@ -22,18 +22,18 @@ This is done by using the <code>add</code> method of an existing set.</p>
 
 <span class="macro">assert_eq!</span>(<span class="ident">utf8_percent_encode</span>(<span class="string">&quot;foo &lt;bar&gt;&quot;</span>, <span class="ident">FRAGMENT</span>).<span class="ident">to_string</span>(), <span class="string">&quot;foo%20%3Cbar%3E&quot;</span>);</code></pre></div>
 </div></details><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="struct" href="struct.AsciiSet.html" title="percent_encoding::AsciiSet struct">AsciiSet</a></div><div class="item-right docblock-short"><p>Represents a set of characters or bytes in the ASCII range.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.PercentDecode.html" title="percent_encoding::PercentDecode struct">PercentDecode</a></div><div class="item-right docblock-short"><p>The return type of <a href="fn.percent_decode.html" title="percent_decode"><code>percent_decode</code></a>.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.PercentEncode.html" title="percent_encoding::PercentEncode struct">PercentEncode</a></div><div class="item-right docblock-short"><p>The return type of <a href="fn.percent_encode.html" title="percent_encode"><code>percent_encode</code></a> and <a href="fn.utf8_percent_encode.html" title="utf8_percent_encode"><code>utf8_percent_encode</code></a>.</p>
-</div></div><h2 id="constants" class="section-header"><a href="#constants">Constants</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="constant" href="constant.CONTROLS.html" title="percent_encoding::CONTROLS constant">CONTROLS</a></div><div class="item-right docblock-short"><p>The set of 0x00 to 0x1F (C0 controls), and 0x7F (DEL).</p>
-</div><div class="item-left module-item"><a class="constant" href="constant.NON_ALPHANUMERIC.html" title="percent_encoding::NON_ALPHANUMERIC constant">NON_ALPHANUMERIC</a></div><div class="item-right docblock-short"><p>Everything that is not an ASCII letter or digit.</p>
-</div></div><h2 id="functions" class="section-header"><a href="#functions">Functions</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="fn" href="fn.percent_decode.html" title="percent_encoding::percent_decode fn">percent_decode</a></div><div class="item-right docblock-short"><p>Percent-decode the given bytes.</p>
-</div><div class="item-left module-item"><a class="fn" href="fn.percent_decode_str.html" title="percent_encoding::percent_decode_str fn">percent_decode_str</a></div><div class="item-right docblock-short"><p>Percent-decode the given string.</p>
-</div><div class="item-left module-item"><a class="fn" href="fn.percent_encode.html" title="percent_encoding::percent_encode fn">percent_encode</a></div><div class="item-right docblock-short"><p>Percent-encode the given bytes with the given set.</p>
-</div><div class="item-left module-item"><a class="fn" href="fn.percent_encode_byte.html" title="percent_encoding::percent_encode_byte fn">percent_encode_byte</a></div><div class="item-right docblock-short"><p>Return the percent-encoding of the given byte.</p>
-</div><div class="item-left module-item"><a class="fn" href="fn.utf8_percent_encode.html" title="percent_encoding::utf8_percent_encode fn">utf8_percent_encode</a></div><div class="item-right docblock-short"><p>Percent-encode the UTF-8 encoding of the given string.</p>
-</div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="percent_encoding" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.AsciiSet.html" title="percent_encoding::AsciiSet struct">AsciiSet</a></div><div class="item-right docblock-short"><p>Represents a set of characters or bytes in the ASCII range.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.PercentDecode.html" title="percent_encoding::PercentDecode struct">PercentDecode</a></div><div class="item-right docblock-short"><p>The return type of <a href="fn.percent_decode.html" title="percent_decode"><code>percent_decode</code></a>.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.PercentEncode.html" title="percent_encoding::PercentEncode struct">PercentEncode</a></div><div class="item-right docblock-short"><p>The return type of <a href="fn.percent_encode.html" title="percent_encode"><code>percent_encode</code></a> and <a href="fn.utf8_percent_encode.html" title="utf8_percent_encode"><code>utf8_percent_encode</code></a>.</p>
+</div></div></div><h2 id="constants" class="section-header"><a href="#constants">Constants</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="constant" href="constant.CONTROLS.html" title="percent_encoding::CONTROLS constant">CONTROLS</a></div><div class="item-right docblock-short"><p>The set of 0x00 to 0x1F (C0 controls), and 0x7F (DEL).</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="constant" href="constant.NON_ALPHANUMERIC.html" title="percent_encoding::NON_ALPHANUMERIC constant">NON_ALPHANUMERIC</a></div><div class="item-right docblock-short"><p>Everything that is not an ASCII letter or digit.</p>
+</div></div></div><h2 id="functions" class="section-header"><a href="#functions">Functions</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.percent_decode.html" title="percent_encoding::percent_decode fn">percent_decode</a></div><div class="item-right docblock-short"><p>Percent-decode the given bytes.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.percent_decode_str.html" title="percent_encoding::percent_decode_str fn">percent_decode_str</a></div><div class="item-right docblock-short"><p>Percent-decode the given string.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.percent_encode.html" title="percent_encoding::percent_encode fn">percent_encode</a></div><div class="item-right docblock-short"><p>Percent-encode the given bytes with the given set.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.percent_encode_byte.html" title="percent_encoding::percent_encode_byte fn">percent_encode_byte</a></div><div class="item-right docblock-short"><p>Return the percent-encoding of the given byte.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.utf8_percent_encode.html" title="percent_encoding::utf8_percent_encode fn">utf8_percent_encode</a></div><div class="item-right docblock-short"><p>Percent-encode the UTF-8 encoding of the given string.</p>
+</div></div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="percent_encoding" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
     <script src="../main.js"></script>
 </body></html>

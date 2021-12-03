@@ -566,13 +566,13 @@
 <span class="kw">impl</span> <span class="ident">Ignored</span> {
     <span class="doccomment">/// Checks if the ignore list contains the given test name in the list of</span>
     <span class="doccomment">/// tests to ignore.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_test</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">test</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_test</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">test</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">tests</span>.<span class="ident">contains</span>(<span class="ident">test</span>)
     }
 
     <span class="doccomment">/// Checks if the ignore list contains the given feature name in the list</span>
     <span class="doccomment">/// of features to ignore.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_any_feature</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">features</span>: <span class="kw-2">&amp;</span>[<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_any_feature</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">features</span>: <span class="kw-2">&amp;</span>[<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>]) -&gt; <span class="ident">bool</span> {
         <span class="ident">features</span>
             .<span class="ident">iter</span>()
             .<span class="ident">any</span>(<span class="op">|</span><span class="ident">feature</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">features</span>.<span class="ident">contains</span>(<span class="ident">feature</span>))
@@ -580,17 +580,17 @@
 
     <span class="doccomment">/// Checks if the ignore list contains the given file name in the list to</span>
     <span class="doccomment">/// ignore from reading.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_file</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_file</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">files</span>.<span class="ident">contains</span>(<span class="ident">file</span>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_any_flag</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">flags</span>: <span class="ident">TestFlags</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_any_flag</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">flags</span>: <span class="ident">TestFlags</span>) -&gt; <span class="ident">bool</span> {
         <span class="ident">flags</span>.<span class="ident">intersects</span>(<span class="self">self</span>.<span class="ident">flags</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Ignored</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">tests</span>: <span class="ident">Default::default</span>(),
             <span class="ident">features</span>: <span class="ident">Default::default</span>(),
@@ -707,7 +707,7 @@
             <span class="ident">suite</span>,
             <span class="ident">output</span>,
             <span class="ident">disable_parallelism</span>,
-        } <span class="op">=</span><span class="op">&gt;</span> {
+        } =&gt; {
             <span class="ident">run_test_suite</span>(
                 <span class="ident">verbose</span>,
                 <span class="op">!</span><span class="ident">disable_parallelism</span>,
@@ -720,7 +720,7 @@
             <span class="ident">base</span>,
             <span class="ident">new</span>,
             <span class="ident">markdown</span>,
-        } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compare_results</span>(<span class="ident">base</span>.<span class="ident">as_path</span>(), <span class="ident">new</span>.<span class="ident">as_path</span>(), <span class="ident">markdown</span>),
+        } =&gt; <span class="ident">compare_results</span>(<span class="ident">base</span>.<span class="ident">as_path</span>(), <span class="ident">new</span>.<span class="ident">as_path</span>(), <span class="ident">markdown</span>),
     }
 }
 
@@ -868,7 +868,7 @@
 <span class="kw">impl</span> <span class="ident">Test</span> {
     <span class="doccomment">/// Creates a new test.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">C</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">content</span>: <span class="ident">C</span>, <span class="ident">metadata</span>: <span class="ident">MetaData</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">C</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">content</span>: <span class="ident">C</span>, <span class="ident">metadata</span>: <span class="ident">MetaData</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">C</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
@@ -904,13 +904,13 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Outcome</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::Positive</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Negative</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Outcome</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">neg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Negative</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">neg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Negative</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">neg</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">neg</span><span class="op">|</span> <span class="ident"><span class="self">Self</span>::Negative</span> {
             <span class="ident">phase</span>: <span class="ident">neg</span>.<span class="ident">phase</span>,
             <span class="ident">error_type</span>: <span class="ident">neg</span>.<span class="ident">error_type</span>,
@@ -934,23 +934,23 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">TestFlags</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::STRICT</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::NO_STRICT</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">TestFlag</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TestFlags</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">flag</span>: <span class="ident">TestFlag</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">flag</span>: <span class="ident">TestFlag</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">match</span> <span class="ident">flag</span> {
-            <span class="ident">TestFlag::OnlyStrict</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::STRICT</span>,
-            <span class="ident">TestFlag::NoStrict</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::NO_STRICT</span>,
-            <span class="ident">TestFlag::Module</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::MODULE</span>,
-            <span class="ident">TestFlag::Raw</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::RAW</span>,
-            <span class="ident">TestFlag::Async</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::ASYNC</span>,
-            <span class="ident">TestFlag::Generated</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::GENERATED</span>,
-            <span class="ident">TestFlag::CanBlockIsFalse</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::CAN_BLOCK_IS_FALSE</span>,
-            <span class="ident">TestFlag::CanBlockIsTrue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::CAN_BLOCK_IS_TRUE</span>,
-            <span class="ident">TestFlag::NonDeterministic</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::NON_DETERMINISTIC</span>,
+            <span class="ident">TestFlag::OnlyStrict</span> =&gt; <span class="ident"><span class="self">Self</span>::STRICT</span>,
+            <span class="ident">TestFlag::NoStrict</span> =&gt; <span class="ident"><span class="self">Self</span>::NO_STRICT</span>,
+            <span class="ident">TestFlag::Module</span> =&gt; <span class="ident"><span class="self">Self</span>::MODULE</span>,
+            <span class="ident">TestFlag::Raw</span> =&gt; <span class="ident"><span class="self">Self</span>::RAW</span>,
+            <span class="ident">TestFlag::Async</span> =&gt; <span class="ident"><span class="self">Self</span>::ASYNC</span>,
+            <span class="ident">TestFlag::Generated</span> =&gt; <span class="ident"><span class="self">Self</span>::GENERATED</span>,
+            <span class="ident">TestFlag::CanBlockIsFalse</span> =&gt; <span class="ident"><span class="self">Self</span>::CAN_BLOCK_IS_FALSE</span>,
+            <span class="ident">TestFlag::CanBlockIsTrue</span> =&gt; <span class="ident"><span class="self">Self</span>::CAN_BLOCK_IS_TRUE</span>,
+            <span class="ident">TestFlag::NonDeterministic</span> =&gt; <span class="ident"><span class="self">Self</span>::NON_DETERMINISTIC</span>,
         }
     }
 }
@@ -959,7 +959,7 @@
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">TestFlag</span>]<span class="op">&gt;</span>,
 {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">flags</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">flags</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">flags</span>.<span class="ident">as_ref</span>();
         <span class="kw">if</span> <span class="ident">flags</span>.<span class="ident">is_empty</span>() {
             <span class="ident"><span class="self">Self</span>::default</span>()

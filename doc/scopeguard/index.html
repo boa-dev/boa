@@ -1,7 +1,7 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="A scope guard will run a given closure when it goes out of scope, even if the code between panics. (as long as panic doesn’t abort)"><meta name="keywords" content="rust, rustlang, rust-lang, scopeguard"><title>scopeguard - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script id="default-settings" ></script><script src="../storage.js"></script><script src="../crates.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../favicon.svg"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../scopeguard/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><h2 class="location">Crate scopeguard</h2><div class="block version"><div class="narrow-helper"></div><p>Version 1.1.0</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all scopeguard's items</p></a><div class="block items"><ul><li><a href="#macros">Macros</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#traits">Traits</a></li><li><a href="#functions">Functions</a></li></ul></div><div id="sidebar-vars" data-name="scopeguard" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../wheel.svg"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">scopeguard</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/scopeguard/lib.rs.html#1-578" title="goto source code">[src]</a></span></h1><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>A scope guard will run a given closure when it goes out of scope,
 even if the code between panics.
 (as long as panic doesn’t abort)</p>
-<h1 id="examples" class="section-header"><a href="#examples">Examples</a></h1><h2 id="hello-world" class="section-header"><a href="#hello-world">Hello World</a></h2>
+<h2 id="examples" class="section-header"><a href="#examples">Examples</a></h2><h3 id="hello-world" class="section-header"><a href="#hello-world">Hello World</a></h3>
 <p>This example creates a scope guard with an example function:</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">scopeguard</span>;
@@ -16,7 +16,7 @@ even if the code between panics.
     <span class="comment">// Here, at the end of `_guard`&#39;s scope, the guard&#39;s closure is called.</span>
     <span class="comment">// It is also called if we exit this scope through unwinding instead.</span>
 }</code></pre></div>
-<h2 id="defer" class="section-header"><a href="#defer"><code>defer!</code></a></h2>
+<h3 id="defer" class="section-header"><a href="#defer"><code>defer!</code></a></h3>
 <p>Use the <code>defer</code> macro to run an operation at scope exit,
 either regular scope exit or during unwinding from a panic.</p>
 
@@ -42,12 +42,12 @@ either regular scope exit or during unwinding from a panic.</p>
     }
     <span class="macro">assert_eq!</span>(<span class="ident">drop_counter</span>.<span class="ident">get</span>(), <span class="number">1</span>);
 }</code></pre></div>
-<h2 id="scope-guard-with-value" class="section-header"><a href="#scope-guard-with-value">Scope Guard with Value</a></h2>
+<h3 id="scope-guard-with-value" class="section-header"><a href="#scope-guard-with-value">Scope Guard with Value</a></h3>
 <p>If the scope guard closure needs to access an outer value that is also
 mutated outside of the scope guard, then you may want to use the scope guard
 with a value. The guard works like a smart pointer, so the inner value can
 be accessed by reference or by mutable reference.</p>
-<h3 id="1-the-guard-owns-a-file" class="section-header"><a href="#1-the-guard-owns-a-file">1. The guard owns a file</a></h3>
+<h4 id="1-the-guard-owns-a-file" class="section-header"><a href="#1-the-guard-owns-a-file">1. The guard owns a file</a></h4>
 <p>In this example, the scope guard owns a file and ensures pending writes are
 synced at scope exit.</p>
 
@@ -56,7 +56,7 @@ synced at scope exit.</p>
 <span class="kw">use</span> <span class="ident">std::fs</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">std::io</span>::{<span class="self">self</span>, <span class="ident">Write</span>};
 
-<span class="kw">fn</span> <span class="ident">try_main</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">try_main</span>() -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">File::create</span>(<span class="string">&quot;newfile.txt&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">scopeguard::guard</span>(<span class="ident">f</span>, <span class="op">|</span><span class="ident">f</span><span class="op">|</span> {
         <span class="comment">// ensure we flush file at return or panic</span>
@@ -70,7 +70,7 @@ synced at scope exit.</p>
     <span class="ident">try_main</span>().<span class="ident">unwrap</span>();
 }
 </code></pre></div>
-<h3 id="2-the-guard-restores-an-invariant-on-scope-exit" class="section-header"><a href="#2-the-guard-restores-an-invariant-on-scope-exit">2. The guard restores an invariant on scope exit</a></h3>
+<h4 id="2-the-guard-restores-an-invariant-on-scope-exit" class="section-header"><a href="#2-the-guard-restores-an-invariant-on-scope-exit">2. The guard restores an invariant on scope exit</a></h4>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">scopeguard</span>;
 
 <span class="kw">use</span> <span class="ident">std::mem::ManuallyDrop</span>;
@@ -138,7 +138,7 @@ synced at scope exit.</p>
     <span class="macro">assert_eq!</span>(<span class="ident">data</span>, <span class="macro">vec!</span>[<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>, <span class="string">&quot;c&quot;</span>, <span class="string">&quot;d&quot;</span>]);
 }
 </code></pre></div>
-<h1 id="crate-features" class="section-header"><a href="#crate-features">Crate Features</a></h1>
+<h2 id="crate-features" class="section-header"><a href="#crate-features">Crate Features</a></h2>
 <ul>
 <li><code>use_std</code>
 <ul>
@@ -147,27 +147,27 @@ synced at scope exit.</p>
 </ul>
 </li>
 </ul>
-<h1 id="rust-version" class="section-header"><a href="#rust-version">Rust Version</a></h1>
+<h2 id="rust-version" class="section-header"><a href="#rust-version">Rust Version</a></h2>
 <p>This version of the crate requires Rust 1.20 or later.</p>
 <p>The scopeguard 1.x release series will use a carefully considered version
 upgrade policy, where in a later 1.x version, we will raise the minimum
 required Rust version.</p>
 </div></details><h2 id="macros" class="section-header"><a href="#macros">Macros</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="macro" href="macro.defer.html" title="scopeguard::defer macro">defer</a></div><div class="item-right docblock-short"><p>Macro to create a <code>ScopeGuard</code> (always run).</p>
-</div><div class="item-left module-item"><a class="macro" href="macro.defer_on_success.html" title="scopeguard::defer_on_success macro">defer_on_success</a></div><div class="item-right docblock-short"><p>Macro to create a <code>ScopeGuard</code> (run on successful scope exit).</p>
-</div><div class="item-left module-item"><a class="macro" href="macro.defer_on_unwind.html" title="scopeguard::defer_on_unwind macro">defer_on_unwind</a></div><div class="item-right docblock-short"><p>Macro to create a <code>ScopeGuard</code> (run on unwinding from panic).</p>
-</div></div><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="struct" href="struct.ScopeGuard.html" title="scopeguard::ScopeGuard struct">ScopeGuard</a></div><div class="item-right docblock-short"><p><code>ScopeGuard</code> is a scope guard that may own a protected value.</p>
-</div></div><h2 id="enums" class="section-header"><a href="#enums">Enums</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="enum" href="enum.Always.html" title="scopeguard::Always enum">Always</a></div><div class="item-right docblock-short"><p>Always run on scope exit.</p>
-</div><div class="item-left module-item"><a class="enum" href="enum.OnSuccess.html" title="scopeguard::OnSuccess enum">OnSuccess</a></div><div class="item-right docblock-short"><p>Run on regular scope exit, when not unwinding.</p>
-</div><div class="item-left module-item"><a class="enum" href="enum.OnUnwind.html" title="scopeguard::OnUnwind enum">OnUnwind</a></div><div class="item-right docblock-short"><p>Run on scope exit through unwinding.</p>
-</div></div><h2 id="traits" class="section-header"><a href="#traits">Traits</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="trait" href="trait.Strategy.html" title="scopeguard::Strategy trait">Strategy</a></div><div class="item-right docblock-short"><p>Controls in which cases the associated code should be run</p>
-</div></div><h2 id="functions" class="section-header"><a href="#functions">Functions</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="fn" href="fn.guard.html" title="scopeguard::guard fn">guard</a></div><div class="item-right docblock-short"><p>Create a new <code>ScopeGuard</code> owning <code>v</code> and with deferred closure <code>dropfn</code>.</p>
-</div><div class="item-left module-item"><a class="fn" href="fn.guard_on_success.html" title="scopeguard::guard_on_success fn">guard_on_success</a></div><div class="item-right docblock-short"><p>Create a new <code>ScopeGuard</code> owning <code>v</code> and with deferred closure <code>dropfn</code>.</p>
-</div><div class="item-left module-item"><a class="fn" href="fn.guard_on_unwind.html" title="scopeguard::guard_on_unwind fn">guard_on_unwind</a></div><div class="item-right docblock-short"><p>Create a new <code>ScopeGuard</code> owning <code>v</code> and with deferred closure <code>dropfn</code>.</p>
-</div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="scopeguard" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="macro" href="macro.defer.html" title="scopeguard::defer macro">defer</a></div><div class="item-right docblock-short"><p>Macro to create a <code>ScopeGuard</code> (always run).</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="macro" href="macro.defer_on_success.html" title="scopeguard::defer_on_success macro">defer_on_success</a></div><div class="item-right docblock-short"><p>Macro to create a <code>ScopeGuard</code> (run on successful scope exit).</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="macro" href="macro.defer_on_unwind.html" title="scopeguard::defer_on_unwind macro">defer_on_unwind</a></div><div class="item-right docblock-short"><p>Macro to create a <code>ScopeGuard</code> (run on unwinding from panic).</p>
+</div></div></div><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.ScopeGuard.html" title="scopeguard::ScopeGuard struct">ScopeGuard</a></div><div class="item-right docblock-short"><p><code>ScopeGuard</code> is a scope guard that may own a protected value.</p>
+</div></div></div><h2 id="enums" class="section-header"><a href="#enums">Enums</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.Always.html" title="scopeguard::Always enum">Always</a></div><div class="item-right docblock-short"><p>Always run on scope exit.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.OnSuccess.html" title="scopeguard::OnSuccess enum">OnSuccess</a></div><div class="item-right docblock-short"><p>Run on regular scope exit, when not unwinding.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.OnUnwind.html" title="scopeguard::OnUnwind enum">OnUnwind</a></div><div class="item-right docblock-short"><p>Run on scope exit through unwinding.</p>
+</div></div></div><h2 id="traits" class="section-header"><a href="#traits">Traits</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.Strategy.html" title="scopeguard::Strategy trait">Strategy</a></div><div class="item-right docblock-short"><p>Controls in which cases the associated code should be run</p>
+</div></div></div><h2 id="functions" class="section-header"><a href="#functions">Functions</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.guard.html" title="scopeguard::guard fn">guard</a></div><div class="item-right docblock-short"><p>Create a new <code>ScopeGuard</code> owning <code>v</code> and with deferred closure <code>dropfn</code>.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.guard_on_success.html" title="scopeguard::guard_on_success fn">guard_on_success</a></div><div class="item-right docblock-short"><p>Create a new <code>ScopeGuard</code> owning <code>v</code> and with deferred closure <code>dropfn</code>.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.guard_on_unwind.html" title="scopeguard::guard_on_unwind fn">guard_on_unwind</a></div><div class="item-right docblock-short"><p>Create a new <code>ScopeGuard</code> owning <code>v</code> and with deferred closure <code>dropfn</code>.</p>
+</div></div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="scopeguard" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
     <script src="../main.js"></script>
 </body></html>

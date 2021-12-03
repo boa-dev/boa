@@ -678,7 +678,7 @@
     <span class="doccomment">/// accept `2..=36` without panicking, but an `Err` may be returned for any unsupported radix.</span>
     <span class="doccomment">/// It&#39;s possible that a type might not even support the common radix 10, nor any, if string</span>
     <span class="doccomment">/// parsing doesn&#39;t make sense for that type.</span>
-    <span class="kw">fn</span> <span class="ident">from_str_radix</span>(<span class="ident">str</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">radix</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::FromStrRadixErr</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">from_str_radix</span>(<span class="ident">str</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">radix</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::FromStrRadixErr</span><span class="op">&gt;</span>;
 }
 
 <span class="doccomment">/// The trait for types implementing basic numeric operations</span>
@@ -743,12 +743,12 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">NumAssignRef</span> <span class="kw">for</span> <span class="ident">T</span> <span class="kw">where</span> <span class="ident">T</span>: <span class="ident">NumAssign</span> <span class="op">+</span> <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span><span class="op">&gt;</span> <span class="ident">NumAssignOps</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;r</span> <span class="ident">T</span><span class="op">&gt;</span> {}
 
 <span class="macro">macro_rules!</span> <span class="ident">int_trait_impl</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span> <span class="kw">for</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> ($(
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span> <span class="kw">for</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>)<span class="kw-2">*</span>) =&gt; ($(
         <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
             <span class="kw">type</span> <span class="ident">FromStrRadixErr</span> <span class="op">=</span> <span class="ident">::core::num::ParseIntError</span>;
             <span class="attribute">#[<span class="ident">inline</span>]</span>
             <span class="kw">fn</span> <span class="ident">from_str_radix</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">radix</span>: <span class="ident">u32</span>)
-                              <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">::core::num::ParseIntError</span><span class="op">&gt;</span>
+                              -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">::core::num::ParseIntError</span><span class="op">&gt;</span>
             {
                 <span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span><span class="ident">::from_str_radix</span>(<span class="ident">s</span>, <span class="ident">radix</span>)
             }
@@ -768,7 +768,7 @@
         <span class="op">+</span> <span class="ident">Rem</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">Wrapping</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 {
     <span class="kw">type</span> <span class="ident">FromStrRadixErr</span> <span class="op">=</span> <span class="ident">T::FromStrRadixErr</span>;
-    <span class="kw">fn</span> <span class="ident">from_str_radix</span>(<span class="ident">str</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">radix</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::FromStrRadixErr</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_str_radix</span>(<span class="ident">str</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">radix</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::FromStrRadixErr</span><span class="op">&gt;</span> {
         <span class="ident">T::from_str_radix</span>(<span class="ident">str</span>, <span class="ident">radix</span>).<span class="ident">map</span>(<span class="ident">Wrapping</span>)
     }
 }
@@ -786,10 +786,10 @@
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">ParseFloatError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">let</span> <span class="ident">description</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">kind</span> {
-            <span class="ident">FloatErrorKind::Empty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;cannot parse float from empty string&quot;</span>,
-            <span class="ident">FloatErrorKind::Invalid</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;invalid float literal&quot;</span>,
+            <span class="ident">FloatErrorKind::Empty</span> =&gt; <span class="string">&quot;cannot parse float from empty string&quot;</span>,
+            <span class="ident">FloatErrorKind::Invalid</span> =&gt; <span class="string">&quot;invalid float literal&quot;</span>,
         };
 
         <span class="ident">description</span>.<span class="ident">fmt</span>(<span class="ident">f</span>)
@@ -800,25 +800,25 @@
 <span class="comment">// with this implementation ourselves until we want to make a breaking change.</span>
 <span class="comment">// (would have to drop it from `Num` though)</span>
 <span class="macro">macro_rules!</span> <span class="ident">float_trait_impl</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span> <span class="kw">for</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ident</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> ($(
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span> <span class="kw">for</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ident</span>)<span class="kw-2">*</span>) =&gt; ($(
         <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
             <span class="kw">type</span> <span class="ident">FromStrRadixErr</span> <span class="op">=</span> <span class="ident">ParseFloatError</span>;
 
             <span class="kw">fn</span> <span class="ident">from_str_radix</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">radix</span>: <span class="ident">u32</span>)
-                              <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::FromStrRadixErr</span><span class="op">&gt;</span>
+                              -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::FromStrRadixErr</span><span class="op">&gt;</span>
             {
                 <span class="kw">use</span> <span class="ident"><span class="self">self</span>::FloatErrorKind</span>::<span class="kw-2">*</span>;
                 <span class="kw">use</span> <span class="ident"><span class="self">self</span>::ParseFloatError</span> <span class="kw">as</span> <span class="ident">PFE</span>;
 
                 <span class="comment">// Special values</span>
                 <span class="kw">match</span> <span class="ident">src</span> {
-                    <span class="string">&quot;inf&quot;</span>   <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">core</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t::INFINITY</span>),
-                    <span class="string">&quot;-inf&quot;</span>  <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">core</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t::NEG_INFINITY</span>),
-                    <span class="string">&quot;NaN&quot;</span>   <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">core</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t::NAN</span>),
-                    <span class="kw">_</span>       <span class="op">=</span><span class="op">&gt;</span> {},
+                    <span class="string">&quot;inf&quot;</span>   =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">core</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t::INFINITY</span>),
+                    <span class="string">&quot;-inf&quot;</span>  =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">core</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t::NEG_INFINITY</span>),
+                    <span class="string">&quot;NaN&quot;</span>   =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">core</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t::NAN</span>),
+                    <span class="kw">_</span>       =&gt; {},
                 }
 
-                <span class="kw">fn</span> <span class="ident">slice_shift_char</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">char</span>, <span class="kw-2">&amp;</span><span class="ident">str</span>)<span class="op">&gt;</span> {
+                <span class="kw">fn</span> <span class="ident">slice_shift_char</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">char</span>, <span class="kw-2">&amp;</span><span class="ident">str</span>)<span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <span class="ident">src</span>.<span class="ident">chars</span>();
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ch</span>) <span class="op">=</span> <span class="ident">chars</span>.<span class="ident">next</span>() {
                         <span class="prelude-val">Some</span>((<span class="ident">ch</span>, <span class="ident">chars</span>.<span class="ident">as_str</span>()))
@@ -828,10 +828,10 @@
                 }
 
                 <span class="kw">let</span> (<span class="ident">is_positive</span>, <span class="ident">src</span>) <span class="op">=</span>  <span class="kw">match</span> <span class="ident">slice_shift_char</span>(<span class="ident">src</span>) {
-                    <span class="prelude-val">None</span>             <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PFE</span> { <span class="ident">kind</span>: <span class="ident">Empty</span> }),
-                    <span class="prelude-val">Some</span>((<span class="string">&#39;-&#39;</span>, <span class="string">&quot;&quot;</span>))  <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PFE</span> { <span class="ident">kind</span>: <span class="ident">Empty</span> }),
-                    <span class="prelude-val">Some</span>((<span class="string">&#39;-&#39;</span>, <span class="ident">src</span>)) <span class="op">=</span><span class="op">&gt;</span> (<span class="bool-val">false</span>, <span class="ident">src</span>),
-                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="kw">_</span>))     <span class="op">=</span><span class="op">&gt;</span> (<span class="bool-val">true</span>,  <span class="ident">src</span>),
+                    <span class="prelude-val">None</span>             =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PFE</span> { <span class="ident">kind</span>: <span class="ident">Empty</span> }),
+                    <span class="prelude-val">Some</span>((<span class="string">&#39;-&#39;</span>, <span class="string">&quot;&quot;</span>))  =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PFE</span> { <span class="ident">kind</span>: <span class="ident">Empty</span> }),
+                    <span class="prelude-val">Some</span>((<span class="string">&#39;-&#39;</span>, <span class="ident">src</span>)) =&gt; (<span class="bool-val">false</span>, <span class="ident">src</span>),
+                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="kw">_</span>))     =&gt; (<span class="bool-val">true</span>,  <span class="ident">src</span>),
                 };
 
                 <span class="comment">// The significand to accumulate</span>
@@ -845,7 +845,7 @@
                 <span class="comment">// Parse the integer part of the significand</span>
                 <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">c</span>) <span class="kw">in</span> <span class="ident">cs</span>.<span class="ident">by_ref</span>() {
                     <span class="kw">match</span> <span class="ident">c</span>.<span class="ident">to_digit</span>(<span class="ident">radix</span>) {
-                        <span class="prelude-val">Some</span>(<span class="ident">digit</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">Some</span>(<span class="ident">digit</span>) =&gt; {
                             <span class="comment">// shift significand one digit left</span>
                             <span class="ident">sig</span> <span class="op">=</span> <span class="ident">sig</span> <span class="op">*</span> (<span class="ident">radix</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>);
 
@@ -872,15 +872,15 @@
                             }
                             <span class="ident">prev_sig</span> <span class="op">=</span> <span class="ident">sig</span>;
                         },
-                        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">c</span> {
-                            <span class="string">&#39;e&#39;</span> <span class="op">|</span> <span class="string">&#39;E&#39;</span> <span class="op">|</span> <span class="string">&#39;p&#39;</span> <span class="op">|</span> <span class="string">&#39;P&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">None</span> =&gt; <span class="kw">match</span> <span class="ident">c</span> {
+                            <span class="string">&#39;e&#39;</span> <span class="op">|</span> <span class="string">&#39;E&#39;</span> <span class="op">|</span> <span class="string">&#39;p&#39;</span> <span class="op">|</span> <span class="string">&#39;P&#39;</span> =&gt; {
                                 <span class="ident">exp_info</span> <span class="op">=</span> <span class="prelude-val">Some</span>((<span class="ident">c</span>, <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>));
                                 <span class="kw">break</span>;  <span class="comment">// start of exponent</span>
                             },
-                            <span class="string">&#39;.&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="string">&#39;.&#39;</span> =&gt; {
                                 <span class="kw">break</span>;  <span class="comment">// start of fractional part</span>
                             },
-                            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="kw">_</span> =&gt; {
                                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PFE</span> { <span class="ident">kind</span>: <span class="ident">Invalid</span> });
                             },
                         },
@@ -893,7 +893,7 @@
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">power</span> <span class="op">=</span> <span class="number">1.0</span>;
                     <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">c</span>) <span class="kw">in</span> <span class="ident">cs</span>.<span class="ident">by_ref</span>() {
                         <span class="kw">match</span> <span class="ident">c</span>.<span class="ident">to_digit</span>(<span class="ident">radix</span>) {
-                            <span class="prelude-val">Some</span>(<span class="ident">digit</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="prelude-val">Some</span>(<span class="ident">digit</span>) =&gt; {
                                 <span class="comment">// Decrease power one order of magnitude</span>
                                 <span class="ident">power</span> <span class="op">=</span> <span class="ident">power</span> <span class="op">/</span> (<span class="ident">radix</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>);
                                 <span class="comment">// add/subtract current digit depending on sign</span>
@@ -909,12 +909,12 @@
                                     { <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">core</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t::NEG_INFINITY</span>); }
                                 <span class="ident">prev_sig</span> <span class="op">=</span> <span class="ident">sig</span>;
                             },
-                            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">c</span> {
-                                <span class="string">&#39;e&#39;</span> <span class="op">|</span> <span class="string">&#39;E&#39;</span> <span class="op">|</span> <span class="string">&#39;p&#39;</span> <span class="op">|</span> <span class="string">&#39;P&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="prelude-val">None</span> =&gt; <span class="kw">match</span> <span class="ident">c</span> {
+                                <span class="string">&#39;e&#39;</span> <span class="op">|</span> <span class="string">&#39;E&#39;</span> <span class="op">|</span> <span class="string">&#39;p&#39;</span> <span class="op">|</span> <span class="string">&#39;P&#39;</span> =&gt; {
                                     <span class="ident">exp_info</span> <span class="op">=</span> <span class="prelude-val">Some</span>((<span class="ident">c</span>, <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>));
                                     <span class="kw">break</span>; <span class="comment">// start of exponent</span>
                                 },
-                                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+                                <span class="kw">_</span> =&gt; {
                                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PFE</span> { <span class="ident">kind</span>: <span class="ident">Invalid</span> });
                                 },
                             },
@@ -924,35 +924,35 @@
 
                 <span class="comment">// Parse and calculate the exponent</span>
                 <span class="kw">let</span> <span class="ident">exp</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">exp_info</span> {
-                    <span class="prelude-val">Some</span>((<span class="ident">c</span>, <span class="ident">offset</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Some</span>((<span class="ident">c</span>, <span class="ident">offset</span>)) =&gt; {
                         <span class="kw">let</span> <span class="ident">base</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">c</span> {
-                            <span class="string">&#39;E&#39;</span> <span class="op">|</span> <span class="string">&#39;e&#39;</span> <span class="kw">if</span> <span class="ident">radix</span> <span class="op">=</span><span class="op">=</span> <span class="number">10</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">10.0</span>,
-                            <span class="string">&#39;P&#39;</span> <span class="op">|</span> <span class="string">&#39;p&#39;</span> <span class="kw">if</span> <span class="ident">radix</span> <span class="op">=</span><span class="op">=</span> <span class="number">16</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">2.0</span>,
-                            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PFE</span> { <span class="ident">kind</span>: <span class="ident">Invalid</span> }),
+                            <span class="string">&#39;E&#39;</span> <span class="op">|</span> <span class="string">&#39;e&#39;</span> <span class="kw">if</span> <span class="ident">radix</span> <span class="op">==</span> <span class="number">10</span> =&gt; <span class="number">10.0</span>,
+                            <span class="string">&#39;P&#39;</span> <span class="op">|</span> <span class="string">&#39;p&#39;</span> <span class="kw">if</span> <span class="ident">radix</span> <span class="op">==</span> <span class="number">16</span> =&gt; <span class="number">2.0</span>,
+                            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PFE</span> { <span class="ident">kind</span>: <span class="ident">Invalid</span> }),
                         };
 
                         <span class="comment">// Parse the exponent as decimal integer</span>
                         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">src</span>[<span class="ident">offset</span>..];
                         <span class="kw">let</span> (<span class="ident">is_positive</span>, <span class="ident">exp</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">slice_shift_char</span>(<span class="ident">src</span>) {
-                            <span class="prelude-val">Some</span>((<span class="string">&#39;-&#39;</span>, <span class="ident">src</span>)) <span class="op">=</span><span class="op">&gt;</span> (<span class="bool-val">false</span>, <span class="ident">src</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>()),
-                            <span class="prelude-val">Some</span>((<span class="string">&#39;+&#39;</span>, <span class="ident">src</span>)) <span class="op">=</span><span class="op">&gt;</span> (<span class="bool-val">true</span>,  <span class="ident">src</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>()),
-                            <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="kw">_</span>))     <span class="op">=</span><span class="op">&gt;</span> (<span class="bool-val">true</span>,  <span class="ident">src</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>()),
-                            <span class="prelude-val">None</span>             <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PFE</span> { <span class="ident">kind</span>: <span class="ident">Invalid</span> }),
+                            <span class="prelude-val">Some</span>((<span class="string">&#39;-&#39;</span>, <span class="ident">src</span>)) =&gt; (<span class="bool-val">false</span>, <span class="ident">src</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>()),
+                            <span class="prelude-val">Some</span>((<span class="string">&#39;+&#39;</span>, <span class="ident">src</span>)) =&gt; (<span class="bool-val">true</span>,  <span class="ident">src</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>()),
+                            <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="kw">_</span>))     =&gt; (<span class="bool-val">true</span>,  <span class="ident">src</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>()),
+                            <span class="prelude-val">None</span>             =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PFE</span> { <span class="ident">kind</span>: <span class="ident">Invalid</span> }),
                         };
 
                         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-                        <span class="kw">fn</span> <span class="ident">pow</span>(<span class="ident">base</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>, <span class="ident">exp</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
+                        <span class="kw">fn</span> <span class="ident">pow</span>(<span class="ident">base</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>, <span class="ident">exp</span>: <span class="ident">usize</span>) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
                             <span class="ident">Float::powi</span>(<span class="ident">base</span>, <span class="ident">exp</span> <span class="kw">as</span> <span class="ident">i32</span>)
                         }
                         <span class="comment">// otherwise uses the generic `pow` from the root</span>
 
                         <span class="kw">match</span> (<span class="ident">is_positive</span>, <span class="ident">exp</span>) {
-                            (<span class="bool-val">true</span>,  <span class="prelude-val">Ok</span>(<span class="ident">exp</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">pow</span>(<span class="ident">base</span>, <span class="ident">exp</span>),
-                            (<span class="bool-val">false</span>, <span class="prelude-val">Ok</span>(<span class="ident">exp</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="number">1.0</span> <span class="op">/</span> <span class="ident">pow</span>(<span class="ident">base</span>, <span class="ident">exp</span>),
-                            (<span class="kw">_</span>, <span class="prelude-val">Err</span>(<span class="kw">_</span>))      <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PFE</span> { <span class="ident">kind</span>: <span class="ident">Invalid</span> }),
+                            (<span class="bool-val">true</span>,  <span class="prelude-val">Ok</span>(<span class="ident">exp</span>)) =&gt; <span class="ident">pow</span>(<span class="ident">base</span>, <span class="ident">exp</span>),
+                            (<span class="bool-val">false</span>, <span class="prelude-val">Ok</span>(<span class="ident">exp</span>)) =&gt; <span class="number">1.0</span> <span class="op">/</span> <span class="ident">pow</span>(<span class="ident">base</span>, <span class="ident">exp</span>),
+                            (<span class="kw">_</span>, <span class="prelude-val">Err</span>(<span class="kw">_</span>))      =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PFE</span> { <span class="ident">kind</span>: <span class="ident">Invalid</span> }),
                         }
                     },
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1.0</span>, <span class="comment">// no exponent</span>
+                    <span class="prelude-val">None</span> =&gt; <span class="number">1.0</span>, <span class="comment">// no exponent</span>
                 };
 
                 <span class="prelude-val">Ok</span>(<span class="ident">sig</span> <span class="op">*</span> <span class="ident">exp</span>)
@@ -970,7 +970,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// **Panics** in debug mode if `!(min &lt;= max)`.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clamp</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">PartialOrd</span><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="ident">T</span>, <span class="ident">min</span>: <span class="ident">T</span>, <span class="ident">max</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clamp</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">PartialOrd</span><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="ident">T</span>, <span class="ident">min</span>: <span class="ident">T</span>, <span class="ident">max</span>: <span class="ident">T</span>) -&gt; <span class="ident">T</span> {
     <span class="macro">debug_assert!</span>(<span class="ident">min</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">max</span>, <span class="string">&quot;min must be less than or equal to max&quot;</span>);
     <span class="kw">if</span> <span class="ident">input</span> <span class="op">&lt;</span> <span class="ident">min</span> {
         <span class="ident">min</span>
@@ -989,8 +989,8 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// **Panics** in debug mode if `!(min == min)`. (This occurs if `min` is `NAN`.)</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clamp_min</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">PartialOrd</span><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="ident">T</span>, <span class="ident">min</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
-    <span class="macro">debug_assert!</span>(<span class="ident">min</span> <span class="op">=</span><span class="op">=</span> <span class="ident">min</span>, <span class="string">&quot;min must not be NAN&quot;</span>);
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clamp_min</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">PartialOrd</span><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="ident">T</span>, <span class="ident">min</span>: <span class="ident">T</span>) -&gt; <span class="ident">T</span> {
+    <span class="macro">debug_assert!</span>(<span class="ident">min</span> <span class="op">==</span> <span class="ident">min</span>, <span class="string">&quot;min must not be NAN&quot;</span>);
     <span class="kw">if</span> <span class="ident">input</span> <span class="op">&lt;</span> <span class="ident">min</span> {
         <span class="ident">min</span>
     } <span class="kw">else</span> {
@@ -1006,8 +1006,8 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// **Panics** in debug mode if `!(max == max)`. (This occurs if `max` is `NAN`.)</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clamp_max</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">PartialOrd</span><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="ident">T</span>, <span class="ident">max</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
-    <span class="macro">debug_assert!</span>(<span class="ident">max</span> <span class="op">=</span><span class="op">=</span> <span class="ident">max</span>, <span class="string">&quot;max must not be NAN&quot;</span>);
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clamp_max</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">PartialOrd</span><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="ident">T</span>, <span class="ident">max</span>: <span class="ident">T</span>) -&gt; <span class="ident">T</span> {
+    <span class="macro">debug_assert!</span>(<span class="ident">max</span> <span class="op">==</span> <span class="ident">max</span>, <span class="string">&quot;max must not be NAN&quot;</span>);
     <span class="kw">if</span> <span class="ident">input</span> <span class="op">&gt;</span> <span class="ident">max</span> {
         <span class="ident">max</span>
     } <span class="kw">else</span> {
@@ -1104,7 +1104,7 @@
 <span class="attribute">#[<span class="ident">test</span>]</span>
 <span class="kw">fn</span> <span class="ident">wrapping_from_str_radix</span>() {
     <span class="macro">macro_rules!</span> <span class="ident">test_wrapping_from_str_radix</span> {
-        ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>)<span class="op">+</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>)<span class="op">+</span>) =&gt; {
             $(
                 <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">s</span>, <span class="ident">r</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span>[(<span class="string">&quot;42&quot;</span>, <span class="number">10</span>), (<span class="string">&quot;42&quot;</span>, <span class="number">2</span>), (<span class="string">&quot;-13.0&quot;</span>, <span class="number">10</span>), (<span class="string">&quot;foo&quot;</span>, <span class="number">10</span>)] {
                     <span class="kw">let</span> <span class="ident">w</span> <span class="op">=</span> <span class="ident">Wrapping</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span><span class="ident">::from_str_radix</span>(<span class="ident">s</span>, <span class="ident">r</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="number">0</span>);
@@ -1119,7 +1119,7 @@
 
 <span class="attribute">#[<span class="ident">test</span>]</span>
 <span class="kw">fn</span> <span class="ident">check_num_ops</span>() {
-    <span class="kw">fn</span> <span class="ident">compute</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Num</span> <span class="op">+</span> <span class="ident">Copy</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">y</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
+    <span class="kw">fn</span> <span class="ident">compute</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Num</span> <span class="op">+</span> <span class="ident">Copy</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">y</span>: <span class="ident">T</span>) -&gt; <span class="ident">T</span> {
         <span class="ident">x</span> <span class="op">*</span> <span class="ident">y</span> <span class="op">/</span> <span class="ident">y</span> <span class="op">%</span> <span class="ident">y</span> <span class="op">+</span> <span class="ident">y</span> <span class="op">-</span> <span class="ident">y</span>
     }
     <span class="macro">assert_eq!</span>(<span class="ident">compute</span>(<span class="number">1</span>, <span class="number">2</span>), <span class="number">1</span>)
@@ -1127,7 +1127,7 @@
 
 <span class="attribute">#[<span class="ident">test</span>]</span>
 <span class="kw">fn</span> <span class="ident">check_numref_ops</span>() {
-    <span class="kw">fn</span> <span class="ident">compute</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">NumRef</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
+    <span class="kw">fn</span> <span class="ident">compute</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">NumRef</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">T</span> {
         <span class="ident">x</span> <span class="op">*</span> <span class="ident">y</span> <span class="op">/</span> <span class="ident">y</span> <span class="op">%</span> <span class="ident">y</span> <span class="op">+</span> <span class="ident">y</span> <span class="op">-</span> <span class="ident">y</span>
     }
     <span class="macro">assert_eq!</span>(<span class="ident">compute</span>(<span class="number">1</span>, <span class="kw-2">&amp;</span><span class="number">2</span>), <span class="number">1</span>)
@@ -1135,7 +1135,7 @@
 
 <span class="attribute">#[<span class="ident">test</span>]</span>
 <span class="kw">fn</span> <span class="ident">check_refnum_ops</span>() {
-    <span class="kw">fn</span> <span class="ident">compute</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Copy</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="ident">y</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>
+    <span class="kw">fn</span> <span class="ident">compute</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Copy</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="ident">y</span>: <span class="ident">T</span>) -&gt; <span class="ident">T</span>
     <span class="kw">where</span>
         <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span>: <span class="ident">RefNum</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     {
@@ -1146,7 +1146,7 @@
 
 <span class="attribute">#[<span class="ident">test</span>]</span>
 <span class="kw">fn</span> <span class="ident">check_refref_ops</span>() {
-    <span class="kw">fn</span> <span class="ident">compute</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>
+    <span class="kw">fn</span> <span class="ident">compute</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">T</span>
     <span class="kw">where</span>
         <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span>: <span class="ident">RefNum</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     {
@@ -1157,7 +1157,7 @@
 
 <span class="attribute">#[<span class="ident">test</span>]</span>
 <span class="kw">fn</span> <span class="ident">check_numassign_ops</span>() {
-    <span class="kw">fn</span> <span class="ident">compute</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">NumAssign</span> <span class="op">+</span> <span class="ident">Copy</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">y</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
+    <span class="kw">fn</span> <span class="ident">compute</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">NumAssign</span> <span class="op">+</span> <span class="ident">Copy</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">y</span>: <span class="ident">T</span>) -&gt; <span class="ident">T</span> {
         <span class="ident">x</span> <span class="kw-2">*</span><span class="op">=</span> <span class="ident">y</span>;
         <span class="ident">x</span> <span class="op">/</span><span class="op">=</span> <span class="ident">y</span>;
         <span class="ident">x</span> <span class="op">%</span><span class="op">=</span> <span class="ident">y</span>;

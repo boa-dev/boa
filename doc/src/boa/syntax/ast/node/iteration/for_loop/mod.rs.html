@@ -239,7 +239,7 @@
 
 <span class="kw">impl</span> <span class="ident">ForLoop</span> {
     <span class="doccomment">/// Creates a new for loop AST node.</span>
-    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">C</span>, <span class="ident">E</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="ident">init</span>: <span class="ident">I</span>, <span class="ident">condition</span>: <span class="ident">C</span>, <span class="ident">final_expr</span>: <span class="ident">E</span>, <span class="ident">body</span>: <span class="ident">B</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">C</span>, <span class="ident">E</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="ident">init</span>: <span class="ident">I</span>, <span class="ident">condition</span>: <span class="ident">C</span>, <span class="ident">final_expr</span>: <span class="ident">E</span>, <span class="ident">body</span>: <span class="ident">B</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">C</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
@@ -253,22 +253,22 @@
     }
 
     <span class="doccomment">/// Gets the initialization node.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Node</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Node</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">init</span>()
     }
 
     <span class="doccomment">/// Gets the loop condition node.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">condition</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Node</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">condition</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Node</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">condition</span>()
     }
 
     <span class="doccomment">/// Gets the final expression node.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">final_expr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Node</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">final_expr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Node</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">final_expr</span>()
     }
 
     <span class="doccomment">/// Gets the body of the for loop.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">body</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Node</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">body</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Node</span> {
         <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">body</span>()
     }
 
@@ -276,7 +276,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
         <span class="ident">indentation</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    ) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">label</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">label</span> {
             <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}: &quot;</span>, <span class="ident">label</span>)<span class="question-mark">?</span>;
         }
@@ -296,7 +296,7 @@
         <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">body</span>().<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">label</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">label</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">label</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="ident">Box::as_ref</span>)
     }
 
@@ -306,7 +306,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Executable</span> <span class="kw">for</span> <span class="ident">ForLoop</span> {
-    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// Create the block environment.</span>
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;ForLoop&quot;</span>, <span class="string">&quot;exec&quot;</span>);
         {
@@ -327,18 +327,18 @@
             <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">body</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
             <span class="kw">match</span> <span class="ident">context</span>.<span class="ident">executor</span>().<span class="ident">get_current_state</span>() {
-                <span class="ident">InterpreterState::Break</span>(<span class="ident">label</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">InterpreterState::Break</span>(<span class="ident">label</span>) =&gt; {
                     <span class="macro">handle_state_with_labels!</span>(<span class="self">self</span>, <span class="ident">label</span>, <span class="ident">context</span>, <span class="kw">break</span>);
                     <span class="kw">break</span>;
                 }
-                <span class="ident">InterpreterState::Continue</span>(<span class="ident">label</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">InterpreterState::Continue</span>(<span class="ident">label</span>) =&gt; {
                     <span class="macro">handle_state_with_labels!</span>(<span class="self">self</span>, <span class="ident">label</span>, <span class="ident">context</span>, <span class="kw">continue</span>);
                 }
 
-                <span class="ident">InterpreterState::Return</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">InterpreterState::Return</span> =&gt; {
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">result</span>);
                 }
-                <span class="ident">InterpreterState::Executing</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">InterpreterState::Executing</span> =&gt; {
                     <span class="comment">// Continue execution.</span>
                 }
             }
@@ -356,13 +356,13 @@
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">ForLoop</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="self">self</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="number">0</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ForLoop</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Node</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">for_loop</span>: <span class="ident">ForLoop</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">for_loop</span>: <span class="ident">ForLoop</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::ForLoop</span>(<span class="ident">for_loop</span>)
     }
 }
@@ -379,7 +379,7 @@
 
 <span class="kw">impl</span> <span class="ident">InnerForLoop</span> {
     <span class="doccomment">/// Creates a new inner for loop.</span>
-    <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">C</span>, <span class="ident">E</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="ident">init</span>: <span class="ident">I</span>, <span class="ident">condition</span>: <span class="ident">C</span>, <span class="ident">final_expr</span>: <span class="ident">E</span>, <span class="ident">body</span>: <span class="ident">B</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">C</span>, <span class="ident">E</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="ident">init</span>: <span class="ident">I</span>, <span class="ident">condition</span>: <span class="ident">C</span>, <span class="ident">final_expr</span>: <span class="ident">E</span>, <span class="ident">body</span>: <span class="ident">B</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">C</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
@@ -395,22 +395,22 @@
     }
 
     <span class="doccomment">/// Gets the initialization node.</span>
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Node</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">init</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Node</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">init</span>.<span class="ident">as_ref</span>()
     }
 
     <span class="doccomment">/// Gets the loop condition node.</span>
-    <span class="kw">fn</span> <span class="ident">condition</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Node</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">condition</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Node</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">condition</span>.<span class="ident">as_ref</span>()
     }
 
     <span class="doccomment">/// Gets the final expression node.</span>
-    <span class="kw">fn</span> <span class="ident">final_expr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Node</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">final_expr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Node</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">final_expr</span>.<span class="ident">as_ref</span>()
     }
 
     <span class="doccomment">/// Gets the body of the for loop.</span>
-    <span class="kw">fn</span> <span class="ident">body</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Node</span> {
+    <span class="kw">fn</span> <span class="ident">body</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Node</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">body</span>
     }
 }

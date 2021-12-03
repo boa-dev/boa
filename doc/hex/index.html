@@ -2,22 +2,22 @@
 <p>For most cases, you can simply use the <a href="fn.decode.html" title="decode"><code>decode</code></a>, <a href="fn.encode.html" title="encode"><code>encode</code></a> and
 <a href="fn.encode_upper.html" title="encode_upper"><code>encode_upper</code></a> functions. If you need a bit more control, use the traits
 <a href="trait.ToHex.html" title="ToHex"><code>ToHex</code></a> and <a href="trait.FromHex.html" title="FromHex"><code>FromHex</code></a> instead.</p>
-<h1 id="example" class="section-header"><a href="#example">Example</a></h1>
+<h2 id="example" class="section-header"><a href="#example">Example</a></h2>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let</span> <span class="ident">hex_string</span> <span class="op">=</span> <span class="ident">hex::encode</span>(<span class="string">&quot;Hello world!&quot;</span>);
 
 <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">hex_string</span>); <span class="comment">// Prints &quot;48656c6c6f20776f726c6421&quot;</span>
 </code></pre></div>
 </div></details><h2 id="enums" class="section-header"><a href="#enums">Enums</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="enum" href="enum.FromHexError.html" title="hex::FromHexError enum">FromHexError</a></div><div class="item-right docblock-short"><p>The error type for decoding a hex string into <code>Vec&lt;u8&gt;</code> or <code>[u8; N]</code>.</p>
-</div></div><h2 id="traits" class="section-header"><a href="#traits">Traits</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="trait" href="trait.FromHex.html" title="hex::FromHex trait">FromHex</a></div><div class="item-right docblock-short"><p>Types that can be decoded from a hex string.</p>
-</div><div class="item-left module-item"><a class="trait" href="trait.ToHex.html" title="hex::ToHex trait">ToHex</a></div><div class="item-right docblock-short"><p>Encoding values as hex string.</p>
-</div></div><h2 id="functions" class="section-header"><a href="#functions">Functions</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="fn" href="fn.decode.html" title="hex::decode fn">decode</a></div><div class="item-right docblock-short"><p>Decodes a hex string into raw bytes.</p>
-</div><div class="item-left module-item"><a class="fn" href="fn.decode_to_slice.html" title="hex::decode_to_slice fn">decode_to_slice</a></div><div class="item-right docblock-short"><p>Decode a hex string into a mutable bytes slice.</p>
-</div><div class="item-left module-item"><a class="fn" href="fn.encode.html" title="hex::encode fn">encode</a></div><div class="item-right docblock-short"><p>Encodes <code>data</code> as hex string using lowercase characters.</p>
-</div><div class="item-left module-item"><a class="fn" href="fn.encode_to_slice.html" title="hex::encode_to_slice fn">encode_to_slice</a></div><div class="item-right docblock-short"><p>Encodes some bytes into a mutable slice of bytes.</p>
-</div><div class="item-left module-item"><a class="fn" href="fn.encode_upper.html" title="hex::encode_upper fn">encode_upper</a></div><div class="item-right docblock-short"><p>Encodes <code>data</code> as hex string using uppercase characters.</p>
-</div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="hex" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.FromHexError.html" title="hex::FromHexError enum">FromHexError</a></div><div class="item-right docblock-short"><p>The error type for decoding a hex string into <code>Vec&lt;u8&gt;</code> or <code>[u8; N]</code>.</p>
+</div></div></div><h2 id="traits" class="section-header"><a href="#traits">Traits</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.FromHex.html" title="hex::FromHex trait">FromHex</a></div><div class="item-right docblock-short"><p>Types that can be decoded from a hex string.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.ToHex.html" title="hex::ToHex trait">ToHex</a></div><div class="item-right docblock-short"><p>Encoding values as hex string.</p>
+</div></div></div><h2 id="functions" class="section-header"><a href="#functions">Functions</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.decode.html" title="hex::decode fn">decode</a></div><div class="item-right docblock-short"><p>Decodes a hex string into raw bytes.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.decode_to_slice.html" title="hex::decode_to_slice fn">decode_to_slice</a></div><div class="item-right docblock-short"><p>Decode a hex string into a mutable bytes slice.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.encode.html" title="hex::encode fn">encode</a></div><div class="item-right docblock-short"><p>Encodes <code>data</code> as hex string using lowercase characters.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.encode_to_slice.html" title="hex::encode_to_slice fn">encode_to_slice</a></div><div class="item-right docblock-short"><p>Encodes some bytes into a mutable slice of bytes.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.encode_upper.html" title="hex::encode_upper fn">encode_upper</a></div><div class="item-right docblock-short"><p>Encodes <code>data</code> as hex string using uppercase characters.</p>
+</div></div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="hex" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
     <script src="../main.js"></script>
 </body></html>

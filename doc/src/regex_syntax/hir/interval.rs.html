@@ -563,7 +563,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// The given ranges do not need to be in any specific order, and ranges</span>
     <span class="doccomment">/// may overlap.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">I</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">intervals</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IntervalSet</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">I</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">intervals</span>: <span class="ident">T</span>) -&gt; <span class="ident">IntervalSet</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">set</span> <span class="op">=</span> <span class="ident">IntervalSet</span> { <span class="ident">ranges</span>: <span class="ident">intervals</span>.<span class="ident">into_iter</span>().<span class="ident">collect</span>() };
         <span class="ident">set</span>.<span class="ident">canonicalize</span>();
         <span class="ident">set</span>
@@ -580,14 +580,14 @@
     <span class="doccomment">/// Return an iterator over all intervals in this set.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The iterator yields intervals in ascending order.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IntervalSetIter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">I</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">IntervalSetIter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">I</span><span class="op">&gt;</span> {
         <span class="ident">IntervalSetIter</span>(<span class="self">self</span>.<span class="ident">ranges</span>.<span class="ident">iter</span>())
     }
 
     <span class="doccomment">/// Return an immutable slice of intervals in this set.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The sequence returned is in canonical ordering.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">intervals</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">I</span>] {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">intervals</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">I</span>] {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ranges</span>
     }
 
@@ -598,7 +598,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This returns an error if the necessary case mapping data is not</span>
     <span class="doccomment">/// available.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">case_fold_simple</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">unicode::CaseFoldError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">case_fold_simple</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">unicode::CaseFoldError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ranges</span>.<span class="ident">len</span>();
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">len</span> {
             <span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ranges</span>[<span class="ident">i</span>];
@@ -649,8 +649,8 @@
                     (<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">itb</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">b</span>)
                 };
             <span class="kw">match</span> <span class="ident">it</span>.<span class="ident">next</span>() {
-                <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">aorb</span> <span class="op">=</span> <span class="ident">v</span>,
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
+                <span class="prelude-val">Some</span>(<span class="ident">v</span>) =&gt; <span class="kw-2">*</span><span class="ident">aorb</span> <span class="op">=</span> <span class="ident">v</span>,
+                <span class="prelude-val">None</span> =&gt; <span class="kw">break</span>,
             }
         }
         <span class="self">self</span>.<span class="ident">ranges</span>.<span class="ident">drain</span>(..<span class="ident">drain_end</span>);
@@ -712,14 +712,14 @@
             {
                 <span class="kw">let</span> <span class="ident">old_range</span> <span class="op">=</span> <span class="ident">range</span>;
                 <span class="ident">range</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">range</span>.<span class="ident">difference</span>(<span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="ident">ranges</span>[<span class="ident">b</span>]) {
-                    (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; {
                         <span class="comment">// We lost the entire range, so move on to the next</span>
                         <span class="comment">// without adding this one.</span>
                         <span class="ident">a</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                         <span class="kw">continue</span> <span class="lifetime">&#39;LOOP</span>;
                     }
-                    (<span class="prelude-val">Some</span>(<span class="ident">range1</span>), <span class="prelude-val">None</span>) <span class="op">|</span> (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="ident">range1</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">range1</span>,
-                    (<span class="prelude-val">Some</span>(<span class="ident">range1</span>), <span class="prelude-val">Some</span>(<span class="ident">range2</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                    (<span class="prelude-val">Some</span>(<span class="ident">range1</span>), <span class="prelude-val">None</span>) <span class="op">|</span> (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="ident">range1</span>)) =&gt; <span class="ident">range1</span>,
+                    (<span class="prelude-val">Some</span>(<span class="ident">range1</span>), <span class="prelude-val">Some</span>(<span class="ident">range2</span>)) =&gt; {
                         <span class="self">self</span>.<span class="ident">ranges</span>.<span class="ident">push</span>(<span class="ident">range1</span>);
                         <span class="ident">range2</span>
                     }
@@ -827,7 +827,7 @@
     }
 
     <span class="doccomment">/// Returns true if and only if this class is in a canonical ordering.</span>
-    <span class="kw">fn</span> <span class="ident">is_canonical</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">is_canonical</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">for</span> <span class="ident">pair</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">ranges</span>.<span class="ident">windows</span>(<span class="number">2</span>) {
             <span class="kw">if</span> <span class="ident">pair</span>[<span class="number">0</span>] <span class="op">&gt;</span><span class="op">=</span> <span class="ident">pair</span>[<span class="number">1</span>] {
                 <span class="kw">return</span> <span class="bool-val">false</span>;
@@ -847,7 +847,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">IntervalSetIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">I</span>;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">I</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">I</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">next</span>()
     }
 }
@@ -857,17 +857,17 @@
 {
     <span class="kw">type</span> <span class="ident">Bound</span>: <span class="ident">Bound</span>;
 
-    <span class="kw">fn</span> <span class="ident">lower</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Bound</span>;
-    <span class="kw">fn</span> <span class="ident">upper</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Bound</span>;
+    <span class="kw">fn</span> <span class="ident">lower</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Bound</span>;
+    <span class="kw">fn</span> <span class="ident">upper</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Bound</span>;
     <span class="kw">fn</span> <span class="ident">set_lower</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">bound</span>: <span class="ident"><span class="self">Self</span>::Bound</span>);
     <span class="kw">fn</span> <span class="ident">set_upper</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">bound</span>: <span class="ident"><span class="self">Self</span>::Bound</span>);
     <span class="kw">fn</span> <span class="ident">case_fold_simple</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">intervals</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">unicode::CaseFoldError</span><span class="op">&gt;</span>;
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">unicode::CaseFoldError</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Create a new interval.</span>
-    <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">lower</span>: <span class="ident"><span class="self">Self</span>::Bound</span>, <span class="ident">upper</span>: <span class="ident"><span class="self">Self</span>::Bound</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">lower</span>: <span class="ident"><span class="self">Self</span>::Bound</span>, <span class="ident">upper</span>: <span class="ident"><span class="self">Self</span>::Bound</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">int</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::default</span>();
         <span class="kw">if</span> <span class="ident">lower</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">upper</span> {
             <span class="ident">int</span>.<span class="ident">set_lower</span>(<span class="ident">lower</span>);
@@ -882,7 +882,7 @@
     <span class="doccomment">/// Union the given overlapping range into this range.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// If the two ranges aren&#39;t contiguous, then this returns `None`.</span>
-    <span class="kw">fn</span> <span class="ident">union</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">union</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_contiguous</span>(<span class="ident">other</span>) {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
@@ -894,7 +894,7 @@
     <span class="doccomment">/// Intersect this range with the given range and return the result.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// If the intersection is empty, then this returns `None`.</span>
-    <span class="kw">fn</span> <span class="ident">intersect</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">intersect</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">lower</span> <span class="op">=</span> <span class="ident">cmp::max</span>(<span class="self">self</span>.<span class="ident">lower</span>(), <span class="ident">other</span>.<span class="ident">lower</span>());
         <span class="kw">let</span> <span class="ident">upper</span> <span class="op">=</span> <span class="ident">cmp::min</span>(<span class="self">self</span>.<span class="ident">upper</span>(), <span class="ident">other</span>.<span class="ident">upper</span>());
         <span class="kw">if</span> <span class="ident">lower</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">upper</span> {
@@ -909,7 +909,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// If subtraction would result in an empty range, then no ranges are</span>
     <span class="doccomment">/// returned.</span>
-    <span class="kw">fn</span> <span class="ident">difference</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) {
+    <span class="kw">fn</span> <span class="ident">difference</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; (<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_subset</span>(<span class="ident">other</span>) {
             <span class="kw">return</span> (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>);
         }
@@ -943,14 +943,14 @@
     <span class="kw">fn</span> <span class="ident">symmetric_difference</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> (<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) {
+    ) -&gt; (<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) {
         <span class="kw">let</span> <span class="ident">union</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">union</span>(<span class="ident">other</span>) {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> (<span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">clone</span>()), <span class="prelude-val">Some</span>(<span class="ident">other</span>.<span class="ident">clone</span>())),
-            <span class="prelude-val">Some</span>(<span class="ident">union</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">union</span>,
+            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> (<span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">clone</span>()), <span class="prelude-val">Some</span>(<span class="ident">other</span>.<span class="ident">clone</span>())),
+            <span class="prelude-val">Some</span>(<span class="ident">union</span>) =&gt; <span class="ident">union</span>,
         };
         <span class="kw">let</span> <span class="ident">intersection</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">intersect</span>(<span class="ident">other</span>) {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> (<span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">clone</span>()), <span class="prelude-val">Some</span>(<span class="ident">other</span>.<span class="ident">clone</span>())),
-            <span class="prelude-val">Some</span>(<span class="ident">intersection</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">intersection</span>,
+            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> (<span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">clone</span>()), <span class="prelude-val">Some</span>(<span class="ident">other</span>.<span class="ident">clone</span>())),
+            <span class="prelude-val">Some</span>(<span class="ident">intersection</span>) =&gt; <span class="ident">intersection</span>,
         };
         <span class="ident">union</span>.<span class="ident">difference</span>(<span class="kw-2">&amp;</span><span class="ident">intersection</span>)
     }
@@ -958,7 +958,7 @@
     <span class="doccomment">/// Returns true if and only if the two ranges are contiguous. Two ranges</span>
     <span class="doccomment">/// are contiguous if and only if the ranges are either overlapping or</span>
     <span class="doccomment">/// adjacent.</span>
-    <span class="kw">fn</span> <span class="ident">is_contiguous</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">is_contiguous</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="ident">lower1</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">lower</span>().<span class="ident">as_u32</span>();
         <span class="kw">let</span> <span class="ident">upper1</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">upper</span>().<span class="ident">as_u32</span>();
         <span class="kw">let</span> <span class="ident">lower2</span> <span class="op">=</span> <span class="ident">other</span>.<span class="ident">lower</span>().<span class="ident">as_u32</span>();
@@ -968,14 +968,14 @@
 
     <span class="doccomment">/// Returns true if and only if the intersection of this range and the</span>
     <span class="doccomment">/// other range is empty.</span>
-    <span class="kw">fn</span> <span class="ident">is_intersection_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">is_intersection_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">let</span> (<span class="ident">lower1</span>, <span class="ident">upper1</span>) <span class="op">=</span> (<span class="self">self</span>.<span class="ident">lower</span>(), <span class="self">self</span>.<span class="ident">upper</span>());
         <span class="kw">let</span> (<span class="ident">lower2</span>, <span class="ident">upper2</span>) <span class="op">=</span> (<span class="ident">other</span>.<span class="ident">lower</span>(), <span class="ident">other</span>.<span class="ident">upper</span>());
         <span class="ident">cmp::max</span>(<span class="ident">lower1</span>, <span class="ident">lower2</span>) <span class="op">&gt;</span> <span class="ident">cmp::min</span>(<span class="ident">upper1</span>, <span class="ident">upper2</span>)
     }
 
     <span class="doccomment">/// Returns true if and only if this range is a subset of the other range.</span>
-    <span class="kw">fn</span> <span class="ident">is_subset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">is_subset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">let</span> (<span class="ident">lower1</span>, <span class="ident">upper1</span>) <span class="op">=</span> (<span class="self">self</span>.<span class="ident">lower</span>(), <span class="self">self</span>.<span class="ident">upper</span>());
         <span class="kw">let</span> (<span class="ident">lower2</span>, <span class="ident">upper2</span>) <span class="op">=</span> (<span class="ident">other</span>.<span class="ident">lower</span>(), <span class="ident">other</span>.<span class="ident">upper</span>());
         (<span class="ident">lower2</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">lower1</span> <span class="op">&amp;&amp;</span> <span class="ident">lower1</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">upper2</span>)
@@ -986,53 +986,53 @@
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Bound</span>:
     <span class="ident">Copy</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Eq</span> <span class="op">+</span> <span class="ident">PartialEq</span> <span class="op">+</span> <span class="ident">PartialOrd</span> <span class="op">+</span> <span class="ident">Ord</span>
 {
-    <span class="kw">fn</span> <span class="ident">min_value</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
-    <span class="kw">fn</span> <span class="ident">max_value</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
-    <span class="kw">fn</span> <span class="ident">as_u32</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
-    <span class="kw">fn</span> <span class="ident">increment</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
-    <span class="kw">fn</span> <span class="ident">decrement</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">min_value</span>() -&gt; <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">max_value</span>() -&gt; <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">as_u32</span>(<span class="self">self</span>) -&gt; <span class="ident">u32</span>;
+    <span class="kw">fn</span> <span class="ident">increment</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">decrement</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">Bound</span> <span class="kw">for</span> <span class="ident">u8</span> {
-    <span class="kw">fn</span> <span class="ident">min_value</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">min_value</span>() -&gt; <span class="self">Self</span> {
         <span class="ident">u8::MIN</span>
     }
-    <span class="kw">fn</span> <span class="ident">max_value</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">max_value</span>() -&gt; <span class="self">Self</span> {
         <span class="ident">u8::MAX</span>
     }
-    <span class="kw">fn</span> <span class="ident">as_u32</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">as_u32</span>(<span class="self">self</span>) -&gt; <span class="ident">u32</span> {
         <span class="self">self</span> <span class="kw">as</span> <span class="ident">u32</span>
     }
-    <span class="kw">fn</span> <span class="ident">increment</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">increment</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">checked_add</span>(<span class="number">1</span>).<span class="ident">unwrap</span>()
     }
-    <span class="kw">fn</span> <span class="ident">decrement</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">decrement</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">checked_sub</span>(<span class="number">1</span>).<span class="ident">unwrap</span>()
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Bound</span> <span class="kw">for</span> <span class="ident">char</span> {
-    <span class="kw">fn</span> <span class="ident">min_value</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">min_value</span>() -&gt; <span class="self">Self</span> {
         <span class="string">&#39;\x00&#39;</span>
     }
-    <span class="kw">fn</span> <span class="ident">max_value</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">max_value</span>() -&gt; <span class="self">Self</span> {
         <span class="string">&#39;\u{10FFFF}&#39;</span>
     }
-    <span class="kw">fn</span> <span class="ident">as_u32</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">as_u32</span>(<span class="self">self</span>) -&gt; <span class="ident">u32</span> {
         <span class="self">self</span> <span class="kw">as</span> <span class="ident">u32</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">increment</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">increment</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="string">&#39;\u{D7FF}&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&#39;\u{E000}&#39;</span>,
-            <span class="ident">c</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">char::from_u32</span>((<span class="ident">c</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">checked_add</span>(<span class="number">1</span>).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>(),
+            <span class="string">&#39;\u{D7FF}&#39;</span> =&gt; <span class="string">&#39;\u{E000}&#39;</span>,
+            <span class="ident">c</span> =&gt; <span class="ident">char::from_u32</span>((<span class="ident">c</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">checked_add</span>(<span class="number">1</span>).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>(),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">decrement</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">decrement</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="string">&#39;\u{E000}&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&#39;\u{D7FF}&#39;</span>,
-            <span class="ident">c</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">char::from_u32</span>((<span class="ident">c</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">checked_sub</span>(<span class="number">1</span>).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>(),
+            <span class="string">&#39;\u{E000}&#39;</span> =&gt; <span class="string">&#39;\u{D7FF}&#39;</span>,
+            <span class="ident">c</span> =&gt; <span class="ident">char::from_u32</span>((<span class="ident">c</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">checked_sub</span>(<span class="number">1</span>).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>(),
         }
     }
 }

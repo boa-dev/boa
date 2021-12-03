@@ -955,7 +955,7 @@
 <span class="kw">impl</span> <span class="ident">Forward</span> {
     <span class="doccomment">/// Create a searcher that uses the Two-Way algorithm by searching forwards</span>
     <span class="doccomment">/// through any haystack.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Forward</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">Forward</span> {
         <span class="kw">if</span> <span class="ident">needle</span>.<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="ident">Forward</span>(<span class="ident">TwoWay::empty</span>());
         }
@@ -987,15 +987,15 @@
         <span class="ident">pre</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Pre</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="macro">debug_assert!</span>(<span class="op">!</span><span class="ident">needle</span>.<span class="ident">is_empty</span>(), <span class="string">&quot;needle should not be empty&quot;</span>);
         <span class="macro">debug_assert!</span>(<span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">haystack</span>.<span class="ident">len</span>(), <span class="string">&quot;haystack too short&quot;</span>);
 
         <span class="kw">match</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">shift</span> {
-            <span class="ident">Shift::Small</span> { <span class="ident">period</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Shift::Small</span> { <span class="ident">period</span> } =&gt; {
                 <span class="self">self</span>.<span class="ident">find_small_imp</span>(<span class="ident">pre</span>, <span class="ident">haystack</span>, <span class="ident">needle</span>, <span class="ident">period</span>)
             }
-            <span class="ident">Shift::Large</span> { <span class="ident">shift</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Shift::Large</span> { <span class="ident">shift</span> } =&gt; {
                 <span class="self">self</span>.<span class="ident">find_large_imp</span>(<span class="ident">pre</span>, <span class="ident">haystack</span>, <span class="ident">needle</span>, <span class="ident">shift</span>)
             }
         }
@@ -1010,7 +1010,7 @@
         <span class="ident">pre</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Pre</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">needle</span>.<span class="ident">is_empty</span>() {
             <span class="prelude-val">Some</span>(<span class="number">0</span>)
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">haystack</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">needle</span>.<span class="ident">len</span>() {
@@ -1033,7 +1033,7 @@
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">period</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">last_byte</span> <span class="op">=</span> <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pos</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">shift</span> <span class="op">=</span> <span class="number">0</span>;
@@ -1054,7 +1054,7 @@
                 <span class="ident">shift</span> <span class="op">=</span> <span class="number">0</span>;
                 <span class="kw">continue</span>;
             }
-            <span class="kw">while</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">&amp;&amp;</span> <span class="ident">needle</span>[<span class="ident">i</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">haystack</span>[<span class="ident">pos</span> <span class="op">+</span> <span class="ident">i</span>] {
+            <span class="kw">while</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">&amp;&amp;</span> <span class="ident">needle</span>[<span class="ident">i</span>] <span class="op">==</span> <span class="ident">haystack</span>[<span class="ident">pos</span> <span class="op">+</span> <span class="ident">i</span>] {
                 <span class="ident">i</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
             }
             <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">needle</span>.<span class="ident">len</span>() {
@@ -1062,10 +1062,10 @@
                 <span class="ident">shift</span> <span class="op">=</span> <span class="number">0</span>;
             } <span class="kw">else</span> {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">j</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">critical_pos</span>;
-                <span class="kw">while</span> <span class="ident">j</span> <span class="op">&gt;</span> <span class="ident">shift</span> <span class="op">&amp;&amp;</span> <span class="ident">needle</span>[<span class="ident">j</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">haystack</span>[<span class="ident">pos</span> <span class="op">+</span> <span class="ident">j</span>] {
+                <span class="kw">while</span> <span class="ident">j</span> <span class="op">&gt;</span> <span class="ident">shift</span> <span class="op">&amp;&amp;</span> <span class="ident">needle</span>[<span class="ident">j</span>] <span class="op">==</span> <span class="ident">haystack</span>[<span class="ident">pos</span> <span class="op">+</span> <span class="ident">j</span>] {
                     <span class="ident">j</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
                 }
-                <span class="kw">if</span> <span class="ident">j</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">shift</span> <span class="op">&amp;&amp;</span> <span class="ident">needle</span>[<span class="ident">shift</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">haystack</span>[<span class="ident">pos</span> <span class="op">+</span> <span class="ident">shift</span>] {
+                <span class="kw">if</span> <span class="ident">j</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">shift</span> <span class="op">&amp;&amp;</span> <span class="ident">needle</span>[<span class="ident">shift</span>] <span class="op">==</span> <span class="ident">haystack</span>[<span class="ident">pos</span> <span class="op">+</span> <span class="ident">shift</span>] {
                     <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">pos</span>);
                 }
                 <span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="ident">period</span>;
@@ -1082,7 +1082,7 @@
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">shift</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">last_byte</span> <span class="op">=</span> <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pos</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="lifetime">&#39;outer</span>: <span class="kw">while</span> <span class="ident">pos</span> <span class="op">+</span> <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">haystack</span>.<span class="ident">len</span>() {
@@ -1100,7 +1100,7 @@
                 <span class="kw">continue</span>;
             }
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">i</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">critical_pos</span>;
-            <span class="kw">while</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">&amp;&amp;</span> <span class="ident">needle</span>[<span class="ident">i</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">haystack</span>[<span class="ident">pos</span> <span class="op">+</span> <span class="ident">i</span>] {
+            <span class="kw">while</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">&amp;&amp;</span> <span class="ident">needle</span>[<span class="ident">i</span>] <span class="op">==</span> <span class="ident">haystack</span>[<span class="ident">pos</span> <span class="op">+</span> <span class="ident">i</span>] {
                 <span class="ident">i</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
             }
             <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">needle</span>.<span class="ident">len</span>() {
@@ -1122,7 +1122,7 @@
 <span class="kw">impl</span> <span class="ident">Reverse</span> {
     <span class="doccomment">/// Create a searcher that uses the Two-Way algorithm by searching in</span>
     <span class="doccomment">/// reverse through any haystack.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Reverse</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">Reverse</span> {
         <span class="kw">if</span> <span class="ident">needle</span>.<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="ident">Reverse</span>(<span class="ident">TwoWay::empty</span>());
         }
@@ -1154,7 +1154,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="macro">debug_assert!</span>(<span class="op">!</span><span class="ident">needle</span>.<span class="ident">is_empty</span>(), <span class="string">&quot;needle should not be empty&quot;</span>);
         <span class="macro">debug_assert!</span>(<span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">haystack</span>.<span class="ident">len</span>(), <span class="string">&quot;haystack too short&quot;</span>);
         <span class="comment">// For the reverse case, we don&#39;t use a prefilter. It&#39;s plausible that</span>
@@ -1162,10 +1162,10 @@
         <span class="comment">// it&#39;s not clear that it&#39;s actually worth it. If you have a really</span>
         <span class="comment">// compelling use case for this, please file an issue.</span>
         <span class="kw">match</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">shift</span> {
-            <span class="ident">Shift::Small</span> { <span class="ident">period</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Shift::Small</span> { <span class="ident">period</span> } =&gt; {
                 <span class="self">self</span>.<span class="ident">rfind_small_imp</span>(<span class="ident">haystack</span>, <span class="ident">needle</span>, <span class="ident">period</span>)
             }
-            <span class="ident">Shift::Large</span> { <span class="ident">shift</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Shift::Large</span> { <span class="ident">shift</span> } =&gt; {
                 <span class="self">self</span>.<span class="ident">rfind_large_imp</span>(<span class="ident">haystack</span>, <span class="ident">needle</span>, <span class="ident">shift</span>)
             }
         }
@@ -1175,7 +1175,7 @@
     <span class="doccomment">/// only useful for conveniently testing this substring implementation in</span>
     <span class="doccomment">/// isolation.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">rfind_general</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">rfind_general</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">needle</span>.<span class="ident">is_empty</span>() {
             <span class="prelude-val">Some</span>(<span class="ident">haystack</span>.<span class="ident">len</span>())
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">haystack</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">needle</span>.<span class="ident">len</span>() {
@@ -1191,7 +1191,7 @@
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">period</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">nlen</span> <span class="op">=</span> <span class="ident">needle</span>.<span class="ident">len</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">haystack</span>.<span class="ident">len</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">shift</span> <span class="op">=</span> <span class="ident">nlen</span>;
@@ -1202,7 +1202,7 @@
                 <span class="kw">continue</span>;
             }
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">i</span> <span class="op">=</span> <span class="ident">cmp::min</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">critical_pos</span>, <span class="ident">shift</span>);
-            <span class="kw">while</span> <span class="ident">i</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">needle</span>[<span class="ident">i</span> <span class="op">-</span> <span class="number">1</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">haystack</span>[<span class="ident">pos</span> <span class="op">-</span> <span class="ident">nlen</span> <span class="op">+</span> <span class="ident">i</span> <span class="op">-</span> <span class="number">1</span>] {
+            <span class="kw">while</span> <span class="ident">i</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">needle</span>[<span class="ident">i</span> <span class="op">-</span> <span class="number">1</span>] <span class="op">==</span> <span class="ident">haystack</span>[<span class="ident">pos</span> <span class="op">-</span> <span class="ident">nlen</span> <span class="op">+</span> <span class="ident">i</span> <span class="op">-</span> <span class="number">1</span>] {
                 <span class="ident">i</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
             }
             <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">needle</span>[<span class="number">0</span>] <span class="op">!</span><span class="op">=</span> <span class="ident">haystack</span>[<span class="ident">pos</span> <span class="op">-</span> <span class="ident">nlen</span>] {
@@ -1210,7 +1210,7 @@
                 <span class="ident">shift</span> <span class="op">=</span> <span class="ident">nlen</span>;
             } <span class="kw">else</span> {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">j</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">critical_pos</span>;
-                <span class="kw">while</span> <span class="ident">j</span> <span class="op">&lt;</span> <span class="ident">shift</span> <span class="op">&amp;&amp;</span> <span class="ident">needle</span>[<span class="ident">j</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">haystack</span>[<span class="ident">pos</span> <span class="op">-</span> <span class="ident">nlen</span> <span class="op">+</span> <span class="ident">j</span>] {
+                <span class="kw">while</span> <span class="ident">j</span> <span class="op">&lt;</span> <span class="ident">shift</span> <span class="op">&amp;&amp;</span> <span class="ident">needle</span>[<span class="ident">j</span>] <span class="op">==</span> <span class="ident">haystack</span>[<span class="ident">pos</span> <span class="op">-</span> <span class="ident">nlen</span> <span class="op">+</span> <span class="ident">j</span>] {
                     <span class="ident">j</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 }
                 <span class="kw">if</span> <span class="ident">j</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">shift</span> {
@@ -1229,7 +1229,7 @@
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">shift</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">nlen</span> <span class="op">=</span> <span class="ident">needle</span>.<span class="ident">len</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">haystack</span>.<span class="ident">len</span>();
         <span class="kw">while</span> <span class="ident">pos</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">nlen</span> {
@@ -1238,17 +1238,17 @@
                 <span class="kw">continue</span>;
             }
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">i</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">critical_pos</span>;
-            <span class="kw">while</span> <span class="ident">i</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">needle</span>[<span class="ident">i</span> <span class="op">-</span> <span class="number">1</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">haystack</span>[<span class="ident">pos</span> <span class="op">-</span> <span class="ident">nlen</span> <span class="op">+</span> <span class="ident">i</span> <span class="op">-</span> <span class="number">1</span>] {
+            <span class="kw">while</span> <span class="ident">i</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">needle</span>[<span class="ident">i</span> <span class="op">-</span> <span class="number">1</span>] <span class="op">==</span> <span class="ident">haystack</span>[<span class="ident">pos</span> <span class="op">-</span> <span class="ident">nlen</span> <span class="op">+</span> <span class="ident">i</span> <span class="op">-</span> <span class="number">1</span>] {
                 <span class="ident">i</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
             }
             <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">needle</span>[<span class="number">0</span>] <span class="op">!</span><span class="op">=</span> <span class="ident">haystack</span>[<span class="ident">pos</span> <span class="op">-</span> <span class="ident">nlen</span>] {
                 <span class="ident">pos</span> <span class="op">-</span><span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">critical_pos</span> <span class="op">-</span> <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>;
             } <span class="kw">else</span> {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">j</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">critical_pos</span>;
-                <span class="kw">while</span> <span class="ident">j</span> <span class="op">&lt;</span> <span class="ident">nlen</span> <span class="op">&amp;&amp;</span> <span class="ident">needle</span>[<span class="ident">j</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">haystack</span>[<span class="ident">pos</span> <span class="op">-</span> <span class="ident">nlen</span> <span class="op">+</span> <span class="ident">j</span>] {
+                <span class="kw">while</span> <span class="ident">j</span> <span class="op">&lt;</span> <span class="ident">nlen</span> <span class="op">&amp;&amp;</span> <span class="ident">needle</span>[<span class="ident">j</span>] <span class="op">==</span> <span class="ident">haystack</span>[<span class="ident">pos</span> <span class="op">-</span> <span class="ident">nlen</span> <span class="op">+</span> <span class="ident">j</span>] {
                     <span class="ident">j</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 }
-                <span class="kw">if</span> <span class="ident">j</span> <span class="op">=</span><span class="op">=</span> <span class="ident">nlen</span> {
+                <span class="kw">if</span> <span class="ident">j</span> <span class="op">==</span> <span class="ident">nlen</span> {
                     <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">pos</span> <span class="op">-</span> <span class="ident">nlen</span>);
                 }
                 <span class="ident">pos</span> <span class="op">-</span><span class="op">=</span> <span class="ident">shift</span>;
@@ -1259,7 +1259,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">TwoWay</span> {
-    <span class="kw">fn</span> <span class="ident">empty</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TwoWay</span> {
+    <span class="kw">fn</span> <span class="ident">empty</span>() -&gt; <span class="ident">TwoWay</span> {
         <span class="ident">TwoWay</span> {
             <span class="ident">byteset</span>: <span class="ident">ApproximateByteSet::new</span>(<span class="string">b&quot;&quot;</span>),
             <span class="ident">critical_pos</span>: <span class="number">0</span>,
@@ -1315,7 +1315,7 @@
         <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">period_lower_bound</span>: <span class="ident">usize</span>,
         <span class="ident">critical_pos</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Shift</span> {
+    ) -&gt; <span class="ident">Shift</span> {
         <span class="kw">let</span> <span class="ident">large</span> <span class="op">=</span> <span class="ident">cmp::max</span>(<span class="ident">critical_pos</span>, <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">critical_pos</span>);
         <span class="kw">if</span> <span class="ident">critical_pos</span> <span class="op">*</span> <span class="number">2</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">needle</span>.<span class="ident">len</span>() {
             <span class="kw">return</span> <span class="ident">Shift::Large</span> { <span class="ident">shift</span>: <span class="ident">large</span> };
@@ -1338,7 +1338,7 @@
         <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">period_lower_bound</span>: <span class="ident">usize</span>,
         <span class="ident">critical_pos</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Shift</span> {
+    ) -&gt; <span class="ident">Shift</span> {
         <span class="kw">let</span> <span class="ident">large</span> <span class="op">=</span> <span class="ident">cmp::max</span>(<span class="ident">critical_pos</span>, <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">critical_pos</span>);
         <span class="kw">if</span> (<span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">critical_pos</span>) <span class="op">*</span> <span class="number">2</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">needle</span>.<span class="ident">len</span>() {
             <span class="kw">return</span> <span class="ident">Shift::Large</span> { <span class="ident">shift</span>: <span class="ident">large</span> };
@@ -1371,7 +1371,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Suffix</span> {
-    <span class="kw">fn</span> <span class="ident">forward</span>(<span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">kind</span>: <span class="ident">SuffixKind</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Suffix</span> {
+    <span class="kw">fn</span> <span class="ident">forward</span>(<span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">kind</span>: <span class="ident">SuffixKind</span>) -&gt; <span class="ident">Suffix</span> {
         <span class="macro">debug_assert!</span>(<span class="op">!</span><span class="ident">needle</span>.<span class="ident">is_empty</span>());
 
         <span class="comment">// suffix represents our maximal (or minimal) suffix, along with</span>
@@ -1398,18 +1398,18 @@
             <span class="kw">let</span> <span class="ident">current</span> <span class="op">=</span> <span class="ident">needle</span>[<span class="ident">suffix</span>.<span class="ident">pos</span> <span class="op">+</span> <span class="ident">offset</span>];
             <span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">needle</span>[<span class="ident">candidate_start</span> <span class="op">+</span> <span class="ident">offset</span>];
             <span class="kw">match</span> <span class="ident">kind</span>.<span class="ident">cmp</span>(<span class="ident">current</span>, <span class="ident">candidate</span>) {
-                <span class="ident">SuffixOrdering::Accept</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">SuffixOrdering::Accept</span> =&gt; {
                     <span class="ident">suffix</span> <span class="op">=</span> <span class="ident">Suffix</span> { <span class="ident">pos</span>: <span class="ident">candidate_start</span>, <span class="ident">period</span>: <span class="number">1</span> };
                     <span class="ident">candidate_start</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                     <span class="ident">offset</span> <span class="op">=</span> <span class="number">0</span>;
                 }
-                <span class="ident">SuffixOrdering::Skip</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">SuffixOrdering::Skip</span> =&gt; {
                     <span class="ident">candidate_start</span> <span class="op">+</span><span class="op">=</span> <span class="ident">offset</span> <span class="op">+</span> <span class="number">1</span>;
                     <span class="ident">offset</span> <span class="op">=</span> <span class="number">0</span>;
                     <span class="ident">suffix</span>.<span class="ident">period</span> <span class="op">=</span> <span class="ident">candidate_start</span> <span class="op">-</span> <span class="ident">suffix</span>.<span class="ident">pos</span>;
                 }
-                <span class="ident">SuffixOrdering::Push</span> <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="kw">if</span> <span class="ident">offset</span> <span class="op">+</span> <span class="number">1</span> <span class="op">=</span><span class="op">=</span> <span class="ident">suffix</span>.<span class="ident">period</span> {
+                <span class="ident">SuffixOrdering::Push</span> =&gt; {
+                    <span class="kw">if</span> <span class="ident">offset</span> <span class="op">+</span> <span class="number">1</span> <span class="op">==</span> <span class="ident">suffix</span>.<span class="ident">period</span> {
                         <span class="ident">candidate_start</span> <span class="op">+</span><span class="op">=</span> <span class="ident">suffix</span>.<span class="ident">period</span>;
                         <span class="ident">offset</span> <span class="op">=</span> <span class="number">0</span>;
                     } <span class="kw">else</span> {
@@ -1421,12 +1421,12 @@
         <span class="ident">suffix</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">reverse</span>(<span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">kind</span>: <span class="ident">SuffixKind</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Suffix</span> {
+    <span class="kw">fn</span> <span class="ident">reverse</span>(<span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">kind</span>: <span class="ident">SuffixKind</span>) -&gt; <span class="ident">Suffix</span> {
         <span class="macro">debug_assert!</span>(<span class="op">!</span><span class="ident">needle</span>.<span class="ident">is_empty</span>());
 
         <span class="comment">// See the comments in `forward` for how this works.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">suffix</span> <span class="op">=</span> <span class="ident">Suffix</span> { <span class="ident">pos</span>: <span class="ident">needle</span>.<span class="ident">len</span>(), <span class="ident">period</span>: <span class="number">1</span> };
-        <span class="kw">if</span> <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+        <span class="kw">if</span> <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
             <span class="kw">return</span> <span class="ident">suffix</span>;
         }
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">candidate_start</span> <span class="op">=</span> <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>;
@@ -1436,18 +1436,18 @@
             <span class="kw">let</span> <span class="ident">current</span> <span class="op">=</span> <span class="ident">needle</span>[<span class="ident">suffix</span>.<span class="ident">pos</span> <span class="op">-</span> <span class="ident">offset</span> <span class="op">-</span> <span class="number">1</span>];
             <span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">needle</span>[<span class="ident">candidate_start</span> <span class="op">-</span> <span class="ident">offset</span> <span class="op">-</span> <span class="number">1</span>];
             <span class="kw">match</span> <span class="ident">kind</span>.<span class="ident">cmp</span>(<span class="ident">current</span>, <span class="ident">candidate</span>) {
-                <span class="ident">SuffixOrdering::Accept</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">SuffixOrdering::Accept</span> =&gt; {
                     <span class="ident">suffix</span> <span class="op">=</span> <span class="ident">Suffix</span> { <span class="ident">pos</span>: <span class="ident">candidate_start</span>, <span class="ident">period</span>: <span class="number">1</span> };
                     <span class="ident">candidate_start</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
                     <span class="ident">offset</span> <span class="op">=</span> <span class="number">0</span>;
                 }
-                <span class="ident">SuffixOrdering::Skip</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">SuffixOrdering::Skip</span> =&gt; {
                     <span class="ident">candidate_start</span> <span class="op">-</span><span class="op">=</span> <span class="ident">offset</span> <span class="op">+</span> <span class="number">1</span>;
                     <span class="ident">offset</span> <span class="op">=</span> <span class="number">0</span>;
                     <span class="ident">suffix</span>.<span class="ident">period</span> <span class="op">=</span> <span class="ident">suffix</span>.<span class="ident">pos</span> <span class="op">-</span> <span class="ident">candidate_start</span>;
                 }
-                <span class="ident">SuffixOrdering::Push</span> <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="kw">if</span> <span class="ident">offset</span> <span class="op">+</span> <span class="number">1</span> <span class="op">=</span><span class="op">=</span> <span class="ident">suffix</span>.<span class="ident">period</span> {
+                <span class="ident">SuffixOrdering::Push</span> =&gt; {
+                    <span class="kw">if</span> <span class="ident">offset</span> <span class="op">+</span> <span class="number">1</span> <span class="op">==</span> <span class="ident">suffix</span>.<span class="ident">period</span> {
                         <span class="ident">candidate_start</span> <span class="op">-</span><span class="op">=</span> <span class="ident">suffix</span>.<span class="ident">period</span>;
                         <span class="ident">offset</span> <span class="op">=</span> <span class="number">0</span>;
                     } <span class="kw">else</span> {
@@ -1502,16 +1502,16 @@
     <span class="doccomment">/// Returns true if and only if the given candidate byte indicates that</span>
     <span class="doccomment">/// it should replace the current suffix as the maximal (or minimal)</span>
     <span class="doccomment">/// suffix.</span>
-    <span class="kw">fn</span> <span class="ident">cmp</span>(<span class="self">self</span>, <span class="ident">current</span>: <span class="ident">u8</span>, <span class="ident">candidate</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SuffixOrdering</span> {
+    <span class="kw">fn</span> <span class="ident">cmp</span>(<span class="self">self</span>, <span class="ident">current</span>: <span class="ident">u8</span>, <span class="ident">candidate</span>: <span class="ident">u8</span>) -&gt; <span class="ident">SuffixOrdering</span> {
         <span class="kw">use</span> <span class="ident"><span class="self">self</span>::SuffixOrdering</span>::<span class="kw-2">*</span>;
 
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">SuffixKind::Minimal</span> <span class="kw">if</span> <span class="ident">candidate</span> <span class="op">&lt;</span> <span class="ident">current</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Accept</span>,
-            <span class="ident">SuffixKind::Minimal</span> <span class="kw">if</span> <span class="ident">candidate</span> <span class="op">&gt;</span> <span class="ident">current</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Skip</span>,
-            <span class="ident">SuffixKind::Minimal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Push</span>,
-            <span class="ident">SuffixKind::Maximal</span> <span class="kw">if</span> <span class="ident">candidate</span> <span class="op">&gt;</span> <span class="ident">current</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Accept</span>,
-            <span class="ident">SuffixKind::Maximal</span> <span class="kw">if</span> <span class="ident">candidate</span> <span class="op">&lt;</span> <span class="ident">current</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Skip</span>,
-            <span class="ident">SuffixKind::Maximal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Push</span>,
+            <span class="ident">SuffixKind::Minimal</span> <span class="kw">if</span> <span class="ident">candidate</span> <span class="op">&lt;</span> <span class="ident">current</span> =&gt; <span class="ident">Accept</span>,
+            <span class="ident">SuffixKind::Minimal</span> <span class="kw">if</span> <span class="ident">candidate</span> <span class="op">&gt;</span> <span class="ident">current</span> =&gt; <span class="ident">Skip</span>,
+            <span class="ident">SuffixKind::Minimal</span> =&gt; <span class="ident">Push</span>,
+            <span class="ident">SuffixKind::Maximal</span> <span class="kw">if</span> <span class="ident">candidate</span> <span class="op">&gt;</span> <span class="ident">current</span> =&gt; <span class="ident">Accept</span>,
+            <span class="ident">SuffixKind::Maximal</span> <span class="kw">if</span> <span class="ident">candidate</span> <span class="op">&lt;</span> <span class="ident">current</span> =&gt; <span class="ident">Skip</span>,
+            <span class="ident">SuffixKind::Maximal</span> =&gt; <span class="ident">Push</span>,
         }
     }
 }
@@ -1527,7 +1527,7 @@
 
 <span class="kw">impl</span> <span class="ident">ApproximateByteSet</span> {
     <span class="doccomment">/// Create a new set from the given needle.</span>
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ApproximateByteSet</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">ApproximateByteSet</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bits</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">b</span> <span class="kw">in</span> <span class="ident">needle</span> {
             <span class="ident">bits</span> <span class="op">|</span><span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> (<span class="ident">b</span> <span class="op">%</span> <span class="number">64</span>);
@@ -1538,7 +1538,7 @@
     <span class="doccomment">/// Return true if and only if the given byte might be in this set. This</span>
     <span class="doccomment">/// may return a false positive, but will never return a false negative.</span>
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">byte</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">byte</span>: <span class="ident">u8</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> (<span class="ident">byte</span> <span class="op">%</span> <span class="number">64</span>)) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>
     }
 }
@@ -1555,24 +1555,24 @@
     );
 
     <span class="doccomment">/// Convenience wrapper for computing the suffix as a byte string.</span>
-    <span class="kw">fn</span> <span class="ident">get_suffix_forward</span>(<span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">kind</span>: <span class="ident">SuffixKind</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">usize</span>) {
+    <span class="kw">fn</span> <span class="ident">get_suffix_forward</span>(<span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">kind</span>: <span class="ident">SuffixKind</span>) -&gt; (<span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">usize</span>) {
         <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">Suffix::forward</span>(<span class="ident">needle</span>, <span class="ident">kind</span>);
         (<span class="kw-2">&amp;</span><span class="ident">needle</span>[<span class="ident">s</span>.<span class="ident">pos</span>..], <span class="ident">s</span>.<span class="ident">period</span>)
     }
 
     <span class="doccomment">/// Convenience wrapper for computing the reverse suffix as a byte string.</span>
-    <span class="kw">fn</span> <span class="ident">get_suffix_reverse</span>(<span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">kind</span>: <span class="ident">SuffixKind</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">usize</span>) {
+    <span class="kw">fn</span> <span class="ident">get_suffix_reverse</span>(<span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">kind</span>: <span class="ident">SuffixKind</span>) -&gt; (<span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">usize</span>) {
         <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">Suffix::reverse</span>(<span class="ident">needle</span>, <span class="ident">kind</span>);
         (<span class="kw-2">&amp;</span><span class="ident">needle</span>[..<span class="ident">s</span>.<span class="ident">pos</span>], <span class="ident">s</span>.<span class="ident">period</span>)
     }
 
     <span class="doccomment">/// Return all of the non-empty suffixes in the given byte string.</span>
-    <span class="kw">fn</span> <span class="ident">suffixes</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">suffixes</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> {
         (<span class="number">0</span>..<span class="ident">bytes</span>.<span class="ident">len</span>()).<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">bytes</span>[<span class="ident">i</span>..]).<span class="ident">collect</span>()
     }
 
     <span class="doccomment">/// Return the lexicographically maximal suffix of the given byte string.</span>
-    <span class="kw">fn</span> <span class="ident">naive_maximal_suffix_forward</span>(<span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
+    <span class="kw">fn</span> <span class="ident">naive_maximal_suffix_forward</span>(<span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sufs</span> <span class="op">=</span> <span class="ident">suffixes</span>(<span class="ident">needle</span>);
         <span class="ident">sufs</span>.<span class="ident">sort</span>();
         <span class="ident">sufs</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>()
@@ -1580,7 +1580,7 @@
 
     <span class="doccomment">/// Return the lexicographically maximal suffix of the reverse of the given</span>
     <span class="doccomment">/// byte string.</span>
-    <span class="kw">fn</span> <span class="ident">naive_maximal_suffix_reverse</span>(<span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">naive_maximal_suffix_reverse</span>(<span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reversed</span> <span class="op">=</span> <span class="ident">needle</span>.<span class="ident">to_vec</span>();
         <span class="ident">reversed</span>.<span class="ident">reverse</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">got</span> <span class="op">=</span> <span class="ident">naive_maximal_suffix_forward</span>(<span class="kw-2">&amp;</span><span class="ident">reversed</span>).<span class="ident">to_vec</span>();
@@ -1591,7 +1591,7 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">suffix_forward</span>() {
         <span class="macro">macro_rules!</span> <span class="ident">assert_suffix_min</span> {
-            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">given</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expected</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">period</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">given</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expected</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">period</span>:<span class="ident">expr</span>) =&gt; {
                 <span class="kw">let</span> (<span class="ident">got_suffix</span>, <span class="ident">got_period</span>) <span class="op">=</span>
                     <span class="ident">get_suffix_forward</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">given</span>.<span class="ident">as_bytes</span>(), <span class="ident">SuffixKind::Minimal</span>);
                 <span class="kw">let</span> <span class="ident">got_suffix</span> <span class="op">=</span> <span class="ident">std::str::from_utf8</span>(<span class="ident">got_suffix</span>).<span class="ident">unwrap</span>();
@@ -1600,7 +1600,7 @@
         }
 
         <span class="macro">macro_rules!</span> <span class="ident">assert_suffix_max</span> {
-            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">given</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expected</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">period</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">given</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expected</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">period</span>:<span class="ident">expr</span>) =&gt; {
                 <span class="kw">let</span> (<span class="ident">got_suffix</span>, <span class="ident">got_period</span>) <span class="op">=</span>
                     <span class="ident">get_suffix_forward</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">given</span>.<span class="ident">as_bytes</span>(), <span class="ident">SuffixKind::Maximal</span>);
                 <span class="kw">let</span> <span class="ident">got_suffix</span> <span class="op">=</span> <span class="ident">std::str::from_utf8</span>(<span class="ident">got_suffix</span>).<span class="ident">unwrap</span>();
@@ -1648,7 +1648,7 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">suffix_reverse</span>() {
         <span class="macro">macro_rules!</span> <span class="ident">assert_suffix_min</span> {
-            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">given</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expected</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">period</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">given</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expected</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">period</span>:<span class="ident">expr</span>) =&gt; {
                 <span class="kw">let</span> (<span class="ident">got_suffix</span>, <span class="ident">got_period</span>) <span class="op">=</span>
                     <span class="ident">get_suffix_reverse</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">given</span>.<span class="ident">as_bytes</span>(), <span class="ident">SuffixKind::Minimal</span>);
                 <span class="kw">let</span> <span class="ident">got_suffix</span> <span class="op">=</span> <span class="ident">std::str::from_utf8</span>(<span class="ident">got_suffix</span>).<span class="ident">unwrap</span>();
@@ -1657,7 +1657,7 @@
         }
 
         <span class="macro">macro_rules!</span> <span class="ident">assert_suffix_max</span> {
-            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">given</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expected</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">period</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">given</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expected</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">period</span>:<span class="ident">expr</span>) =&gt; {
                 <span class="kw">let</span> (<span class="ident">got_suffix</span>, <span class="ident">got_period</span>) <span class="op">=</span>
                     <span class="ident">get_suffix_reverse</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">given</span>.<span class="ident">as_bytes</span>(), <span class="ident">SuffixKind::Maximal</span>);
                 <span class="kw">let</span> <span class="ident">got_suffix</span> <span class="op">=</span> <span class="ident">std::str::from_utf8</span>(<span class="ident">got_suffix</span>).<span class="ident">unwrap</span>();
@@ -1700,24 +1700,24 @@
     }
 
     <span class="macro">quickcheck!</span> {
-        <span class="kw">fn</span> <span class="ident">qc_suffix_forward_maximal</span>(<span class="ident">bytes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">fn</span> <span class="ident">qc_suffix_forward_maximal</span>(<span class="ident">bytes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) -&gt; <span class="ident">bool</span> {
             <span class="kw">if</span> <span class="ident">bytes</span>.<span class="ident">is_empty</span>() {
                 <span class="kw">return</span> <span class="bool-val">true</span>;
             }
 
             <span class="kw">let</span> (<span class="ident">got</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">get_suffix_forward</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>, <span class="ident">SuffixKind::Maximal</span>);
             <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="ident">naive_maximal_suffix_forward</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>);
-            <span class="ident">got</span> <span class="op">=</span><span class="op">=</span> <span class="ident">expected</span>
+            <span class="ident">got</span> <span class="op">==</span> <span class="ident">expected</span>
         }
 
-        <span class="kw">fn</span> <span class="ident">qc_suffix_reverse_maximal</span>(<span class="ident">bytes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">fn</span> <span class="ident">qc_suffix_reverse_maximal</span>(<span class="ident">bytes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) -&gt; <span class="ident">bool</span> {
             <span class="kw">if</span> <span class="ident">bytes</span>.<span class="ident">is_empty</span>() {
                 <span class="kw">return</span> <span class="bool-val">true</span>;
             }
 
             <span class="kw">let</span> (<span class="ident">got</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">get_suffix_reverse</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>, <span class="ident">SuffixKind::Maximal</span>);
             <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="ident">naive_maximal_suffix_reverse</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>);
-            <span class="ident">expected</span> <span class="op">=</span><span class="op">=</span> <span class="ident">got</span>
+            <span class="ident">expected</span> <span class="op">==</span> <span class="ident">got</span>
         }
     }
 }
@@ -1729,14 +1729,14 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">twoway_find</span>(
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="ident">Forward::new</span>(<span class="ident">needle</span>).<span class="ident">find_general</span>(<span class="prelude-val">None</span>, <span class="ident">haystack</span>, <span class="ident">needle</span>)
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">twoway_rfind</span>(
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="ident">Reverse::new</span>(<span class="ident">needle</span>).<span class="ident">rfind_general</span>(<span class="ident">haystack</span>, <span class="ident">needle</span>)
     }
 

@@ -1851,7 +1851,7 @@
         .<span class="ident">union</span>(<span class="ident">Attribute::NON_ENUMERABLE</span>)
         .<span class="ident">union</span>(<span class="ident">Attribute::CONFIGURABLE</span>);
 
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
+    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsValue</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="ident"><span class="self">Self</span>::NAME</span>, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let</span> <span class="ident">get_species</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident"><span class="self">Self</span>::get_species</span>)
@@ -1968,7 +1968,7 @@
         <span class="ident">new_target</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
         <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
 
@@ -2028,7 +2028,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-regexpalloc</span>
-    <span class="kw">fn</span> <span class="ident">alloc</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">alloc</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="ident">get_prototype_from_constructor</span>(<span class="ident">this</span>, <span class="ident">StandardObjects::regexp_object</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(<span class="ident">JsObject::from_proto_and_data</span>(<span class="ident">proto</span>, <span class="ident">ObjectData::ordinary</span>()).<span class="ident">into</span>())
@@ -2040,7 +2040,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-regexpinitialize</span>
-    <span class="kw">fn</span> <span class="ident">initialize</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">initialize</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
         <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
 
@@ -2070,31 +2070,31 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sticky</span> <span class="op">=</span> <span class="bool-val">false</span>;
         <span class="kw">for</span> <span class="ident">c</span> <span class="kw">in</span> <span class="ident">f</span>.<span class="ident">chars</span>() {
             <span class="kw">match</span> <span class="ident">c</span> {
-                <span class="string">&#39;g&#39;</span> <span class="kw">if</span> <span class="ident">global</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="string">&#39;g&#39;</span> <span class="kw">if</span> <span class="ident">global</span> =&gt; {
                     <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="string">&quot;RegExp flags contains multiple &#39;g&#39;&quot;</span>)
                 }
-                <span class="string">&#39;g&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">global</span> <span class="op">=</span> <span class="bool-val">true</span>,
-                <span class="string">&#39;i&#39;</span> <span class="kw">if</span> <span class="ident">ignore_case</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="string">&#39;g&#39;</span> =&gt; <span class="ident">global</span> <span class="op">=</span> <span class="bool-val">true</span>,
+                <span class="string">&#39;i&#39;</span> <span class="kw">if</span> <span class="ident">ignore_case</span> =&gt; {
                     <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="string">&quot;RegExp flags contains multiple &#39;i&#39;&quot;</span>)
                 }
-                <span class="string">&#39;i&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ignore_case</span> <span class="op">=</span> <span class="bool-val">true</span>,
-                <span class="string">&#39;m&#39;</span> <span class="kw">if</span> <span class="ident">multiline</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="string">&#39;i&#39;</span> =&gt; <span class="ident">ignore_case</span> <span class="op">=</span> <span class="bool-val">true</span>,
+                <span class="string">&#39;m&#39;</span> <span class="kw">if</span> <span class="ident">multiline</span> =&gt; {
                     <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="string">&quot;RegExp flags contains multiple &#39;m&#39;&quot;</span>)
                 }
-                <span class="string">&#39;m&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">multiline</span> <span class="op">=</span> <span class="bool-val">true</span>,
-                <span class="string">&#39;s&#39;</span> <span class="kw">if</span> <span class="ident">dot_all</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="string">&#39;m&#39;</span> =&gt; <span class="ident">multiline</span> <span class="op">=</span> <span class="bool-val">true</span>,
+                <span class="string">&#39;s&#39;</span> <span class="kw">if</span> <span class="ident">dot_all</span> =&gt; {
                     <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="string">&quot;RegExp flags contains multiple &#39;s&#39;&quot;</span>)
                 }
-                <span class="string">&#39;s&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">dot_all</span> <span class="op">=</span> <span class="bool-val">true</span>,
-                <span class="string">&#39;u&#39;</span> <span class="kw">if</span> <span class="ident">unicode</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="string">&#39;s&#39;</span> =&gt; <span class="ident">dot_all</span> <span class="op">=</span> <span class="bool-val">true</span>,
+                <span class="string">&#39;u&#39;</span> <span class="kw">if</span> <span class="ident">unicode</span> =&gt; {
                     <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="string">&quot;RegExp flags contains multiple &#39;u&#39;&quot;</span>)
                 }
-                <span class="string">&#39;u&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">unicode</span> <span class="op">=</span> <span class="bool-val">true</span>,
-                <span class="string">&#39;y&#39;</span> <span class="kw">if</span> <span class="ident">sticky</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="string">&#39;u&#39;</span> =&gt; <span class="ident">unicode</span> <span class="op">=</span> <span class="bool-val">true</span>,
+                <span class="string">&#39;y&#39;</span> <span class="kw">if</span> <span class="ident">sticky</span> =&gt; {
                     <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="string">&quot;RegExp flags contains multiple &#39;y&#39;&quot;</span>)
                 }
-                <span class="string">&#39;y&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">sticky</span> <span class="op">=</span> <span class="bool-val">true</span>,
-                <span class="ident">c</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="string">&#39;y&#39;</span> =&gt; <span class="ident">sticky</span> <span class="op">=</span> <span class="bool-val">true</span>,
+                <span class="ident">c</span> =&gt; {
                     <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="macro">format!</span>(
                         <span class="string">&quot;RegExp flags contains unknown code unit &#39;{}&#39;&quot;</span>,
                         <span class="ident">c</span>
@@ -2107,11 +2107,11 @@
         <span class="comment">// 13. Set obj.[[OriginalFlags]] to F.</span>
         <span class="comment">// 14. Set obj.[[RegExpMatcher]] to the Abstract Closure that evaluates parseResult by applying the semantics provided in 22.2.2 using patternCharacters as the pattern&#39;s List of SourceCharacter values and F as the flag parameters.</span>
         <span class="kw">let</span> <span class="ident">matcher</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">Regex::with_flags</span>(<span class="kw-2">&amp;</span><span class="ident">p</span>, <span class="ident">f</span>.<span class="ident">as_ref</span>()) {
-            <span class="prelude-val">Err</span>(<span class="ident">error</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Err</span>(<span class="ident">error</span>) =&gt; {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>
                     .<span class="ident">construct_syntax_error</span>(<span class="macro">format!</span>(<span class="string">&quot;failed to create matcher: {}&quot;</span>, <span class="ident">error</span>.<span class="ident">text</span>)));
             }
-            <span class="prelude-val">Ok</span>(<span class="ident">val</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">val</span>,
+            <span class="prelude-val">Ok</span>(<span class="ident">val</span>) =&gt; <span class="ident">val</span>,
         };
 
         <span class="kw">let</span> <span class="ident">regexp</span> <span class="op">=</span> <span class="ident">RegExp</span> {
@@ -2139,7 +2139,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-regexpcreate</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">p</span>: <span class="ident">JsValue</span>, <span class="ident">f</span>: <span class="ident">JsValue</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">p</span>: <span class="ident">JsValue</span>, <span class="ident">f</span>: <span class="ident">JsValue</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let obj be ? RegExpAlloc(%RegExp%).</span>
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">RegExp::alloc</span>(
             <span class="kw-2">&amp;</span><span class="ident">context</span>.<span class="ident">global_object</span>().<span class="ident">get</span>(<span class="ident">RegExp::NAME</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
@@ -2161,23 +2161,23 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-regexp-@@species</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/@@species</span>
-    <span class="kw">fn</span> <span class="ident">get_species</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">get_species</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Return the this value.</span>
         <span class="prelude-val">Ok</span>(<span class="ident">this</span>.<span class="ident">clone</span>())
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">regexp_has_flag</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">flag</span>: <span class="ident">char</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">regexp_has_flag</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">flag</span>: <span class="ident">char</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">regexp</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow</span>().<span class="ident">as_regexp</span>() {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="kw">match</span> <span class="ident">flag</span> {
-                    <span class="string">&#39;g&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">regexp</span>.<span class="ident">global</span>,
-                    <span class="string">&#39;m&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">regexp</span>.<span class="ident">multiline</span>,
-                    <span class="string">&#39;s&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">regexp</span>.<span class="ident">dot_all</span>,
-                    <span class="string">&#39;i&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">regexp</span>.<span class="ident">ignore_case</span>,
-                    <span class="string">&#39;u&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">regexp</span>.<span class="ident">unicode</span>,
-                    <span class="string">&#39;y&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">regexp</span>.<span class="ident">sticky</span>,
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+                    <span class="string">&#39;g&#39;</span> =&gt; <span class="ident">regexp</span>.<span class="ident">global</span>,
+                    <span class="string">&#39;m&#39;</span> =&gt; <span class="ident">regexp</span>.<span class="ident">multiline</span>,
+                    <span class="string">&#39;s&#39;</span> =&gt; <span class="ident">regexp</span>.<span class="ident">dot_all</span>,
+                    <span class="string">&#39;i&#39;</span> =&gt; <span class="ident">regexp</span>.<span class="ident">ignore_case</span>,
+                    <span class="string">&#39;u&#39;</span> =&gt; <span class="ident">regexp</span>.<span class="ident">unicode</span>,
+                    <span class="string">&#39;y&#39;</span> =&gt; <span class="ident">regexp</span>.<span class="ident">sticky</span>,
+                    <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
                 }));
             }
 
@@ -2190,13 +2190,13 @@
         }
 
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">flag</span> {
-            <span class="string">&#39;g&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;global&quot;</span>,
-            <span class="string">&#39;m&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;multiline&quot;</span>,
-            <span class="string">&#39;s&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;dotAll&quot;</span>,
-            <span class="string">&#39;i&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;ignoreCase&quot;</span>,
-            <span class="string">&#39;u&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;unicode&quot;</span>,
-            <span class="string">&#39;y&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;sticky&quot;</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+            <span class="string">&#39;g&#39;</span> =&gt; <span class="string">&quot;global&quot;</span>,
+            <span class="string">&#39;m&#39;</span> =&gt; <span class="string">&quot;multiline&quot;</span>,
+            <span class="string">&#39;s&#39;</span> =&gt; <span class="string">&quot;dotAll&quot;</span>,
+            <span class="string">&#39;i&#39;</span> =&gt; <span class="string">&quot;ignoreCase&quot;</span>,
+            <span class="string">&#39;u&#39;</span> =&gt; <span class="string">&quot;unicode&quot;</span>,
+            <span class="string">&#39;y&#39;</span> =&gt; <span class="string">&quot;sticky&quot;</span>,
+            <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
         };
 
         <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(
@@ -2219,7 +2219,7 @@
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="ident"><span class="self">Self</span>::regexp_has_flag</span>(<span class="ident">this</span>, <span class="string">&#39;g&#39;</span>, <span class="ident">context</span>)
     }
 
@@ -2237,7 +2237,7 @@
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="ident"><span class="self">Self</span>::regexp_has_flag</span>(<span class="ident">this</span>, <span class="string">&#39;i&#39;</span>, <span class="ident">context</span>)
     }
 
@@ -2255,7 +2255,7 @@
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="ident"><span class="self">Self</span>::regexp_has_flag</span>(<span class="ident">this</span>, <span class="string">&#39;m&#39;</span>, <span class="ident">context</span>)
     }
 
@@ -2273,7 +2273,7 @@
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="ident"><span class="self">Self</span>::regexp_has_flag</span>(<span class="ident">this</span>, <span class="string">&#39;s&#39;</span>, <span class="ident">context</span>)
     }
 
@@ -2292,7 +2292,7 @@
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="ident"><span class="self">Self</span>::regexp_has_flag</span>(<span class="ident">this</span>, <span class="string">&#39;u&#39;</span>, <span class="ident">context</span>)
     }
 
@@ -2311,7 +2311,7 @@
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="ident"><span class="self">Self</span>::regexp_has_flag</span>(<span class="ident">this</span>, <span class="string">&#39;y&#39;</span>, <span class="ident">context</span>)
     }
 
@@ -2330,7 +2330,7 @@
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let R be the this value.</span>
         <span class="comment">// 2. If Type(R) is not Object, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
@@ -2392,7 +2392,7 @@
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let R be the this value.</span>
         <span class="comment">// 2. If Type(R) is not Object, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
@@ -2400,7 +2400,7 @@
 
             <span class="kw">match</span> <span class="ident">object</span>.<span class="ident">as_regexp</span>() {
                 <span class="comment">// 3. If R does not have an [[OriginalSource]] internal slot, then</span>
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">None</span> =&gt; {
                     <span class="comment">// a. If SameValue(R, %RegExp.prototype%) is true, return &quot;(?:)&quot;.</span>
                     <span class="comment">// b. Otherwise, throw a TypeError exception.</span>
                     <span class="kw">if</span> <span class="ident">JsValue::same_value</span>(
@@ -2415,7 +2415,7 @@
                     }
                 }
                 <span class="comment">// 4. Assert: R has an [[OriginalFlags]] internal slot.</span>
-                <span class="prelude-val">Some</span>(<span class="ident">re</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">re</span>) =&gt; {
                     <span class="comment">// 5. Let src be R.[[OriginalSource]].</span>
                     <span class="comment">// 6. Let flags be R.[[OriginalFlags]].</span>
                     <span class="comment">// 7. Return EscapeRegExpPattern(src, flags).</span>
@@ -2433,7 +2433,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-escaperegexppattern</span>
-    <span class="kw">fn</span> <span class="ident">escape_pattern</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">_flags</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">escape_pattern</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">_flags</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">src</span>.<span class="ident">is_empty</span>() {
             <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="string">&quot;(?:)&quot;</span>))
         } <span class="kw">else</span> {
@@ -2441,10 +2441,10 @@
 
             <span class="kw">for</span> <span class="ident">c</span> <span class="kw">in</span> <span class="ident">src</span>.<span class="ident">chars</span>() {
                 <span class="kw">match</span> <span class="ident">c</span> {
-                    <span class="string">&#39;/&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>.<span class="ident">push_str</span>(<span class="string">&quot;\\/&quot;</span>),
-                    <span class="string">&#39;\n&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>.<span class="ident">push_str</span>(<span class="string">&quot;\\\\n&quot;</span>),
-                    <span class="string">&#39;\r&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>.<span class="ident">push_str</span>(<span class="string">&quot;\\\\r&quot;</span>),
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>.<span class="ident">push</span>(<span class="ident">c</span>),
+                    <span class="string">&#39;/&#39;</span> =&gt; <span class="ident">s</span>.<span class="ident">push_str</span>(<span class="string">&quot;\\/&quot;</span>),
+                    <span class="string">&#39;\n&#39;</span> =&gt; <span class="ident">s</span>.<span class="ident">push_str</span>(<span class="string">&quot;\\\\n&quot;</span>),
+                    <span class="string">&#39;\r&#39;</span> =&gt; <span class="ident">s</span>.<span class="ident">push_str</span>(<span class="string">&quot;\\\\r&quot;</span>),
+                    <span class="kw">_</span> =&gt; <span class="ident">s</span>.<span class="ident">push</span>(<span class="ident">c</span>),
                 }
             }
 
@@ -2468,7 +2468,7 @@
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let R be the this value.</span>
         <span class="comment">// 2. If Type(R) is not Object, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
@@ -2510,7 +2510,7 @@
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let R be the this value.</span>
         <span class="comment">// 2. Perform ? RequireInternalSlot(R, [[RegExpMatcher]]).</span>
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
@@ -2541,7 +2541,7 @@
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
         <span class="ident">input</span>: <span class="ident">JsString</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Assert: Type(R) is Object.</span>
         <span class="comment">// 2. Assert: Type(S) is String.</span>
 
@@ -2583,7 +2583,7 @@
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
         <span class="ident">input</span>: <span class="ident">JsString</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Assert: R is an initialized RegExp instance.</span>
         <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> {
             <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">borrow</span>();
@@ -2644,8 +2644,8 @@
             <span class="kw">let</span> <span class="ident">last_byte_index</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">String::from_utf16</span>(
                 <span class="kw-2">&amp;</span><span class="ident">input</span>.<span class="ident">encode_utf16</span>().<span class="ident">take</span>(<span class="ident">last_index</span>).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
             ) {
-                <span class="prelude-val">Ok</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>.<span class="ident">len</span>(),
-                <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Ok</span>(<span class="ident">s</span>) =&gt; <span class="ident">s</span>.<span class="ident">len</span>(),
+                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(
                         <span class="string">&quot;Failed to get byte index from utf16 encoded string&quot;</span>,
                     ))
@@ -2655,7 +2655,7 @@
 
             <span class="kw">match</span> <span class="ident">r</span> {
                 <span class="comment">// c. If r is failure, then</span>
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">None</span> =&gt; {
                     <span class="comment">// i. If sticky is true, then</span>
                     <span class="kw">if</span> <span class="ident">sticky</span> {
                         <span class="comment">// 1. Perform ? Set(R, &quot;lastIndex&quot;, +0𝔽, true).</span>
@@ -2669,7 +2669,7 @@
                     <span class="ident">last_index</span> <span class="op">=</span> <span class="ident">advance_string_index</span>(<span class="ident">input</span>.<span class="ident">clone</span>(), <span class="ident">last_index</span>, <span class="ident">unicode</span>);
                 }
 
-                <span class="prelude-val">Some</span>(<span class="ident">m</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">m</span>) =&gt; {
                     <span class="comment">// c. If r is failure, then</span>
                     <span class="comment">// d. Else,</span>
                     <span class="kw">if</span> <span class="ident">m</span>.<span class="ident">start</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">last_index</span> {
@@ -2781,10 +2781,10 @@
 
             <span class="kw">let</span> <span class="ident">captured_value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">capture</span> {
                 <span class="comment">// b. If captureI is undefined, let capturedValue be undefined.</span>
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">JsValue::undefined</span>(),
+                <span class="prelude-val">None</span> =&gt; <span class="ident">JsValue::undefined</span>(),
                 <span class="comment">// c. Else if fullUnicode is true, then</span>
                 <span class="comment">// d. Else,</span>
-                <span class="prelude-val">Some</span>(<span class="ident">range</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">range</span>) =&gt; {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="ident">input</span>.<span class="ident">get</span>(<span class="ident">range</span>) {
                         <span class="ident">s</span>.<span class="ident">into</span>()
                     } <span class="kw">else</span> {
@@ -2816,7 +2816,7 @@
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let rx be the this value.</span>
         <span class="comment">// 2. If Type(rx) is not Object, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">rx</span>) <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
@@ -2893,7 +2893,7 @@
                 } <span class="kw">else</span> {
                     <span class="comment">// 1. If n = 0, return null.</span>
                     <span class="comment">// 2. Return A.</span>
-                    <span class="kw">if</span> <span class="ident">n</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+                    <span class="kw">if</span> <span class="ident">n</span> <span class="op">==</span> <span class="number">0</span> {
                         <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::null</span>());
                     } <span class="kw">else</span> {
                         <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">a</span>.<span class="ident">into</span>());
@@ -2918,7 +2918,7 @@
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">body</span>, <span class="ident">flags</span>) <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
             <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow</span>();
             <span class="kw">let</span> <span class="ident">regex</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">as_regexp</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
@@ -2951,7 +2951,7 @@
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let R be the this value.</span>
         <span class="comment">// 2. If Type(R) is not Object, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">regexp</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
@@ -3019,7 +3019,7 @@
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let rx be the this value.</span>
         <span class="comment">// 2. If Type(rx) is not Object, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">rx</span>) <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
@@ -3134,7 +3134,7 @@
             <span class="comment">// f. Set position to the result of clamping position between 0 and lengthS.</span>
             <span class="comment">//position = position.</span>
             <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">position</span> {
-                <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) =&gt; {
                     <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="number">0</span> {
                         <span class="number">0</span>
                     } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">&gt;</span> <span class="ident">length_arg_str</span> {
@@ -3143,8 +3143,8 @@
                         <span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>
                     }
                 }
-                <span class="ident">IntegerOrInfinity::PositiveInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">length_arg_str</span>,
-                <span class="ident">IntegerOrInfinity::NegativeInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
+                <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; <span class="ident">length_arg_str</span>,
+                <span class="ident">IntegerOrInfinity::NegativeInfinity</span> =&gt; <span class="number">0</span>,
             };
 
             <span class="comment">// h. Let captures be a new empty List.</span>
@@ -3265,7 +3265,7 @@
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let rx be the this value.</span>
         <span class="comment">// 2. If Type(rx) is not Object, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">rx</span>) <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
@@ -3327,7 +3327,7 @@
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let rx be the this value.</span>
         <span class="comment">// 2. If Type(rx) is not Object, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">rx</span>) <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
@@ -3389,7 +3389,7 @@
         };
 
         <span class="comment">// 14. If lim is 0, return A.</span>
-        <span class="kw">if</span> <span class="ident">lim</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">lim</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">a</span>.<span class="ident">into</span>());
         }
 
@@ -3397,7 +3397,7 @@
         <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">arg_str</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>();
 
         <span class="comment">// 16. If size is 0, then</span>
-        <span class="kw">if</span> <span class="ident">size</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">size</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="comment">// a. Let z be ? RegExpExec(splitter, S).</span>
             <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::abstract_exec</span>(<span class="ident">splitter</span>, <span class="ident">arg_str</span>.<span class="ident">clone</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
 
@@ -3438,7 +3438,7 @@
 
                 <span class="comment">// iii. If e = p, set q to AdvanceStringIndex(S, q, unicodeMatching).</span>
                 <span class="comment">// iv. Else,</span>
-                <span class="kw">if</span> <span class="ident">e</span> <span class="op">=</span><span class="op">=</span> <span class="ident">p</span> {
+                <span class="kw">if</span> <span class="ident">e</span> <span class="op">==</span> <span class="ident">p</span> {
                     <span class="ident">q</span> <span class="op">=</span> <span class="ident">advance_string_index</span>(<span class="ident">arg_str</span>.<span class="ident">clone</span>(), <span class="ident">q</span>, <span class="ident">unicode</span>);
                 } <span class="kw">else</span> {
                     <span class="comment">// 1. Let T be the substring of S from p to q.</span>
@@ -3458,7 +3458,7 @@
                     <span class="ident">length_a</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
 
                     <span class="comment">// 4. If lengthA = lim, return A.</span>
-                    <span class="kw">if</span> <span class="ident">length_a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">lim</span> {
+                    <span class="kw">if</span> <span class="ident">length_a</span> <span class="op">==</span> <span class="ident">lim</span> {
                         <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">a</span>.<span class="ident">into</span>());
                     }
 
@@ -3469,7 +3469,7 @@
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">number_of_captures</span> <span class="op">=</span> <span class="ident">result</span>.<span class="ident">length_of_array_like</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">isize</span>;
 
                     <span class="comment">// 7. Set numberOfCaptures to max(numberOfCaptures - 1, 0).</span>
-                    <span class="ident">number_of_captures</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">number_of_captures</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+                    <span class="ident">number_of_captures</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">number_of_captures</span> <span class="op">==</span> <span class="number">0</span> {
                         <span class="number">0</span>
                     } <span class="kw">else</span> {
                         <span class="ident">std::cmp::max</span>(<span class="ident">number_of_captures</span> <span class="op">-</span> <span class="number">1</span>, <span class="number">0</span>)
@@ -3489,7 +3489,7 @@
                         <span class="ident">length_a</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
 
                         <span class="comment">// e. If lengthA = lim, return A.</span>
-                        <span class="kw">if</span> <span class="ident">length_a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">lim</span> {
+                        <span class="kw">if</span> <span class="ident">length_a</span> <span class="op">==</span> <span class="ident">lim</span> {
                             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">a</span>.<span class="ident">into</span>());
                         }
                     }
@@ -3526,7 +3526,7 @@
 <span class="doccomment">///  - [ECMAScript reference][spec]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-advancestringindex</span>
-<span class="kw">fn</span> <span class="ident">advance_string_index</span>(<span class="ident">s</span>: <span class="ident">JsString</span>, <span class="ident">index</span>: <span class="ident">usize</span>, <span class="ident">unicode</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">fn</span> <span class="ident">advance_string_index</span>(<span class="ident">s</span>: <span class="ident">JsString</span>, <span class="ident">index</span>: <span class="ident">usize</span>, <span class="ident">unicode</span>: <span class="ident">bool</span>) -&gt; <span class="ident">usize</span> {
     <span class="comment">// Regress only works with utf8, so this function differs from the spec.</span>
 
     <span class="comment">// 1. Assert: index ≤ 2^53 - 1.</span>

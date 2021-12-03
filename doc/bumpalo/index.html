@@ -4,7 +4,7 @@
 <a href="https://crates.io/crates/bumpalo"><img src="https://img.shields.io/crates/d/bumpalo.svg" alt="" /></a>
 <a href="https://github.com/fitzgen/bumpalo/actions?query=workflow%3ARust"><img src="https://github.com/fitzgen/bumpalo/workflows/Rust/badge.svg" alt="Build Status" /></a></p>
 <p><img src="https://github.com/fitzgen/bumpalo/raw/master/bumpalo.png" alt="" /></p>
-<h2 id="bump-allocation" class="section-header"><a href="#bump-allocation">Bump Allocation</a></h2>
+<h3 id="bump-allocation" class="section-header"><a href="#bump-allocation">Bump Allocation</a></h3>
 <p>Bump allocation is a fast, but limited approach to allocation. We have a chunk
 of memory, and we maintain a pointer within that memory. Whenever we allocate an
 object, we do a quick test that we have enough capacity left in our chunk to
@@ -16,7 +16,7 @@ no-longer-in-use object.</p>
 <p>These trade offs make bump allocation well-suited for <em>phase-oriented</em>
 allocations. That is, a group of objects that will all be allocated during the
 same program phase, used, and then can all be deallocated together as a group.</p>
-<h2 id="deallocation-en-masse-but-no-drop" class="section-header"><a href="#deallocation-en-masse-but-no-drop">Deallocation en Masse, but No <code>Drop</code></a></h2>
+<h3 id="deallocation-en-masse-but-no-drop" class="section-header"><a href="#deallocation-en-masse-but-no-drop">Deallocation en Masse, but No <code>Drop</code></a></h3>
 <p>To deallocate all the objects in the arena at once, we can simply reset the bump
 pointer back to the start of the arena’s memory chunk. This makes mass
 deallocation <em>extremely</em> fast, but allocated objects’ <code>Drop</code> implementations are
@@ -27,10 +27,10 @@ not invoked.</p>
 implementation when the <code>Box&lt;T&gt;</code> wrapper goes out of scope. This is similar to
 how <a href="https://doc.rust-lang.org/std/boxed/struct.Box.html"><code>std::boxed::Box</code></a> works, except without deallocating its backing memory.</p>
 </blockquote>
-<h2 id="what-happens-when-the-memory-chunk-is-full" class="section-header"><a href="#what-happens-when-the-memory-chunk-is-full">What happens when the memory chunk is full?</a></h2>
+<h3 id="what-happens-when-the-memory-chunk-is-full" class="section-header"><a href="#what-happens-when-the-memory-chunk-is-full">What happens when the memory chunk is full?</a></h3>
 <p>This implementation will allocate a new memory chunk from the global allocator
 and then start bump allocating into this new memory chunk.</p>
-<h2 id="example" class="section-header"><a href="#example">Example</a></h2>
+<h3 id="example" class="section-header"><a href="#example">Example</a></h3>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">bumpalo::Bump</span>;
 <span class="kw">use</span> <span class="ident">std::u64</span>;
 
@@ -53,7 +53,7 @@ and then start bump allocating into this new memory chunk.</p>
 <span class="comment">// Exclusive, mutable references to the just-allocated value are returned.</span>
 <span class="macro">assert!</span>(<span class="ident">scooter</span>.<span class="ident">scritches_required</span>);
 <span class="ident">scooter</span>.<span class="ident">age</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;</code></pre></div>
-<h2 id="collections" class="section-header"><a href="#collections">Collections</a></h2>
+<h3 id="collections" class="section-header"><a href="#collections">Collections</a></h3>
 <p>When the <code>&quot;collections&quot;</code> cargo feature is enabled, a fork of some of the <code>std</code>
 library’s collections are available in the <code>collections</code> module. These
 collection types are modified to allocate their space inside <code>bumpalo::Bump</code>
@@ -78,7 +78,7 @@ allocator</a> and we can remove
 this <code>collections</code> module and use the <code>std</code> versions.</p>
 <p>For unstable, nightly-only support for custom allocators in <code>std</code>, see the
 <code>allocator_api</code> section below.</p>
-<h2 id="bumpaloboxedbox" class="section-header"><a href="#bumpaloboxedbox"><code>bumpalo::boxed::Box</code></a></h2>
+<h3 id="bumpaloboxedbox" class="section-header"><a href="#bumpaloboxedbox"><code>bumpalo::boxed::Box</code></a></h3>
 <p>When the <code>&quot;boxed&quot;</code> cargo feature is enabled, a fork of <code>std::boxed::Box</code> library
 is available in the <code>boxed</code> module. This <code>Box</code> type is modified to allocate its
 space inside <code>bumpalo::Bump</code> arenas.</p>
@@ -113,14 +113,14 @@ in its space itself.</p>
 
 <span class="comment">// Its `Drop` implementation was run, and so `NUM_DROPS` has been incremented.</span>
 <span class="macro">assert_eq!</span>(<span class="ident">NUM_DROPPED</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>), <span class="number">1</span>);</code></pre></div>
-<h2 id="no_std-support" class="section-header"><a href="#no_std-support"><code>#![no_std]</code> Support</a></h2>
+<h3 id="no_std-support" class="section-header"><a href="#no_std-support"><code>#![no_std]</code> Support</a></h3>
 <p>Bumpalo is a <code>no_std</code> crate. It depends only on the <code>alloc</code> and <code>core</code> crates.</p>
-<h2 id="thread-support" class="section-header"><a href="#thread-support">Thread support</a></h2>
+<h3 id="thread-support" class="section-header"><a href="#thread-support">Thread support</a></h3>
 <p>The <code>Bump</code> is <code>!Sync</code>, which makes it hard to use in certain situations around threads ‒ for
 example in <code>rayon</code>.</p>
 <p>The <a href="https://crates.io/crates/bumpalo-herd"><code>bumpalo-herd</code></a> crate provides a pool of <code>Bump</code>
 allocators for use in such situations.</p>
-<h2 id="nightly-rust-featureallocator_api-support" class="section-header"><a href="#nightly-rust-featureallocator_api-support">Nightly Rust <code>feature(allocator_api)</code> Support</a></h2>
+<h3 id="nightly-rust-featureallocator_api-support" class="section-header"><a href="#nightly-rust-featureallocator_api-support">Nightly Rust <code>feature(allocator_api)</code> Support</a></h3>
 <p>The unstable, nightly-only Rust <code>allocator_api</code> feature defines an <code>Allocator</code>
 trait and exposes custom allocators for <code>std</code> types. Bumpalo has a matching
 <code>allocator_api</code> cargo feature to enable implementing <code>Allocator</code> and using
@@ -148,19 +148,19 @@ allocations are made within the given bump arena:</p>
 <span class="ident">v</span>.<span class="ident">push</span>(<span class="number">0</span>);
 <span class="ident">v</span>.<span class="ident">push</span>(<span class="number">1</span>);
 <span class="ident">v</span>.<span class="ident">push</span>(<span class="number">2</span>);</code></pre></div>
-<h3 id="minimum-supported-rust-version-msrv" class="section-header"><a href="#minimum-supported-rust-version-msrv">Minimum Supported Rust Version (MSRV)</a></h3>
+<h4 id="minimum-supported-rust-version-msrv" class="section-header"><a href="#minimum-supported-rust-version-msrv">Minimum Supported Rust Version (MSRV)</a></h4>
 <p>This crate is guaranteed to compile on stable Rust 1.44 and up. It might compile
 with older versions but that may change in any new patch release.</p>
 <p>We reserve the right to increment the MSRV on minor releases, however we will strive
 to only do it deliberately and for good reasons.</p>
 </div></details><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="struct" href="struct.Bump.html" title="bumpalo::Bump struct">Bump</a></div><div class="item-right docblock-short"><p>An arena to bump allocate into.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.ChunkIter.html" title="bumpalo::ChunkIter struct">ChunkIter</a></div><div class="item-right docblock-short"><p>An iterator over each chunk of allocated memory that
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Bump.html" title="bumpalo::Bump struct">Bump</a></div><div class="item-right docblock-short"><p>An arena to bump allocate into.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.ChunkIter.html" title="bumpalo::ChunkIter struct">ChunkIter</a></div><div class="item-right docblock-short"><p>An iterator over each chunk of allocated memory that
 an arena has bump allocated into.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.ChunkRawIter.html" title="bumpalo::ChunkRawIter struct">ChunkRawIter</a></div><div class="item-right docblock-short"><p>An iterator over raw pointers to chunks of allocated memory that this
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.ChunkRawIter.html" title="bumpalo::ChunkRawIter struct">ChunkRawIter</a></div><div class="item-right docblock-short"><p>An iterator over raw pointers to chunks of allocated memory that this
 arena has bump allocated into.</p>
-</div></div><h2 id="enums" class="section-header"><a href="#enums">Enums</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="enum" href="enum.AllocOrInitError.html" title="bumpalo::AllocOrInitError enum">AllocOrInitError</a></div><div class="item-right docblock-short"><p>An error returned from <a href="struct.Bump.html#method.try_alloc_try_with" title="Bump::try_alloc_try_with"><code>Bump::try_alloc_try_with</code></a>.</p>
-</div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="bumpalo" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
+</div></div></div><h2 id="enums" class="section-header"><a href="#enums">Enums</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.AllocOrInitError.html" title="bumpalo::AllocOrInitError enum">AllocOrInitError</a></div><div class="item-right docblock-short"><p>An error returned from <a href="struct.Bump.html#method.try_alloc_try_with" title="Bump::try_alloc_try_with"><code>Bump::try_alloc_try_with</code></a>.</p>
+</div></div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="bumpalo" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
     <script src="../main.js"></script>
 </body></html>

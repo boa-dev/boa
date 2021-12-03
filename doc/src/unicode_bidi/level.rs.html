@@ -437,23 +437,23 @@
 <span class="kw">impl</span> <span class="ident">Level</span> {
     <span class="doccomment">/// New LTR level with smallest number value (0).</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ltr</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Level</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ltr</span>() -&gt; <span class="ident">Level</span> {
         <span class="ident">LTR_LEVEL</span>
     }
 
     <span class="doccomment">/// New RTL level with smallest number value (1).</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rtl</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Level</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rtl</span>() -&gt; <span class="ident">Level</span> {
         <span class="ident">RTL_LEVEL</span>
     }
 
     <span class="doccomment">/// Maximum depth of the directional status stack during implicit resolutions.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_implicit_depth</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_implicit_depth</span>() -&gt; <span class="ident">u8</span> {
         <span class="ident">MAX_IMPLICIT_DEPTH</span>
     }
 
     <span class="doccomment">/// Maximum depth of the directional status stack during explicit resolutions.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_explicit_depth</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_explicit_depth</span>() -&gt; <span class="ident">u8</span> {
         <span class="ident">MAX_EXPLICIT_DEPTH</span>
     }
 
@@ -461,7 +461,7 @@
 
     <span class="doccomment">/// Create new level, fail if number is larger than `max_depth + 1`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">number</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Level</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">number</span>: <span class="ident">u8</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Level</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">number</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">MAX_IMPLICIT_DEPTH</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">Level</span>(<span class="ident">number</span>))
         } <span class="kw">else</span> {
@@ -471,7 +471,7 @@
 
     <span class="doccomment">/// Create new level, fail if number is larger than `max_depth`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_explicit</span>(<span class="ident">number</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Level</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_explicit</span>(<span class="ident">number</span>: <span class="ident">u8</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Level</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">number</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">MAX_EXPLICIT_DEPTH</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">Level</span>(<span class="ident">number</span>))
         } <span class="kw">else</span> {
@@ -483,29 +483,29 @@
 
     <span class="doccomment">/// The level number.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">number</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">number</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u8</span> {
         <span class="self">self</span>.<span class="number">0</span>
     }
 
     <span class="doccomment">/// If this level is left-to-right.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_ltr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="number">0</span> <span class="op">%</span> <span class="number">2</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_ltr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="number">0</span> <span class="op">%</span> <span class="number">2</span> <span class="op">==</span> <span class="number">0</span>
     }
 
     <span class="doccomment">/// If this level is right-to-left.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_rtl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="number">0</span> <span class="op">%</span> <span class="number">2</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_rtl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="number">0</span> <span class="op">%</span> <span class="number">2</span> <span class="op">==</span> <span class="number">1</span>
     }
 
     <span class="comment">// == Mutators ==</span>
 
     <span class="doccomment">/// Raise level by `amount`, fail if number is larger than `max_depth + 1`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">raise</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">amount</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">raise</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">amount</span>: <span class="ident">u8</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">checked_add</span>(<span class="ident">amount</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">number</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">number</span>) =&gt; {
                 <span class="kw">if</span> <span class="ident">number</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">MAX_IMPLICIT_DEPTH</span> {
                     <span class="self">self</span>.<span class="number">0</span> <span class="op">=</span> <span class="ident">number</span>;
                     <span class="prelude-val">Ok</span>(())
@@ -513,15 +513,15 @@
                     <span class="prelude-val">Err</span>(<span class="ident">Error::OutOfRangeNumber</span>)
                 }
             }
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Error::OutOfRangeNumber</span>),
+            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">Error::OutOfRangeNumber</span>),
         }
     }
 
     <span class="doccomment">/// Raise level by `amount`, fail if number is larger than `max_depth`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">raise_explicit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">amount</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">raise_explicit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">amount</span>: <span class="ident">u8</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">checked_add</span>(<span class="ident">amount</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">number</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">number</span>) =&gt; {
                 <span class="kw">if</span> <span class="ident">number</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">MAX_EXPLICIT_DEPTH</span> {
                     <span class="self">self</span>.<span class="number">0</span> <span class="op">=</span> <span class="ident">number</span>;
                     <span class="prelude-val">Ok</span>(())
@@ -529,19 +529,19 @@
                     <span class="prelude-val">Err</span>(<span class="ident">Error::OutOfRangeNumber</span>)
                 }
             }
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Error::OutOfRangeNumber</span>),
+            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">Error::OutOfRangeNumber</span>),
         }
     }
 
     <span class="doccomment">/// Lower level by `amount`, fail if number goes below zero.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lower</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">amount</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lower</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">amount</span>: <span class="ident">u8</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">checked_sub</span>(<span class="ident">amount</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">number</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">number</span>) =&gt; {
                 <span class="self">self</span>.<span class="number">0</span> <span class="op">=</span> <span class="ident">number</span>;
                 <span class="prelude-val">Ok</span>(())
             }
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Error::OutOfRangeNumber</span>),
+            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">Error::OutOfRangeNumber</span>),
         }
     }
 
@@ -549,26 +549,26 @@
 
     <span class="doccomment">/// The next LTR (even) level greater than this, or fail if number is larger than `max_depth`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_explicit_next_ltr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Level</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_explicit_next_ltr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Level</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="ident">Level::new_explicit</span>((<span class="self">self</span>.<span class="number">0</span> <span class="op">+</span> <span class="number">2</span>) <span class="op">&amp;</span> <span class="op">!</span><span class="number">1</span>)
     }
 
     <span class="doccomment">/// The next RTL (odd) level greater than this, or fail if number is larger than `max_depth`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_explicit_next_rtl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Level</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_explicit_next_rtl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Level</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="ident">Level::new_explicit</span>((<span class="self">self</span>.<span class="number">0</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">|</span> <span class="number">1</span>)
     }
 
     <span class="doccomment">/// The lowest RTL (odd) level greater than or equal to this, or fail if number is larger than</span>
     <span class="doccomment">/// `max_depth + 1`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_lowest_ge_rtl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Level</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_lowest_ge_rtl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Level</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="ident">Level::new</span>(<span class="self">self</span>.<span class="number">0</span> <span class="op">|</span> <span class="number">1</span>)
     }
 
     <span class="doccomment">/// Generate a character type based on a level (as specified in steps X10 and N2).</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bidi_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BidiClass</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bidi_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">BidiClass</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_rtl</span>() {
             <span class="ident">BidiClass::R</span>
         } <span class="kw">else</span> {
@@ -576,7 +576,7 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">vec</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Level</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">vec</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Level</span><span class="op">&gt;</span> {
         <span class="ident">v</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">into</span>()).<span class="ident">collect</span>()
     }
 }
@@ -585,14 +585,14 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// This information is usually used to skip re-ordering of text when no RTL level is present</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_rtl</span>(<span class="ident">levels</span>: <span class="kw-2">&amp;</span>[<span class="ident">Level</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_rtl</span>(<span class="ident">levels</span>: <span class="kw-2">&amp;</span>[<span class="ident">Level</span>]) -&gt; <span class="ident">bool</span> {
     <span class="ident">levels</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">lvl</span><span class="op">|</span> <span class="ident">lvl</span>.<span class="ident">is_rtl</span>())
 }
 
 <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Level</span> {
     <span class="doccomment">/// Convert to the level number</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">into</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span> {
+    <span class="kw">fn</span> <span class="ident">into</span>(<span class="self">self</span>) -&gt; <span class="ident">u8</span> {
         <span class="self">self</span>.<span class="ident">number</span>()
     }
 }
@@ -600,7 +600,7 @@
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Level</span> {
     <span class="doccomment">/// Create level by number</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">number</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Level</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">number</span>: <span class="ident">u8</span>) -&gt; <span class="ident">Level</span> {
         <span class="ident">Level::new</span>(<span class="ident">number</span>).<span class="ident">expect</span>(<span class="string">&quot;Level number error&quot;</span>)
     }
 }
@@ -608,16 +608,16 @@
 <span class="doccomment">/// Used for matching levels in conformance tests</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Level</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="op">&amp;&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw-2">*</span><span class="ident">s</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;x&quot;</span> <span class="op">|</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">s</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">to_string</span>()
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="op">&amp;&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="ident">bool</span> {
+        <span class="kw-2">*</span><span class="ident">s</span> <span class="op">==</span> <span class="string">&quot;x&quot;</span> <span class="op">|</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">s</span> <span class="op">==</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">to_string</span>()
     }
 }
 
 <span class="doccomment">/// Used for matching levels in conformance tests</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Level</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">s</span>.<span class="ident">as_str</span>()
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">String</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">s</span>.<span class="ident">as_str</span>()
     }
 }
 

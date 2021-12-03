@@ -1787,7 +1787,7 @@
     <span class="doccomment">/// This uses default settings for everything except the regex itself,</span>
     <span class="doccomment">/// which must be provided. Further knobs can be set by calling methods,</span>
     <span class="doccomment">/// and then finally, `build` to actually create the executor.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">re</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">re</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::new_many</span>(<span class="kw-2">&amp;</span>[<span class="ident">re</span>])
     }
 
@@ -1796,7 +1796,7 @@
     <span class="doccomment">/// Note that when compiling 2 or more regular expressions, capture groups</span>
     <span class="doccomment">/// are completely unsupported. (This means both `find` and `captures`</span>
     <span class="doccomment">/// won&#39;t work.)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_many</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">res</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_many</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">res</span>: <span class="ident">I</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">S</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
         <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">S</span><span class="op">&gt;</span>,
@@ -1807,7 +1807,7 @@
     }
 
     <span class="doccomment">/// Create a regex execution builder.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_options</span>(<span class="ident">opts</span>: <span class="ident">RegexOptions</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_options</span>(<span class="ident">opts</span>: <span class="ident">RegexOptions</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">ExecBuilder</span> {
             <span class="ident">options</span>: <span class="ident">opts</span>,
             <span class="ident">match_type</span>: <span class="prelude-val">None</span>,
@@ -1823,7 +1823,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This overrides whatever was previously set via the `nfa` or</span>
     <span class="doccomment">/// `bounded_backtracking` methods.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">automatic</span>(<span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">automatic</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">match_type</span> <span class="op">=</span> <span class="prelude-val">None</span>;
         <span class="self">self</span>
     }
@@ -1833,7 +1833,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This overrides whatever was previously set via the `automatic` or</span>
     <span class="doccomment">/// `bounded_backtracking` methods.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nfa</span>(<span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nfa</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">match_type</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">MatchType::Nfa</span>(<span class="ident">MatchNfaType::PikeVM</span>));
         <span class="self">self</span>
     }
@@ -1846,7 +1846,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This overrides whatever was previously set via the `automatic` or</span>
     <span class="doccomment">/// `nfa` methods.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bounded_backtracking</span>(<span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bounded_backtracking</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">match_type</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">MatchType::Nfa</span>(<span class="ident">MatchNfaType::Backtrack</span>));
         <span class="self">self</span>
     }
@@ -1860,7 +1860,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Note that this does not impact DFA matching engines, which always</span>
     <span class="doccomment">/// execute on bytes.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bytes</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bytes</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">bytes</span> <span class="op">=</span> <span class="ident">yes</span>;
         <span class="self">self</span>
     }
@@ -1869,19 +1869,19 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// When enabled (the default), all compiled programs exclusively match</span>
     <span class="doccomment">/// valid UTF-8 bytes.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">only_utf8</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">only_utf8</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">only_utf8</span> <span class="op">=</span> <span class="ident">yes</span>;
         <span class="self">self</span>
     }
 
     <span class="doccomment">/// Set the Unicode flag.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unicode</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unicode</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">options</span>.<span class="ident">unicode</span> <span class="op">=</span> <span class="ident">yes</span>;
         <span class="self">self</span>
     }
 
     <span class="doccomment">/// Parse the current set of patterns into their AST and extract literals.</span>
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Parsed</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Parsed</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exprs</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="self">self</span>.<span class="ident">options</span>.<span class="ident">pats</span>.<span class="ident">len</span>());
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prefixes</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Literals::empty</span>());
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">suffixes</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Literals::empty</span>());
@@ -1951,7 +1951,7 @@
     }
 
     <span class="doccomment">/// Build an executor that can run a regular expression.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Exec</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Exec</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="comment">// Special case when we have no patterns to compile.</span>
         <span class="comment">// This can happen when compiling a regex set.</span>
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">options</span>.<span class="ident">pats</span>.<span class="ident">is_empty</span>() {
@@ -2011,13 +2011,13 @@
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-literal&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">build_aho_corasick</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">parsed</span>: <span class="kw-2">&amp;</span><span class="ident">Parsed</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AhoCorasick</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">build_aho_corasick</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">parsed</span>: <span class="kw-2">&amp;</span><span class="ident">Parsed</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AhoCorasick</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">parsed</span>.<span class="ident">exprs</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="number">1</span> {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
         <span class="kw">let</span> <span class="ident">lits</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">alternation_literals</span>(<span class="kw-2">&amp;</span><span class="ident">parsed</span>.<span class="ident">exprs</span>[<span class="number">0</span>]) {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
-            <span class="prelude-val">Some</span>(<span class="ident">lits</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">lits</span>,
+            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">lits</span>) =&gt; <span class="ident">lits</span>,
         };
         <span class="comment">// If we have a small number of literals, then let Teddy handle</span>
         <span class="comment">// things (see literal/mod.rs).</span>
@@ -2039,26 +2039,26 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span><span class="op">&gt;</span> <span class="ident">RegularExpression</span> <span class="kw">for</span> <span class="ident">ExecNoSyncStr</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Text</span> <span class="op">=</span> <span class="ident">str</span>;
 
-    <span class="kw">fn</span> <span class="ident">slots_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">slots_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">slots_len</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">next_after_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">i</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">next_after_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">i</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span> {
         <span class="ident">next_utf8</span>(<span class="ident">text</span>.<span class="ident">as_bytes</span>(), <span class="ident">i</span>)
     }
 
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-inline&quot;</span>, <span class="ident">inline</span>(<span class="ident">always</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">shortest_match_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">start</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">shortest_match_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">start</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">shortest_match_at</span>(<span class="ident">text</span>.<span class="ident">as_bytes</span>(), <span class="ident">start</span>)
     }
 
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-inline&quot;</span>, <span class="ident">inline</span>(<span class="ident">always</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">is_match_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">start</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">is_match_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">start</span>: <span class="ident">usize</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">is_match_at</span>(<span class="ident">text</span>.<span class="ident">as_bytes</span>(), <span class="ident">start</span>)
     }
 
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-inline&quot;</span>, <span class="ident">inline</span>(<span class="ident">always</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">find_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">start</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">find_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">start</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_at</span>(<span class="ident">text</span>.<span class="ident">as_bytes</span>(), <span class="ident">start</span>)
     }
 
@@ -2068,7 +2068,7 @@
         <span class="ident">locs</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Locations</span>,
         <span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">start</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">captures_read_at</span>(<span class="ident">locs</span>, <span class="ident">text</span>.<span class="ident">as_bytes</span>(), <span class="ident">start</span>)
     }
 }
@@ -2079,36 +2079,36 @@
     <span class="doccomment">/// Returns the number of capture slots in the regular expression. (There</span>
     <span class="doccomment">/// are two slots for every capture group, corresponding to possibly empty</span>
     <span class="doccomment">/// start and end locations of the capture.)</span>
-    <span class="kw">fn</span> <span class="ident">slots_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">slots_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="ident">ro</span>.<span class="ident">nfa</span>.<span class="ident">captures</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="number">2</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">next_after_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">i</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">next_after_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">i</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span> {
         <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>
     }
 
     <span class="doccomment">/// Returns the end of a match location, possibly occurring before the</span>
     <span class="doccomment">/// end location of the correct leftmost-first match.</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-inline&quot;</span>, <span class="ident">inline</span>(<span class="ident">always</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">shortest_match_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">start</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">shortest_match_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">start</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_anchor_end_match</span>(<span class="ident">text</span>) {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">ro</span>.<span class="ident">match_type</span> {
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-literal&quot;</span>)]</span>
-            <span class="ident">MatchType::Literal</span>(<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">MatchType::Literal</span>(<span class="ident">ty</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">find_literals</span>(<span class="ident">ty</span>, <span class="ident">text</span>, <span class="ident">start</span>).<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">e</span>)<span class="op">|</span> <span class="ident">e</span>)
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-dfa&quot;</span>)]</span>
-            <span class="ident">MatchType::Dfa</span> <span class="op">|</span> <span class="ident">MatchType::DfaMany</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">MatchType::Dfa</span> <span class="op">|</span> <span class="ident">MatchType::DfaMany</span> =&gt; {
                 <span class="kw">match</span> <span class="self">self</span>.<span class="ident">shortest_dfa</span>(<span class="ident">text</span>, <span class="ident">start</span>) {
-                    <span class="ident">dfa::Result::Match</span>(<span class="ident">end</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">end</span>),
-                    <span class="ident">dfa::Result::NoMatch</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-                    <span class="ident">dfa::Result::Quit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">shortest_nfa</span>(<span class="ident">text</span>, <span class="ident">start</span>),
+                    <span class="ident">dfa::Result::Match</span>(<span class="ident">end</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">end</span>),
+                    <span class="ident">dfa::Result::NoMatch</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+                    <span class="ident">dfa::Result::Quit</span> =&gt; <span class="self">self</span>.<span class="ident">shortest_nfa</span>(<span class="ident">text</span>, <span class="ident">start</span>),
                 }
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-dfa&quot;</span>)]</span>
-            <span class="ident">MatchType::DfaAnchoredReverse</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">MatchType::DfaAnchoredReverse</span> =&gt; {
                 <span class="kw">match</span> <span class="ident">dfa::Fsm::reverse</span>(
                     <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ro</span>.<span class="ident">dfa_reverse</span>,
                     <span class="self">self</span>.<span class="ident">cache</span>.<span class="ident">value</span>(),
@@ -2116,21 +2116,21 @@
                     <span class="kw-2">&amp;</span><span class="ident">text</span>[<span class="ident">start</span>..],
                     <span class="ident">text</span>.<span class="ident">len</span>(),
                 ) {
-                    <span class="ident">dfa::Result::Match</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">text</span>.<span class="ident">len</span>()),
-                    <span class="ident">dfa::Result::NoMatch</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-                    <span class="ident">dfa::Result::Quit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">shortest_nfa</span>(<span class="ident">text</span>, <span class="ident">start</span>),
+                    <span class="ident">dfa::Result::Match</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">text</span>.<span class="ident">len</span>()),
+                    <span class="ident">dfa::Result::NoMatch</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+                    <span class="ident">dfa::Result::Quit</span> =&gt; <span class="self">self</span>.<span class="ident">shortest_nfa</span>(<span class="ident">text</span>, <span class="ident">start</span>),
                 }
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-dfa&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-literal&quot;</span>))]</span>
-            <span class="ident">MatchType::DfaSuffix</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">MatchType::DfaSuffix</span> =&gt; {
                 <span class="kw">match</span> <span class="self">self</span>.<span class="ident">shortest_dfa_reverse_suffix</span>(<span class="ident">text</span>, <span class="ident">start</span>) {
-                    <span class="ident">dfa::Result::Match</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">e</span>),
-                    <span class="ident">dfa::Result::NoMatch</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-                    <span class="ident">dfa::Result::Quit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">shortest_nfa</span>(<span class="ident">text</span>, <span class="ident">start</span>),
+                    <span class="ident">dfa::Result::Match</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">e</span>),
+                    <span class="ident">dfa::Result::NoMatch</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+                    <span class="ident">dfa::Result::Quit</span> =&gt; <span class="self">self</span>.<span class="ident">shortest_nfa</span>(<span class="ident">text</span>, <span class="ident">start</span>),
                 }
             }
-            <span class="ident">MatchType::Nfa</span>(<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">shortest_nfa_type</span>(<span class="ident">ty</span>, <span class="ident">text</span>, <span class="ident">start</span>),
-            <span class="ident">MatchType::Nothing</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">MatchType::Nfa</span>(<span class="ident">ty</span>) =&gt; <span class="self">self</span>.<span class="ident">shortest_nfa_type</span>(<span class="ident">ty</span>, <span class="ident">text</span>, <span class="ident">start</span>),
+            <span class="ident">MatchType::Nothing</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 
@@ -2139,7 +2139,7 @@
     <span class="doccomment">/// For single regular expressions, this is equivalent to calling</span>
     <span class="doccomment">/// shortest_match(...).is_some().</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-inline&quot;</span>, <span class="ident">inline</span>(<span class="ident">always</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">is_match_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">start</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">is_match_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">start</span>: <span class="ident">usize</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_anchor_end_match</span>(<span class="ident">text</span>) {
             <span class="kw">return</span> <span class="bool-val">false</span>;
         }
@@ -2148,19 +2148,19 @@
         <span class="comment">// words, a RegexSet can&#39;t (currently) use shortest_match. ---AG</span>
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">ro</span>.<span class="ident">match_type</span> {
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-literal&quot;</span>)]</span>
-            <span class="ident">MatchType::Literal</span>(<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">MatchType::Literal</span>(<span class="ident">ty</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">find_literals</span>(<span class="ident">ty</span>, <span class="ident">text</span>, <span class="ident">start</span>).<span class="ident">is_some</span>()
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-dfa&quot;</span>)]</span>
-            <span class="ident">MatchType::Dfa</span> <span class="op">|</span> <span class="ident">MatchType::DfaMany</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">MatchType::Dfa</span> <span class="op">|</span> <span class="ident">MatchType::DfaMany</span> =&gt; {
                 <span class="kw">match</span> <span class="self">self</span>.<span class="ident">shortest_dfa</span>(<span class="ident">text</span>, <span class="ident">start</span>) {
-                    <span class="ident">dfa::Result::Match</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-                    <span class="ident">dfa::Result::NoMatch</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-                    <span class="ident">dfa::Result::Quit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">match_nfa</span>(<span class="ident">text</span>, <span class="ident">start</span>),
+                    <span class="ident">dfa::Result::Match</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+                    <span class="ident">dfa::Result::NoMatch</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+                    <span class="ident">dfa::Result::Quit</span> =&gt; <span class="self">self</span>.<span class="ident">match_nfa</span>(<span class="ident">text</span>, <span class="ident">start</span>),
                 }
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-dfa&quot;</span>)]</span>
-            <span class="ident">MatchType::DfaAnchoredReverse</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">MatchType::DfaAnchoredReverse</span> =&gt; {
                 <span class="kw">match</span> <span class="ident">dfa::Fsm::reverse</span>(
                     <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ro</span>.<span class="ident">dfa_reverse</span>,
                     <span class="self">self</span>.<span class="ident">cache</span>.<span class="ident">value</span>(),
@@ -2168,66 +2168,66 @@
                     <span class="kw-2">&amp;</span><span class="ident">text</span>[<span class="ident">start</span>..],
                     <span class="ident">text</span>.<span class="ident">len</span>(),
                 ) {
-                    <span class="ident">dfa::Result::Match</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-                    <span class="ident">dfa::Result::NoMatch</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-                    <span class="ident">dfa::Result::Quit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">match_nfa</span>(<span class="ident">text</span>, <span class="ident">start</span>),
+                    <span class="ident">dfa::Result::Match</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+                    <span class="ident">dfa::Result::NoMatch</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+                    <span class="ident">dfa::Result::Quit</span> =&gt; <span class="self">self</span>.<span class="ident">match_nfa</span>(<span class="ident">text</span>, <span class="ident">start</span>),
                 }
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-dfa&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-literal&quot;</span>))]</span>
-            <span class="ident">MatchType::DfaSuffix</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">MatchType::DfaSuffix</span> =&gt; {
                 <span class="kw">match</span> <span class="self">self</span>.<span class="ident">shortest_dfa_reverse_suffix</span>(<span class="ident">text</span>, <span class="ident">start</span>) {
-                    <span class="ident">dfa::Result::Match</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-                    <span class="ident">dfa::Result::NoMatch</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-                    <span class="ident">dfa::Result::Quit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">match_nfa</span>(<span class="ident">text</span>, <span class="ident">start</span>),
+                    <span class="ident">dfa::Result::Match</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+                    <span class="ident">dfa::Result::NoMatch</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+                    <span class="ident">dfa::Result::Quit</span> =&gt; <span class="self">self</span>.<span class="ident">match_nfa</span>(<span class="ident">text</span>, <span class="ident">start</span>),
                 }
             }
-            <span class="ident">MatchType::Nfa</span>(<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">match_nfa_type</span>(<span class="ident">ty</span>, <span class="ident">text</span>, <span class="ident">start</span>),
-            <span class="ident">MatchType::Nothing</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident">MatchType::Nfa</span>(<span class="ident">ty</span>) =&gt; <span class="self">self</span>.<span class="ident">match_nfa_type</span>(<span class="ident">ty</span>, <span class="ident">text</span>, <span class="ident">start</span>),
+            <span class="ident">MatchType::Nothing</span> =&gt; <span class="bool-val">false</span>,
         }
     }
 
     <span class="doccomment">/// Finds the start and end location of the leftmost-first match, starting</span>
     <span class="doccomment">/// at the given location.</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-inline&quot;</span>, <span class="ident">inline</span>(<span class="ident">always</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">find_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">start</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">find_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">start</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_anchor_end_match</span>(<span class="ident">text</span>) {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">ro</span>.<span class="ident">match_type</span> {
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-literal&quot;</span>)]</span>
-            <span class="ident">MatchType::Literal</span>(<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">find_literals</span>(<span class="ident">ty</span>, <span class="ident">text</span>, <span class="ident">start</span>),
+            <span class="ident">MatchType::Literal</span>(<span class="ident">ty</span>) =&gt; <span class="self">self</span>.<span class="ident">find_literals</span>(<span class="ident">ty</span>, <span class="ident">text</span>, <span class="ident">start</span>),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-dfa&quot;</span>)]</span>
-            <span class="ident">MatchType::Dfa</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">find_dfa_forward</span>(<span class="ident">text</span>, <span class="ident">start</span>) {
-                <span class="ident">dfa::Result::Match</span>((<span class="ident">s</span>, <span class="ident">e</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>((<span class="ident">s</span>, <span class="ident">e</span>)),
-                <span class="ident">dfa::Result::NoMatch</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-                <span class="ident">dfa::Result::Quit</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">MatchType::Dfa</span> =&gt; <span class="kw">match</span> <span class="self">self</span>.<span class="ident">find_dfa_forward</span>(<span class="ident">text</span>, <span class="ident">start</span>) {
+                <span class="ident">dfa::Result::Match</span>((<span class="ident">s</span>, <span class="ident">e</span>)) =&gt; <span class="prelude-val">Some</span>((<span class="ident">s</span>, <span class="ident">e</span>)),
+                <span class="ident">dfa::Result::NoMatch</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+                <span class="ident">dfa::Result::Quit</span> =&gt; {
                     <span class="self">self</span>.<span class="ident">find_nfa</span>(<span class="ident">MatchNfaType::Auto</span>, <span class="ident">text</span>, <span class="ident">start</span>)
                 }
             },
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-dfa&quot;</span>)]</span>
-            <span class="ident">MatchType::DfaAnchoredReverse</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">MatchType::DfaAnchoredReverse</span> =&gt; {
                 <span class="kw">match</span> <span class="self">self</span>.<span class="ident">find_dfa_anchored_reverse</span>(<span class="ident">text</span>, <span class="ident">start</span>) {
-                    <span class="ident">dfa::Result::Match</span>((<span class="ident">s</span>, <span class="ident">e</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>((<span class="ident">s</span>, <span class="ident">e</span>)),
-                    <span class="ident">dfa::Result::NoMatch</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-                    <span class="ident">dfa::Result::Quit</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">dfa::Result::Match</span>((<span class="ident">s</span>, <span class="ident">e</span>)) =&gt; <span class="prelude-val">Some</span>((<span class="ident">s</span>, <span class="ident">e</span>)),
+                    <span class="ident">dfa::Result::NoMatch</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+                    <span class="ident">dfa::Result::Quit</span> =&gt; {
                         <span class="self">self</span>.<span class="ident">find_nfa</span>(<span class="ident">MatchNfaType::Auto</span>, <span class="ident">text</span>, <span class="ident">start</span>)
                     }
                 }
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-dfa&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-literal&quot;</span>))]</span>
-            <span class="ident">MatchType::DfaSuffix</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">MatchType::DfaSuffix</span> =&gt; {
                 <span class="kw">match</span> <span class="self">self</span>.<span class="ident">find_dfa_reverse_suffix</span>(<span class="ident">text</span>, <span class="ident">start</span>) {
-                    <span class="ident">dfa::Result::Match</span>((<span class="ident">s</span>, <span class="ident">e</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>((<span class="ident">s</span>, <span class="ident">e</span>)),
-                    <span class="ident">dfa::Result::NoMatch</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-                    <span class="ident">dfa::Result::Quit</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">dfa::Result::Match</span>((<span class="ident">s</span>, <span class="ident">e</span>)) =&gt; <span class="prelude-val">Some</span>((<span class="ident">s</span>, <span class="ident">e</span>)),
+                    <span class="ident">dfa::Result::NoMatch</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+                    <span class="ident">dfa::Result::Quit</span> =&gt; {
                         <span class="self">self</span>.<span class="ident">find_nfa</span>(<span class="ident">MatchNfaType::Auto</span>, <span class="ident">text</span>, <span class="ident">start</span>)
                     }
                 }
             }
-            <span class="ident">MatchType::Nfa</span>(<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">find_nfa</span>(<span class="ident">ty</span>, <span class="ident">text</span>, <span class="ident">start</span>),
-            <span class="ident">MatchType::Nothing</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">MatchType::Nfa</span>(<span class="ident">ty</span>) =&gt; <span class="self">self</span>.<span class="ident">find_nfa</span>(<span class="ident">ty</span>, <span class="ident">text</span>, <span class="ident">start</span>),
+            <span class="ident">MatchType::Nothing</span> =&gt; <span class="prelude-val">None</span>,
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-dfa&quot;</span>)]</span>
-            <span class="ident">MatchType::DfaMany</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">MatchType::DfaMany</span> =&gt; {
                 <span class="macro">unreachable!</span>(<span class="string">&quot;BUG: RegexSet cannot be used with find&quot;</span>)
             }
         }
@@ -2246,7 +2246,7 @@
         <span class="ident">locs</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Locations</span>,
         <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">start</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">slots</span> <span class="op">=</span> <span class="ident">locs</span>.<span class="ident">as_slots</span>();
         <span class="kw">for</span> <span class="ident">slot</span> <span class="kw">in</span> <span class="ident">slots</span>.<span class="ident">iter_mut</span>() {
             <span class="kw-2">*</span><span class="ident">slot</span> <span class="op">=</span> <span class="prelude-val">None</span>;
@@ -2254,22 +2254,22 @@
         <span class="comment">// If the caller unnecessarily uses this, then we try to save them</span>
         <span class="comment">// from themselves.</span>
         <span class="kw">match</span> <span class="ident">slots</span>.<span class="ident">len</span>() {
-            <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="self">self</span>.<span class="ident">find_at</span>(<span class="ident">text</span>, <span class="ident">start</span>),
-            <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="number">0</span> =&gt; <span class="kw">return</span> <span class="self">self</span>.<span class="ident">find_at</span>(<span class="ident">text</span>, <span class="ident">start</span>),
+            <span class="number">2</span> =&gt; {
                 <span class="kw">return</span> <span class="self">self</span>.<span class="ident">find_at</span>(<span class="ident">text</span>, <span class="ident">start</span>).<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">s</span>, <span class="ident">e</span>)<span class="op">|</span> {
                     <span class="ident">slots</span>[<span class="number">0</span>] <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>);
                     <span class="ident">slots</span>[<span class="number">1</span>] <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">e</span>);
                     (<span class="ident">s</span>, <span class="ident">e</span>)
                 });
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {} <span class="comment">// fallthrough</span>
+            <span class="kw">_</span> =&gt; {} <span class="comment">// fallthrough</span>
         }
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_anchor_end_match</span>(<span class="ident">text</span>) {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">ro</span>.<span class="ident">match_type</span> {
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-literal&quot;</span>)]</span>
-            <span class="ident">MatchType::Literal</span>(<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">MatchType::Literal</span>(<span class="ident">ty</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">find_literals</span>(<span class="ident">ty</span>, <span class="ident">text</span>, <span class="ident">start</span>).<span class="ident">and_then</span>(<span class="op">|</span>(<span class="ident">s</span>, <span class="ident">e</span>)<span class="op">|</span> {
                     <span class="self">self</span>.<span class="ident">captures_nfa_type</span>(
                         <span class="ident">MatchNfaType::Auto</span>,
@@ -2281,59 +2281,59 @@
                 })
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-dfa&quot;</span>)]</span>
-            <span class="ident">MatchType::Dfa</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">MatchType::Dfa</span> =&gt; {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">ro</span>.<span class="ident">nfa</span>.<span class="ident">is_anchored_start</span> {
                     <span class="self">self</span>.<span class="ident">captures_nfa</span>(<span class="ident">slots</span>, <span class="ident">text</span>, <span class="ident">start</span>)
                 } <span class="kw">else</span> {
                     <span class="kw">match</span> <span class="self">self</span>.<span class="ident">find_dfa_forward</span>(<span class="ident">text</span>, <span class="ident">start</span>) {
-                        <span class="ident">dfa::Result::Match</span>((<span class="ident">s</span>, <span class="ident">e</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">captures_nfa_type</span>(
+                        <span class="ident">dfa::Result::Match</span>((<span class="ident">s</span>, <span class="ident">e</span>)) =&gt; <span class="self">self</span>.<span class="ident">captures_nfa_type</span>(
                             <span class="ident">MatchNfaType::Auto</span>,
                             <span class="ident">slots</span>,
                             <span class="ident">text</span>,
                             <span class="ident">s</span>,
                             <span class="ident">e</span>,
                         ),
-                        <span class="ident">dfa::Result::NoMatch</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-                        <span class="ident">dfa::Result::Quit</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">dfa::Result::NoMatch</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+                        <span class="ident">dfa::Result::Quit</span> =&gt; {
                             <span class="self">self</span>.<span class="ident">captures_nfa</span>(<span class="ident">slots</span>, <span class="ident">text</span>, <span class="ident">start</span>)
                         }
                     }
                 }
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-dfa&quot;</span>)]</span>
-            <span class="ident">MatchType::DfaAnchoredReverse</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">MatchType::DfaAnchoredReverse</span> =&gt; {
                 <span class="kw">match</span> <span class="self">self</span>.<span class="ident">find_dfa_anchored_reverse</span>(<span class="ident">text</span>, <span class="ident">start</span>) {
-                    <span class="ident">dfa::Result::Match</span>((<span class="ident">s</span>, <span class="ident">e</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">captures_nfa_type</span>(
+                    <span class="ident">dfa::Result::Match</span>((<span class="ident">s</span>, <span class="ident">e</span>)) =&gt; <span class="self">self</span>.<span class="ident">captures_nfa_type</span>(
                         <span class="ident">MatchNfaType::Auto</span>,
                         <span class="ident">slots</span>,
                         <span class="ident">text</span>,
                         <span class="ident">s</span>,
                         <span class="ident">e</span>,
                     ),
-                    <span class="ident">dfa::Result::NoMatch</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-                    <span class="ident">dfa::Result::Quit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">captures_nfa</span>(<span class="ident">slots</span>, <span class="ident">text</span>, <span class="ident">start</span>),
+                    <span class="ident">dfa::Result::NoMatch</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+                    <span class="ident">dfa::Result::Quit</span> =&gt; <span class="self">self</span>.<span class="ident">captures_nfa</span>(<span class="ident">slots</span>, <span class="ident">text</span>, <span class="ident">start</span>),
                 }
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-dfa&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-literal&quot;</span>))]</span>
-            <span class="ident">MatchType::DfaSuffix</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">MatchType::DfaSuffix</span> =&gt; {
                 <span class="kw">match</span> <span class="self">self</span>.<span class="ident">find_dfa_reverse_suffix</span>(<span class="ident">text</span>, <span class="ident">start</span>) {
-                    <span class="ident">dfa::Result::Match</span>((<span class="ident">s</span>, <span class="ident">e</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">captures_nfa_type</span>(
+                    <span class="ident">dfa::Result::Match</span>((<span class="ident">s</span>, <span class="ident">e</span>)) =&gt; <span class="self">self</span>.<span class="ident">captures_nfa_type</span>(
                         <span class="ident">MatchNfaType::Auto</span>,
                         <span class="ident">slots</span>,
                         <span class="ident">text</span>,
                         <span class="ident">s</span>,
                         <span class="ident">e</span>,
                     ),
-                    <span class="ident">dfa::Result::NoMatch</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-                    <span class="ident">dfa::Result::Quit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">captures_nfa</span>(<span class="ident">slots</span>, <span class="ident">text</span>, <span class="ident">start</span>),
+                    <span class="ident">dfa::Result::NoMatch</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+                    <span class="ident">dfa::Result::Quit</span> =&gt; <span class="self">self</span>.<span class="ident">captures_nfa</span>(<span class="ident">slots</span>, <span class="ident">text</span>, <span class="ident">start</span>),
                 }
             }
-            <span class="ident">MatchType::Nfa</span>(<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">MatchType::Nfa</span>(<span class="ident">ty</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">captures_nfa_type</span>(<span class="ident">ty</span>, <span class="ident">slots</span>, <span class="ident">text</span>, <span class="ident">start</span>, <span class="ident">text</span>.<span class="ident">len</span>())
             }
-            <span class="ident">MatchType::Nothing</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">MatchType::Nothing</span> =&gt; <span class="prelude-val">None</span>,
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-dfa&quot;</span>)]</span>
-            <span class="ident">MatchType::DfaMany</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">MatchType::DfaMany</span> =&gt; {
                 <span class="macro">unreachable!</span>(<span class="string">&quot;BUG: RegexSet cannot be used with captures&quot;</span>)
             }
         }
@@ -2349,28 +2349,28 @@
         <span class="ident">ty</span>: <span class="ident">MatchLiteralType</span>,
         <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">start</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident"><span class="self">self</span>::MatchLiteralType</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <span class="ident">ty</span> {
-            <span class="ident">Unanchored</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Unanchored</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">lits</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ro</span>.<span class="ident">nfa</span>.<span class="ident">prefixes</span>;
                 <span class="ident">lits</span>.<span class="ident">find</span>(<span class="kw-2">&amp;</span><span class="ident">text</span>[<span class="ident">start</span>..]).<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">s</span>, <span class="ident">e</span>)<span class="op">|</span> (<span class="ident">start</span> <span class="op">+</span> <span class="ident">s</span>, <span class="ident">start</span> <span class="op">+</span> <span class="ident">e</span>))
             }
-            <span class="ident">AnchoredStart</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">AnchoredStart</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">lits</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ro</span>.<span class="ident">nfa</span>.<span class="ident">prefixes</span>;
-                <span class="kw">if</span> <span class="ident">start</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">ro</span>.<span class="ident">nfa</span>.<span class="ident">is_anchored_start</span> {
+                <span class="kw">if</span> <span class="ident">start</span> <span class="op">==</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">ro</span>.<span class="ident">nfa</span>.<span class="ident">is_anchored_start</span> {
                     <span class="ident">lits</span>.<span class="ident">find_start</span>(<span class="kw-2">&amp;</span><span class="ident">text</span>[<span class="ident">start</span>..])
                         .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">s</span>, <span class="ident">e</span>)<span class="op">|</span> (<span class="ident">start</span> <span class="op">+</span> <span class="ident">s</span>, <span class="ident">start</span> <span class="op">+</span> <span class="ident">e</span>))
                 } <span class="kw">else</span> {
                     <span class="prelude-val">None</span>
                 }
             }
-            <span class="ident">AnchoredEnd</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">AnchoredEnd</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">lits</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ro</span>.<span class="ident">suffixes</span>;
                 <span class="ident">lits</span>.<span class="ident">find_end</span>(<span class="kw-2">&amp;</span><span class="ident">text</span>[<span class="ident">start</span>..])
                     .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">s</span>, <span class="ident">e</span>)<span class="op">|</span> (<span class="ident">start</span> <span class="op">+</span> <span class="ident">s</span>, <span class="ident">start</span> <span class="op">+</span> <span class="ident">e</span>))
             }
-            <span class="ident">AhoCorasick</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>
+            <span class="ident">AhoCorasick</span> =&gt; <span class="self">self</span>
                 .<span class="ident">ro</span>
                 .<span class="ident">ac</span>
                 .<span class="ident">as_ref</span>()
@@ -2390,7 +2390,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">start</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">dfa::Result</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">dfa::Result</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::dfa::Result</span>::<span class="kw-2">*</span>;
         <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">dfa::Fsm::forward</span>(
             <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ro</span>.<span class="ident">dfa</span>,
@@ -2399,10 +2399,10 @@
             <span class="ident">text</span>,
             <span class="ident">start</span>,
         ) {
-            <span class="ident">NoMatch</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">NoMatch</span>(<span class="ident">i</span>),
-            <span class="ident">Quit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Quit</span>,
-            <span class="ident">Match</span>(<span class="ident">end</span>) <span class="kw">if</span> <span class="ident">start</span> <span class="op">=</span><span class="op">=</span> <span class="ident">end</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Match</span>((<span class="ident">start</span>, <span class="ident">start</span>)),
-            <span class="ident">Match</span>(<span class="ident">end</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">end</span>,
+            <span class="ident">NoMatch</span>(<span class="ident">i</span>) =&gt; <span class="kw">return</span> <span class="ident">NoMatch</span>(<span class="ident">i</span>),
+            <span class="ident">Quit</span> =&gt; <span class="kw">return</span> <span class="ident">Quit</span>,
+            <span class="ident">Match</span>(<span class="ident">end</span>) <span class="kw">if</span> <span class="ident">start</span> <span class="op">==</span> <span class="ident">end</span> =&gt; <span class="kw">return</span> <span class="ident">Match</span>((<span class="ident">start</span>, <span class="ident">start</span>)),
+            <span class="ident">Match</span>(<span class="ident">end</span>) =&gt; <span class="ident">end</span>,
         };
         <span class="comment">// Now run the DFA in reverse to find the start of the match.</span>
         <span class="kw">match</span> <span class="ident">dfa::Fsm::reverse</span>(
@@ -2412,9 +2412,9 @@
             <span class="kw-2">&amp;</span><span class="ident">text</span>[<span class="ident">start</span>..],
             <span class="ident">end</span> <span class="op">-</span> <span class="ident">start</span>,
         ) {
-            <span class="ident">Match</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Match</span>((<span class="ident">start</span> <span class="op">+</span> <span class="ident">s</span>, <span class="ident">end</span>)),
-            <span class="ident">NoMatch</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">NoMatch</span>(<span class="ident">i</span>),
-            <span class="ident">Quit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Quit</span>,
+            <span class="ident">Match</span>(<span class="ident">s</span>) =&gt; <span class="ident">Match</span>((<span class="ident">start</span> <span class="op">+</span> <span class="ident">s</span>, <span class="ident">end</span>)),
+            <span class="ident">NoMatch</span>(<span class="ident">i</span>) =&gt; <span class="ident">NoMatch</span>(<span class="ident">i</span>),
+            <span class="ident">Quit</span> =&gt; <span class="ident">Quit</span>,
         }
     }
 
@@ -2430,7 +2430,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">start</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">dfa::Result</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">dfa::Result</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::dfa::Result</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <span class="ident">dfa::Fsm::reverse</span>(
             <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ro</span>.<span class="ident">dfa_reverse</span>,
@@ -2439,16 +2439,16 @@
             <span class="kw-2">&amp;</span><span class="ident">text</span>[<span class="ident">start</span>..],
             <span class="ident">text</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">start</span>,
         ) {
-            <span class="ident">Match</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Match</span>((<span class="ident">start</span> <span class="op">+</span> <span class="ident">s</span>, <span class="ident">text</span>.<span class="ident">len</span>())),
-            <span class="ident">NoMatch</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">NoMatch</span>(<span class="ident">i</span>),
-            <span class="ident">Quit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Quit</span>,
+            <span class="ident">Match</span>(<span class="ident">s</span>) =&gt; <span class="ident">Match</span>((<span class="ident">start</span> <span class="op">+</span> <span class="ident">s</span>, <span class="ident">text</span>.<span class="ident">len</span>())),
+            <span class="ident">NoMatch</span>(<span class="ident">i</span>) =&gt; <span class="ident">NoMatch</span>(<span class="ident">i</span>),
+            <span class="ident">Quit</span> =&gt; <span class="ident">Quit</span>,
         }
     }
 
     <span class="doccomment">/// Finds the end of the shortest match using only the DFA.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-dfa&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-inline&quot;</span>, <span class="ident">inline</span>(<span class="ident">always</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">shortest_dfa</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">start</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">dfa::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">shortest_dfa</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">start</span>: <span class="ident">usize</span>) -&gt; <span class="ident">dfa::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="ident">dfa::Fsm::forward</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ro</span>.<span class="ident">dfa</span>, <span class="self">self</span>.<span class="ident">cache</span>.<span class="ident">value</span>(), <span class="bool-val">true</span>, <span class="ident">text</span>, <span class="ident">start</span>)
     }
 
@@ -2460,10 +2460,10 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">start</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">dfa::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">dfa::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">exec_dfa_reverse_suffix</span>(<span class="ident">text</span>, <span class="ident">start</span>) {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">shortest_dfa</span>(<span class="ident">text</span>, <span class="ident">start</span>),
-            <span class="prelude-val">Some</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">r</span>.<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">end</span>)<span class="op">|</span> <span class="ident">end</span>),
+            <span class="prelude-val">None</span> =&gt; <span class="self">self</span>.<span class="ident">shortest_dfa</span>(<span class="ident">text</span>, <span class="ident">start</span>),
+            <span class="prelude-val">Some</span>(<span class="ident">r</span>) =&gt; <span class="ident">r</span>.<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">end</span>)<span class="op">|</span> <span class="ident">end</span>),
         }
     }
 
@@ -2486,7 +2486,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">original_start</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">dfa::Result</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">dfa::Result</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::dfa::Result</span>::<span class="kw-2">*</span>;
 
         <span class="kw">let</span> <span class="ident">lcs</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ro</span>.<span class="ident">suffixes</span>.<span class="ident">lcs</span>();
@@ -2496,8 +2496,8 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_literal</span> <span class="op">=</span> <span class="ident">start</span>;
         <span class="kw">while</span> <span class="ident">end</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">text</span>.<span class="ident">len</span>() {
             <span class="ident">last_literal</span> <span class="op">+</span><span class="op">=</span> <span class="kw">match</span> <span class="ident">lcs</span>.<span class="ident">find</span>(<span class="kw-2">&amp;</span><span class="ident">text</span>[<span class="ident">last_literal</span>..]) {
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">NoMatch</span>(<span class="ident">text</span>.<span class="ident">len</span>())),
-                <span class="prelude-val">Some</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i</span>,
+                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">NoMatch</span>(<span class="ident">text</span>.<span class="ident">len</span>())),
+                <span class="prelude-val">Some</span>(<span class="ident">i</span>) =&gt; <span class="ident">i</span>,
             };
             <span class="ident">end</span> <span class="op">=</span> <span class="ident">last_literal</span> <span class="op">+</span> <span class="ident">lcs</span>.<span class="ident">len</span>();
             <span class="kw">match</span> <span class="ident">dfa::Fsm::reverse</span>(
@@ -2507,14 +2507,14 @@
                 <span class="kw-2">&amp;</span><span class="ident">text</span>[<span class="ident">start</span>..<span class="ident">end</span>],
                 <span class="ident">end</span> <span class="op">-</span> <span class="ident">start</span>,
             ) {
-                <span class="ident">Match</span>(<span class="number">0</span>) <span class="op">|</span> <span class="ident">NoMatch</span>(<span class="number">0</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
-                <span class="ident">Match</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">Match</span>((<span class="ident">start</span> <span class="op">+</span> <span class="ident">i</span>, <span class="ident">end</span>))),
-                <span class="ident">NoMatch</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Match</span>(<span class="number">0</span>) <span class="op">|</span> <span class="ident">NoMatch</span>(<span class="number">0</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+                <span class="ident">Match</span>(<span class="ident">i</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">Match</span>((<span class="ident">start</span> <span class="op">+</span> <span class="ident">i</span>, <span class="ident">end</span>))),
+                <span class="ident">NoMatch</span>(<span class="ident">i</span>) =&gt; {
                     <span class="ident">start</span> <span class="op">+</span><span class="op">=</span> <span class="ident">i</span>;
                     <span class="ident">last_literal</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                     <span class="kw">continue</span>;
                 }
-                <span class="ident">Quit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">Quit</span>),
+                <span class="ident">Quit</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">Quit</span>),
             };
         }
         <span class="prelude-val">Some</span>(<span class="ident">NoMatch</span>(<span class="ident">text</span>.<span class="ident">len</span>()))
@@ -2531,13 +2531,13 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">start</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">dfa::Result</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">dfa::Result</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::dfa::Result</span>::<span class="kw-2">*</span>;
 
         <span class="kw">let</span> <span class="ident">match_start</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">exec_dfa_reverse_suffix</span>(<span class="ident">text</span>, <span class="ident">start</span>) {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="self">self</span>.<span class="ident">find_dfa_forward</span>(<span class="ident">text</span>, <span class="ident">start</span>),
-            <span class="prelude-val">Some</span>(<span class="ident">Match</span>((<span class="ident">start</span>, <span class="kw">_</span>))) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">start</span>,
-            <span class="prelude-val">Some</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">r</span>,
+            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="self">self</span>.<span class="ident">find_dfa_forward</span>(<span class="ident">text</span>, <span class="ident">start</span>),
+            <span class="prelude-val">Some</span>(<span class="ident">Match</span>((<span class="ident">start</span>, <span class="kw">_</span>))) =&gt; <span class="ident">start</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">r</span>) =&gt; <span class="kw">return</span> <span class="ident">r</span>,
         };
         <span class="comment">// At this point, we&#39;ve found a match. The only way to quit now</span>
         <span class="comment">// without a match is if the DFA gives up (seems unlikely).</span>
@@ -2553,9 +2553,9 @@
             <span class="ident">text</span>,
             <span class="ident">match_start</span>,
         ) {
-            <span class="ident">NoMatch</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;BUG: reverse match implies forward match&quot;</span>),
-            <span class="ident">Quit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Quit</span>,
-            <span class="ident">Match</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Match</span>((<span class="ident">match_start</span>, <span class="ident">e</span>)),
+            <span class="ident">NoMatch</span>(<span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;BUG: reverse match implies forward match&quot;</span>),
+            <span class="ident">Quit</span> =&gt; <span class="ident">Quit</span>,
+            <span class="ident">Match</span>(<span class="ident">e</span>) =&gt; <span class="ident">Match</span>((<span class="ident">match_start</span>, <span class="ident">e</span>)),
         }
     }
 
@@ -2565,7 +2565,7 @@
     <span class="doccomment">/// performance characteristics, but regex sets don&#39;t have captures, which</span>
     <span class="doccomment">/// shortest_nfa depends on.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-dfa&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">match_nfa</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">start</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">match_nfa</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">start</span>: <span class="ident">usize</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">match_nfa_type</span>(<span class="ident">MatchNfaType::Auto</span>, <span class="ident">text</span>, <span class="ident">start</span>)
     }
 
@@ -2575,7 +2575,7 @@
         <span class="ident">ty</span>: <span class="ident">MatchNfaType</span>,
         <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">start</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    ) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">exec_nfa</span>(
             <span class="ident">ty</span>,
             <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="bool-val">false</span>],
@@ -2590,7 +2590,7 @@
 
     <span class="doccomment">/// Finds the shortest match using an NFA.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-dfa&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">shortest_nfa</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">start</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">shortest_nfa</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">start</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">shortest_nfa_type</span>(<span class="ident">MatchNfaType::Auto</span>, <span class="ident">text</span>, <span class="ident">start</span>)
     }
 
@@ -2600,7 +2600,7 @@
         <span class="ident">ty</span>: <span class="ident">MatchNfaType</span>,
         <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">start</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">slots</span> <span class="op">=</span> [<span class="prelude-val">None</span>, <span class="prelude-val">None</span>];
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">exec_nfa</span>(
             <span class="ident">ty</span>,
@@ -2624,7 +2624,7 @@
         <span class="ident">ty</span>: <span class="ident">MatchNfaType</span>,
         <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">start</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">slots</span> <span class="op">=</span> [<span class="prelude-val">None</span>, <span class="prelude-val">None</span>];
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">exec_nfa</span>(
             <span class="ident">ty</span>,
@@ -2637,8 +2637,8 @@
             <span class="ident">text</span>.<span class="ident">len</span>(),
         ) {
             <span class="kw">match</span> (<span class="ident">slots</span>[<span class="number">0</span>], <span class="ident">slots</span>[<span class="number">1</span>]) {
-                (<span class="prelude-val">Some</span>(<span class="ident">s</span>), <span class="prelude-val">Some</span>(<span class="ident">e</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>((<span class="ident">s</span>, <span class="ident">e</span>)),
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+                (<span class="prelude-val">Some</span>(<span class="ident">s</span>), <span class="prelude-val">Some</span>(<span class="ident">e</span>)) =&gt; <span class="prelude-val">Some</span>((<span class="ident">s</span>, <span class="ident">e</span>)),
+                <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
             }
         } <span class="kw">else</span> {
             <span class="prelude-val">None</span>
@@ -2654,7 +2654,7 @@
         <span class="ident">slots</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">Slot</span>],
         <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">start</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">captures_nfa_type</span>(
             <span class="ident">MatchNfaType::Auto</span>,
             <span class="ident">slots</span>,
@@ -2672,7 +2672,7 @@
         <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">start</span>: <span class="ident">usize</span>,
         <span class="ident">end</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">exec_nfa</span>(
             <span class="ident">ty</span>,
             <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="bool-val">false</span>],
@@ -2684,8 +2684,8 @@
             <span class="ident">end</span>,
         ) {
             <span class="kw">match</span> (<span class="ident">slots</span>[<span class="number">0</span>], <span class="ident">slots</span>[<span class="number">1</span>]) {
-                (<span class="prelude-val">Some</span>(<span class="ident">s</span>), <span class="prelude-val">Some</span>(<span class="ident">e</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>((<span class="ident">s</span>, <span class="ident">e</span>)),
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+                (<span class="prelude-val">Some</span>(<span class="ident">s</span>), <span class="prelude-val">Some</span>(<span class="ident">e</span>)) =&gt; <span class="prelude-val">Some</span>((<span class="ident">s</span>, <span class="ident">e</span>)),
+                <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
             }
         } <span class="kw">else</span> {
             <span class="prelude-val">None</span>
@@ -2702,7 +2702,7 @@
         <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">start</span>: <span class="ident">usize</span>,
         <span class="ident">end</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    ) -&gt; <span class="ident">bool</span> {
         <span class="kw">use</span> <span class="ident"><span class="self">self</span>::MatchNfaType</span>::<span class="kw-2">*</span>;
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Auto</span> <span class="op">=</span> <span class="ident">ty</span> {
             <span class="kw">if</span> <span class="ident">backtrack::should_exec</span>(<span class="self">self</span>.<span class="ident">ro</span>.<span class="ident">nfa</span>.<span class="ident">len</span>(), <span class="ident">text</span>.<span class="ident">len</span>()) {
@@ -2714,7 +2714,7 @@
         <span class="comment">// The backtracker can&#39;t return the shortest match position as it is</span>
         <span class="comment">// implemented today. So if someone calls `shortest_match` and we need</span>
         <span class="comment">// to run an NFA, then use the PikeVM.</span>
-        <span class="kw">if</span> <span class="ident">quit_after_match_with_pos</span> <span class="op">|</span><span class="op">|</span> <span class="ident">ty</span> <span class="op">=</span><span class="op">=</span> <span class="ident">PikeVM</span> {
+        <span class="kw">if</span> <span class="ident">quit_after_match_with_pos</span> <span class="op">|</span><span class="op">|</span> <span class="ident">ty</span> <span class="op">==</span> <span class="ident">PikeVM</span> {
             <span class="self">self</span>.<span class="ident">exec_pikevm</span>(
                 <span class="ident">matches</span>,
                 <span class="ident">slots</span>,
@@ -2737,7 +2737,7 @@
         <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">start</span>: <span class="ident">usize</span>,
         <span class="ident">end</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    ) -&gt; <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">ro</span>.<span class="ident">nfa</span>.<span class="ident">uses_bytes</span>() {
             <span class="ident">pikevm::Fsm::exec</span>(
                 <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ro</span>.<span class="ident">nfa</span>,
@@ -2771,7 +2771,7 @@
         <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">start</span>: <span class="ident">usize</span>,
         <span class="ident">end</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    ) -&gt; <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">ro</span>.<span class="ident">nfa</span>.<span class="ident">uses_bytes</span>() {
             <span class="ident">backtrack::Bounded::exec</span>(
                 <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ro</span>.<span class="ident">nfa</span>,
@@ -2807,20 +2807,20 @@
         <span class="ident">matches</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">bool</span>],
         <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">start</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    ) -&gt; <span class="ident">bool</span> {
         <span class="kw">use</span> <span class="ident"><span class="self">self</span>::MatchType</span>::<span class="kw-2">*</span>;
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_anchor_end_match</span>(<span class="ident">text</span>) {
             <span class="kw">return</span> <span class="bool-val">false</span>;
         }
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">ro</span>.<span class="ident">match_type</span> {
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-literal&quot;</span>)]</span>
-            <span class="ident">Literal</span>(<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Literal</span>(<span class="ident">ty</span>) =&gt; {
                 <span class="macro">debug_assert_eq!</span>(<span class="ident">matches</span>.<span class="ident">len</span>(), <span class="number">1</span>);
                 <span class="ident">matches</span>[<span class="number">0</span>] <span class="op">=</span> <span class="self">self</span>.<span class="ident">find_literals</span>(<span class="ident">ty</span>, <span class="ident">text</span>, <span class="ident">start</span>).<span class="ident">is_some</span>();
                 <span class="ident">matches</span>[<span class="number">0</span>]
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-dfa&quot;</span>)]</span>
-            <span class="ident">Dfa</span> <span class="op">|</span> <span class="ident">DfaAnchoredReverse</span> <span class="op">|</span> <span class="ident">DfaMany</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Dfa</span> <span class="op">|</span> <span class="ident">DfaAnchoredReverse</span> <span class="op">|</span> <span class="ident">DfaMany</span> =&gt; {
                 <span class="kw">match</span> <span class="ident">dfa::Fsm::forward_many</span>(
                     <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ro</span>.<span class="ident">dfa</span>,
                     <span class="self">self</span>.<span class="ident">cache</span>.<span class="ident">value</span>(),
@@ -2828,9 +2828,9 @@
                     <span class="ident">text</span>,
                     <span class="ident">start</span>,
                 ) {
-                    <span class="ident">dfa::Result::Match</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-                    <span class="ident">dfa::Result::NoMatch</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-                    <span class="ident">dfa::Result::Quit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">exec_nfa</span>(
+                    <span class="ident">dfa::Result::Match</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+                    <span class="ident">dfa::Result::NoMatch</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+                    <span class="ident">dfa::Result::Quit</span> =&gt; <span class="self">self</span>.<span class="ident">exec_nfa</span>(
                         <span class="ident">MatchNfaType::Auto</span>,
                         <span class="ident">matches</span>,
                         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [],
@@ -2843,7 +2843,7 @@
                 }
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-dfa&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-literal&quot;</span>))]</span>
-            <span class="ident">DfaSuffix</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">DfaSuffix</span> =&gt; {
                 <span class="kw">match</span> <span class="ident">dfa::Fsm::forward_many</span>(
                     <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ro</span>.<span class="ident">dfa</span>,
                     <span class="self">self</span>.<span class="ident">cache</span>.<span class="ident">value</span>(),
@@ -2851,9 +2851,9 @@
                     <span class="ident">text</span>,
                     <span class="ident">start</span>,
                 ) {
-                    <span class="ident">dfa::Result::Match</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-                    <span class="ident">dfa::Result::NoMatch</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-                    <span class="ident">dfa::Result::Quit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">exec_nfa</span>(
+                    <span class="ident">dfa::Result::Match</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+                    <span class="ident">dfa::Result::NoMatch</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+                    <span class="ident">dfa::Result::Quit</span> =&gt; <span class="self">self</span>.<span class="ident">exec_nfa</span>(
                         <span class="ident">MatchNfaType::Auto</span>,
                         <span class="ident">matches</span>,
                         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [],
@@ -2865,7 +2865,7 @@
                     ),
                 }
             }
-            <span class="ident">Nfa</span>(<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">exec_nfa</span>(
+            <span class="ident">Nfa</span>(<span class="ident">ty</span>) =&gt; <span class="self">self</span>.<span class="ident">exec_nfa</span>(
                 <span class="ident">ty</span>,
                 <span class="ident">matches</span>,
                 <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [],
@@ -2875,19 +2875,19 @@
                 <span class="ident">start</span>,
                 <span class="ident">text</span>.<span class="ident">len</span>(),
             ),
-            <span class="ident">Nothing</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident">Nothing</span> =&gt; <span class="bool-val">false</span>,
         }
     }
 
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-inline&quot;</span>, <span class="ident">inline</span>(<span class="ident">always</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">is_anchor_end_match</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">is_anchor_end_match</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">bool</span> {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-literal&quot;</span>))]</span>
-        <span class="kw">fn</span> <span class="ident">imp</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">ExecReadOnly</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">fn</span> <span class="ident">imp</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">ExecReadOnly</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">bool</span> {
             <span class="bool-val">true</span>
         }
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-literal&quot;</span>)]</span>
-        <span class="kw">fn</span> <span class="ident">imp</span>(<span class="ident">ro</span>: <span class="kw-2">&amp;</span><span class="ident">ExecReadOnly</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">fn</span> <span class="ident">imp</span>(<span class="ident">ro</span>: <span class="kw-2">&amp;</span><span class="ident">ExecReadOnly</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">bool</span> {
             <span class="comment">// Only do this check if the haystack is big (&gt;1MB).</span>
             <span class="kw">if</span> <span class="ident">text</span>.<span class="ident">len</span>() <span class="op">&gt;</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">20</span>) <span class="op">&amp;&amp;</span> <span class="ident">ro</span>.<span class="ident">nfa</span>.<span class="ident">is_anchored_end</span> {
                 <span class="kw">let</span> <span class="ident">lcs</span> <span class="op">=</span> <span class="ident">ro</span>.<span class="ident">suffixes</span>.<span class="ident">lcs</span>();
@@ -2901,13 +2901,13 @@
         <span class="ident">imp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ro</span>, <span class="ident">text</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">capture_name_idx</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">capture_name_idx</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ro</span>.<span class="ident">nfa</span>.<span class="ident">capture_name_idx</span>
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span><span class="op">&gt;</span> <span class="ident">ExecNoSyncStr</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">capture_name_idx</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">capture_name_idx</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">capture_name_idx</span>()
     }
 }
@@ -2915,7 +2915,7 @@
 <span class="kw">impl</span> <span class="ident">Exec</span> {
     <span class="doccomment">/// Get a searcher that isn&#39;t Sync.</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-inline&quot;</span>, <span class="ident">inline</span>(<span class="ident">always</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">searcher</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ExecNoSync</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">searcher</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">ExecNoSync</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
         <span class="ident">ExecNoSync</span> {
             <span class="ident">ro</span>: <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ro</span>, <span class="comment">// a clone is too expensive here! (and not needed)</span>
             <span class="ident">cache</span>: <span class="self">self</span>.<span class="ident">pool</span>.<span class="ident">get</span>(),
@@ -2924,59 +2924,59 @@
 
     <span class="doccomment">/// Get a searcher that isn&#39;t Sync and can match on &amp;str.</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-inline&quot;</span>, <span class="ident">inline</span>(<span class="ident">always</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">searcher_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ExecNoSyncStr</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">searcher_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">ExecNoSyncStr</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
         <span class="ident">ExecNoSyncStr</span>(<span class="self">self</span>.<span class="ident">searcher</span>())
     }
 
     <span class="doccomment">/// Build a Regex from this executor.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_regex</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">re_unicode::Regex</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_regex</span>(<span class="self">self</span>) -&gt; <span class="ident">re_unicode::Regex</span> {
         <span class="ident">re_unicode::Regex::from</span>(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Build a RegexSet from this executor.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_regex_set</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">re_set::unicode::RegexSet</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_regex_set</span>(<span class="self">self</span>) -&gt; <span class="ident">re_set::unicode::RegexSet</span> {
         <span class="ident">re_set::unicode::RegexSet::from</span>(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Build a Regex from this executor that can match arbitrary bytes.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_byte_regex</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">re_bytes::Regex</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_byte_regex</span>(<span class="self">self</span>) -&gt; <span class="ident">re_bytes::Regex</span> {
         <span class="ident">re_bytes::Regex::from</span>(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Build a RegexSet from this executor that can match arbitrary bytes.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_byte_regex_set</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">re_set::bytes::RegexSet</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_byte_regex_set</span>(<span class="self">self</span>) -&gt; <span class="ident">re_set::bytes::RegexSet</span> {
         <span class="ident">re_set::bytes::RegexSet::from</span>(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// The original regular expressions given by the caller that were</span>
     <span class="doccomment">/// compiled.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">regex_strings</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">String</span>] {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">regex_strings</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">String</span>] {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ro</span>.<span class="ident">res</span>
     }
 
     <span class="doccomment">/// Return a slice of capture names.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Any capture that isn&#39;t named is None.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">capture_names</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>] {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">capture_names</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>] {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ro</span>.<span class="ident">nfa</span>.<span class="ident">captures</span>
     }
 
     <span class="doccomment">/// Return a reference to named groups mapping (from group name to</span>
     <span class="doccomment">/// group position).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">capture_name_idx</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">capture_name_idx</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ro</span>.<span class="ident">nfa</span>.<span class="ident">capture_name_idx</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Exec</span> {
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Exec</span> {
+    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Exec</span> {
         <span class="kw">let</span> <span class="ident">pool</span> <span class="op">=</span> <span class="ident">ExecReadOnly::new_pool</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ro</span>);
         <span class="ident">Exec</span> { <span class="ident">ro</span>: <span class="self">self</span>.<span class="ident">ro</span>.<span class="ident">clone</span>(), <span class="ident">pool</span> }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">ExecReadOnly</span> {
-    <span class="kw">fn</span> <span class="ident">choose_match_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">hint</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MatchType</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MatchType</span> {
+    <span class="kw">fn</span> <span class="ident">choose_match_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">hint</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MatchType</span><span class="op">&gt;</span>) -&gt; <span class="ident">MatchType</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">MatchType::Nfa</span>(<span class="kw">_</span>)) <span class="op">=</span> <span class="ident">hint</span> {
             <span class="kw">return</span> <span class="ident">hint</span>.<span class="ident">unwrap</span>();
         }
@@ -2996,14 +2996,14 @@
 
     <span class="doccomment">/// If a plain literal scan can be used, then a corresponding literal</span>
     <span class="doccomment">/// search type is returned.</span>
-    <span class="kw">fn</span> <span class="ident">choose_literal_match_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MatchType</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">choose_literal_match_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MatchType</span><span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-literal&quot;</span>))]</span>
-        <span class="kw">fn</span> <span class="ident">imp</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">ExecReadOnly</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MatchType</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">imp</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">ExecReadOnly</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MatchType</span><span class="op">&gt;</span> {
             <span class="prelude-val">None</span>
         }
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-literal&quot;</span>)]</span>
-        <span class="kw">fn</span> <span class="ident">imp</span>(<span class="ident">ro</span>: <span class="kw-2">&amp;</span><span class="ident">ExecReadOnly</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MatchType</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">imp</span>(<span class="ident">ro</span>: <span class="kw-2">&amp;</span><span class="ident">ExecReadOnly</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MatchType</span><span class="op">&gt;</span> {
             <span class="comment">// If our set of prefixes is complete, then we can use it to find</span>
             <span class="comment">// a match in lieu of a regex engine. This doesn&#39;t quite work well</span>
             <span class="comment">// in the presence of multiple regexes, so only do it when there&#39;s</span>
@@ -3047,14 +3047,14 @@
     }
 
     <span class="doccomment">/// If a DFA scan can be used, then choose the appropriate DFA strategy.</span>
-    <span class="kw">fn</span> <span class="ident">choose_dfa_match_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MatchType</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">choose_dfa_match_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MatchType</span><span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-dfa&quot;</span>))]</span>
-        <span class="kw">fn</span> <span class="ident">imp</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">ExecReadOnly</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MatchType</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">imp</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">ExecReadOnly</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MatchType</span><span class="op">&gt;</span> {
             <span class="prelude-val">None</span>
         }
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-dfa&quot;</span>)]</span>
-        <span class="kw">fn</span> <span class="ident">imp</span>(<span class="ident">ro</span>: <span class="kw-2">&amp;</span><span class="ident">ExecReadOnly</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MatchType</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">imp</span>(<span class="ident">ro</span>: <span class="kw-2">&amp;</span><span class="ident">ExecReadOnly</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MatchType</span><span class="op">&gt;</span> {
             <span class="kw">if</span> <span class="op">!</span><span class="ident">dfa::can_exec</span>(<span class="kw-2">&amp;</span><span class="ident">ro</span>.<span class="ident">dfa</span>) {
                 <span class="kw">return</span> <span class="prelude-val">None</span>;
             }
@@ -3097,7 +3097,7 @@
     <span class="doccomment">/// strings are generally rarer, so we only enable this optimization when</span>
     <span class="doccomment">/// we have a meaty suffix.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-dfa&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-literal&quot;</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">should_suffix_scan</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">should_suffix_scan</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">suffixes</span>.<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="bool-val">false</span>;
         }
@@ -3105,7 +3105,7 @@
         <span class="ident">lcs_len</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">3</span> <span class="op">&amp;&amp;</span> <span class="ident">lcs_len</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">dfa</span>.<span class="ident">prefixes</span>.<span class="ident">lcp</span>().<span class="ident">char_len</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">new_pool</span>(<span class="ident">ro</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">ExecReadOnly</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Pool</span><span class="op">&lt;</span><span class="ident">ProgramCache</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">new_pool</span>(<span class="ident">ro</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">ExecReadOnly</span><span class="op">&gt;</span>) -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Pool</span><span class="op">&lt;</span><span class="ident">ProgramCache</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">ro</span> <span class="op">=</span> <span class="ident">ro</span>.<span class="ident">clone</span>();
         <span class="ident">Box::new</span>(<span class="ident">Pool::new</span>(<span class="ident">Box::new</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
             <span class="ident">AssertUnwindSafe</span>(<span class="ident">RefCell::new</span>(<span class="ident">ProgramCacheInner::new</span>(<span class="kw-2">&amp;</span><span class="ident">ro</span>)))
@@ -3186,7 +3186,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">ProgramCacheInner</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ro</span>: <span class="kw-2">&amp;</span><span class="ident">ExecReadOnly</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ro</span>: <span class="kw-2">&amp;</span><span class="ident">ExecReadOnly</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">ProgramCacheInner</span> {
             <span class="ident">pikevm</span>: <span class="ident">pikevm::Cache::new</span>(<span class="kw-2">&amp;</span><span class="ident">ro</span>.<span class="ident">nfa</span>),
             <span class="ident">backtrack</span>: <span class="ident">backtrack::Cache::new</span>(<span class="kw-2">&amp;</span><span class="ident">ro</span>.<span class="ident">nfa</span>),
@@ -3201,7 +3201,7 @@
 <span class="doccomment">/// Alternation literals checks if the given HIR is a simple alternation of</span>
 <span class="doccomment">/// literals, and if so, returns them. Otherwise, this returns None.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-literal&quot;</span>)]</span>
-<span class="kw">fn</span> <span class="ident">alternation_literals</span>(<span class="ident">expr</span>: <span class="kw-2">&amp;</span><span class="ident">Hir</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">alternation_literals</span>(<span class="ident">expr</span>: <span class="kw-2">&amp;</span><span class="ident">Hir</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">use</span> <span class="ident">regex_syntax::hir</span>::{<span class="ident">HirKind</span>, <span class="ident">Literal</span>};
 
     <span class="comment">// This is pretty hacky, but basically, if `is_alternation_literal` is</span>
@@ -3216,16 +3216,16 @@
         <span class="kw">return</span> <span class="prelude-val">None</span>;
     }
     <span class="kw">let</span> <span class="ident">alts</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">expr</span>.<span class="ident">kind</span>() {
-        <span class="ident">HirKind::Alternation</span>(<span class="kw-2">ref</span> <span class="ident">alts</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">alts</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>, <span class="comment">// one literal isn&#39;t worth it</span>
+        <span class="ident">HirKind::Alternation</span>(<span class="kw-2">ref</span> <span class="ident">alts</span>) =&gt; <span class="ident">alts</span>,
+        <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>, <span class="comment">// one literal isn&#39;t worth it</span>
     };
 
     <span class="kw">let</span> <span class="ident">extendlit</span> <span class="op">=</span> <span class="op">|</span><span class="ident">lit</span>: <span class="kw-2">&amp;</span><span class="ident">Literal</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">|</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">lit</span> {
-        <span class="ident">Literal::Unicode</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Literal::Unicode</span>(<span class="ident">c</span>) =&gt; {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">4</span>];
             <span class="ident">dst</span>.<span class="ident">extend_from_slice</span>(<span class="ident">c</span>.<span class="ident">encode_utf8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>).<span class="ident">as_bytes</span>());
         }
-        <span class="ident">Literal::Byte</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Literal::Byte</span>(<span class="ident">b</span>) =&gt; {
             <span class="ident">dst</span>.<span class="ident">push</span>(<span class="ident">b</span>);
         }
     };
@@ -3234,16 +3234,16 @@
     <span class="kw">for</span> <span class="ident">alt</span> <span class="kw">in</span> <span class="ident">alts</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lit</span> <span class="op">=</span> <span class="macro">vec!</span>[];
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">alt</span>.<span class="ident">kind</span>() {
-            <span class="ident">HirKind::Literal</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">extendlit</span>(<span class="ident">x</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">lit</span>),
-            <span class="ident">HirKind::Concat</span>(<span class="kw-2">ref</span> <span class="ident">exprs</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">HirKind::Literal</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) =&gt; <span class="ident">extendlit</span>(<span class="ident">x</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">lit</span>),
+            <span class="ident">HirKind::Concat</span>(<span class="kw-2">ref</span> <span class="ident">exprs</span>) =&gt; {
                 <span class="kw">for</span> <span class="ident">e</span> <span class="kw">in</span> <span class="ident">exprs</span> {
                     <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">e</span>.<span class="ident">kind</span>() {
-                        <span class="ident">HirKind::Literal</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">extendlit</span>(<span class="ident">x</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">lit</span>),
-                        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(<span class="string">&quot;expected literal, got {:?}&quot;</span>, <span class="ident">e</span>),
+                        <span class="ident">HirKind::Literal</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) =&gt; <span class="ident">extendlit</span>(<span class="ident">x</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">lit</span>),
+                        <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;expected literal, got {:?}&quot;</span>, <span class="ident">e</span>),
                     }
                 }
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(<span class="string">&quot;expected literal or concat, got {:?}&quot;</span>, <span class="ident">alt</span>),
+            <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;expected literal or concat, got {:?}&quot;</span>, <span class="ident">alt</span>),
         }
         <span class="ident">lits</span>.<span class="ident">push</span>(<span class="ident">lit</span>);
     }

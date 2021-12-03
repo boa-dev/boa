@@ -4,10 +4,10 @@
 with data in <a href="https://yaml.org/">YAML</a> file format.</p>
 <p>This library does not reimplement a YAML parser; it uses <a href="https://github.com/chyh1990/yaml-rust">yaml-rust</a> which
 is a pure Rust YAML 1.2 implementation.</p>
-<h1 id="examples" class="section-header"><a href="#examples">Examples</a></h1>
+<h2 id="examples" class="section-header"><a href="#examples">Examples</a></h2>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">std::collections::BTreeMap</span>;
 
-<span class="kw">fn</span> <span class="ident">main</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">serde_yaml::Error</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">main</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">serde_yaml::Error</span><span class="op">&gt;</span> {
     <span class="comment">// You have some type.</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">BTreeMap::new</span>();
     <span class="ident">map</span>.<span class="ident">insert</span>(<span class="string">&quot;x&quot;</span>.<span class="ident">to_string</span>(), <span class="number">1.0</span>);
@@ -22,7 +22,7 @@ is a pure Rust YAML 1.2 implementation.</p>
     <span class="macro">assert_eq!</span>(<span class="ident">map</span>, <span class="ident">deserialized_map</span>);
     <span class="prelude-val">Ok</span>(())
 }</code></pre></div>
-<h2 id="using-serde-derive" class="section-header"><a href="#using-serde-derive">Using Serde derive</a></h2>
+<h3 id="using-serde-derive" class="section-header"><a href="#using-serde-derive">Using Serde derive</a></h3>
 <p>It can also be used with Serde’s serialization code generator <code>serde_derive</code> to
 handle structs and enums defined in your own program.</p>
 
@@ -34,7 +34,7 @@ handle structs and enums defined in your own program.</p>
     <span class="ident">y</span>: <span class="ident">f64</span>,
 }
 
-<span class="kw">fn</span> <span class="ident">main</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">serde_yaml::Error</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">main</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">serde_yaml::Error</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">point</span> <span class="op">=</span> <span class="ident">Point</span> { <span class="ident">x</span>: <span class="number">1.0</span>, <span class="ident">y</span>: <span class="number">2.0</span> };
 
     <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">serde_yaml::to_string</span>(<span class="kw-2">&amp;</span><span class="ident">point</span>)<span class="question-mark">?</span>;
@@ -45,33 +45,33 @@ handle structs and enums defined in your own program.</p>
     <span class="prelude-val">Ok</span>(())
 }</code></pre></div>
 </div></details><h2 id="modules" class="section-header"><a href="#modules">Modules</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="mod" href="mapping/index.html" title="serde_yaml::mapping mod">mapping</a></div><div class="item-right docblock-short"><p>A YAML mapping and its iterator types.</p>
-</div><div class="item-left module-item"><a class="mod" href="seed/index.html" title="serde_yaml::seed mod">seed</a></div><div class="item-right docblock-short"><p>Entry points for deserializing with pre-existing state.</p>
-</div></div><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="struct" href="struct.Deserializer.html" title="serde_yaml::Deserializer struct">Deserializer</a></div><div class="item-right docblock-short"><p>A structure that deserializes YAML into Rust values.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.Error.html" title="serde_yaml::Error struct">Error</a></div><div class="item-right docblock-short"><p>An error that happened serializing or deserializing YAML data.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.Location.html" title="serde_yaml::Location struct">Location</a></div><div class="item-right docblock-short"><p>The input location that an error occured.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.Mapping.html" title="serde_yaml::Mapping struct">Mapping</a></div><div class="item-right docblock-short"><p>A YAML mapping in which the keys and values are both <code>serde_yaml::Value</code>.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.Number.html" title="serde_yaml::Number struct">Number</a></div><div class="item-right docblock-short"><p>Represents a YAML number, whether integer or floating point.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.Serializer.html" title="serde_yaml::Serializer struct">Serializer</a></div><div class="item-right docblock-short"><p>A structure for serializing Rust values into YAML.</p>
-</div></div><h2 id="enums" class="section-header"><a href="#enums">Enums</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="enum" href="enum.Value.html" title="serde_yaml::Value enum">Value</a></div><div class="item-right docblock-short"><p>Represents any valid YAML value.</p>
-</div></div><h2 id="traits" class="section-header"><a href="#traits">Traits</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="trait" href="trait.Index.html" title="serde_yaml::Index trait">Index</a></div><div class="item-right docblock-short"><p>A type that can be used to index into a <code>serde_yaml::Value</code>. See the <code>get</code>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="mod" href="mapping/index.html" title="serde_yaml::mapping mod">mapping</a></div><div class="item-right docblock-short"><p>A YAML mapping and its iterator types.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="seed/index.html" title="serde_yaml::seed mod">seed</a></div><div class="item-right docblock-short"><p>Entry points for deserializing with pre-existing state.</p>
+</div></div></div><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Deserializer.html" title="serde_yaml::Deserializer struct">Deserializer</a></div><div class="item-right docblock-short"><p>A structure that deserializes YAML into Rust values.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Error.html" title="serde_yaml::Error struct">Error</a></div><div class="item-right docblock-short"><p>An error that happened serializing or deserializing YAML data.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Location.html" title="serde_yaml::Location struct">Location</a></div><div class="item-right docblock-short"><p>The input location that an error occured.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Mapping.html" title="serde_yaml::Mapping struct">Mapping</a></div><div class="item-right docblock-short"><p>A YAML mapping in which the keys and values are both <code>serde_yaml::Value</code>.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Number.html" title="serde_yaml::Number struct">Number</a></div><div class="item-right docblock-short"><p>Represents a YAML number, whether integer or floating point.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Serializer.html" title="serde_yaml::Serializer struct">Serializer</a></div><div class="item-right docblock-short"><p>A structure for serializing Rust values into YAML.</p>
+</div></div></div><h2 id="enums" class="section-header"><a href="#enums">Enums</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.Value.html" title="serde_yaml::Value enum">Value</a></div><div class="item-right docblock-short"><p>Represents any valid YAML value.</p>
+</div></div></div><h2 id="traits" class="section-header"><a href="#traits">Traits</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.Index.html" title="serde_yaml::Index trait">Index</a></div><div class="item-right docblock-short"><p>A type that can be used to index into a <code>serde_yaml::Value</code>. See the <code>get</code>
 and <code>get_mut</code> methods of <code>Value</code>.</p>
-</div></div><h2 id="functions" class="section-header"><a href="#functions">Functions</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="fn" href="fn.from_reader.html" title="serde_yaml::from_reader fn">from_reader</a></div><div class="item-right docblock-short"><p>Deserialize an instance of type <code>T</code> from an IO stream of YAML.</p>
-</div><div class="item-left module-item"><a class="fn" href="fn.from_slice.html" title="serde_yaml::from_slice fn">from_slice</a></div><div class="item-right docblock-short"><p>Deserialize an instance of type <code>T</code> from bytes of YAML text.</p>
-</div><div class="item-left module-item"><a class="fn" href="fn.from_str.html" title="serde_yaml::from_str fn">from_str</a></div><div class="item-right docblock-short"><p>Deserialize an instance of type <code>T</code> from a string of YAML text.</p>
-</div><div class="item-left module-item"><a class="fn" href="fn.from_value.html" title="serde_yaml::from_value fn">from_value</a></div><div class="item-right docblock-short"><p>Interpret a <code>serde_yaml::Value</code> as an instance of type <code>T</code>.</p>
-</div><div class="item-left module-item"><a class="fn" href="fn.to_string.html" title="serde_yaml::to_string fn">to_string</a></div><div class="item-right docblock-short"><p>Serialize the given data structure as a String of YAML.</p>
-</div><div class="item-left module-item"><a class="fn" href="fn.to_value.html" title="serde_yaml::to_value fn">to_value</a></div><div class="item-right docblock-short"><p>Convert a <code>T</code> into <code>serde_yaml::Value</code> which is an enum that can represent
+</div></div></div><h2 id="functions" class="section-header"><a href="#functions">Functions</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.from_reader.html" title="serde_yaml::from_reader fn">from_reader</a></div><div class="item-right docblock-short"><p>Deserialize an instance of type <code>T</code> from an IO stream of YAML.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.from_slice.html" title="serde_yaml::from_slice fn">from_slice</a></div><div class="item-right docblock-short"><p>Deserialize an instance of type <code>T</code> from bytes of YAML text.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.from_str.html" title="serde_yaml::from_str fn">from_str</a></div><div class="item-right docblock-short"><p>Deserialize an instance of type <code>T</code> from a string of YAML text.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.from_value.html" title="serde_yaml::from_value fn">from_value</a></div><div class="item-right docblock-short"><p>Interpret a <code>serde_yaml::Value</code> as an instance of type <code>T</code>.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.to_string.html" title="serde_yaml::to_string fn">to_string</a></div><div class="item-right docblock-short"><p>Serialize the given data structure as a String of YAML.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.to_value.html" title="serde_yaml::to_value fn">to_value</a></div><div class="item-right docblock-short"><p>Convert a <code>T</code> into <code>serde_yaml::Value</code> which is an enum that can represent
 any valid YAML data.</p>
-</div><div class="item-left module-item"><a class="fn" href="fn.to_vec.html" title="serde_yaml::to_vec fn">to_vec</a></div><div class="item-right docblock-short"><p>Serialize the given data structure as a YAML byte vector.</p>
-</div><div class="item-left module-item"><a class="fn" href="fn.to_writer.html" title="serde_yaml::to_writer fn">to_writer</a></div><div class="item-right docblock-short"><p>Serialize the given data structure as YAML into the IO stream.</p>
-</div></div><h2 id="types" class="section-header"><a href="#types">Type Definitions</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="type" href="type.Result.html" title="serde_yaml::Result type">Result</a></div><div class="item-right docblock-short"><p>Alias for a <code>Result</code> with the error type <code>serde_yaml::Error</code>.</p>
-</div><div class="item-left module-item"><a class="type" href="type.Sequence.html" title="serde_yaml::Sequence type">Sequence</a></div><div class="item-right docblock-short"><p>A YAML sequence in which the elements are <code>serde_yaml::Value</code>.</p>
-</div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="serde_yaml" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.to_vec.html" title="serde_yaml::to_vec fn">to_vec</a></div><div class="item-right docblock-short"><p>Serialize the given data structure as a YAML byte vector.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.to_writer.html" title="serde_yaml::to_writer fn">to_writer</a></div><div class="item-right docblock-short"><p>Serialize the given data structure as YAML into the IO stream.</p>
+</div></div></div><h2 id="types" class="section-header"><a href="#types">Type Definitions</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="type" href="type.Result.html" title="serde_yaml::Result type">Result</a></div><div class="item-right docblock-short"><p>Alias for a <code>Result</code> with the error type <code>serde_yaml::Error</code>.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.Sequence.html" title="serde_yaml::Sequence type">Sequence</a></div><div class="item-right docblock-short"><p>A YAML sequence in which the elements are <code>serde_yaml::Value</code>.</p>
+</div></div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="serde_yaml" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
     <script src="../main.js"></script>
 </body></html>

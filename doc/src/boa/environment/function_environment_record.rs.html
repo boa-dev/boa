@@ -353,7 +353,7 @@
         <span class="ident">binding_status</span>: <span class="ident">BindingStatus</span>,
         <span class="ident">new_target</span>: <span class="ident">JsValue</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">FunctionEnvironmentRecord</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">FunctionEnvironmentRecord</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">func_env</span> <span class="op">=</span> <span class="ident">FunctionEnvironmentRecord</span> {
             <span class="ident">declarative_record</span>: <span class="ident">DeclarativeEnvironmentRecord::new</span>(<span class="ident">outer</span>), <span class="comment">// the outer environment will come from Environment set as a private property of F - https://tc39.es/ecma262/#sec-ecmascript-function-objects</span>
             <span class="ident">function</span>: <span class="ident">f</span>,
@@ -375,17 +375,17 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-bindthisvalue</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bind_this_value</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">JsValue</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bind_this_value</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">JsValue</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">this_binding_status</span> {
             <span class="comment">// 1. Assert: envRec.[[ThisBindingStatus]] is not lexical.</span>
-            <span class="ident">BindingStatus::Lexical</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">BindingStatus::Lexical</span> =&gt; {
                 <span class="macro">panic!</span>(<span class="string">&quot;Cannot bind to an arrow function!&quot;</span>);
             }
             <span class="comment">// 2. If envRec.[[ThisBindingStatus]] is initialized, throw a ReferenceError exception.</span>
-            <span class="ident">BindingStatus::Initialized</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">BindingStatus::Initialized</span> =&gt; {
                 <span class="ident">context</span>.<span class="ident">throw_reference_error</span>(<span class="string">&quot;Cannot bind to an initialized function!&quot;</span>)
             }
-            <span class="ident">BindingStatus::Uninitialized</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">BindingStatus::Uninitialized</span> =&gt; {
                 <span class="comment">// 3. Set envRec.[[ThisValue]] to V.</span>
                 <span class="self">self</span>.<span class="ident">this_value</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">clone</span>();
                 <span class="comment">// 4. Set envRec.[[ThisBindingStatus]] to initialized.</span>
@@ -402,7 +402,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-getsuperbase</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_super_base</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsPrototype</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_super_base</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsPrototype</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let home be envRec.[[FunctionObject]].[[HomeObject]].</span>
         <span class="kw">let</span> <span class="ident">home</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">home_object</span>;
 
@@ -424,7 +424,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">EnvironmentRecordTrait</span> <span class="kw">for</span> <span class="ident">FunctionEnvironmentRecord</span> {
-    <span class="kw">fn</span> <span class="ident">has_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">has_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">declarative_record</span>.<span class="ident">has_binding</span>(<span class="ident">name</span>, <span class="ident">context</span>)
     }
 
@@ -434,7 +434,7 @@
         <span class="ident">deletion</span>: <span class="ident">bool</span>,
         <span class="ident">allow_name_reuse</span>: <span class="ident">bool</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">declarative_record</span>
             .<span class="ident">create_mutable_binding</span>(<span class="ident">name</span>, <span class="ident">deletion</span>, <span class="ident">allow_name_reuse</span>, <span class="ident">context</span>)
     }
@@ -444,7 +444,7 @@
         <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">strict</span>: <span class="ident">bool</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">declarative_record</span>
             .<span class="ident">create_immutable_binding</span>(<span class="ident">name</span>, <span class="ident">strict</span>, <span class="ident">context</span>)
     }
@@ -454,7 +454,7 @@
         <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">value</span>: <span class="ident">JsValue</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">declarative_record</span>
             .<span class="ident">initialize_binding</span>(<span class="ident">name</span>, <span class="ident">value</span>, <span class="ident">context</span>)
     }
@@ -465,7 +465,7 @@
         <span class="ident">value</span>: <span class="ident">JsValue</span>,
         <span class="ident">strict</span>: <span class="ident">bool</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">declarative_record</span>
             .<span class="ident">set_mutable_binding</span>(<span class="ident">name</span>, <span class="ident">value</span>, <span class="ident">strict</span>, <span class="ident">context</span>)
     }
@@ -475,12 +475,12 @@
         <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">strict</span>: <span class="ident">bool</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">declarative_record</span>
             .<span class="ident">get_binding_value</span>(<span class="ident">name</span>, <span class="ident">strict</span>, <span class="ident">context</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">delete_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">delete_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">declarative_record</span>.<span class="ident">delete_binding</span>(<span class="ident">name</span>, <span class="ident">context</span>)
     }
 
@@ -490,7 +490,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-function-environment-records-hasthisbinding</span>
-    <span class="kw">fn</span> <span class="ident">has_this_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">has_this_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="comment">// 1. If envRec.[[ThisBindingStatus]] is lexical, return false; otherwise, return true.</span>
         <span class="op">!</span><span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">this_binding_status</span>, <span class="ident">BindingStatus::Lexical</span>)
     }
@@ -501,7 +501,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-function-environment-records-hassuperbinding</span>
-    <span class="kw">fn</span> <span class="ident">has_super_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">has_super_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="comment">// 1. If envRec.[[ThisBindingStatus]] is lexical, return false.</span>
         <span class="comment">// 2. If envRec.[[FunctionObject]].[[HomeObject]] has the value undefined, return false; otherwise, return true.</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BindingStatus::Lexical</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">this_binding_status</span> {
@@ -517,26 +517,26 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-function-environment-records-getthisbinding</span>
-    <span class="kw">fn</span> <span class="ident">get_this_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">get_this_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">this_binding_status</span> {
             <span class="comment">// 1. Assert: envRec.[[ThisBindingStatus]] is not lexical.</span>
-            <span class="ident">BindingStatus::Lexical</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">BindingStatus::Lexical</span> =&gt; {
                 <span class="macro">panic!</span>(<span class="string">&quot;There is no this for a lexical function record&quot;</span>);
             }
             <span class="comment">// 2. If envRec.[[ThisBindingStatus]] is uninitialized, throw a ReferenceError exception.</span>
-            <span class="ident">BindingStatus::Uninitialized</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">BindingStatus::Uninitialized</span> =&gt; {
                 <span class="ident">context</span>.<span class="ident">throw_reference_error</span>(<span class="string">&quot;Uninitialized binding for this function&quot;</span>)
             }
             <span class="comment">// 3. Return envRec.[[ThisValue]].</span>
-            <span class="ident">BindingStatus::Initialized</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">this_value</span>.<span class="ident">clone</span>()),
+            <span class="ident">BindingStatus::Initialized</span> =&gt; <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">this_value</span>.<span class="ident">clone</span>()),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">with_base_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">with_base_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
         <span class="prelude-val">None</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">get_outer_environment_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Environment</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">get_outer_environment_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Environment</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">declarative_record</span>.<span class="ident">get_outer_environment_ref</span>()
     }
 
@@ -544,7 +544,7 @@
         <span class="self">self</span>.<span class="ident">declarative_record</span>.<span class="ident">set_outer_environment</span>(<span class="ident">env</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">get_environment_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EnvironmentType</span> {
+    <span class="kw">fn</span> <span class="ident">get_environment_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">EnvironmentType</span> {
         <span class="ident">EnvironmentType::Function</span>
     }
 
@@ -554,7 +554,7 @@
         <span class="ident">deletion</span>: <span class="ident">bool</span>,
         <span class="ident">_scope</span>: <span class="ident">VariableScope</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">name</span>, <span class="ident">deletion</span>, <span class="bool-val">false</span>, <span class="ident">context</span>)
     }
 
@@ -564,13 +564,13 @@
         <span class="ident">deletion</span>: <span class="ident">bool</span>,
         <span class="ident">_scope</span>: <span class="ident">VariableScope</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">create_immutable_binding</span>(<span class="ident">name</span>, <span class="ident">deletion</span>, <span class="ident">context</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">FunctionEnvironmentRecord</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Environment</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">env</span>: <span class="ident">FunctionEnvironmentRecord</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Environment</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">env</span>: <span class="ident">FunctionEnvironmentRecord</span>) -&gt; <span class="ident">Environment</span> {
         <span class="ident">Gc::new</span>(<span class="ident">Box::new</span>(<span class="ident">env</span>))
     }
 }

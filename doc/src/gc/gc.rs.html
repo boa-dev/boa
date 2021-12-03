@@ -248,7 +248,7 @@
 <span class="macro">thread_local!</span>(<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">GC_DROPPING</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Cell::new</span>(<span class="bool-val">false</span>));
 <span class="kw">struct</span> <span class="ident">DropGuard</span>;
 <span class="kw">impl</span> <span class="ident">DropGuard</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DropGuard</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">DropGuard</span> {
         <span class="ident">GC_DROPPING</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">dropping</span><span class="op">|</span> <span class="ident">dropping</span>.<span class="ident">set</span>(<span class="bool-val">true</span>));
         <span class="ident">DropGuard</span>
     }
@@ -258,7 +258,7 @@
         <span class="ident">GC_DROPPING</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">dropping</span><span class="op">|</span> <span class="ident">dropping</span>.<span class="ident">set</span>(<span class="bool-val">false</span>));
     }
 }
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">finalizer_safe</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">finalizer_safe</span>() -&gt; <span class="ident">bool</span> {
     <span class="ident">GC_DROPPING</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">dropping</span><span class="op">|</span> <span class="op">!</span><span class="ident">dropping</span>.<span class="ident">get</span>())
 }
 
@@ -289,7 +289,7 @@
     <span class="doccomment">/// and appends it to the thread-local `GcBox` chain.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// A `GcBox` allocated this way starts its life rooted.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">value</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NonNull</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">value</span>: <span class="ident">T</span>) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="ident">GC_STATE</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">st</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">st</span> <span class="op">=</span> <span class="ident">st</span>.<span class="ident">borrow_mut</span>();
 
@@ -327,7 +327,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Trace</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> <span class="ident">GcBox</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Returns `true` if the two references refer to the same `GcBox`.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">ptr_eq</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">GcBox</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">GcBox</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">ptr_eq</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">GcBox</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">GcBox</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">bool</span> {
         <span class="comment">// Use .header to ignore fat pointer vtables, to work around</span>
         <span class="comment">// https://github.com/rust-lang/rust/issues/46139</span>
         <span class="ident">ptr::eq</span>(<span class="kw-2">&amp;</span><span class="ident">this</span>.<span class="ident">header</span>, <span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="ident">header</span>)
@@ -359,7 +359,7 @@
     }
 
     <span class="doccomment">/// Returns a reference to the `GcBox`&#39;s value.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">T</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">data</span>
     }
 }
@@ -370,7 +370,7 @@
         <span class="ident">incoming</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">GcBox</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Trace</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">this</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">GcBox</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Trace</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     }
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">mark</span>(<span class="ident">head</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">GcBox</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Trace</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Unmarked</span><span class="op">&gt;</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">mark</span>(<span class="ident">head</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">GcBox</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Trace</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Unmarked</span><span class="op">&gt;</span> {
         <span class="comment">// Walk the tree, tracing and marking the nodes</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mark_head</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">head</span>;
         <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">node</span>) <span class="op">=</span> <span class="ident">mark_head</span> {

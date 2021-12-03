@@ -510,7 +510,7 @@
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ResultInfo</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ReducedResultInfo</span> {
     <span class="doccomment">/// Creates a new reduced suite result from a full suite result.</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">info</span>: <span class="ident">ResultInfo</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">info</span>: <span class="ident">ResultInfo</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">commit</span>: <span class="ident">info</span>.<span class="ident">commit</span>,
             <span class="ident">test262_commit</span>: <span class="ident">info</span>.<span class="ident">test262_commit</span>,
@@ -535,7 +535,7 @@
     <span class="ident">results</span>: <span class="ident">SuiteResult</span>,
     <span class="ident">output</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Path</span><span class="op">&gt;</span>,
     <span class="ident">verbose</span>: <span class="ident">u8</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">path</span>) <span class="op">=</span> <span class="ident">output</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">branch</span> <span class="op">=</span> <span class="ident">env::var</span>(<span class="string">&quot;GITHUB_REF&quot;</span>).<span class="ident">unwrap_or_default</span>();
         <span class="kw">if</span> <span class="ident">branch</span>.<span class="ident">starts_with</span>(<span class="string">&quot;refs/pull&quot;</span>) {
@@ -594,14 +594,14 @@
 }
 
 <span class="doccomment">/// Gets the commit OID of the test262 submodule.</span>
-<span class="kw">fn</span> <span class="ident">get_test262_commit</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">get_test262_commit</span>() -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">repo</span> <span class="op">=</span> <span class="ident">Repository::open</span>(<span class="string">&quot;.&quot;</span>).<span class="ident">expect</span>(<span class="string">&quot;could not open git repository in current directory&quot;</span>);
 
     <span class="kw">let</span> <span class="ident">submodule</span> <span class="op">=</span> <span class="ident">repo</span>
         .<span class="ident">submodules</span>()
         .<span class="ident">expect</span>(<span class="string">&quot;could not get the list of submodules of the repo&quot;</span>)
         .<span class="ident">into_iter</span>()
-        .<span class="ident">find</span>(<span class="op">|</span><span class="ident">sub</span><span class="op">|</span> <span class="ident">sub</span>.<span class="ident">path</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">Path::new</span>(<span class="string">&quot;test262&quot;</span>))
+        .<span class="ident">find</span>(<span class="op">|</span><span class="ident">sub</span><span class="op">|</span> <span class="ident">sub</span>.<span class="ident">path</span>() <span class="op">==</span> <span class="ident">Path::new</span>(<span class="string">&quot;test262&quot;</span>))
         .<span class="ident">expect</span>(<span class="string">&quot;test262 submodule not found&quot;</span>);
 
     <span class="ident">submodule</span>
@@ -680,7 +680,7 @@
         <span class="kw">use</span> <span class="ident">num_format</span>::{<span class="ident">Locale</span>, <span class="ident">ToFormattedString</span>};
 
         <span class="doccomment">/// Generates a proper diff format, with some bold text if things change.</span>
-        <span class="kw">fn</span> <span class="ident">diff_format</span>(<span class="ident">diff</span>: <span class="ident">isize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+        <span class="kw">fn</span> <span class="ident">diff_format</span>(<span class="ident">diff</span>: <span class="ident">isize</span>) -&gt; <span class="ident">String</span> {
             <span class="macro">format!</span>(
                 <span class="string">&quot;{}{}{}{}&quot;</span>,
                 <span class="kw">if</span> <span class="ident">diff</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> { <span class="string">&quot;**&quot;</span> } <span class="kw">else</span> { <span class="string">&quot;&quot;</span> },
@@ -889,7 +889,7 @@
     <span class="ident">base</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
     <span class="ident">base_result</span>: <span class="kw-2">&amp;</span><span class="ident">SuiteResult</span>,
     <span class="ident">new_result</span>: <span class="kw-2">&amp;</span><span class="ident">SuiteResult</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultDiff</span> {
+) -&gt; <span class="ident">ResultDiff</span> {
     <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::TestOutcomeResult</span>;
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">final_diff</span> <span class="op">=</span> <span class="ident">ResultDiff::default</span>();
@@ -898,7 +898,7 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">new_test</span>) <span class="op">=</span> <span class="ident">new_result</span>
             .<span class="ident">tests</span>
             .<span class="ident">iter</span>()
-            .<span class="ident">find</span>(<span class="op">|</span><span class="ident">new_test</span><span class="op">|</span> <span class="ident">new_test</span>.<span class="ident">strict</span> <span class="op">=</span><span class="op">=</span> <span class="ident">base_test</span>.<span class="ident">strict</span> <span class="op">&amp;&amp;</span> <span class="ident">new_test</span>.<span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="ident">base_test</span>.<span class="ident">name</span>)
+            .<span class="ident">find</span>(<span class="op">|</span><span class="ident">new_test</span><span class="op">|</span> <span class="ident">new_test</span>.<span class="ident">strict</span> <span class="op">==</span> <span class="ident">base_test</span>.<span class="ident">strict</span> <span class="op">&amp;&amp;</span> <span class="ident">new_test</span>.<span class="ident">name</span> <span class="op">==</span> <span class="ident">base_test</span>.<span class="ident">name</span>)
         {
             <span class="kw">let</span> <span class="ident">test_name</span> <span class="op">=</span> <span class="macro">format!</span>(
                 <span class="string">&quot;test/{}/{}.js {}(previously {:?})&quot;</span>,
@@ -914,15 +914,15 @@
             .<span class="ident">into_boxed_str</span>();
 
             <span class="kw">match</span> (<span class="ident">base_test</span>.<span class="ident">result</span>, <span class="ident">new_test</span>.<span class="ident">result</span>) {
-                (<span class="ident">a</span>, <span class="ident">b</span>) <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b</span> <span class="op">=</span><span class="op">&gt;</span> {}
-                (<span class="ident">TestOutcomeResult::Ignored</span>, <span class="ident">TestOutcomeResult::Failed</span>) <span class="op">=</span><span class="op">&gt;</span> {}
+                (<span class="ident">a</span>, <span class="ident">b</span>) <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">b</span> =&gt; {}
+                (<span class="ident">TestOutcomeResult::Ignored</span>, <span class="ident">TestOutcomeResult::Failed</span>) =&gt; {}
 
-                (<span class="kw">_</span>, <span class="ident">TestOutcomeResult::Passed</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">final_diff</span>.<span class="ident">fixed</span>.<span class="ident">push</span>(<span class="ident">test_name</span>),
-                (<span class="ident">TestOutcomeResult::Panic</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">final_diff</span>.<span class="ident">panic_fixes</span>.<span class="ident">push</span>(<span class="ident">test_name</span>),
-                (<span class="kw">_</span>, <span class="ident">TestOutcomeResult::Failed</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">final_diff</span>.<span class="ident">broken</span>.<span class="ident">push</span>(<span class="ident">test_name</span>),
-                (<span class="kw">_</span>, <span class="ident">TestOutcomeResult::Panic</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">final_diff</span>.<span class="ident">new_panics</span>.<span class="ident">push</span>(<span class="ident">test_name</span>),
+                (<span class="kw">_</span>, <span class="ident">TestOutcomeResult::Passed</span>) =&gt; <span class="ident">final_diff</span>.<span class="ident">fixed</span>.<span class="ident">push</span>(<span class="ident">test_name</span>),
+                (<span class="ident">TestOutcomeResult::Panic</span>, <span class="kw">_</span>) =&gt; <span class="ident">final_diff</span>.<span class="ident">panic_fixes</span>.<span class="ident">push</span>(<span class="ident">test_name</span>),
+                (<span class="kw">_</span>, <span class="ident">TestOutcomeResult::Failed</span>) =&gt; <span class="ident">final_diff</span>.<span class="ident">broken</span>.<span class="ident">push</span>(<span class="ident">test_name</span>),
+                (<span class="kw">_</span>, <span class="ident">TestOutcomeResult::Panic</span>) =&gt; <span class="ident">final_diff</span>.<span class="ident">new_panics</span>.<span class="ident">push</span>(<span class="ident">test_name</span>),
 
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+                <span class="kw">_</span> =&gt; {}
             }
         }
     }
@@ -931,7 +931,7 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">new_suite</span>) <span class="op">=</span> <span class="ident">new_result</span>
             .<span class="ident">suites</span>
             .<span class="ident">iter</span>()
-            .<span class="ident">find</span>(<span class="op">|</span><span class="ident">new_suite</span><span class="op">|</span> <span class="ident">new_suite</span>.<span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="ident">base_suite</span>.<span class="ident">name</span>)
+            .<span class="ident">find</span>(<span class="op">|</span><span class="ident">new_suite</span><span class="op">|</span> <span class="ident">new_suite</span>.<span class="ident">name</span> <span class="op">==</span> <span class="ident">base_suite</span>.<span class="ident">name</span>)
         {
             <span class="kw">let</span> <span class="ident">new_base</span> <span class="op">=</span> <span class="ident">base</span>.<span class="ident">join</span>(<span class="ident">new_suite</span>.<span class="ident">name</span>.<span class="ident">as_ref</span>());
             <span class="kw">let</span> <span class="ident">diff</span> <span class="op">=</span> <span class="ident">compute_result_diff</span>(<span class="ident">new_base</span>.<span class="ident">as_path</span>(), <span class="ident">base_suite</span>, <span class="ident">new_suite</span>);

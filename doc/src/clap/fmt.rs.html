@@ -212,7 +212,7 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;color&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_a_tty</span>(<span class="ident">stderr</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_a_tty</span>(<span class="ident">stderr</span>: <span class="ident">bool</span>) -&gt; <span class="ident">bool</span> {
     <span class="macro">debugln!</span>(<span class="string">&quot;is_a_tty: stderr={:?}&quot;</span>, <span class="ident">stderr</span>);
     <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">stderr</span> {
         <span class="ident">atty::Stream::Stderr</span>
@@ -223,13 +223,13 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;color&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_a_tty</span>(<span class="kw">_</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_a_tty</span>(<span class="kw">_</span>: <span class="ident">bool</span>) -&gt; <span class="ident">bool</span> {
     <span class="macro">debugln!</span>(<span class="string">&quot;is_a_tty;&quot;</span>);
     <span class="bool-val">false</span>
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_term_dumb</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-    <span class="ident">env::var</span>(<span class="string">&quot;TERM&quot;</span>).<span class="ident">ok</span>() <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">String::from</span>(<span class="string">&quot;dumb&quot;</span>))
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_term_dumb</span>() -&gt; <span class="ident">bool</span> {
+    <span class="ident">env::var</span>(<span class="string">&quot;TERM&quot;</span>).<span class="ident">ok</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">String::from</span>(<span class="string">&quot;dumb&quot;</span>))
 }
 
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
@@ -244,29 +244,29 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">color</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">_self</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">c</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">_self</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">c</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>:<span class="ident">expr</span>) =&gt; {
         <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">_self</span>.<span class="ident">when</span> {
-            <span class="ident">ColorWhen::Auto</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Format</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">c</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>),
-            <span class="ident">ColorWhen::Always</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Format</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">c</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>),
-            <span class="ident">ColorWhen::Never</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Format::None</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>),
+            <span class="ident">ColorWhen::Auto</span> =&gt; <span class="ident">Format</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">c</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>),
+            <span class="ident">ColorWhen::Always</span> =&gt; <span class="ident">Format</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">c</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>),
+            <span class="ident">ColorWhen::Never</span> =&gt; <span class="ident">Format::None</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>),
         }
     };
 }
 
 <span class="kw">impl</span> <span class="ident">Colorizer</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">option</span>: <span class="ident">ColorizerOption</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Colorizer</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">option</span>: <span class="ident">ColorizerOption</span>) -&gt; <span class="ident">Colorizer</span> {
         <span class="kw">let</span> <span class="ident">is_a_tty</span> <span class="op">=</span> <span class="ident">is_a_tty</span>(<span class="ident">option</span>.<span class="ident">use_stderr</span>);
         <span class="kw">let</span> <span class="ident">is_term_dumb</span> <span class="op">=</span> <span class="ident">is_term_dumb</span>();
         <span class="ident">Colorizer</span> {
             <span class="ident">when</span>: <span class="kw">match</span> <span class="ident">option</span>.<span class="ident">when</span> {
-                <span class="ident">ColorWhen::Auto</span> <span class="kw">if</span> <span class="ident">is_a_tty</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">is_term_dumb</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ColorWhen::Auto</span>,
-                <span class="ident">ColorWhen::Auto</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ColorWhen::Never</span>,
-                <span class="ident">when</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">when</span>,
+                <span class="ident">ColorWhen::Auto</span> <span class="kw">if</span> <span class="ident">is_a_tty</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">is_term_dumb</span> =&gt; <span class="ident">ColorWhen::Auto</span>,
+                <span class="ident">ColorWhen::Auto</span> =&gt; <span class="ident">ColorWhen::Never</span>,
+                <span class="ident">when</span> =&gt; <span class="ident">when</span>,
             },
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">good</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">msg</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Format</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">good</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">msg</span>: <span class="ident">T</span>) -&gt; <span class="ident">Format</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">fmt::Display</span> <span class="op">+</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
     {
@@ -274,7 +274,7 @@
         <span class="macro">color!</span>(<span class="self">self</span>, <span class="ident">Good</span>, <span class="ident">msg</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">warning</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">msg</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Format</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">warning</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">msg</span>: <span class="ident">T</span>) -&gt; <span class="ident">Format</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">fmt::Display</span> <span class="op">+</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
     {
@@ -282,7 +282,7 @@
         <span class="macro">color!</span>(<span class="self">self</span>, <span class="ident">Warning</span>, <span class="ident">msg</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">error</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">msg</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Format</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">error</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">msg</span>: <span class="ident">T</span>) -&gt; <span class="ident">Format</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">fmt::Display</span> <span class="op">+</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
     {
@@ -290,7 +290,7 @@
         <span class="macro">color!</span>(<span class="self">self</span>, <span class="ident">Error</span>, <span class="ident">msg</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">none</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">msg</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Format</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">none</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">msg</span>: <span class="ident">T</span>) -&gt; <span class="ident">Format</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">fmt::Display</span> <span class="op">+</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
     {
@@ -300,7 +300,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Colorizer</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="ident">Colorizer::new</span>(<span class="ident">ColorizerOption</span> {
             <span class="ident">use_stderr</span>: <span class="bool-val">true</span>,
             <span class="ident">when</span>: <span class="ident">ColorWhen::Auto</span>,
@@ -325,12 +325,12 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;color&quot;</span>, <span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;windows&quot;</span>)))]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">Format</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">format</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ANSIString</span> {
+    <span class="kw">fn</span> <span class="ident">format</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">ANSIString</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Format::Error</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Red</span>.<span class="ident">bold</span>().<span class="ident">paint</span>(<span class="ident">e</span>.<span class="ident">as_ref</span>()),
-            <span class="ident">Format::Warning</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Yellow</span>.<span class="ident">paint</span>(<span class="ident">e</span>.<span class="ident">as_ref</span>()),
-            <span class="ident">Format::Good</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Green</span>.<span class="ident">paint</span>(<span class="ident">e</span>.<span class="ident">as_ref</span>()),
-            <span class="ident">Format::None</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ANSIString::from</span>(<span class="ident">e</span>.<span class="ident">as_ref</span>()),
+            <span class="ident">Format::Error</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) =&gt; <span class="ident">Red</span>.<span class="ident">bold</span>().<span class="ident">paint</span>(<span class="ident">e</span>.<span class="ident">as_ref</span>()),
+            <span class="ident">Format::Warning</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) =&gt; <span class="ident">Yellow</span>.<span class="ident">paint</span>(<span class="ident">e</span>.<span class="ident">as_ref</span>()),
+            <span class="ident">Format::Good</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) =&gt; <span class="ident">Green</span>.<span class="ident">paint</span>(<span class="ident">e</span>.<span class="ident">as_ref</span>()),
+            <span class="ident">Format::None</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) =&gt; <span class="ident">ANSIString::from</span>(<span class="ident">e</span>.<span class="ident">as_ref</span>()),
         }
     }
 }
@@ -338,26 +338,26 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;color&quot;</span>), <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;windows&quot;</span>))]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;lints&quot;</span>, <span class="ident">allow</span>(<span class="ident">match_same_arms</span>))]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">fmt::Display</span><span class="op">&gt;</span> <span class="ident">Format</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">format</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">T</span> {
+    <span class="kw">fn</span> <span class="ident">format</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Format::Error</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">e</span>,
-            <span class="ident">Format::Warning</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">e</span>,
-            <span class="ident">Format::Good</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">e</span>,
-            <span class="ident">Format::None</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">e</span>,
+            <span class="ident">Format::Error</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) =&gt; <span class="ident">e</span>,
+            <span class="ident">Format::Warning</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) =&gt; <span class="ident">e</span>,
+            <span class="ident">Format::Good</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) =&gt; <span class="ident">e</span>,
+            <span class="ident">Format::None</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) =&gt; <span class="ident">e</span>,
         }
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;color&quot;</span>, <span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;windows&quot;</span>)))]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Format</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">format</span>())
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;color&quot;</span>), <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;windows&quot;</span>))]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">fmt::Display</span><span class="op">&gt;</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Format</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">format</span>())
     }
 }

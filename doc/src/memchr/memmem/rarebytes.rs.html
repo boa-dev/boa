@@ -174,13 +174,13 @@
     <span class="doccomment">/// Create a new pair of rare needle bytes with the given offsets. This is</span>
     <span class="doccomment">/// only used in tests for generating input data.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">test</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">rare1i</span>: <span class="ident">u8</span>, <span class="ident">rare2i</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RareNeedleBytes</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">rare1i</span>: <span class="ident">u8</span>, <span class="ident">rare2i</span>: <span class="ident">u8</span>) -&gt; <span class="ident">RareNeedleBytes</span> {
         <span class="ident">RareNeedleBytes</span> { <span class="ident">rare1i</span>, <span class="ident">rare2i</span> }
     }
 
     <span class="doccomment">/// Detect the leftmost offsets of the two rarest bytes in the given</span>
     <span class="doccomment">/// needle.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">forward</span>(<span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RareNeedleBytes</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">forward</span>(<span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">RareNeedleBytes</span> {
         <span class="kw">if</span> <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="number">1</span> <span class="op">|</span><span class="op">|</span> <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="ident">core::u8::MAX</span> <span class="kw">as</span> <span class="ident">usize</span> {
             <span class="comment">// For needles bigger than u8::MAX, our offsets aren&#39;t big enough.</span>
             <span class="comment">// (We make our offsets small to reduce stack copying.)</span>
@@ -224,7 +224,7 @@
     <span class="doccomment">/// Return the rare bytes in the given needle in the forward direction.</span>
     <span class="doccomment">/// The needle given must be the same one given to the RareNeedleBytes</span>
     <span class="doccomment">/// constructor.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">as_rare_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">u8</span>, <span class="ident">u8</span>) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">as_rare_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; (<span class="ident">u8</span>, <span class="ident">u8</span>) {
         (<span class="ident">needle</span>[<span class="self">self</span>.<span class="ident">rare1i</span> <span class="kw">as</span> <span class="ident">usize</span>], <span class="ident">needle</span>[<span class="self">self</span>.<span class="ident">rare2i</span> <span class="kw">as</span> <span class="ident">usize</span>])
     }
 
@@ -233,7 +233,7 @@
     <span class="doccomment">/// rare1 is rarer than rare2, but just wants to ensure that they are</span>
     <span class="doccomment">/// ordered with respect to one another.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">memchr_runtime_simd</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">as_rare_ordered_usize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">usize</span>, <span class="ident">usize</span>) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">as_rare_ordered_usize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="ident">usize</span>, <span class="ident">usize</span>) {
         <span class="kw">let</span> (<span class="ident">rare1i</span>, <span class="ident">rare2i</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">as_rare_ordered_u8</span>();
         (<span class="ident">rare1i</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">rare2i</span> <span class="kw">as</span> <span class="ident">usize</span>)
     }
@@ -241,7 +241,7 @@
     <span class="doccomment">/// Like as_rare_ordered_usize, but returns the offsets as their native</span>
     <span class="doccomment">/// u8 values.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">memchr_runtime_simd</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">as_rare_ordered_u8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">u8</span>, <span class="ident">u8</span>) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">as_rare_ordered_u8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="ident">u8</span>, <span class="ident">u8</span>) {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">rare1i</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">rare2i</span> {
             (<span class="self">self</span>.<span class="ident">rare1i</span>, <span class="self">self</span>.<span class="ident">rare2i</span>)
         } <span class="kw">else</span> {
@@ -252,14 +252,14 @@
     <span class="doccomment">/// Return the rare offsets as usize values in the order in which they were</span>
     <span class="doccomment">/// constructed. rare1, for example, is constructed as the &quot;rarer&quot; byte,</span>
     <span class="doccomment">/// and thus, callers may want to treat it differently from rare2.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">as_rare_usize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">usize</span>, <span class="ident">usize</span>) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">as_rare_usize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="ident">usize</span>, <span class="ident">usize</span>) {
         (<span class="self">self</span>.<span class="ident">rare1i</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="self">self</span>.<span class="ident">rare2i</span> <span class="kw">as</span> <span class="ident">usize</span>)
     }
 
     <span class="doccomment">/// Return the byte frequency rank of each byte. The higher the rank, the</span>
     <span class="doccomment">/// more frequency the byte is predicted to be. The needle given must be</span>
     <span class="doccomment">/// the same one given to the RareNeedleBytes constructor.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">as_ranks</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">usize</span>, <span class="ident">usize</span>) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">as_ranks</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; (<span class="ident">usize</span>, <span class="ident">usize</span>) {
         <span class="kw">let</span> (<span class="ident">b1</span>, <span class="ident">b2</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">as_rare_bytes</span>(<span class="ident">needle</span>);
         (<span class="ident">rank</span>(<span class="ident">b1</span>), <span class="ident">rank</span>(<span class="ident">b2</span>))
     }
@@ -267,7 +267,7 @@
 
 <span class="doccomment">/// Return the heuristical frequency rank of the given byte. A lower rank</span>
 <span class="doccomment">/// means the byte is believed to occur less frequently.</span>
-<span class="kw">fn</span> <span class="ident">rank</span>(<span class="ident">b</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">fn</span> <span class="ident">rank</span>(<span class="ident">b</span>: <span class="ident">u8</span>) -&gt; <span class="ident">usize</span> {
     <span class="ident"><span class="kw">crate</span>::memmem::byte_frequencies::BYTE_FREQUENCIES</span>[<span class="ident">b</span> <span class="kw">as</span> <span class="ident">usize</span>] <span class="kw">as</span> <span class="ident">usize</span>
 }
 </code></pre></div>

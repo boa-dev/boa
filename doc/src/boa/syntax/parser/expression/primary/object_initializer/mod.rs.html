@@ -688,7 +688,7 @@
 
 <span class="kw">impl</span> <span class="ident">ObjectLiteral</span> {
     <span class="doccomment">/// Creates a new `ObjectLiteral` parser.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
         <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
@@ -706,7 +706,7 @@
 {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Object</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;ObjectLiteral&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">elements</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
 
@@ -753,7 +753,7 @@
 
 <span class="kw">impl</span> <span class="ident">PropertyDefinition</span> {
     <span class="doccomment">/// Creates a new `PropertyDefinition` parser.</span>
-    <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
         <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
@@ -771,25 +771,25 @@
 {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">node::PropertyDefinition</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;PropertyDefinition&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
         <span class="comment">// IdentifierReference[?Yield, ?Await]</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">next_token</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">1</span>)<span class="question-mark">?</span> {
             <span class="kw">match</span> <span class="ident">next_token</span>.<span class="ident">kind</span>() {
                 <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::CloseBlock</span>)
-                <span class="op">|</span> <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Comma</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="op">|</span> <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Comma</span>) =&gt; {
                     <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>()<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
                     <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">token</span>.<span class="ident">kind</span>() {
-                        <span class="ident">TokenKind::Identifier</span>(<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Identifier::from</span>(<span class="ident">ident</span>.<span class="ident">as_ref</span>()),
-                        <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Yield</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">allow_yield</span>.<span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">TokenKind::Identifier</span>(<span class="ident">ident</span>) =&gt; <span class="ident">Identifier::from</span>(<span class="ident">ident</span>.<span class="ident">as_ref</span>()),
+                        <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Yield</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">allow_yield</span>.<span class="number">0</span> =&gt; {
                             <span class="comment">// Early Error: It is a Syntax Error if this production has a [Yield] parameter and StringValue of Identifier is &quot;yield&quot;.</span>
                             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
                                 <span class="string">&quot;Unexpected identifier&quot;</span>,
                                 <span class="ident">token</span>.<span class="ident">span</span>().<span class="ident">start</span>(),
                             ));
                         }
-                        <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Yield</span>) <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">allow_yield</span>.<span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Yield</span>) <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">allow_yield</span>.<span class="number">0</span> =&gt; {
                             <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>() {
                                 <span class="comment">// Early Error: It is a Syntax Error if the code matched by this production is contained in strict mode code.</span>
                                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
@@ -799,14 +799,14 @@
                             }
                             <span class="ident">Identifier::from</span>(<span class="string">&quot;yield&quot;</span>)
                         }
-                        <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Await</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">allow_await</span>.<span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Await</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">allow_await</span>.<span class="number">0</span> =&gt; {
                             <span class="comment">// Early Error: It is a Syntax Error if this production has an [Await] parameter and StringValue of Identifier is &quot;await&quot;.</span>
                             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
                                 <span class="string">&quot;Unexpected identifier&quot;</span>,
                                 <span class="ident">token</span>.<span class="ident">span</span>().<span class="ident">start</span>(),
                             ));
                         }
-                        <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Await</span>) <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">allow_await</span>.<span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Await</span>) <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">allow_await</span>.<span class="number">0</span> =&gt; {
                             <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>() {
                                 <span class="comment">// Early Error: It is a Syntax Error if the code matched by this production is contained in strict mode code.</span>
                                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
@@ -816,7 +816,7 @@
                             }
                             <span class="ident">Identifier::from</span>(<span class="string">&quot;yield&quot;</span>)
                         }
-                        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="kw">_</span> =&gt; {
                             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::unexpected</span>(
                                 <span class="ident">token</span>.<span class="ident">clone</span>(),
                                 <span class="string">&quot;expected IdentifierReference&quot;</span>,
@@ -828,7 +828,7 @@
                         <span class="ident">ident</span>,
                     ));
                 }
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+                <span class="kw">_</span> =&gt; {}
             }
         }
 
@@ -897,8 +897,8 @@
                                     <span class="macro">format!</span>(<span class="string">&quot;Redeclaration of formal parameter `{}`&quot;</span>, <span class="ident">param_name</span>)
                                         .<span class="ident">into</span>(),
                                     <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>)<span class="question-mark">?</span> {
-                                        <span class="prelude-val">Some</span>(<span class="ident">token</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">token</span>.<span class="ident">span</span>().<span class="ident">end</span>(),
-                                        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
+                                        <span class="prelude-val">Some</span>(<span class="ident">token</span>) =&gt; <span class="ident">token</span>.<span class="ident">span</span>().<span class="ident">end</span>(),
+                                        <span class="prelude-val">None</span> =&gt; <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
                                     },
                                 )));
                             }
@@ -961,8 +961,8 @@
                                     <span class="macro">format!</span>(<span class="string">&quot;Redeclaration of formal parameter `{}`&quot;</span>, <span class="ident">param_name</span>)
                                         .<span class="ident">into</span>(),
                                     <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>)<span class="question-mark">?</span> {
-                                        <span class="prelude-val">Some</span>(<span class="ident">token</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">token</span>.<span class="ident">span</span>().<span class="ident">end</span>(),
-                                        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
+                                        <span class="prelude-val">Some</span>(<span class="ident">token</span>) =&gt; <span class="ident">token</span>.<span class="ident">span</span>().<span class="ident">end</span>(),
+                                        <span class="prelude-val">None</span> =&gt; <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
                                     },
                                 )));
                             }
@@ -1029,8 +1029,8 @@
                                 <span class="macro">format!</span>(<span class="string">&quot;Redeclaration of formal parameter `{}`&quot;</span>, <span class="ident">param_name</span>)
                                     .<span class="ident">into</span>(),
                                 <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>)<span class="question-mark">?</span> {
-                                    <span class="prelude-val">Some</span>(<span class="ident">token</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">token</span>.<span class="ident">span</span>().<span class="ident">end</span>(),
-                                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
+                                    <span class="prelude-val">Some</span>(<span class="ident">token</span>) =&gt; <span class="ident">token</span>.<span class="ident">span</span>().<span class="ident">end</span>(),
+                                    <span class="prelude-val">None</span> =&gt; <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
                                 },
                             )));
                         }
@@ -1056,11 +1056,11 @@
         }
 
         <span class="kw">let</span> <span class="ident">ordinary_method</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>.<span class="ident">kind</span>()
-            <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenParen</span>);
+            <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenParen</span>);
 
         <span class="kw">match</span> <span class="ident">property_name</span> {
             <span class="comment">// MethodDefinition[?Yield, ?Await] -&gt; get ClassElementName[?Yield, ?Await] ( ) { FunctionBody[~Yield, ~Await] }</span>
-            <span class="ident">node::PropertyName::Literal</span>(<span class="ident">str</span>) <span class="kw">if</span> <span class="ident">str</span>.<span class="ident">as_ref</span>() <span class="op">=</span><span class="op">=</span> <span class="string">&quot;get&quot;</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">ordinary_method</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">node::PropertyName::Literal</span>(<span class="ident">str</span>) <span class="kw">if</span> <span class="ident">str</span>.<span class="ident">as_ref</span>() <span class="op">==</span> <span class="string">&quot;get&quot;</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">ordinary_method</span> =&gt; {
                 <span class="ident">property_name</span> <span class="op">=</span>
                     <span class="ident">PropertyName::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>;
 
@@ -1090,7 +1090,7 @@
                 ))
             }
             <span class="comment">// MethodDefinition[?Yield, ?Await] -&gt; set ClassElementName[?Yield, ?Await] ( PropertySetParameterList ) { FunctionBody[~Yield, ~Await] }</span>
-            <span class="ident">node::PropertyName::Literal</span>(<span class="ident">str</span>) <span class="kw">if</span> <span class="ident">str</span>.<span class="ident">as_ref</span>() <span class="op">=</span><span class="op">=</span> <span class="string">&quot;set&quot;</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">ordinary_method</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">node::PropertyName::Literal</span>(<span class="ident">str</span>) <span class="kw">if</span> <span class="ident">str</span>.<span class="ident">as_ref</span>() <span class="op">==</span> <span class="string">&quot;set&quot;</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">ordinary_method</span> =&gt; {
                 <span class="ident">property_name</span> <span class="op">=</span>
                     <span class="ident">PropertyName::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>;
 
@@ -1140,7 +1140,7 @@
                 ))
             }
             <span class="comment">// MethodDefinition[?Yield, ?Await] -&gt; ClassElementName[?Yield, ?Await] ( UniqueFormalParameters[~Yield, ~Await] ) { FunctionBody[~Yield, ~Await] }</span>
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">_</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">params_start_position</span> <span class="op">=</span> <span class="ident">cursor</span>
                     .<span class="ident">expect</span>(
                         <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenParen</span>),
@@ -1206,7 +1206,7 @@
 
 <span class="kw">impl</span> <span class="ident">PropertyName</span> {
     <span class="doccomment">/// Creates a new `PropertyName` parser.</span>
-    <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
         <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
@@ -1224,7 +1224,7 @@
 {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">node::PropertyName</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;PropertyName&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
         <span class="comment">// ComputedPropertyName[?Yield, ?Await] -&gt; [ AssignmentExpression[+In, ?Yield, ?Await] ]</span>
@@ -1263,7 +1263,7 @@
         <span class="ident">allow_in</span>: <span class="ident">I</span>,
         <span class="ident">allow_yield</span>: <span class="ident">Y</span>,
         <span class="ident">allow_await</span>: <span class="ident">A</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    ) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowIn</span><span class="op">&gt;</span>,
         <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
@@ -1283,7 +1283,7 @@
 {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Node</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) -&gt; <span class="ident">ParseResult</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Initializer&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
         <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Punctuator::Assign</span>, <span class="string">&quot;initializer&quot;</span>)<span class="question-mark">?</span>;

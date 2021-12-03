@@ -295,64 +295,64 @@
 
 <span class="kw">impl</span> <span class="ident">Style</span> {
     <span class="doccomment">/// Creates a new Style with no differences.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Style</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">Style</span> {
         <span class="ident">Style::default</span>()
     }
 
     <span class="doccomment">/// Returns a `Style` with the bold property set.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bold</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Style</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bold</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Style</span> {
         <span class="ident">Style</span> { <span class="ident">is_bold</span>: <span class="bool-val">true</span>, .. <span class="kw-2">*</span><span class="self">self</span> }
     }
 
     <span class="doccomment">/// Returns a `Style` with the dimmed property set.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dimmed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Style</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dimmed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Style</span> {
         <span class="ident">Style</span> { <span class="ident">is_dimmed</span>: <span class="bool-val">true</span>, .. <span class="kw-2">*</span><span class="self">self</span> }
     }
 
     <span class="doccomment">/// Returns a `Style` with the italic property set.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">italic</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Style</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">italic</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Style</span> {
         <span class="ident">Style</span> { <span class="ident">is_italic</span>: <span class="bool-val">true</span>, .. <span class="kw-2">*</span><span class="self">self</span> }
     }
 
     <span class="doccomment">/// Returns a `Style` with the underline property set.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">underline</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Style</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">underline</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Style</span> {
         <span class="ident">Style</span> { <span class="ident">is_underline</span>: <span class="bool-val">true</span>, .. <span class="kw-2">*</span><span class="self">self</span> }
     }
 
     <span class="doccomment">/// Returns a `Style` with the blink property set.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">blink</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Style</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">blink</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Style</span> {
         <span class="ident">Style</span> { <span class="ident">is_blink</span>: <span class="bool-val">true</span>, .. <span class="kw-2">*</span><span class="self">self</span> }
     }
 
     <span class="doccomment">/// Returns a `Style` with the reverse property set.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reverse</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Style</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reverse</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Style</span> {
         <span class="ident">Style</span> { <span class="ident">is_reverse</span>: <span class="bool-val">true</span>, .. <span class="kw-2">*</span><span class="self">self</span> }
     }
 
     <span class="doccomment">/// Returns a `Style` with the hidden property set.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hidden</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Style</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hidden</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Style</span> {
         <span class="ident">Style</span> { <span class="ident">is_hidden</span>: <span class="bool-val">true</span>, .. <span class="kw-2">*</span><span class="self">self</span> }
     }
 
     <span class="doccomment">/// Returns a `Style` with the hidden property set.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strikethrough</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Style</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strikethrough</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Style</span> {
         <span class="ident">Style</span> { <span class="ident">is_strikethrough</span>: <span class="bool-val">true</span>, .. <span class="kw-2">*</span><span class="self">self</span> }
     }
 
     <span class="doccomment">/// Returns a `Style` with the foreground colour property set.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fg</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">foreground</span>: <span class="ident">Colour</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Style</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fg</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">foreground</span>: <span class="ident">Colour</span>) -&gt; <span class="ident">Style</span> {
         <span class="ident">Style</span> { <span class="ident">foreground</span>: <span class="prelude-val">Some</span>(<span class="ident">foreground</span>), .. <span class="kw-2">*</span><span class="self">self</span> }
     }
 
     <span class="doccomment">/// Returns a `Style` with the background colour property set.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">on</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">background</span>: <span class="ident">Colour</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Style</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">on</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">background</span>: <span class="ident">Colour</span>) -&gt; <span class="ident">Style</span> {
         <span class="ident">Style</span> { <span class="ident">background</span>: <span class="prelude-val">Some</span>(<span class="ident">background</span>), .. <span class="kw-2">*</span><span class="self">self</span> }
     }
 
     <span class="doccomment">/// Return true if this `Style` has no actual styles, and can be written</span>
     <span class="doccomment">/// without any control characters.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_plain</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Style::default</span>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_plain</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span> <span class="op">==</span> <span class="ident">Style::default</span>()
     }
 }
 
@@ -368,7 +368,7 @@
     <span class="doccomment">/// assert_eq!(false, Style::default().is_bold);</span>
     <span class="doccomment">/// assert_eq!(&quot;txt&quot;, Style::default().paint(&quot;txt&quot;).to_string());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Style</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="ident">Style</span> {
         <span class="ident">Style</span> {
             <span class="ident">foreground</span>: <span class="prelude-val">None</span>,
             <span class="ident">background</span>: <span class="prelude-val">None</span>,
@@ -450,52 +450,52 @@
 
 <span class="kw">impl</span> <span class="ident">Colour</span> {
     <span class="doccomment">/// Return a `Style` with the foreground colour set to this colour.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">normal</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Style</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">normal</span>(<span class="self">self</span>) -&gt; <span class="ident">Style</span> {
         <span class="ident">Style</span> { <span class="ident">foreground</span>: <span class="prelude-val">Some</span>(<span class="self">self</span>), .. <span class="ident">Style::default</span>() }
     }
 
     <span class="doccomment">/// Returns a `Style` with the bold property set.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bold</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Style</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bold</span>(<span class="self">self</span>) -&gt; <span class="ident">Style</span> {
         <span class="ident">Style</span> { <span class="ident">foreground</span>: <span class="prelude-val">Some</span>(<span class="self">self</span>), <span class="ident">is_bold</span>: <span class="bool-val">true</span>, .. <span class="ident">Style::default</span>() }
     }
 
     <span class="doccomment">/// Returns a `Style` with the dimmed property set.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dimmed</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Style</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dimmed</span>(<span class="self">self</span>) -&gt; <span class="ident">Style</span> {
         <span class="ident">Style</span> { <span class="ident">foreground</span>: <span class="prelude-val">Some</span>(<span class="self">self</span>), <span class="ident">is_dimmed</span>: <span class="bool-val">true</span>, .. <span class="ident">Style::default</span>() }
     }
 
     <span class="doccomment">/// Returns a `Style` with the italic property set.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">italic</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Style</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">italic</span>(<span class="self">self</span>) -&gt; <span class="ident">Style</span> {
         <span class="ident">Style</span> { <span class="ident">foreground</span>: <span class="prelude-val">Some</span>(<span class="self">self</span>), <span class="ident">is_italic</span>: <span class="bool-val">true</span>, .. <span class="ident">Style::default</span>() }
     }
 
     <span class="doccomment">/// Returns a `Style` with the underline property set.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">underline</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Style</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">underline</span>(<span class="self">self</span>) -&gt; <span class="ident">Style</span> {
         <span class="ident">Style</span> { <span class="ident">foreground</span>: <span class="prelude-val">Some</span>(<span class="self">self</span>), <span class="ident">is_underline</span>: <span class="bool-val">true</span>, .. <span class="ident">Style::default</span>() }
     }
 
     <span class="doccomment">/// Returns a `Style` with the blink property set.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">blink</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Style</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">blink</span>(<span class="self">self</span>) -&gt; <span class="ident">Style</span> {
         <span class="ident">Style</span> { <span class="ident">foreground</span>: <span class="prelude-val">Some</span>(<span class="self">self</span>), <span class="ident">is_blink</span>: <span class="bool-val">true</span>, .. <span class="ident">Style::default</span>() }
     }
 
     <span class="doccomment">/// Returns a `Style` with the reverse property set.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reverse</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Style</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reverse</span>(<span class="self">self</span>) -&gt; <span class="ident">Style</span> {
         <span class="ident">Style</span> { <span class="ident">foreground</span>: <span class="prelude-val">Some</span>(<span class="self">self</span>), <span class="ident">is_reverse</span>: <span class="bool-val">true</span>, .. <span class="ident">Style::default</span>() }
     }
 
     <span class="doccomment">/// Returns a `Style` with the hidden property set.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hidden</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Style</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hidden</span>(<span class="self">self</span>) -&gt; <span class="ident">Style</span> {
         <span class="ident">Style</span> { <span class="ident">foreground</span>: <span class="prelude-val">Some</span>(<span class="self">self</span>), <span class="ident">is_hidden</span>: <span class="bool-val">true</span>, .. <span class="ident">Style::default</span>() }
     }
 
     <span class="doccomment">/// Returns a `Style` with the strikethrough property set.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strikethrough</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Style</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strikethrough</span>(<span class="self">self</span>) -&gt; <span class="ident">Style</span> {
         <span class="ident">Style</span> { <span class="ident">foreground</span>: <span class="prelude-val">Some</span>(<span class="self">self</span>), <span class="ident">is_strikethrough</span>: <span class="bool-val">true</span>, .. <span class="ident">Style::default</span>() }
     }
 
     <span class="doccomment">/// Returns a `Style` with the background colour property set.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">on</span>(<span class="self">self</span>, <span class="ident">background</span>: <span class="ident">Colour</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Style</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">on</span>(<span class="self">self</span>, <span class="ident">background</span>: <span class="ident">Colour</span>) -&gt; <span class="ident">Style</span> {
         <span class="ident">Style</span> { <span class="ident">foreground</span>: <span class="prelude-val">Some</span>(<span class="self">self</span>), <span class="ident">background</span>: <span class="prelude-val">Some</span>(<span class="ident">background</span>), .. <span class="ident">Style::default</span>() }
     }
 }
@@ -512,7 +512,7 @@
     <span class="doccomment">/// assert_eq!(green_foreground, Colour::Green.into());</span>
     <span class="doccomment">/// assert_eq!(green_foreground, Style::from(Colour::Green));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">colour</span>: <span class="ident">Colour</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Style</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">colour</span>: <span class="ident">Colour</span>) -&gt; <span class="ident">Style</span> {
         <span class="ident">colour</span>.<span class="ident">normal</span>()
     }
 }

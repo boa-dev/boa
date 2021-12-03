@@ -202,14 +202,14 @@
         <span class="ident">size</span>: <span class="ident">c_int</span>,
         <span class="ident">rwflag</span>: <span class="ident">c_int</span>,
         <span class="ident">user_data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>,
+    ) -&gt; <span class="ident">c_int</span>,
 <span class="op">&gt;</span>;
 
 <span class="macro">const_ptr_api!</span> {
     <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_write_bio_X509</span>(<span class="ident">bio</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>, <span class="ident">x509</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">X509</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_write_bio_X509_REQ</span>(<span class="ident">bio</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>, <span class="ident">x509</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">X509_REQ</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_write_bio_X509_CRL</span>(<span class="ident">bio</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>, <span class="ident">x509</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">X509_CRL</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_write_bio_X509</span>(<span class="ident">bio</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>, <span class="ident">x509</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">X509</span>) -&gt; <span class="ident">c_int</span>;
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_write_bio_X509_REQ</span>(<span class="ident">bio</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>, <span class="ident">x509</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">X509_REQ</span>) -&gt; <span class="ident">c_int</span>;
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_write_bio_X509_CRL</span>(<span class="ident">bio</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>, <span class="ident">x509</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">X509_CRL</span>) -&gt; <span class="ident">c_int</span>;
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_write_bio_RSAPrivateKey</span>(
             <span class="ident">bp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>,
             <span class="ident">rsa</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">RSA</span>,
@@ -218,8 +218,8 @@
             <span class="ident">klen</span>: <span class="ident">c_int</span>,
             <span class="ident">callback</span>: <span class="ident">pem_password_cb</span>,
             <span class="ident">user_data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_write_bio_RSA_PUBKEY</span>(<span class="ident">bp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>, <span class="ident">rsa</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">RSA</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+        ) -&gt; <span class="ident">c_int</span>;
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_write_bio_RSA_PUBKEY</span>(<span class="ident">bp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>, <span class="ident">rsa</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">RSA</span>) -&gt; <span class="ident">c_int</span>;
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_write_bio_DSAPrivateKey</span>(
             <span class="ident">bp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>,
             <span class="ident">dsa</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">DSA</span>,
@@ -228,7 +228,7 @@
             <span class="ident">klen</span>: <span class="ident">c_int</span>,
             <span class="ident">callback</span>: <span class="ident">pem_password_cb</span>,
             <span class="ident">user_data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+        ) -&gt; <span class="ident">c_int</span>;
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_write_bio_ECPrivateKey</span>(
             <span class="ident">bio</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>,
             <span class="ident">key</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">EC_KEY</span>,
@@ -237,8 +237,8 @@
             <span class="ident">klen</span>: <span class="ident">c_int</span>,
             <span class="ident">callback</span>: <span class="ident">pem_password_cb</span>,
             <span class="ident">user_data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_write_bio_DSA_PUBKEY</span>(<span class="ident">bp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>, <span class="ident">dsa</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">DSA</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+        ) -&gt; <span class="ident">c_int</span>;
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_write_bio_DSA_PUBKEY</span>(<span class="ident">bp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>, <span class="ident">dsa</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">DSA</span>) -&gt; <span class="ident">c_int</span>;
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_write_bio_PrivateKey</span>(
             <span class="ident">bio</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>,
             <span class="ident">pkey</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">EVP_PKEY</span>,
@@ -247,8 +247,8 @@
             <span class="ident">klen</span>: <span class="ident">c_int</span>,
             <span class="ident">callback</span>: <span class="ident">pem_password_cb</span>,
             <span class="ident">user_data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_write_bio_PUBKEY</span>(<span class="ident">bp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>, <span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">EVP_PKEY</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+        ) -&gt; <span class="ident">c_int</span>;
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_write_bio_PUBKEY</span>(<span class="ident">bp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>, <span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">EVP_PKEY</span>) -&gt; <span class="ident">c_int</span>;
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_write_bio_PKCS8PrivateKey</span>(
             <span class="ident">bio</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>,
             <span class="ident">pkey</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">EVP_PKEY</span>,
@@ -257,9 +257,9 @@
             <span class="ident">klen</span>: <span class="ident">c_int</span>,
             <span class="ident">callback</span>: <span class="ident">pem_password_cb</span>,
             <span class="ident">user_data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_write_bio_PKCS7</span>(<span class="ident">bp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>, <span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">PKCS7</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_write_bio_EC_PUBKEY</span>(<span class="ident">bp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>, <span class="ident">ec</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">EC_KEY</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+        ) -&gt; <span class="ident">c_int</span>;
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_write_bio_PKCS7</span>(<span class="ident">bp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>, <span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">PKCS7</span>) -&gt; <span class="ident">c_int</span>;
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_write_bio_EC_PUBKEY</span>(<span class="ident">bp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>, <span class="ident">ec</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">EC_KEY</span>) -&gt; <span class="ident">c_int</span>;
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">i2d_PKCS8PrivateKey_bio</span>(
             <span class="ident">bp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>,
             <span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">EVP_PKEY</span>,
@@ -268,7 +268,7 @@
             <span class="ident">klen</span>: <span class="ident">c_int</span>,
             <span class="ident">cb</span>: <span class="ident">pem_password_cb</span>,
             <span class="ident">u</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+        ) -&gt; <span class="ident">c_int</span>;
     }
 }
 
@@ -278,93 +278,93 @@
         <span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509</span>,
         <span class="ident">callback</span>: <span class="ident">pem_password_cb</span>,
         <span class="ident">user_data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509</span>;
+    ) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_read_bio_X509_REQ</span>(
         <span class="ident">bio</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>,
         <span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_REQ</span>,
         <span class="ident">callback</span>: <span class="ident">pem_password_cb</span>,
         <span class="ident">user_data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_REQ</span>;
+    ) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_REQ</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_read_bio_X509_CRL</span>(
         <span class="ident">bio</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>,
         <span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_CRL</span>,
         <span class="ident">callback</span>: <span class="ident">pem_password_cb</span>,
         <span class="ident">user_data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_CRL</span>;
+    ) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_CRL</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_read_bio_RSAPrivateKey</span>(
         <span class="ident">bio</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>,
         <span class="ident">rsa</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">RSA</span>,
         <span class="ident">callback</span>: <span class="ident">pem_password_cb</span>,
         <span class="ident">user_data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">RSA</span>;
+    ) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">RSA</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_read_bio_RSAPublicKey</span>(
         <span class="ident">bio</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>,
         <span class="ident">rsa</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">RSA</span>,
         <span class="ident">callback</span>: <span class="ident">pem_password_cb</span>,
         <span class="ident">user_data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">RSA</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_write_bio_RSAPublicKey</span>(<span class="ident">bp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>, <span class="ident">rsa</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">RSA</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">RSA</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_write_bio_RSAPublicKey</span>(<span class="ident">bp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>, <span class="ident">rsa</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">RSA</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_read_bio_RSA_PUBKEY</span>(
         <span class="ident">bio</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>,
         <span class="ident">rsa</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">RSA</span>,
         <span class="ident">callback</span>: <span class="ident">pem_password_cb</span>,
         <span class="ident">user_data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">RSA</span>;
+    ) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">RSA</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_read_bio_DSAPrivateKey</span>(
         <span class="ident">bp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>,
         <span class="ident">dsa</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">DSA</span>,
         <span class="ident">callback</span>: <span class="ident">pem_password_cb</span>,
         <span class="ident">user_data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">DSA</span>;
+    ) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">DSA</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_read_bio_DSA_PUBKEY</span>(
         <span class="ident">bp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>,
         <span class="ident">dsa</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">DSA</span>,
         <span class="ident">callback</span>: <span class="ident">pem_password_cb</span>,
         <span class="ident">user_data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">DSA</span>;
+    ) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">DSA</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_read_bio_ECPrivateKey</span>(
         <span class="ident">bio</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>,
         <span class="ident">key</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EC_KEY</span>,
         <span class="ident">callback</span>: <span class="ident">pem_password_cb</span>,
         <span class="ident">user_data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EC_KEY</span>;
+    ) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EC_KEY</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_read_bio_EC_PUBKEY</span>(
         <span class="ident">bp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>,
         <span class="ident">ec</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EC_KEY</span>,
         <span class="ident">callback</span>: <span class="ident">pem_password_cb</span>,
         <span class="ident">user_data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EC_KEY</span>;
+    ) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EC_KEY</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_read_bio_DHparams</span>(
         <span class="ident">bio</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>,
         <span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">DH</span>,
         <span class="ident">callback</span>: <span class="ident">pem_password_cb</span>,
         <span class="ident">user_data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">DH</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_write_bio_DHparams</span>(<span class="ident">bio</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>, <span class="ident">x</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">DH</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    ) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">DH</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_write_bio_DHparams</span>(<span class="ident">bio</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>, <span class="ident">x</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">DH</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_read_bio_PrivateKey</span>(
         <span class="ident">bio</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>,
         <span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>,
         <span class="ident">callback</span>: <span class="ident">pem_password_cb</span>,
         <span class="ident">user_data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>;
+    ) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_read_bio_PUBKEY</span>(
         <span class="ident">bio</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>,
         <span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>,
         <span class="ident">callback</span>: <span class="ident">pem_password_cb</span>,
         <span class="ident">user_data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>;
+    ) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>;
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">d2i_PKCS8PrivateKey_bio</span>(
         <span class="ident">bp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>,
         <span class="ident">x</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>,
         <span class="ident">cb</span>: <span class="ident">pem_password_cb</span>,
         <span class="ident">u</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>;
+    ) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">d2i_PKCS8_PRIV_KEY_INFO</span>(
         <span class="ident">k</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PKCS8_PRIV_KEY_INFO</span>,
         <span class="ident">buf</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>,
         <span class="ident">length</span>: <span class="ident">c_long</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PKCS8_PRIV_KEY_INFO</span>;
+    ) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PKCS8_PRIV_KEY_INFO</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PKCS8_PRIV_KEY_INFO_free</span>(<span class="ident">p8inf</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PKCS8_PRIV_KEY_INFO</span>);
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_read_bio_PKCS7</span>(
@@ -372,7 +372,7 @@
         <span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PKCS7</span>,
         <span class="ident">cb</span>: <span class="ident">pem_password_cb</span>,
         <span class="ident">u</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PKCS7</span>;
+    ) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PKCS7</span>;
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl101</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_read_bio_CMS</span>(
@@ -380,9 +380,9 @@
         <span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">CMS_ContentInfo</span>,
         <span class="ident">callback</span>: <span class="ident">pem_password_cb</span>,
         <span class="ident">user_data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">CMS_ContentInfo</span>;
+    ) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">CMS_ContentInfo</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl101</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_write_bio_CMS</span>(<span class="ident">bio</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>, <span class="ident">cms</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">CMS_ContentInfo</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PEM_write_bio_CMS</span>(<span class="ident">bio</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>, <span class="ident">cms</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">CMS_ContentInfo</span>) -&gt; <span class="ident">c_int</span>;
 }
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PEM_R_NO_START_LINE</span>: <span class="ident">c_int</span> <span class="op">=</span> <span class="number">108</span>;

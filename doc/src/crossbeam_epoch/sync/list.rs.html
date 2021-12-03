@@ -553,7 +553,7 @@
 <span class="doccomment">///</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait</span> <span class="ident">IsElement</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Returns a reference to this element&#39;s `Entry`.</span>
-    <span class="kw">fn</span> <span class="ident">entry_of</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Entry</span>;
+    <span class="kw">fn</span> <span class="ident">entry_of</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Entry</span>;
 
     <span class="doccomment">/// Given a reference to an element&#39;s entry, returns that element.</span>
     <span class="doccomment">///</span>
@@ -567,7 +567,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// The caller has to guarantee that the `Entry` is called with was retrieved from an instance</span>
     <span class="doccomment">/// of the element type (`T`).</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">element_of</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Entry</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">T</span>;
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">element_of</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Entry</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span>;
 
     <span class="doccomment">/// The function that is called when an entry is unlinked from list.</span>
     <span class="doccomment">///</span>
@@ -617,7 +617,7 @@
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Entry</span> {
     <span class="doccomment">/// Returns the empty entry.</span>
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">next</span>: <span class="ident">Atomic::null</span>(),
         }
@@ -639,7 +639,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">C</span>: <span class="ident">IsElement</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">List</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">C</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Returns a new, empty linked list.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">head</span>: <span class="ident">Atomic::null</span>(),
             <span class="ident">_marker</span>: <span class="ident">PhantomData</span>,
@@ -671,10 +671,10 @@
             <span class="comment">// `to`.</span>
             <span class="ident">entry</span>.<span class="ident">next</span>.<span class="ident">store</span>(<span class="ident">next</span>, <span class="ident">Relaxed</span>);
             <span class="kw">match</span> <span class="ident">to</span>.<span class="ident">compare_exchange_weak</span>(<span class="ident">next</span>, <span class="ident">entry_ptr</span>, <span class="ident">Release</span>, <span class="ident">Relaxed</span>, <span class="ident">guard</span>) {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">break</span>,
                 <span class="comment">// We lost the race or weak CAS failed spuriously. Update the successor and try</span>
                 <span class="comment">// again.</span>
-                <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">err</span>.<span class="ident">current</span>,
+                <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="ident">next</span> <span class="op">=</span> <span class="ident">err</span>.<span class="ident">current</span>,
             }
         }
     }
@@ -691,7 +691,7 @@
     <span class="doccomment">/// 2. If an object is deleted during iteration, it may or may not be returned.</span>
     <span class="doccomment">/// 3. The iteration may be aborted when it lost in a race condition. In this case, the winning</span>
     <span class="doccomment">///    thread will continue to iterate over the same list.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">iter</span><span class="op">&lt;</span><span class="lifetime">&#39;g</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;g</span> <span class="self">self</span>, <span class="ident">guard</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;g</span> <span class="ident">Guard</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;g</span>, <span class="ident">T</span>, <span class="ident">C</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">iter</span><span class="op">&lt;</span><span class="lifetime">&#39;g</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;g</span> <span class="self">self</span>, <span class="ident">guard</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;g</span> <span class="ident">Guard</span>) -&gt; <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;g</span>, <span class="ident">T</span>, <span class="ident">C</span><span class="op">&gt;</span> {
         <span class="ident">Iter</span> {
             <span class="ident">guard</span>,
             <span class="ident">pred</span>: <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">head</span>,
@@ -722,24 +722,24 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;g</span>, <span class="ident">T</span>: <span class="lifetime">&#39;g</span>, <span class="ident">C</span>: <span class="ident">IsElement</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;g</span>, <span class="ident">T</span>, <span class="ident">C</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;g</span> <span class="ident">T</span>, <span class="ident">IterError</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
         <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span> <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">curr</span>.<span class="ident">as_ref</span>() } {
             <span class="kw">let</span> <span class="ident">succ</span> <span class="op">=</span> <span class="ident">c</span>.<span class="ident">next</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>, <span class="self">self</span>.<span class="ident">guard</span>);
 
-            <span class="kw">if</span> <span class="ident">succ</span>.<span class="ident">tag</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+            <span class="kw">if</span> <span class="ident">succ</span>.<span class="ident">tag</span>() <span class="op">==</span> <span class="number">1</span> {
                 <span class="comment">// This entry was removed. Try unlinking it from the list.</span>
                 <span class="kw">let</span> <span class="ident">succ</span> <span class="op">=</span> <span class="ident">succ</span>.<span class="ident">with_tag</span>(<span class="number">0</span>);
 
                 <span class="comment">// The tag should always be zero, because removing a node after a logically deleted</span>
                 <span class="comment">// node leaves the list in an invalid state.</span>
-                <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">curr</span>.<span class="ident">tag</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
+                <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">curr</span>.<span class="ident">tag</span>() <span class="op">==</span> <span class="number">0</span>);
 
                 <span class="comment">// Try to unlink `curr` from the list, and get the new value of `self.pred`.</span>
                 <span class="kw">let</span> <span class="ident">succ</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>
                     .<span class="ident">pred</span>
                     .<span class="ident">compare_exchange</span>(<span class="self">self</span>.<span class="ident">curr</span>, <span class="ident">succ</span>, <span class="ident">Acquire</span>, <span class="ident">Acquire</span>, <span class="self">self</span>.<span class="ident">guard</span>)
                 {
-                    <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
                         <span class="comment">// We succeeded in unlinking `curr`, so we have to schedule</span>
                         <span class="comment">// deallocation. Deferred drop is okay, because `list.delete()` can only be</span>
                         <span class="comment">// called if `T: &#39;static`.</span>
@@ -750,7 +750,7 @@
                         <span class="comment">// `succ` is the new value of `self.pred`.</span>
                         <span class="ident">succ</span>
                     }
-                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
                         <span class="comment">// `e.current` is the current value of `self.pred`.</span>
                         <span class="ident">e</span>.<span class="ident">current</span>
                     }
@@ -790,11 +790,11 @@
     <span class="kw">use</span> <span class="ident">std::sync::Barrier</span>;
 
     <span class="kw">impl</span> <span class="ident">IsElement</span><span class="op">&lt;</span><span class="ident">Entry</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Entry</span> {
-        <span class="kw">fn</span> <span class="ident">entry_of</span>(<span class="ident">entry</span>: <span class="kw-2">&amp;</span><span class="ident">Entry</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Entry</span> {
+        <span class="kw">fn</span> <span class="ident">entry_of</span>(<span class="ident">entry</span>: <span class="kw-2">&amp;</span><span class="ident">Entry</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Entry</span> {
             <span class="ident">entry</span>
         }
 
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">element_of</span>(<span class="ident">entry</span>: <span class="kw-2">&amp;</span><span class="ident">Entry</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Entry</span> {
+        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">element_of</span>(<span class="ident">entry</span>: <span class="kw-2">&amp;</span><span class="ident">Entry</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Entry</span> {
             <span class="ident">entry</span>
         }
 
@@ -826,13 +826,13 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">l</span>.<span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="ident">guard</span>);
         <span class="kw">let</span> <span class="ident">maybe_e3</span> <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">next</span>();
         <span class="macro">assert!</span>(<span class="ident">maybe_e3</span>.<span class="ident">is_some</span>());
-        <span class="macro">assert!</span>(<span class="ident">maybe_e3</span>.<span class="ident">unwrap</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Entry</span> <span class="op">=</span><span class="op">=</span> <span class="ident">e3</span>.<span class="ident">as_raw</span>());
+        <span class="macro">assert!</span>(<span class="ident">maybe_e3</span>.<span class="ident">unwrap</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Entry</span> <span class="op">==</span> <span class="ident">e3</span>.<span class="ident">as_raw</span>());
         <span class="kw">let</span> <span class="ident">maybe_e2</span> <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">next</span>();
         <span class="macro">assert!</span>(<span class="ident">maybe_e2</span>.<span class="ident">is_some</span>());
-        <span class="macro">assert!</span>(<span class="ident">maybe_e2</span>.<span class="ident">unwrap</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Entry</span> <span class="op">=</span><span class="op">=</span> <span class="ident">e2</span>.<span class="ident">as_raw</span>());
+        <span class="macro">assert!</span>(<span class="ident">maybe_e2</span>.<span class="ident">unwrap</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Entry</span> <span class="op">==</span> <span class="ident">e2</span>.<span class="ident">as_raw</span>());
         <span class="kw">let</span> <span class="ident">maybe_e1</span> <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">next</span>();
         <span class="macro">assert!</span>(<span class="ident">maybe_e1</span>.<span class="ident">is_some</span>());
-        <span class="macro">assert!</span>(<span class="ident">maybe_e1</span>.<span class="ident">unwrap</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Entry</span> <span class="op">=</span><span class="op">=</span> <span class="ident">e1</span>.<span class="ident">as_raw</span>());
+        <span class="macro">assert!</span>(<span class="ident">maybe_e1</span>.<span class="ident">unwrap</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Entry</span> <span class="op">==</span> <span class="ident">e1</span>.<span class="ident">as_raw</span>());
         <span class="macro">assert!</span>(<span class="ident">iter</span>.<span class="ident">next</span>().<span class="ident">is_none</span>());
 
         <span class="kw">unsafe</span> {
@@ -865,10 +865,10 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">l</span>.<span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="ident">guard</span>);
         <span class="kw">let</span> <span class="ident">maybe_e3</span> <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">next</span>();
         <span class="macro">assert!</span>(<span class="ident">maybe_e3</span>.<span class="ident">is_some</span>());
-        <span class="macro">assert!</span>(<span class="ident">maybe_e3</span>.<span class="ident">unwrap</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Entry</span> <span class="op">=</span><span class="op">=</span> <span class="ident">e3</span>.<span class="ident">as_raw</span>());
+        <span class="macro">assert!</span>(<span class="ident">maybe_e3</span>.<span class="ident">unwrap</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Entry</span> <span class="op">==</span> <span class="ident">e3</span>.<span class="ident">as_raw</span>());
         <span class="kw">let</span> <span class="ident">maybe_e1</span> <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">next</span>();
         <span class="macro">assert!</span>(<span class="ident">maybe_e1</span>.<span class="ident">is_some</span>());
-        <span class="macro">assert!</span>(<span class="ident">maybe_e1</span>.<span class="ident">unwrap</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Entry</span> <span class="op">=</span><span class="op">=</span> <span class="ident">e1</span>.<span class="ident">as_raw</span>());
+        <span class="macro">assert!</span>(<span class="ident">maybe_e1</span>.<span class="ident">unwrap</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Entry</span> <span class="op">==</span> <span class="ident">e1</span>.<span class="ident">as_raw</span>());
         <span class="macro">assert!</span>(<span class="ident">iter</span>.<span class="ident">next</span>().<span class="ident">is_none</span>());
 
         <span class="kw">unsafe</span> {

@@ -376,7 +376,7 @@
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">custom_punctuation</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>:<span class="ident">tt</span>)<span class="op">+</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>:<span class="ident">tt</span>)<span class="op">+</span>) =&gt; {
         <span class="kw">pub</span> <span class="kw">struct</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span> {
             <span class="kw">pub</span> <span class="ident">spans</span>: <span class="macro-nonterminal">$</span><span class="macro">crate::custom_punctuation_repr!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>)<span class="op">+</span>),
         }
@@ -385,7 +385,7 @@
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>, <span class="ident">non_snake_case</span>)]</span>
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span><span class="op">&lt;</span><span class="ident">__S</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::IntoSpans</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro">crate::custom_punctuation_repr!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>)<span class="op">+</span>)<span class="op">&gt;</span><span class="op">&gt;</span>(
             <span class="ident">spans</span>: <span class="ident">__S</span>,
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span> {
+        ) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span> {
             <span class="kw">let</span> <span class="ident">_validate_len</span> <span class="op">=</span> <span class="number">0</span> $(<span class="op">+</span> <span class="macro-nonterminal">$</span><span class="macro">crate::custom_punctuation_len!</span>(<span class="macro-nonterminal">strict</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>))<span class="kw-2">*</span>;
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span> {
                 <span class="ident">spans</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::IntoSpans::into_spans</span>(<span class="ident">spans</span>)
@@ -393,7 +393,7 @@
         }
 
         <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::Default</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span> {
-            <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::Span::call_site</span>())
             }
         }
@@ -410,19 +410,19 @@
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">impl_parse_for_custom_punctuation</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>:<span class="ident">tt</span>)<span class="op">+</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>:<span class="ident">tt</span>)<span class="op">+</span>) =&gt; {
         <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::token::CustomToken</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span> {
-            <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::buffer::Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+            <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::buffer::Cursor</span>) -&gt; <span class="ident">bool</span> {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::token::parsing::peek_punct</span>(<span class="ident">cursor</span>, <span class="macro-nonterminal">$</span><span class="macro">crate::stringify_punct!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>)<span class="op">+</span>))
             }
 
-            <span class="kw">fn</span> <span class="ident">display</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::str</span> {
+            <span class="kw">fn</span> <span class="ident">display</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::str</span> {
                 <span class="macro">concat!</span>(<span class="string">&quot;`&quot;</span>, <span class="macro-nonterminal">$</span><span class="macro">crate::stringify_punct!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>)<span class="op">+</span>), <span class="string">&quot;`&quot;</span>)
             }
         }
 
         <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::parse::Parse</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span> {
-            <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::parse::ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::parse::Result</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span><span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::parse::ParseStream</span>) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::parse::Result</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">spans</span>: <span class="macro-nonterminal">$</span><span class="macro">crate::custom_punctuation_repr!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>)<span class="op">+</span>) <span class="op">=</span>
                     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::token::parsing::punct</span>(<span class="ident">input</span>, <span class="macro-nonterminal">$</span><span class="macro">crate::stringify_punct!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>)<span class="op">+</span>))<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span>(<span class="ident">spans</span>))
@@ -436,7 +436,7 @@
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">impl_parse_for_custom_punctuation</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>:<span class="ident">tt</span>)<span class="op">+</span>) <span class="op">=</span><span class="op">&gt;</span> {};
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>:<span class="ident">tt</span>)<span class="op">+</span>) =&gt; {};
 }
 
 <span class="comment">// Not public API.</span>
@@ -444,7 +444,7 @@
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">impl_to_tokens_for_custom_punctuation</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>:<span class="ident">tt</span>)<span class="op">+</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>:<span class="ident">tt</span>)<span class="op">+</span>) =&gt; {
         <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::ToTokens</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span> {
             <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::TokenStream2</span>) {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::token::printing::punct</span>(<span class="macro-nonterminal">$</span><span class="macro">crate::stringify_punct!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>)<span class="op">+</span>), <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">spans</span>, <span class="ident">tokens</span>)
@@ -458,7 +458,7 @@
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">impl_to_tokens_for_custom_punctuation</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>:<span class="ident">tt</span>)<span class="op">+</span>) <span class="op">=</span><span class="op">&gt;</span> {};
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>:<span class="ident">tt</span>)<span class="op">+</span>) =&gt; {};
 }
 
 <span class="comment">// Not public API.</span>
@@ -466,12 +466,12 @@
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">impl_clone_for_custom_punctuation</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>:<span class="ident">tt</span>)<span class="op">+</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>:<span class="ident">tt</span>)<span class="op">+</span>) =&gt; {
         <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::Copy</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span> {}
 
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::expl_impl_clone_on_copy</span>)]</span>
         <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::Clone</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span> {
-            <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
                 <span class="kw-2">*</span><span class="self">self</span>
             }
         }
@@ -483,7 +483,7 @@
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">impl_clone_for_custom_punctuation</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>:<span class="ident">tt</span>)<span class="op">+</span>) <span class="op">=</span><span class="op">&gt;</span> {};
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>:<span class="ident">tt</span>)<span class="op">+</span>) =&gt; {};
 }
 
 <span class="comment">// Not public API.</span>
@@ -491,9 +491,9 @@
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">impl_extra_traits_for_custom_punctuation</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>:<span class="ident">tt</span>)<span class="op">+</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>:<span class="ident">tt</span>)<span class="op">+</span>) =&gt; {
         <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::Debug</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span> {
-            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::fmt::Result</span> {
+            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::Formatter</span>) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::fmt::Result</span> {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::Formatter::write_str</span>(<span class="ident">f</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span>))
             }
         }
@@ -501,7 +501,7 @@
         <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::Eq</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span> {}
 
         <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::PartialEq</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span> {
-            <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::bool</span> {
+            <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::bool</span> {
                 <span class="bool-val">true</span>
             }
         }
@@ -517,14 +517,14 @@
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">impl_extra_traits_for_custom_punctuation</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>:<span class="ident">tt</span>)<span class="op">+</span>) <span class="op">=</span><span class="op">&gt;</span> {};
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>:<span class="ident">tt</span>)<span class="op">+</span>) =&gt; {};
 }
 
 <span class="comment">// Not public API.</span>
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">custom_punctuation_repr</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>:<span class="ident">tt</span>)<span class="op">+</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>:<span class="ident">tt</span>)<span class="op">+</span>) =&gt; {
         [<span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::Span</span>; <span class="number">0</span> $(<span class="op">+</span> <span class="macro-nonterminal">$</span><span class="macro">crate::custom_punctuation_len!</span>(<span class="macro-nonterminal">lenient</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>))<span class="op">+</span>]
     };
 }
@@ -534,67 +534,67 @@
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">custom_punctuation_len</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">+</span>)     <span class="op">=</span><span class="op">&gt;</span> { <span class="number">1</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">+</span><span class="op">=</span>)    <span class="op">=</span><span class="op">&gt;</span> { <span class="number">2</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="kw-2">&amp;</span>)     <span class="op">=</span><span class="op">&gt;</span> { <span class="number">1</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">&amp;&amp;</span>)    <span class="op">=</span><span class="op">&gt;</span> { <span class="number">2</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">&amp;=</span>)    <span class="op">=</span><span class="op">&gt;</span> { <span class="number">2</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, @)     <span class="op">=</span><span class="op">&gt;</span> { <span class="number">1</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">!</span>)     <span class="op">=</span><span class="op">&gt;</span> { <span class="number">1</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">^</span>)     <span class="op">=</span><span class="op">&gt;</span> { <span class="number">1</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">^</span><span class="op">=</span>)    <span class="op">=</span><span class="op">&gt;</span> { <span class="number">2</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, :)     <span class="op">=</span><span class="op">&gt;</span> { <span class="number">1</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, ::)    <span class="op">=</span><span class="op">&gt;</span> { <span class="number">2</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, ,)     <span class="op">=</span><span class="op">&gt;</span> { <span class="number">1</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">/</span>)     <span class="op">=</span><span class="op">&gt;</span> { <span class="number">1</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">/</span><span class="op">=</span>)    <span class="op">=</span><span class="op">&gt;</span> { <span class="number">2</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, .)     <span class="op">=</span><span class="op">&gt;</span> { <span class="number">1</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, ..)    <span class="op">=</span><span class="op">&gt;</span> { <span class="number">2</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, ...)   <span class="op">=</span><span class="op">&gt;</span> { <span class="number">3</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, ..<span class="op">=</span>)   <span class="op">=</span><span class="op">&gt;</span> { <span class="number">3</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">=</span>)     <span class="op">=</span><span class="op">&gt;</span> { <span class="number">1</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">=</span><span class="op">=</span>)    <span class="op">=</span><span class="op">&gt;</span> { <span class="number">2</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">&gt;</span><span class="op">=</span>)    <span class="op">=</span><span class="op">&gt;</span> { <span class="number">2</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">&gt;</span>)     <span class="op">=</span><span class="op">&gt;</span> { <span class="number">1</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">&lt;</span><span class="op">=</span>)    <span class="op">=</span><span class="op">&gt;</span> { <span class="number">2</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">&lt;</span>)     <span class="op">=</span><span class="op">&gt;</span> { <span class="number">1</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="kw-2">*</span><span class="op">=</span>)    <span class="op">=</span><span class="op">&gt;</span> { <span class="number">2</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">!</span><span class="op">=</span>)    <span class="op">=</span><span class="op">&gt;</span> { <span class="number">2</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">|</span>)     <span class="op">=</span><span class="op">&gt;</span> { <span class="number">1</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">|</span><span class="op">=</span>)    <span class="op">=</span><span class="op">&gt;</span> { <span class="number">2</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">|</span><span class="op">|</span>)    <span class="op">=</span><span class="op">&gt;</span> { <span class="number">2</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, #)     <span class="op">=</span><span class="op">&gt;</span> { <span class="number">1</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="question-mark">?</span>)     <span class="op">=</span><span class="op">&gt;</span> { <span class="number">1</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">-</span><span class="op">&gt;</span>)    <span class="op">=</span><span class="op">&gt;</span> { <span class="number">2</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">&lt;</span><span class="op">-</span>)    <span class="op">=</span><span class="op">&gt;</span> { <span class="number">2</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">%</span>)     <span class="op">=</span><span class="op">&gt;</span> { <span class="number">1</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">%</span><span class="op">=</span>)    <span class="op">=</span><span class="op">&gt;</span> { <span class="number">2</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">=</span><span class="op">&gt;</span>)    <span class="op">=</span><span class="op">&gt;</span> { <span class="number">2</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, ;)     <span class="op">=</span><span class="op">&gt;</span> { <span class="number">1</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">&lt;</span><span class="op">&lt;</span>)    <span class="op">=</span><span class="op">&gt;</span> { <span class="number">2</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">&lt;</span><span class="op">&lt;</span><span class="op">=</span>)   <span class="op">=</span><span class="op">&gt;</span> { <span class="number">3</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">&gt;</span><span class="op">&gt;</span>)    <span class="op">=</span><span class="op">&gt;</span> { <span class="number">2</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">&gt;</span><span class="op">&gt;</span><span class="op">=</span>)   <span class="op">=</span><span class="op">&gt;</span> { <span class="number">3</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="kw-2">*</span>)     <span class="op">=</span><span class="op">&gt;</span> { <span class="number">1</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">-</span>)     <span class="op">=</span><span class="op">&gt;</span> { <span class="number">1</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">-</span><span class="op">=</span>)    <span class="op">=</span><span class="op">&gt;</span> { <span class="number">2</span> };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, ~)     <span class="op">=</span><span class="op">&gt;</span> { <span class="number">1</span> };
-    (<span class="ident">lenient</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>:<span class="ident">tt</span>)    <span class="op">=</span><span class="op">&gt;</span> { <span class="number">0</span> };
-    (<span class="ident">strict</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>:<span class="ident">tt</span>)     <span class="op">=</span><span class="op">&gt;</span> {{ <span class="macro-nonterminal">$</span><span class="macro">crate::custom_punctuation_unexpected!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>); <span class="number">0</span> }};
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">+</span>)     =&gt; { <span class="number">1</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">+</span><span class="op">=</span>)    =&gt; { <span class="number">2</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="kw-2">&amp;</span>)     =&gt; { <span class="number">1</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">&amp;&amp;</span>)    =&gt; { <span class="number">2</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">&amp;=</span>)    =&gt; { <span class="number">2</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, @)     =&gt; { <span class="number">1</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">!</span>)     =&gt; { <span class="number">1</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">^</span>)     =&gt; { <span class="number">1</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">^</span><span class="op">=</span>)    =&gt; { <span class="number">2</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, :)     =&gt; { <span class="number">1</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, ::)    =&gt; { <span class="number">2</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, ,)     =&gt; { <span class="number">1</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">/</span>)     =&gt; { <span class="number">1</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">/</span><span class="op">=</span>)    =&gt; { <span class="number">2</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, .)     =&gt; { <span class="number">1</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, ..)    =&gt; { <span class="number">2</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, ...)   =&gt; { <span class="number">3</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, ..<span class="op">=</span>)   =&gt; { <span class="number">3</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">=</span>)     =&gt; { <span class="number">1</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">==</span>)    =&gt; { <span class="number">2</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">&gt;</span><span class="op">=</span>)    =&gt; { <span class="number">2</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">&gt;</span>)     =&gt; { <span class="number">1</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">&lt;</span><span class="op">=</span>)    =&gt; { <span class="number">2</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">&lt;</span>)     =&gt; { <span class="number">1</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="kw-2">*</span><span class="op">=</span>)    =&gt; { <span class="number">2</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">!</span><span class="op">=</span>)    =&gt; { <span class="number">2</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">|</span>)     =&gt; { <span class="number">1</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">|</span><span class="op">=</span>)    =&gt; { <span class="number">2</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">|</span><span class="op">|</span>)    =&gt; { <span class="number">2</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, #)     =&gt; { <span class="number">1</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="question-mark">?</span>)     =&gt; { <span class="number">1</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, -&gt;)    =&gt; { <span class="number">2</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">&lt;</span><span class="op">-</span>)    =&gt; { <span class="number">2</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">%</span>)     =&gt; { <span class="number">1</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">%</span><span class="op">=</span>)    =&gt; { <span class="number">2</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, =&gt;)    =&gt; { <span class="number">2</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, ;)     =&gt; { <span class="number">1</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">&lt;</span><span class="op">&lt;</span>)    =&gt; { <span class="number">2</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">&lt;</span><span class="op">&lt;</span><span class="op">=</span>)   =&gt; { <span class="number">3</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">&gt;</span><span class="op">&gt;</span>)    =&gt; { <span class="number">2</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">&gt;</span><span class="op">&gt;</span><span class="op">=</span>)   =&gt; { <span class="number">3</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="kw-2">*</span>)     =&gt; { <span class="number">1</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">-</span>)     =&gt; { <span class="number">1</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, <span class="op">-</span><span class="op">=</span>)    =&gt; { <span class="number">2</span> };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">mode</span>:<span class="ident">ident</span>, ~)     =&gt; { <span class="number">1</span> };
+    (<span class="ident">lenient</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>:<span class="ident">tt</span>)    =&gt; { <span class="number">0</span> };
+    (<span class="ident">strict</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>:<span class="ident">tt</span>)     =&gt; {{ <span class="macro-nonterminal">$</span><span class="macro">crate::custom_punctuation_unexpected!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>); <span class="number">0</span> }};
 }
 
 <span class="comment">// Not public API.</span>
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">custom_punctuation_unexpected</span> {
-    () <span class="op">=</span><span class="op">&gt;</span> {};
+    () =&gt; {};
 }
 
 <span class="comment">// Not public API.</span>
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">stringify_punct</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>:<span class="ident">tt</span>)<span class="op">+</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>:<span class="ident">tt</span>)<span class="op">+</span>) =&gt; {
         <span class="macro">concat!</span>($(<span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>)),<span class="op">+</span>)
     };
 }

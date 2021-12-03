@@ -227,7 +227,7 @@
 
 <span class="kw">impl</span> <span class="ident">Identifier</span> {
     <span class="doccomment">/// Creates a new identifier/keyword lexer.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">init</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">init</span>: <span class="ident">char</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> { <span class="ident">init</span> }
     }
 
@@ -237,7 +237,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-names-and-keywords</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">is_identifier_start</span>(<span class="ident">ch</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">is_identifier_start</span>(<span class="ident">ch</span>: <span class="ident">u32</span>) -&gt; <span class="ident">bool</span> {
         <span class="macro">matches!</span>(<span class="ident">ch</span>, <span class="number">0x0024</span> <span class="comment">/* $ */</span> <span class="op">|</span> <span class="number">0x005F</span> <span class="comment">/* _ */</span>)
             <span class="op">|</span><span class="op">|</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">ch</span>) <span class="op">=</span> <span class="ident">char::try_from</span>(<span class="ident">ch</span>) {
                 <span class="ident">ch</span>.<span class="ident">is_id_start</span>()
@@ -252,7 +252,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-names-and-keywords</span>
-    <span class="kw">fn</span> <span class="ident">is_identifier_part</span>(<span class="ident">ch</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">is_identifier_part</span>(<span class="ident">ch</span>: <span class="ident">u32</span>) -&gt; <span class="ident">bool</span> {
         <span class="macro">matches!</span>(
             <span class="ident">ch</span>,
             <span class="number">0x0024</span> <span class="comment">/* $ */</span> <span class="op">|</span> <span class="number">0x005F</span> <span class="comment">/* _ */</span> <span class="op">|</span> <span class="number">0x200C</span> <span class="comment">/* &lt;ZWNJ&gt; */</span> <span class="op">|</span> <span class="number">0x200D</span> <span class="comment">/* &lt;ZWJ&gt; */</span>
@@ -265,7 +265,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">Tokenizer</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Identifier</span> {
-    <span class="kw">fn</span> <span class="ident">lex</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">start_pos</span>: <span class="ident">Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Token</span>, <span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">lex</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">start_pos</span>: <span class="ident">Position</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Token</span>, <span class="ident">Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">R</span>: <span class="ident">Read</span>,
     {
@@ -282,7 +282,7 @@
                 ));
             }
 
-            <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>() <span class="op">&amp;&amp;</span> <span class="ident">keyword</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Keyword::With</span> {
+            <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>() <span class="op">&amp;&amp;</span> <span class="ident">keyword</span> <span class="op">==</span> <span class="ident">Keyword::With</span> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::Syntax</span>(
                     <span class="string">&quot;using &#39;with&#39; statement not allowed in strict mode&quot;</span>.<span class="ident">into</span>(),
                     <span class="ident">start_pos</span>,
@@ -290,10 +290,10 @@
             }
 
             <span class="kw">match</span> <span class="ident">keyword</span> {
-                <span class="ident">Keyword::True</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TokenKind::BooleanLiteral</span>(<span class="bool-val">true</span>),
-                <span class="ident">Keyword::False</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TokenKind::BooleanLiteral</span>(<span class="bool-val">false</span>),
-                <span class="ident">Keyword::Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TokenKind::NullLiteral</span>,
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TokenKind::Keyword</span>(<span class="ident">keyword</span>),
+                <span class="ident">Keyword::True</span> =&gt; <span class="ident">TokenKind::BooleanLiteral</span>(<span class="bool-val">true</span>),
+                <span class="ident">Keyword::False</span> =&gt; <span class="ident">TokenKind::BooleanLiteral</span>(<span class="bool-val">false</span>),
+                <span class="ident">Keyword::Null</span> =&gt; <span class="ident">TokenKind::NullLiteral</span>,
+                <span class="kw">_</span> =&gt; <span class="ident">TokenKind::Keyword</span>(<span class="ident">keyword</span>),
             }
         } <span class="kw">else</span> {
             <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>()
@@ -321,12 +321,12 @@
         <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
         <span class="ident">start_pos</span>: <span class="ident">Position</span>,
         <span class="ident">init</span>: <span class="ident">char</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">String</span>, <span class="ident">bool</span>), <span class="ident">Error</span><span class="op">&gt;</span>
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">String</span>, <span class="ident">bool</span>), <span class="ident">Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">R</span>: <span class="ident">Read</span>,
     {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">contains_escaped_chars</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">identifier_name</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">init</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;\\&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">cursor</span>.<span class="ident">next_is</span>(<span class="string">b&#39;u&#39;</span>)<span class="question-mark">?</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">identifier_name</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">init</span> <span class="op">==</span> <span class="string">&#39;\\&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">cursor</span>.<span class="ident">next_is</span>(<span class="string">b&#39;u&#39;</span>)<span class="question-mark">?</span> {
             <span class="kw">let</span> <span class="ident">ch</span> <span class="op">=</span> <span class="ident">StringLiteral::take_unicode_escape_sequence</span>(<span class="ident">cursor</span>, <span class="ident">start_pos</span>)<span class="question-mark">?</span>;
 
             <span class="kw">if</span> <span class="ident"><span class="self">Self</span>::is_identifier_start</span>(<span class="ident">ch</span>) {
@@ -342,7 +342,7 @@
 
         <span class="kw">loop</span> {
             <span class="kw">let</span> <span class="ident">ch</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek_char</span>()<span class="question-mark">?</span> {
-                <span class="prelude-val">Some</span>(<span class="number">0x005C</span> <span class="comment">/* \ */</span>) <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">peek_n</span>(<span class="number">2</span>)<span class="question-mark">?</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">8</span> <span class="op">=</span><span class="op">=</span> <span class="number">0x0075</span> <span class="comment">/* u */</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Some</span>(<span class="number">0x005C</span> <span class="comment">/* \ */</span>) <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">peek_n</span>(<span class="number">2</span>)<span class="question-mark">?</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">8</span> <span class="op">==</span> <span class="number">0x0075</span> <span class="comment">/* u */</span> =&gt; {
                     <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">pos</span>();
                     <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next_byte</span>();
                     <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next_byte</span>();
@@ -355,11 +355,11 @@
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::Syntax</span>(<span class="string">&quot;invalid identifier part&quot;</span>.<span class="ident">into</span>(), <span class="ident">pos</span>));
                     }
                 }
-                <span class="prelude-val">Some</span>(<span class="ident">ch</span>) <span class="kw">if</span> <span class="ident"><span class="self">Self</span>::is_identifier_part</span>(<span class="ident">ch</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">ch</span>) <span class="kw">if</span> <span class="ident"><span class="self">Self</span>::is_identifier_part</span>(<span class="ident">ch</span>) =&gt; {
                     <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next_char</span>()<span class="question-mark">?</span>;
                     <span class="ident">ch</span>
                 },
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
+                <span class="kw">_</span> =&gt; <span class="kw">break</span>,
             };
 
             <span class="ident">identifier_name</span>.<span class="ident">push</span>(<span class="ident">char::try_from</span>(<span class="ident">ch</span>).<span class="ident">unwrap</span>());

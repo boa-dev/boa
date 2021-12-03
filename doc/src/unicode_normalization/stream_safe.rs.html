@@ -188,7 +188,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="ident">StreamSafe</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">iter</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">iter</span>: <span class="ident">I</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">iter</span>,
             <span class="ident">nonstarter_count</span>: <span class="number">0</span>,
@@ -201,10 +201,10 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">char</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">next_ch</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">take</span>().<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next</span>()) {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
-            <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span>,
+            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">c</span>) =&gt; <span class="ident">c</span>,
         };
         <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> <span class="ident">classify_nonstarters</span>(<span class="ident">next_ch</span>);
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">nonstarter_count</span> <span class="op">+</span> <span class="ident">d</span>.<span class="ident">leading_nonstarters</span> <span class="op">&gt;</span> <span class="ident">MAX_NONSTARTERS</span> {
@@ -218,7 +218,7 @@
 
         <span class="comment">// Is the character all nonstarters in NFKD? If so, increment our counter of contiguous</span>
         <span class="comment">// nonstarters in NKFD.</span>
-        <span class="kw">if</span> <span class="ident">d</span>.<span class="ident">leading_nonstarters</span> <span class="op">=</span><span class="op">=</span> <span class="ident">d</span>.<span class="ident">decomposition_len</span> {
+        <span class="kw">if</span> <span class="ident">d</span>.<span class="ident">leading_nonstarters</span> <span class="op">==</span> <span class="ident">d</span>.<span class="ident">decomposition_len</span> {
             <span class="self">self</span>.<span class="ident">nonstarter_count</span> <span class="op">+</span><span class="op">=</span> <span class="ident">d</span>.<span class="ident">decomposition_len</span>;
         }
         <span class="comment">// Otherwise, reset the counter to the decomposition&#39;s number of trailing nonstarters.</span>
@@ -237,7 +237,7 @@
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">classify_nonstarters</span>(<span class="ident">c</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Decomposition</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">classify_nonstarters</span>(<span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="ident">Decomposition</span> {
     <span class="comment">// As usual, fast path for ASCII (which is always a starter)</span>
     <span class="kw">if</span> <span class="ident">c</span> <span class="op">&lt;</span><span class="op">=</span> <span class="string">&#39;\x7f&#39;</span> {
         <span class="kw">return</span> <span class="ident">Decomposition</span> {
@@ -256,12 +256,12 @@
     }
     <span class="kw">let</span> <span class="ident">decomp</span> <span class="op">=</span> <span class="ident">compatibility_fully_decomposed</span>(<span class="ident">c</span>).<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">canonical_fully_decomposed</span>(<span class="ident">c</span>));
     <span class="kw">match</span> <span class="ident">decomp</span> {
-        <span class="prelude-val">Some</span>(<span class="ident">decomp</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Decomposition</span> {
+        <span class="prelude-val">Some</span>(<span class="ident">decomp</span>) =&gt; <span class="ident">Decomposition</span> {
             <span class="ident">leading_nonstarters</span>: <span class="ident">stream_safe_leading_nonstarters</span>(<span class="ident">c</span>),
             <span class="ident">trailing_nonstarters</span>: <span class="ident">stream_safe_trailing_nonstarters</span>(<span class="ident">c</span>),
             <span class="ident">decomposition_len</span>: <span class="ident">decomp</span>.<span class="ident">len</span>(),
         },
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">None</span> =&gt; {
             <span class="kw">let</span> <span class="ident">is_nonstarter</span> <span class="op">=</span> <span class="ident">canonical_combining_class</span>(<span class="ident">c</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>;
             <span class="kw">let</span> <span class="ident">nonstarter</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">is_nonstarter</span> { <span class="number">1</span> } <span class="kw">else</span> { <span class="number">0</span> };
             <span class="ident">Decomposition</span> {
@@ -284,7 +284,7 @@
 
     <span class="kw">use</span> <span class="ident">core::char</span>;
 
-    <span class="kw">fn</span> <span class="ident">stream_safe</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+    <span class="kw">fn</span> <span class="ident">stream_safe</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">String</span> {
         <span class="ident">StreamSafe::new</span>(<span class="ident">s</span>.<span class="ident">chars</span>()).<span class="ident">collect</span>()
     }
 
@@ -314,8 +314,8 @@
         <span class="comment">// Highest character in the `compat_fully_decomp` table is 2FA1D</span>
         <span class="kw">for</span> <span class="ident">ch</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">0x2FA1E</span> {
             <span class="kw">let</span> <span class="ident">ch</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">char::from_u32</span>(<span class="ident">ch</span>) {
-                <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span>,
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">continue</span>,
+                <span class="prelude-val">Some</span>(<span class="ident">c</span>) =&gt; <span class="ident">c</span>,
+                <span class="prelude-val">None</span> =&gt; <span class="kw">continue</span>,
             };
             <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">classify_nonstarters</span>(<span class="ident">ch</span>);
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">Vec::new</span>();

@@ -604,7 +604,7 @@
     <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;z</span>;
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;z</span><span class="op">&gt;</span> <span class="ident">Validator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;z</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">p</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;z</span> <span class="kw-2">mut</span> <span class="ident">Parser</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">p</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;z</span> <span class="kw-2">mut</span> <span class="ident">Parser</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">Validator</span>(<span class="ident">p</span>)
     }
 
@@ -613,7 +613,7 @@
         <span class="ident">needs_val_of</span>: <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
         <span class="ident">subcmd_name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
         <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ArgMatcher</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;Validator::validate;&quot;</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reqs_validated</span> <span class="op">=</span> <span class="bool-val">false</span>;
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">add_env</span>(<span class="ident">matcher</span>)<span class="question-mark">?</span>;
@@ -624,14 +624,14 @@
                 <span class="self">self</span>.<span class="number">0</span>
                     .<span class="ident">opts</span>
                     .<span class="ident">iter</span>()
-                    .<span class="ident">find</span>(<span class="op">|</span><span class="ident">o</span><span class="op">|</span> <span class="ident">o</span>.<span class="ident">b</span>.<span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="ident">a</span>)
+                    .<span class="ident">find</span>(<span class="op">|</span><span class="ident">o</span><span class="op">|</span> <span class="ident">o</span>.<span class="ident">b</span>.<span class="ident">name</span> <span class="op">==</span> <span class="ident">a</span>)
                     .<span class="ident">expect</span>(<span class="ident">INTERNAL_ERROR_MSG</span>)
                     .<span class="ident">clone</span>()
             };
             <span class="self">self</span>.<span class="ident">validate_required</span>(<span class="ident">matcher</span>)<span class="question-mark">?</span>;
             <span class="ident">reqs_validated</span> <span class="op">=</span> <span class="bool-val">true</span>;
             <span class="kw">let</span> <span class="ident">should_err</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="ident">matcher</span>.<span class="number">0</span>.<span class="ident">args</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">o</span>.<span class="ident">b</span>.<span class="ident">name</span>) {
-                <span class="ident">v</span>.<span class="ident">vals</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span>(<span class="ident">o</span>.<span class="ident">v</span>.<span class="ident">min_vals</span>.<span class="ident">is_some</span>() <span class="op">&amp;&amp;</span> <span class="ident">o</span>.<span class="ident">v</span>.<span class="ident">min_vals</span>.<span class="ident">unwrap</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span>)
+                <span class="ident">v</span>.<span class="ident">vals</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span>(<span class="ident">o</span>.<span class="ident">v</span>.<span class="ident">min_vals</span>.<span class="ident">is_some</span>() <span class="op">&amp;&amp;</span> <span class="ident">o</span>.<span class="ident">v</span>.<span class="ident">min_vals</span>.<span class="ident">unwrap</span>() <span class="op">==</span> <span class="number">0</span>)
             } <span class="kw">else</span> {
                 <span class="bool-val">true</span>
             };
@@ -671,7 +671,7 @@
         <span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="ident">A</span>,
         <span class="ident">ma</span>: <span class="kw-2">&amp;</span><span class="ident">MatchedArg</span>,
         <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="ident">ArgMatcher</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
+    ) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">A</span>: <span class="ident">AnyArg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Display</span>,
     {
@@ -742,7 +742,7 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">build_err</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="ident">ArgMatcher</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">build_err</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="ident">ArgMatcher</span>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;build_err!: name={}&quot;</span>, <span class="ident">name</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">c_with</span> <span class="op">=</span> <span class="macro">find_from!</span>(<span class="self">self</span>.<span class="number">0</span>, <span class="kw-2">&amp;</span><span class="ident">name</span>, <span class="ident">blacklist</span>, <span class="ident">matcher</span>);
         <span class="ident">c_with</span> <span class="op">=</span> <span class="ident">c_with</span>.<span class="ident">or</span>(<span class="self">self</span>
@@ -763,26 +763,26 @@
             <span class="prelude-val">Err</span>(<span class="ident">Error::argument_conflict</span>(<span class="ident">o</span>, <span class="ident">c_with</span>, <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">usg</span>, <span class="self">self</span>.<span class="number">0</span>.<span class="ident">color</span>()))
         } <span class="kw">else</span> {
             <span class="kw">match</span> <span class="macro">find_by_name!</span>(<span class="self">self</span>.<span class="number">0</span>, <span class="ident">name</span>, <span class="ident">positionals</span>, <span class="ident">values</span>) {
-                <span class="prelude-val">Some</span>(<span class="ident">p</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">p</span>) =&gt; {
                     <span class="macro">debugln!</span>(<span class="string">&quot;build_err!: It was a positional...&quot;</span>);
                     <span class="prelude-val">Err</span>(<span class="ident">Error::argument_conflict</span>(<span class="ident">p</span>, <span class="ident">c_with</span>, <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">usg</span>, <span class="self">self</span>.<span class="number">0</span>.<span class="ident">color</span>()))
                 }
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="ident">INTERNAL_ERROR_MSG</span>),
+                <span class="prelude-val">None</span> =&gt; <span class="macro">panic!</span>(<span class="ident">INTERNAL_ERROR_MSG</span>),
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">validate_blacklist</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ArgMatcher</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">validate_blacklist</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ArgMatcher</span>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;Validator::validate_blacklist;&quot;</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">conflicts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
         <span class="kw">for</span> (<span class="kw-2">&amp;</span><span class="ident">name</span>, <span class="kw">_</span>) <span class="kw">in</span> <span class="ident">matcher</span>.<span class="ident">iter</span>() {
             <span class="macro">debugln!</span>(<span class="string">&quot;Validator::validate_blacklist:iter:{};&quot;</span>, <span class="ident">name</span>);
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">grps</span>) <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">groups_for_arg</span>(<span class="ident">name</span>) {
                 <span class="kw">for</span> <span class="ident">grp</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">grps</span> {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">g</span>) <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">groups</span>.<span class="ident">iter</span>().<span class="ident">find</span>(<span class="op">|</span><span class="ident">g</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">g</span>.<span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="ident">grp</span>) {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">g</span>) <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">groups</span>.<span class="ident">iter</span>().<span class="ident">find</span>(<span class="op">|</span><span class="ident">g</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">g</span>.<span class="ident">name</span> <span class="op">==</span> <span class="ident">grp</span>) {
                         <span class="kw">if</span> <span class="op">!</span><span class="ident">g</span>.<span class="ident">multiple</span> {
                             <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">g</span>.<span class="ident">args</span> {
-                                <span class="kw">if</span> <span class="ident">arg</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">name</span> {
+                                <span class="kw">if</span> <span class="ident">arg</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">name</span> {
                                     <span class="kw">continue</span>;
                                 }
                                 <span class="ident">conflicts</span>.<span class="ident">push</span>(<span class="ident">arg</span>);
@@ -828,7 +828,7 @@
                 <span class="ident">name</span>
             );
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">should_err</span> <span class="op">=</span> <span class="bool-val">false</span>;
-            <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">groups</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">g</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">g</span>.<span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="ident">name</span>) {
+            <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">groups</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">g</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">g</span>.<span class="ident">name</span> <span class="op">==</span> <span class="ident">name</span>) {
                 <span class="macro">debugln!</span>(
                     <span class="string">&quot;Validator::validate_blacklist:iter:{}: groups contains it...&quot;</span>,
                     <span class="ident">name</span>
@@ -862,7 +862,7 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">validate_matched_args</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ArgMatcher</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">validate_matched_args</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ArgMatcher</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;Validator::validate_matched_args;&quot;</span>);
         <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">ma</span>) <span class="kw">in</span> <span class="ident">matcher</span>.<span class="ident">iter</span>() {
             <span class="macro">debugln!</span>(
@@ -888,7 +888,7 @@
                     .<span class="number">0</span>
                     .<span class="ident">groups</span>
                     .<span class="ident">iter</span>()
-                    .<span class="ident">find</span>(<span class="op">|</span><span class="ident">g</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">g</span>.<span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="ident">name</span>)
+                    .<span class="ident">find</span>(<span class="op">|</span><span class="ident">g</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">g</span>.<span class="ident">name</span> <span class="op">==</span> <span class="ident">name</span>)
                     .<span class="ident">expect</span>(<span class="ident">INTERNAL_ERROR_MSG</span>);
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">g_reqs</span>) <span class="op">=</span> <span class="ident">grp</span>.<span class="ident">requires</span> {
                     <span class="kw">if</span> <span class="ident">g_reqs</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">n</span><span class="op">|</span> <span class="op">!</span><span class="ident">matcher</span>.<span class="ident">contains</span>(<span class="ident">n</span>)) {
@@ -905,7 +905,7 @@
         <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">A</span>,
         <span class="ident">ma</span>: <span class="kw-2">&amp;</span><span class="ident">MatchedArg</span>,
         <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="ident">ArgMatcher</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
+    ) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">A</span>: <span class="ident">AnyArg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Display</span>,
     {
@@ -926,7 +926,7 @@
         <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">A</span>,
         <span class="ident">ma</span>: <span class="kw-2">&amp;</span><span class="ident">MatchedArg</span>,
         <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="ident">ArgMatcher</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
+    ) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">A</span>: <span class="ident">AnyArg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Display</span>,
     {
@@ -948,8 +948,8 @@
                     } <span class="kw">else</span> {
                         <span class="ident">ma</span>.<span class="ident">vals</span>.<span class="ident">len</span>()
                     },
-                    <span class="kw">if</span> <span class="ident">ma</span>.<span class="ident">vals</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span>
-                        <span class="op">|</span><span class="op">|</span> (<span class="ident">a</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Multiple</span>) <span class="op">&amp;&amp;</span> (<span class="ident">ma</span>.<span class="ident">vals</span>.<span class="ident">len</span>() <span class="op">%</span> <span class="ident">num</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">=</span><span class="op">=</span> <span class="number">1</span>)
+                    <span class="kw">if</span> <span class="ident">ma</span>.<span class="ident">vals</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span>
+                        <span class="op">|</span><span class="op">|</span> (<span class="ident">a</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Multiple</span>) <span class="op">&amp;&amp;</span> (<span class="ident">ma</span>.<span class="ident">vals</span>.<span class="ident">len</span>() <span class="op">%</span> <span class="ident">num</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">==</span> <span class="number">1</span>)
                     {
                         <span class="string">&quot;as&quot;</span>
                     } <span class="kw">else</span> {
@@ -989,7 +989,7 @@
                     <span class="self">self</span>.<span class="number">0</span>.<span class="ident">color</span>(),
                 ));
             }
-            <span class="ident">num</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>
+            <span class="ident">num</span> <span class="op">==</span> <span class="number">0</span>
         } <span class="kw">else</span> {
             <span class="bool-val">false</span>
         };
@@ -1010,7 +1010,7 @@
         <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">A</span>,
         <span class="ident">ma</span>: <span class="kw-2">&amp;</span><span class="ident">MatchedArg</span>,
         <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="ident">ArgMatcher</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
+    ) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">A</span>: <span class="ident">AnyArg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Display</span>,
     {
@@ -1018,7 +1018,7 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">a_reqs</span>) <span class="op">=</span> <span class="ident">a</span>.<span class="ident">requires</span>() {
             <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">val</span>, <span class="ident">name</span>) <span class="kw">in</span> <span class="ident">a_reqs</span>.<span class="ident">iter</span>().<span class="ident">filter</span>(<span class="op">|</span><span class="op">&amp;&amp;</span>(<span class="ident">val</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">val</span>.<span class="ident">is_some</span>()) {
                 <span class="kw">let</span> <span class="ident">missing_req</span> <span class="op">=</span>
-                    <span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span> <span class="op">=</span><span class="op">=</span> <span class="ident">val</span>.<span class="ident">expect</span>(<span class="ident">INTERNAL_ERROR_MSG</span>) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">matcher</span>.<span class="ident">contains</span>(<span class="ident">name</span>);
+                    <span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span> <span class="op">==</span> <span class="ident">val</span>.<span class="ident">expect</span>(<span class="ident">INTERNAL_ERROR_MSG</span>) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">matcher</span>.<span class="ident">contains</span>(<span class="ident">name</span>);
                 <span class="kw">if</span> <span class="ident">ma</span>.<span class="ident">vals</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="ident">missing_req</span>) {
                     <span class="kw">return</span> <span class="self">self</span>.<span class="ident">missing_required_error</span>(<span class="ident">matcher</span>, <span class="prelude-val">None</span>);
                 }
@@ -1032,7 +1032,7 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">validate_required</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="ident">ArgMatcher</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">validate_required</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="ident">ArgMatcher</span>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">debugln!</span>(
             <span class="string">&quot;Validator::validate_required: required={:?};&quot;</span>,
             <span class="self">self</span>.<span class="number">0</span>.<span class="ident">required</span>
@@ -1068,7 +1068,7 @@
         <span class="kw">if</span> <span class="ident">should_err</span> {
             <span class="kw">for</span> <span class="ident">r</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">to_rem</span> {
                 <span class="lifetime">&#39;inner</span>: <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> (<span class="number">0</span>..<span class="self">self</span>.<span class="number">0</span>.<span class="ident">required</span>.<span class="ident">len</span>()).<span class="ident">rev</span>() {
-                    <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>.<span class="ident">required</span>[<span class="ident">i</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">r</span> {
+                    <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>.<span class="ident">required</span>[<span class="ident">i</span>] <span class="op">==</span> <span class="ident">r</span> {
                         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">required</span>.<span class="ident">swap_remove</span>(<span class="ident">i</span>);
                         <span class="kw">break</span> <span class="lifetime">&#39;inner</span>;
                     }
@@ -1080,7 +1080,7 @@
         <span class="comment">// Validate the conditionally required args</span>
         <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">r</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>.<span class="ident">r_ifs</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ma</span>) <span class="op">=</span> <span class="ident">matcher</span>.<span class="ident">get</span>(<span class="ident">a</span>) {
-                <span class="kw">if</span> <span class="ident">matcher</span>.<span class="ident">get</span>(<span class="ident">r</span>).<span class="ident">is_none</span>() <span class="op">&amp;&amp;</span> <span class="ident">ma</span>.<span class="ident">vals</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">val</span><span class="op">|</span> <span class="ident">val</span> <span class="op">=</span><span class="op">=</span> <span class="ident">v</span>) {
+                <span class="kw">if</span> <span class="ident">matcher</span>.<span class="ident">get</span>(<span class="ident">r</span>).<span class="ident">is_none</span>() <span class="op">&amp;&amp;</span> <span class="ident">ma</span>.<span class="ident">vals</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">val</span><span class="op">|</span> <span class="ident">val</span> <span class="op">==</span> <span class="ident">v</span>) {
                     <span class="kw">return</span> <span class="self">self</span>.<span class="ident">missing_required_error</span>(<span class="ident">matcher</span>, <span class="prelude-val">Some</span>(<span class="ident">r</span>));
                 }
             }
@@ -1088,7 +1088,7 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">validate_arg_conflicts</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">AnyArg</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="ident">ArgMatcher</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">validate_arg_conflicts</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">AnyArg</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="ident">ArgMatcher</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;Validator::validate_arg_conflicts: a={:?};&quot;</span>, <span class="ident">a</span>.<span class="ident">name</span>());
         <span class="ident">a</span>.<span class="ident">blacklist</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">bl</span><span class="op">|</span> {
             <span class="ident">bl</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">conf</span><span class="op">|</span> {
@@ -1097,20 +1097,20 @@
                         .<span class="number">0</span>
                         .<span class="ident">groups</span>
                         .<span class="ident">iter</span>()
-                        .<span class="ident">find</span>(<span class="op">|</span><span class="ident">g</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">g</span>.<span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="ident">conf</span>)
+                        .<span class="ident">find</span>(<span class="op">|</span><span class="ident">g</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">g</span>.<span class="ident">name</span> <span class="op">==</span> <span class="ident">conf</span>)
                         .<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="op">|</span><span class="ident">g</span><span class="op">|</span> <span class="ident">g</span>.<span class="ident">args</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">arg</span><span class="op">|</span> <span class="ident">matcher</span>.<span class="ident">contains</span>(<span class="ident">arg</span>)))
             })
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">validate_required_unless</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">AnyArg</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="ident">ArgMatcher</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">validate_required_unless</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">AnyArg</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="ident">ArgMatcher</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;Validator::validate_required_unless: a={:?};&quot;</span>, <span class="ident">a</span>.<span class="ident">name</span>());
         <span class="macro">macro_rules!</span> <span class="ident">check</span> {
-            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">how</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">_self</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {{
+            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">how</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">_self</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>:<span class="ident">ident</span>) =&gt; {{
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>.<span class="ident">required_unless</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">ru</span><span class="op">|</span> {
                     <span class="ident">ru</span>.<span class="ident">iter</span>().<span class="macro-nonterminal">$</span><span class="macro-nonterminal">how</span>(<span class="op">|</span><span class="ident">n</span><span class="op">|</span> {
                         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>.<span class="ident">contains</span>(<span class="ident">n</span>) <span class="op">|</span><span class="op">|</span> {
-                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">grp</span>) <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">_self</span>.<span class="ident">groups</span>.<span class="ident">iter</span>().<span class="ident">find</span>(<span class="op">|</span><span class="ident">g</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">g</span>.<span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="ident">n</span>) {
+                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">grp</span>) <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">_self</span>.<span class="ident">groups</span>.<span class="ident">iter</span>().<span class="ident">find</span>(<span class="op">|</span><span class="ident">g</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">g</span>.<span class="ident">name</span> <span class="op">==</span> <span class="ident">n</span>) {
                                 <span class="ident">grp</span>.<span class="ident">args</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">arg</span><span class="op">|</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>.<span class="ident">contains</span>(<span class="ident">arg</span>))
                             } <span class="kw">else</span> {
                                 <span class="bool-val">false</span>
@@ -1127,7 +1127,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">missing_required_error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="ident">ArgMatcher</span>, <span class="ident">extra</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">missing_required_error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="ident">ArgMatcher</span>, <span class="ident">extra</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;Validator::missing_required_error: extra={:?}&quot;</span>, <span class="ident">extra</span>);
         <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">Colorizer::new</span>(<span class="ident">ColorizerOption</span> {
             <span class="ident">use_stderr</span>: <span class="bool-val">true</span>,
@@ -1158,7 +1158,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_missing_required_ok</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">AnyArg</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="ident">ArgMatcher</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">is_missing_required_ok</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">AnyArg</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="ident">ArgMatcher</span>) -&gt; <span class="ident">bool</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;Validator::is_missing_required_ok: a={}&quot;</span>, <span class="ident">a</span>.<span class="ident">name</span>());
         <span class="self">self</span>.<span class="ident">validate_arg_conflicts</span>(<span class="ident">a</span>, <span class="ident">matcher</span>).<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
             <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">validate_required_unless</span>(<span class="ident">a</span>, <span class="ident">matcher</span>).<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)

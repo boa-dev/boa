@@ -37,10 +37,10 @@
 <span class="kw">use</span> <span class="ident">std::io</span>;
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Error</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">io::Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <span class="ident">Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <span class="ident">Error</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">match</span> <span class="ident">err</span>.<span class="ident">raw_os_error</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">errno</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">io::Error::from_raw_os_error</span>(<span class="ident">errno</span>),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">io::Error::new</span>(<span class="ident">io::ErrorKind::Other</span>, <span class="ident">err</span>),
+            <span class="prelude-val">Some</span>(<span class="ident">errno</span>) =&gt; <span class="ident">io::Error::from_raw_os_error</span>(<span class="ident">errno</span>),
+            <span class="prelude-val">None</span> =&gt; <span class="ident">io::Error::new</span>(<span class="ident">io::ErrorKind::Other</span>, <span class="ident">err</span>),
         }
     }
 }

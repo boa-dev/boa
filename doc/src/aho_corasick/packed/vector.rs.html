@@ -202,7 +202,7 @@
 <span class="doccomment">/// Shift `a` to the left by two bytes (removing its two most significant</span>
 <span class="doccomment">/// bytes), and concatenate it with the the two most significant bytes of `b`.</span>
 <span class="attribute">#[<span class="ident">target_feature</span>(<span class="ident">enable</span> <span class="op">=</span> <span class="string">&quot;avx2&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">alignr256_14</span>(<span class="ident">a</span>: <span class="ident">__m256i</span>, <span class="ident">b</span>: <span class="ident">__m256i</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">__m256i</span> {
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">alignr256_14</span>(<span class="ident">a</span>: <span class="ident">__m256i</span>, <span class="ident">b</span>: <span class="ident">__m256i</span>) -&gt; <span class="ident">__m256i</span> {
     <span class="comment">// Credit goes to jneem for figuring this out:</span>
     <span class="comment">// https://github.com/jneem/teddy/blob/9ab5e899ad6ef6911aecd3cf1033f1abe6e1f66c/src/x86/teddy_simd.rs#L145-L184</span>
     <span class="comment">//</span>
@@ -243,7 +243,7 @@
 <span class="doccomment">/// Shift `a` to the left by one byte (removing its most significant byte), and</span>
 <span class="doccomment">/// concatenate it with the the most significant byte of `b`.</span>
 <span class="attribute">#[<span class="ident">target_feature</span>(<span class="ident">enable</span> <span class="op">=</span> <span class="string">&quot;avx2&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">alignr256_15</span>(<span class="ident">a</span>: <span class="ident">__m256i</span>, <span class="ident">b</span>: <span class="ident">__m256i</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">__m256i</span> {
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">alignr256_15</span>(<span class="ident">a</span>: <span class="ident">__m256i</span>, <span class="ident">b</span>: <span class="ident">__m256i</span>) -&gt; <span class="ident">__m256i</span> {
     <span class="comment">// For explanation, see alignr256_14.</span>
     <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">_mm256_permute2x128_si256</span>(<span class="ident">b</span>, <span class="ident">a</span>, <span class="number">0x21</span>);
     <span class="ident">_mm256_alignr_epi8</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="number">15</span>)
@@ -253,7 +253,7 @@
 <span class="doccomment">/// element of the array returned corresponds to the least significant 64-bit</span>
 <span class="doccomment">/// lane in `a`.</span>
 <span class="attribute">#[<span class="ident">target_feature</span>(<span class="ident">enable</span> <span class="op">=</span> <span class="string">&quot;ssse3&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unpack64x128</span>(<span class="ident">a</span>: <span class="ident">__m128i</span>) <span class="op">-</span><span class="op">&gt;</span> [<span class="ident">u64</span>; <span class="number">2</span>] {
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unpack64x128</span>(<span class="ident">a</span>: <span class="ident">__m128i</span>) -&gt; [<span class="ident">u64</span>; <span class="number">2</span>] {
     [
         <span class="ident">_mm_cvtsi128_si64</span>(<span class="ident">a</span>) <span class="kw">as</span> <span class="ident">u64</span>,
         <span class="ident">_mm_cvtsi128_si64</span>(<span class="ident">_mm_srli_si128</span>(<span class="ident">a</span>, <span class="number">8</span>)) <span class="kw">as</span> <span class="ident">u64</span>,
@@ -264,7 +264,7 @@
 <span class="doccomment">/// element of the array returned corresponds to the least significant 64-bit</span>
 <span class="doccomment">/// lane in `a`.</span>
 <span class="attribute">#[<span class="ident">target_feature</span>(<span class="ident">enable</span> <span class="op">=</span> <span class="string">&quot;avx2&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unpack64x256</span>(<span class="ident">a</span>: <span class="ident">__m256i</span>) <span class="op">-</span><span class="op">&gt;</span> [<span class="ident">u64</span>; <span class="number">4</span>] {
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unpack64x256</span>(<span class="ident">a</span>: <span class="ident">__m256i</span>) -&gt; [<span class="ident">u64</span>; <span class="number">4</span>] {
     <span class="comment">// Using transmute here is precisely equivalent, but actually slower. It&#39;s</span>
     <span class="comment">// not quite clear why.</span>
     <span class="kw">let</span> <span class="ident">lo</span> <span class="op">=</span> <span class="ident">_mm256_extracti128_si256</span>(<span class="ident">a</span>, <span class="number">0</span>);
@@ -284,7 +284,7 @@
 <span class="doccomment">/// is a 64-bit integer and a1/b1 correspond to the least significant 64 bits,</span>
 <span class="doccomment">/// then the return value is `b2 b1 a2 a1`.</span>
 <span class="attribute">#[<span class="ident">target_feature</span>(<span class="ident">enable</span> <span class="op">=</span> <span class="string">&quot;avx2&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unpacklo64x256</span>(<span class="ident">a</span>: <span class="ident">__m256i</span>, <span class="ident">b</span>: <span class="ident">__m256i</span>) <span class="op">-</span><span class="op">&gt;</span> [<span class="ident">u64</span>; <span class="number">4</span>] {
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unpacklo64x256</span>(<span class="ident">a</span>: <span class="ident">__m256i</span>, <span class="ident">b</span>: <span class="ident">__m256i</span>) -&gt; [<span class="ident">u64</span>; <span class="number">4</span>] {
     <span class="kw">let</span> <span class="ident">lo</span> <span class="op">=</span> <span class="ident">_mm256_castsi256_si128</span>(<span class="ident">a</span>);
     <span class="kw">let</span> <span class="ident">hi</span> <span class="op">=</span> <span class="ident">_mm256_castsi256_si128</span>(<span class="ident">b</span>);
     [
@@ -297,16 +297,16 @@
 
 <span class="doccomment">/// Returns true if and only if all bits in the given 128-bit vector are 0.</span>
 <span class="attribute">#[<span class="ident">target_feature</span>(<span class="ident">enable</span> <span class="op">=</span> <span class="string">&quot;ssse3&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">is_all_zeroes128</span>(<span class="ident">a</span>: <span class="ident">__m128i</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">is_all_zeroes128</span>(<span class="ident">a</span>: <span class="ident">__m128i</span>) -&gt; <span class="ident">bool</span> {
     <span class="kw">let</span> <span class="ident">cmp</span> <span class="op">=</span> <span class="ident">_mm_cmpeq_epi8</span>(<span class="ident">a</span>, <span class="ident">zeroes128</span>());
-    <span class="ident">_mm_movemask_epi8</span>(<span class="ident">cmp</span>) <span class="kw">as</span> <span class="ident">u32</span> <span class="op">=</span><span class="op">=</span> <span class="number">0xFFFF</span>
+    <span class="ident">_mm_movemask_epi8</span>(<span class="ident">cmp</span>) <span class="kw">as</span> <span class="ident">u32</span> <span class="op">==</span> <span class="number">0xFFFF</span>
 }
 
 <span class="doccomment">/// Returns true if and only if all bits in the given 256-bit vector are 0.</span>
 <span class="attribute">#[<span class="ident">target_feature</span>(<span class="ident">enable</span> <span class="op">=</span> <span class="string">&quot;avx2&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">is_all_zeroes256</span>(<span class="ident">a</span>: <span class="ident">__m256i</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">is_all_zeroes256</span>(<span class="ident">a</span>: <span class="ident">__m256i</span>) -&gt; <span class="ident">bool</span> {
     <span class="kw">let</span> <span class="ident">cmp</span> <span class="op">=</span> <span class="ident">_mm256_cmpeq_epi8</span>(<span class="ident">a</span>, <span class="ident">zeroes256</span>());
-    <span class="ident">_mm256_movemask_epi8</span>(<span class="ident">cmp</span>) <span class="kw">as</span> <span class="ident">u32</span> <span class="op">=</span><span class="op">=</span> <span class="number">0xFFFFFFFF</span>
+    <span class="ident">_mm256_movemask_epi8</span>(<span class="ident">cmp</span>) <span class="kw">as</span> <span class="ident">u32</span> <span class="op">==</span> <span class="number">0xFFFFFFFF</span>
 }
 
 <span class="doccomment">/// Load a 128-bit vector from slice at the given position. The slice does</span>
@@ -318,7 +318,7 @@
 <span class="doccomment">/// example, shifting the resulting vector right is equivalent to logically</span>
 <span class="doccomment">/// shifting the bytes in `slice` left.</span>
 <span class="attribute">#[<span class="ident">target_feature</span>(<span class="ident">enable</span> <span class="op">=</span> <span class="string">&quot;sse2&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">loadu128</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">at</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">__m128i</span> {
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">loadu128</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">at</span>: <span class="ident">usize</span>) -&gt; <span class="ident">__m128i</span> {
     <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">slice</span>.<span class="ident">get_unchecked</span>(<span class="ident">at</span>..).<span class="ident">as_ptr</span>();
     <span class="ident">_mm_loadu_si128</span>(<span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">__m128i</span>)
 }
@@ -332,32 +332,32 @@
 <span class="doccomment">/// example, shifting the resulting vector right is equivalent to logically</span>
 <span class="doccomment">/// shifting the bytes in `slice` left.</span>
 <span class="attribute">#[<span class="ident">target_feature</span>(<span class="ident">enable</span> <span class="op">=</span> <span class="string">&quot;avx2&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">loadu256</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">at</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">__m256i</span> {
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">loadu256</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">at</span>: <span class="ident">usize</span>) -&gt; <span class="ident">__m256i</span> {
     <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">slice</span>.<span class="ident">get_unchecked</span>(<span class="ident">at</span>..).<span class="ident">as_ptr</span>();
     <span class="ident">_mm256_loadu_si256</span>(<span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">__m256i</span>)
 }
 
 <span class="doccomment">/// Returns a 128-bit vector with all bits set to 0.</span>
 <span class="attribute">#[<span class="ident">target_feature</span>(<span class="ident">enable</span> <span class="op">=</span> <span class="string">&quot;sse2&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">zeroes128</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">__m128i</span> {
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">zeroes128</span>() -&gt; <span class="ident">__m128i</span> {
     <span class="ident">_mm_set1_epi8</span>(<span class="number">0</span>)
 }
 
 <span class="doccomment">/// Returns a 256-bit vector with all bits set to 0.</span>
 <span class="attribute">#[<span class="ident">target_feature</span>(<span class="ident">enable</span> <span class="op">=</span> <span class="string">&quot;avx2&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">zeroes256</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">__m256i</span> {
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">zeroes256</span>() -&gt; <span class="ident">__m256i</span> {
     <span class="ident">_mm256_set1_epi8</span>(<span class="number">0</span>)
 }
 
 <span class="doccomment">/// Returns a 128-bit vector with all bits set to 1.</span>
 <span class="attribute">#[<span class="ident">target_feature</span>(<span class="ident">enable</span> <span class="op">=</span> <span class="string">&quot;sse2&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">ones128</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">__m128i</span> {
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">ones128</span>() -&gt; <span class="ident">__m128i</span> {
     <span class="ident">_mm_set1_epi8</span>(<span class="number">0xFF</span> <span class="kw">as</span> <span class="ident">u8</span> <span class="kw">as</span> <span class="ident">i8</span>)
 }
 
 <span class="doccomment">/// Returns a 256-bit vector with all bits set to 1.</span>
 <span class="attribute">#[<span class="ident">target_feature</span>(<span class="ident">enable</span> <span class="op">=</span> <span class="string">&quot;avx2&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">ones256</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">__m256i</span> {
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">ones256</span>() -&gt; <span class="ident">__m256i</span> {
     <span class="ident">_mm256_set1_epi8</span>(<span class="number">0xFF</span> <span class="kw">as</span> <span class="ident">u8</span> <span class="kw">as</span> <span class="ident">i8</span>)
 }
 </code></pre></div>

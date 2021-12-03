@@ -714,7 +714,7 @@
 <span class="doccomment">/// # try_main().unwrap()</span>
 <span class="doccomment">/// ```</span>
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Value</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="ident">Value</span> {
         <span class="ident">Value::Null</span>
     }
 }
@@ -733,7 +733,7 @@
 <span class="doccomment">/// let val = serde_yaml::to_value(&quot;s&quot;).unwrap();</span>
 <span class="doccomment">/// assert_eq!(val, Value::String(&quot;s&quot;.to_owned()));</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_value</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span>, <span class="ident">Error</span><span class="op">&gt;</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_value</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span>, <span class="ident">Error</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">Serialize</span>,
 {
@@ -756,7 +756,7 @@
 <span class="doccomment">/// let s: String = serde_yaml::from_value(val).unwrap();</span>
 <span class="doccomment">/// assert_eq!(&quot;foo&quot;, s);</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_value</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Error</span><span class="op">&gt;</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_value</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">Value</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Error</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">DeserializeOwned</span>,
 {
@@ -813,7 +813,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(object[42], Value::Bool(true));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">Index</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">Index</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">I</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="ident">index</span>.<span class="ident">index_into</span>(<span class="self">self</span>)
     }
 
@@ -825,7 +825,7 @@
     <span class="doccomment">/// index, for example if the index is a string and `self` is a sequence or</span>
     <span class="doccomment">/// a number. Also returns `None` if the given key does not exist in the map</span>
     <span class="doccomment">/// or the given index is not within the bounds of the sequence.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">Index</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">Index</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">I</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="ident">index</span>.<span class="ident">index_into_mut</span>(<span class="self">self</span>)
     }
 
@@ -845,7 +845,7 @@
     <span class="doccomment">/// let v: Value = serde_yaml::from_str(&quot;false&quot;).unwrap();</span>
     <span class="doccomment">/// assert!(!v.is_null());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_null</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_null</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Value::Null</span> <span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="bool-val">true</span>
         } <span class="kw">else</span> {
@@ -866,10 +866,10 @@
     <span class="doccomment">/// let v: Value = serde_yaml::from_str(&quot;false&quot;).unwrap();</span>
     <span class="doccomment">/// assert_eq!(v.as_null(), None);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_null</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_null</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Value::Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(()),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">Value::Null</span> =&gt; <span class="prelude-val">Some</span>(()),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 
@@ -889,7 +889,7 @@
     <span class="doccomment">/// let v: Value = serde_yaml::from_str(&quot;42&quot;).unwrap();</span>
     <span class="doccomment">/// assert!(!v.is_bool());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_bool</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_bool</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">as_bool</span>().<span class="ident">is_some</span>()
     }
 
@@ -907,10 +907,10 @@
     <span class="doccomment">/// let v: Value = serde_yaml::from_str(&quot;42&quot;).unwrap();</span>
     <span class="doccomment">/// assert_eq!(v.as_bool(), None);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_bool</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_bool</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Value::Bool</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="ident">b</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">Value::Bool</span>(<span class="ident">b</span>) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="ident">b</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 
@@ -927,10 +927,10 @@
     <span class="doccomment">/// let v: Value = serde_yaml::from_str(&quot;true&quot;).unwrap();</span>
     <span class="doccomment">/// assert!(!v.is_number());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_number</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_number</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Value::Number</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident">Value::Number</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
 
@@ -951,7 +951,7 @@
     <span class="doccomment">/// let v: Value = serde_yaml::from_str(&quot;null&quot;).unwrap();</span>
     <span class="doccomment">/// assert!(!v.is_i64());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_i64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_i64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">as_i64</span>().<span class="ident">is_some</span>()
     }
 
@@ -969,10 +969,10 @@
     <span class="doccomment">/// let v: Value = serde_yaml::from_str(&quot;false&quot;).unwrap();</span>
     <span class="doccomment">/// assert_eq!(v.as_i64(), None);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_i64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_i64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Value::Number</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">n</span>.<span class="ident">as_i64</span>(),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">Value::Number</span>(<span class="ident">n</span>) =&gt; <span class="ident">n</span>.<span class="ident">as_i64</span>(),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 
@@ -993,7 +993,7 @@
     <span class="doccomment">/// let v: Value = serde_yaml::from_str(&quot;null&quot;).unwrap();</span>
     <span class="doccomment">/// assert!(!v.is_u64());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_u64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_u64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">as_u64</span>().<span class="ident">is_some</span>()
     }
 
@@ -1011,10 +1011,10 @@
     <span class="doccomment">/// let v: Value = serde_yaml::from_str(&quot;false&quot;).unwrap();</span>
     <span class="doccomment">/// assert_eq!(v.as_u64(), None);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_u64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_u64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Value::Number</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">n</span>.<span class="ident">as_u64</span>(),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">Value::Number</span>(<span class="ident">n</span>) =&gt; <span class="ident">n</span>.<span class="ident">as_u64</span>(),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 
@@ -1037,10 +1037,10 @@
     <span class="doccomment">/// let v: Value = serde_yaml::from_str(&quot;true&quot;).unwrap();</span>
     <span class="doccomment">/// assert!(!v.is_f64());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_f64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_f64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Value::Number</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">n</span>.<span class="ident">is_f64</span>(),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident">Value::Number</span>(<span class="ident">n</span>) =&gt; <span class="ident">n</span>.<span class="ident">is_f64</span>(),
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
 
@@ -1058,10 +1058,10 @@
     <span class="doccomment">/// let v: Value = serde_yaml::from_str(&quot;false&quot;).unwrap();</span>
     <span class="doccomment">/// assert_eq!(v.as_f64(), None);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_f64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_f64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Value::Number</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i</span>.<span class="ident">as_f64</span>(),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">Value::Number</span>(<span class="ident">i</span>) =&gt; <span class="ident">i</span>.<span class="ident">as_f64</span>(),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 
@@ -1081,7 +1081,7 @@
     <span class="doccomment">/// let v: Value = serde_yaml::from_str(&quot;42&quot;).unwrap();</span>
     <span class="doccomment">/// assert!(!v.is_string());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">as_str</span>().<span class="ident">is_some</span>()
     }
 
@@ -1099,10 +1099,10 @@
     <span class="doccomment">/// let v: Value = serde_yaml::from_str(&quot;false&quot;).unwrap();</span>
     <span class="doccomment">/// assert_eq!(v.as_str(), None);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Value::String</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">Value::String</span>(<span class="ident">s</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">s</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 
@@ -1119,7 +1119,7 @@
     <span class="doccomment">/// let v: Value = serde_yaml::from_str(&quot;true&quot;).unwrap();</span>
     <span class="doccomment">/// assert!(!v.is_sequence());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_sequence</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_sequence</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">as_sequence</span>().<span class="ident">is_some</span>()
     }
 
@@ -1137,10 +1137,10 @@
     <span class="doccomment">/// let v: Value = serde_yaml::from_str(&quot;false&quot;).unwrap();</span>
     <span class="doccomment">/// assert_eq!(v.as_sequence(), None);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_sequence</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Sequence</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_sequence</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Sequence</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Value::Sequence</span>(<span class="ident">seq</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">seq</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">Value::Sequence</span>(<span class="ident">seq</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">seq</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 
@@ -1160,10 +1160,10 @@
     <span class="doccomment">/// let mut v: Value = serde_yaml::from_str(&quot;false&quot;).unwrap();</span>
     <span class="doccomment">/// assert_eq!(v.as_sequence_mut(), None);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_sequence_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Sequence</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_sequence_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Sequence</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Value::Sequence</span>(<span class="ident">seq</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">seq</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">Value::Sequence</span>(<span class="ident">seq</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">seq</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 
@@ -1180,7 +1180,7 @@
     <span class="doccomment">/// let v: Value = serde_yaml::from_str(&quot;true&quot;).unwrap();</span>
     <span class="doccomment">/// assert!(!v.is_mapping());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_mapping</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_mapping</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">as_mapping</span>().<span class="ident">is_some</span>()
     }
 
@@ -1202,10 +1202,10 @@
     <span class="doccomment">/// let v: Value = serde_yaml::from_str(&quot;false&quot;).unwrap();</span>
     <span class="doccomment">/// assert_eq!(v.as_mapping(), None);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mapping</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Mapping</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mapping</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Mapping</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Value::Mapping</span>(<span class="ident">map</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">map</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">Value::Mapping</span>(<span class="ident">map</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">map</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 
@@ -1230,22 +1230,22 @@
     <span class="doccomment">/// let mut v: Value = serde_yaml::from_str(&quot;false&quot;).unwrap();</span>
     <span class="doccomment">/// assert_eq!(v.as_mapping_mut(), None);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mapping_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Mapping</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mapping_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Mapping</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Value::Mapping</span>(<span class="ident">map</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">map</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">Value::Mapping</span>(<span class="ident">map</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">map</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 
-<span class="kw">fn</span> <span class="ident">yaml_to_value</span>(<span class="ident">yaml</span>: <span class="ident">Yaml</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
+<span class="kw">fn</span> <span class="ident">yaml_to_value</span>(<span class="ident">yaml</span>: <span class="ident">Yaml</span>) -&gt; <span class="ident">Value</span> {
     <span class="kw">match</span> <span class="ident">yaml</span> {
-        <span class="ident">Yaml::Real</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="kw">if</span> <span class="ident">f</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;.inf&quot;</span> {
+        <span class="ident">Yaml::Real</span>(<span class="ident">f</span>) =&gt; {
+            <span class="kw">if</span> <span class="ident">f</span> <span class="op">==</span> <span class="string">&quot;.inf&quot;</span> {
                 <span class="ident">Value::Number</span>(<span class="ident">f64::INFINITY</span>.<span class="ident">into</span>())
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">f</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;-.inf&quot;</span> {
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">f</span> <span class="op">==</span> <span class="string">&quot;-.inf&quot;</span> {
                 <span class="ident">Value::Number</span>(<span class="ident">f64::NEG_INFINITY</span>.<span class="ident">into</span>())
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">f</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;.nan&quot;</span> {
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">f</span> <span class="op">==</span> <span class="string">&quot;.nan&quot;</span> {
                 <span class="ident">Value::Number</span>(<span class="ident">f64::NAN</span>.<span class="ident">into</span>())
             } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">n</span>) <span class="op">=</span> <span class="ident">u64::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">f</span>) {
                 <span class="ident">Value::Number</span>(<span class="ident">n</span>.<span class="ident">into</span>())
@@ -1257,18 +1257,18 @@
                 <span class="ident">Value::String</span>(<span class="ident">f</span>)
             }
         }
-        <span class="ident">Yaml::Integer</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value::Number</span>(<span class="ident">i</span>.<span class="ident">into</span>()),
-        <span class="ident">Yaml::String</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value::String</span>(<span class="ident">s</span>),
-        <span class="ident">Yaml::Boolean</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value::Bool</span>(<span class="ident">b</span>),
-        <span class="ident">Yaml::Array</span>(<span class="ident">sequence</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value::Sequence</span>(<span class="ident">sequence</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="ident">yaml_to_value</span>).<span class="ident">collect</span>()),
-        <span class="ident">Yaml::Hash</span>(<span class="ident">hash</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value::Mapping</span>(
+        <span class="ident">Yaml::Integer</span>(<span class="ident">i</span>) =&gt; <span class="ident">Value::Number</span>(<span class="ident">i</span>.<span class="ident">into</span>()),
+        <span class="ident">Yaml::String</span>(<span class="ident">s</span>) =&gt; <span class="ident">Value::String</span>(<span class="ident">s</span>),
+        <span class="ident">Yaml::Boolean</span>(<span class="ident">b</span>) =&gt; <span class="ident">Value::Bool</span>(<span class="ident">b</span>),
+        <span class="ident">Yaml::Array</span>(<span class="ident">sequence</span>) =&gt; <span class="ident">Value::Sequence</span>(<span class="ident">sequence</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="ident">yaml_to_value</span>).<span class="ident">collect</span>()),
+        <span class="ident">Yaml::Hash</span>(<span class="ident">hash</span>) =&gt; <span class="ident">Value::Mapping</span>(
             <span class="ident">hash</span>.<span class="ident">into_iter</span>()
                 .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">k</span>, <span class="ident">v</span>)<span class="op">|</span> (<span class="ident">yaml_to_value</span>(<span class="ident">k</span>), <span class="ident">yaml_to_value</span>(<span class="ident">v</span>)))
                 .<span class="ident">collect</span>(),
         ),
-        <span class="ident">Yaml::Alias</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;alias unsupported&quot;</span>),
-        <span class="ident">Yaml::Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value::Null</span>,
-        <span class="ident">Yaml::BadValue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;bad value&quot;</span>),
+        <span class="ident">Yaml::Alias</span>(<span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;alias unsupported&quot;</span>),
+        <span class="ident">Yaml::Null</span> =&gt; <span class="ident">Value::Null</span>,
+        <span class="ident">Yaml::BadValue</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;bad value&quot;</span>),
     }
 }
 
@@ -1277,12 +1277,12 @@
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">Value</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="ident">Hasher</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>) {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Value::Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>.<span class="ident">hash</span>(<span class="ident">state</span>),
-            <span class="ident">Value::Bool</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="number">1</span>, <span class="ident">b</span>).<span class="ident">hash</span>(<span class="ident">state</span>),
-            <span class="ident">Value::Number</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="number">2</span>, <span class="ident">i</span>).<span class="ident">hash</span>(<span class="ident">state</span>),
-            <span class="ident">Value::String</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="number">3</span>, <span class="ident">s</span>).<span class="ident">hash</span>(<span class="ident">state</span>),
-            <span class="ident">Value::Sequence</span>(<span class="ident">seq</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="number">4</span>, <span class="ident">seq</span>).<span class="ident">hash</span>(<span class="ident">state</span>),
-            <span class="ident">Value::Mapping</span>(<span class="ident">map</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="number">5</span>, <span class="ident">map</span>).<span class="ident">hash</span>(<span class="ident">state</span>),
+            <span class="ident">Value::Null</span> =&gt; <span class="number">0</span>.<span class="ident">hash</span>(<span class="ident">state</span>),
+            <span class="ident">Value::Bool</span>(<span class="ident">b</span>) =&gt; (<span class="number">1</span>, <span class="ident">b</span>).<span class="ident">hash</span>(<span class="ident">state</span>),
+            <span class="ident">Value::Number</span>(<span class="ident">i</span>) =&gt; (<span class="number">2</span>, <span class="ident">i</span>).<span class="ident">hash</span>(<span class="ident">state</span>),
+            <span class="ident">Value::String</span>(<span class="ident">s</span>) =&gt; (<span class="number">3</span>, <span class="ident">s</span>).<span class="ident">hash</span>(<span class="ident">state</span>),
+            <span class="ident">Value::Sequence</span>(<span class="ident">seq</span>) =&gt; (<span class="number">4</span>, <span class="ident">seq</span>).<span class="ident">hash</span>(<span class="ident">state</span>),
+            <span class="ident">Value::Mapping</span>(<span class="ident">map</span>) =&gt; (<span class="number">5</span>, <span class="ident">map</span>).<span class="ident">hash</span>(<span class="ident">state</span>),
         }
     }
 }
@@ -1290,7 +1290,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">IntoDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">Error</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Value</span> {
     <span class="kw">type</span> <span class="ident">Deserializer</span> <span class="op">=</span> <span class="self">Self</span>;
 
-    <span class="kw">fn</span> <span class="ident">into_deserializer</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Deserializer</span> {
+    <span class="kw">fn</span> <span class="ident">into_deserializer</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Deserializer</span> {
         <span class="self">self</span>
     }
 }

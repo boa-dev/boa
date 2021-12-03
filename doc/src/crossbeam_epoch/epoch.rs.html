@@ -156,7 +156,7 @@
 <span class="kw">impl</span> <span class="ident">Epoch</span> {
     <span class="doccomment">/// Returns the starting epoch in unpinned state.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">starting</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">starting</span>() -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::default</span>()
     }
 
@@ -164,7 +164,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Internally, epochs are represented as numbers in the range `(isize::MIN / 2) .. (isize::MAX</span>
     <span class="doccomment">/// / 2)`, so the returned distance will be in the same interval.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">wrapping_sub</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">isize</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">wrapping_sub</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="self">Self</span>) -&gt; <span class="ident">isize</span> {
         <span class="comment">// The result is the same with `(self.data &amp; !1).wrapping_sub(rhs.data &amp; !1) as isize &gt;&gt; 1`,</span>
         <span class="comment">// because the possible difference of LSB in `(self.data &amp; !1).wrapping_sub(rhs.data &amp; !1)`</span>
         <span class="comment">// will be ignored in the shift operation.</span>
@@ -173,13 +173,13 @@
 
     <span class="doccomment">/// Returns `true` if the epoch is marked as pinned.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_pinned</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        (<span class="self">self</span>.<span class="ident">data</span> <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">=</span><span class="op">=</span> <span class="number">1</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_pinned</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        (<span class="self">self</span>.<span class="ident">data</span> <span class="op">&amp;</span> <span class="number">1</span>) <span class="op">==</span> <span class="number">1</span>
     }
 
     <span class="doccomment">/// Returns the same epoch, but marked as pinned.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">pinned</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Epoch</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">pinned</span>(<span class="self">self</span>) -&gt; <span class="ident">Epoch</span> {
         <span class="ident">Epoch</span> {
             <span class="ident">data</span>: <span class="self">self</span>.<span class="ident">data</span> <span class="op">|</span> <span class="number">1</span>,
         }
@@ -187,7 +187,7 @@
 
     <span class="doccomment">/// Returns the same epoch, but marked as unpinned.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">unpinned</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Epoch</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">unpinned</span>(<span class="self">self</span>) -&gt; <span class="ident">Epoch</span> {
         <span class="ident">Epoch</span> {
             <span class="ident">data</span>: <span class="self">self</span>.<span class="ident">data</span> <span class="op">&amp;</span> <span class="op">!</span><span class="number">1</span>,
         }
@@ -197,7 +197,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// The returned epoch will be marked as pinned only if the previous one was as well.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">successor</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Epoch</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">successor</span>(<span class="self">self</span>) -&gt; <span class="ident">Epoch</span> {
         <span class="ident">Epoch</span> {
             <span class="ident">data</span>: <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">wrapping_add</span>(<span class="number">2</span>),
         }
@@ -215,14 +215,14 @@
 <span class="kw">impl</span> <span class="ident">AtomicEpoch</span> {
     <span class="doccomment">/// Creates a new atomic epoch.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">epoch</span>: <span class="ident">Epoch</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">epoch</span>: <span class="ident">Epoch</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">AtomicUsize::new</span>(<span class="ident">epoch</span>.<span class="ident">data</span>);
         <span class="ident">AtomicEpoch</span> { <span class="ident">data</span> }
     }
 
     <span class="doccomment">/// Loads a value from the atomic epoch.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">load</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ord</span>: <span class="ident">Ordering</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Epoch</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">load</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ord</span>: <span class="ident">Ordering</span>) -&gt; <span class="ident">Epoch</span> {
         <span class="ident">Epoch</span> {
             <span class="ident">data</span>: <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">load</span>(<span class="ident">ord</span>),
         }
@@ -254,13 +254,13 @@
         <span class="ident">new</span>: <span class="ident">Epoch</span>,
         <span class="ident">success</span>: <span class="ident">Ordering</span>,
         <span class="ident">failure</span>: <span class="ident">Ordering</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Epoch</span>, <span class="ident">Epoch</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Epoch</span>, <span class="ident">Epoch</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>
             .<span class="ident">data</span>
             .<span class="ident">compare_exchange</span>(<span class="ident">current</span>.<span class="ident">data</span>, <span class="ident">new</span>.<span class="ident">data</span>, <span class="ident">success</span>, <span class="ident">failure</span>)
         {
-            <span class="prelude-val">Ok</span>(<span class="ident">data</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Epoch</span> { <span class="ident">data</span> }),
-            <span class="prelude-val">Err</span>(<span class="ident">data</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Epoch</span> { <span class="ident">data</span> }),
+            <span class="prelude-val">Ok</span>(<span class="ident">data</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Epoch</span> { <span class="ident">data</span> }),
+            <span class="prelude-val">Err</span>(<span class="ident">data</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">Epoch</span> { <span class="ident">data</span> }),
         }
     }
 }

@@ -57,7 +57,7 @@
     <span class="ident">trait_</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">ty</span>: <span class="kw-2">&amp;</span><span class="ident">Ident</span>,
     <span class="ident">code</span>: <span class="ident">TokenStream</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span> {
+) -&gt; <span class="ident">TokenStream</span> {
     <span class="kw">let</span> <span class="ident">try_replacement</span> <span class="op">=</span> <span class="ident">try::replacement</span>();
 
     <span class="kw">let</span> <span class="ident">dummy_const</span> <span class="op">=</span> <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">underscore_consts</span>) {
@@ -67,10 +67,10 @@
     };
 
     <span class="kw">let</span> <span class="ident">use_serde</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">serde_path</span> {
-        <span class="prelude-val">Some</span>(<span class="ident">path</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">quote!</span> {
+        <span class="prelude-val">Some</span>(<span class="ident">path</span>) =&gt; <span class="macro">quote!</span> {
             <span class="kw">use</span> #<span class="ident">path</span> <span class="kw">as</span> <span class="ident">_serde</span>;
         },
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">quote!</span> {
+        <span class="prelude-val">None</span> =&gt; <span class="macro">quote!</span> {
             <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_extern_crates</span>, <span class="ident">clippy::useless_attribute</span>)]</span>
             <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">serde</span> <span class="kw">as</span> <span class="ident">_serde</span>;
         },
@@ -88,7 +88,7 @@
 }
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-<span class="kw">fn</span> <span class="ident">unraw</span>(<span class="ident">ident</span>: <span class="kw-2">&amp;</span><span class="ident">Ident</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+<span class="kw">fn</span> <span class="ident">unraw</span>(<span class="ident">ident</span>: <span class="kw-2">&amp;</span><span class="ident">Ident</span>) -&gt; <span class="ident">String</span> {
     <span class="comment">// str::trim_start_matches was added in 1.30, trim_left_matches deprecated</span>
     <span class="comment">// in 1.33. We currently support rustc back to 1.15 so we need to continue</span>
     <span class="comment">// to use the deprecated one.</span>

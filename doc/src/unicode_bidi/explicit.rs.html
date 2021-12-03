@@ -231,20 +231,20 @@
         <span class="kw">match</span> <span class="ident">original_classes</span>[<span class="ident">i</span>] {
 
             <span class="comment">// Rules X2-X5c</span>
-            <span class="ident">RLE</span> <span class="op">|</span> <span class="ident">LRE</span> <span class="op">|</span> <span class="ident">RLO</span> <span class="op">|</span> <span class="ident">LRO</span> <span class="op">|</span> <span class="ident">RLI</span> <span class="op">|</span> <span class="ident">LRI</span> <span class="op">|</span> <span class="ident">FSI</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">RLE</span> <span class="op">|</span> <span class="ident">LRE</span> <span class="op">|</span> <span class="ident">RLO</span> <span class="op">|</span> <span class="ident">LRO</span> <span class="op">|</span> <span class="ident">RLI</span> <span class="op">|</span> <span class="ident">LRI</span> <span class="op">|</span> <span class="ident">FSI</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">last_level</span> <span class="op">=</span> <span class="ident">stack</span>.<span class="ident">last</span>().<span class="ident">level</span>;
 
                 <span class="comment">// X5a-X5c: Isolate initiators get the level of the last entry on the stack.</span>
                 <span class="kw">let</span> <span class="ident">is_isolate</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">original_classes</span>[<span class="ident">i</span>] {
-                    <span class="ident">RLI</span> <span class="op">|</span> <span class="ident">LRI</span> <span class="op">|</span> <span class="ident">FSI</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+                    <span class="ident">RLI</span> <span class="op">|</span> <span class="ident">LRI</span> <span class="op">|</span> <span class="ident">FSI</span> =&gt; <span class="bool-val">true</span>,
+                    <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
                 };
                 <span class="kw">if</span> <span class="ident">is_isolate</span> {
                     <span class="ident">levels</span>[<span class="ident">i</span>] <span class="op">=</span> <span class="ident">last_level</span>;
                     <span class="kw">match</span> <span class="ident">stack</span>.<span class="ident">last</span>().<span class="ident">status</span> {
-                        <span class="ident">OverrideStatus::RTL</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">processing_classes</span>[<span class="ident">i</span>] <span class="op">=</span> <span class="ident">R</span>,
-                        <span class="ident">OverrideStatus::LTR</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">processing_classes</span>[<span class="ident">i</span>] <span class="op">=</span> <span class="ident">L</span>,
-                        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+                        <span class="ident">OverrideStatus::RTL</span> =&gt; <span class="ident">processing_classes</span>[<span class="ident">i</span>] <span class="op">=</span> <span class="ident">R</span>,
+                        <span class="ident">OverrideStatus::LTR</span> =&gt; <span class="ident">processing_classes</span>[<span class="ident">i</span>] <span class="op">=</span> <span class="ident">L</span>,
+                        <span class="kw">_</span> =&gt; {}
                     }
                 }
 
@@ -253,17 +253,17 @@
                 } <span class="kw">else</span> {
                     <span class="ident">last_level</span>.<span class="ident">new_explicit_next_ltr</span>()
                 };
-                <span class="kw">if</span> <span class="ident">new_level</span>.<span class="ident">is_ok</span>() <span class="op">&amp;&amp;</span> <span class="ident">overflow_isolate_count</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">&amp;&amp;</span>
-                    <span class="ident">overflow_embedding_count</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>
+                <span class="kw">if</span> <span class="ident">new_level</span>.<span class="ident">is_ok</span>() <span class="op">&amp;&amp;</span> <span class="ident">overflow_isolate_count</span> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span>
+                    <span class="ident">overflow_embedding_count</span> <span class="op">==</span> <span class="number">0</span>
                 {
                     <span class="kw">let</span> <span class="ident">new_level</span> <span class="op">=</span> <span class="ident">new_level</span>.<span class="ident">unwrap</span>();
                     <span class="ident">stack</span>.<span class="ident">push</span>(
                         <span class="ident">new_level</span>,
                         <span class="kw">match</span> <span class="ident">original_classes</span>[<span class="ident">i</span>] {
-                            <span class="ident">RLO</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">OverrideStatus::RTL</span>,
-                            <span class="ident">LRO</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">OverrideStatus::LTR</span>,
-                            <span class="ident">RLI</span> <span class="op">|</span> <span class="ident">LRI</span> <span class="op">|</span> <span class="ident">FSI</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">OverrideStatus::Isolate</span>,
-                            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">OverrideStatus::Neutral</span>,
+                            <span class="ident">RLO</span> =&gt; <span class="ident">OverrideStatus::RTL</span>,
+                            <span class="ident">LRO</span> =&gt; <span class="ident">OverrideStatus::LTR</span>,
+                            <span class="ident">RLI</span> <span class="op">|</span> <span class="ident">LRI</span> <span class="op">|</span> <span class="ident">FSI</span> =&gt; <span class="ident">OverrideStatus::Isolate</span>,
+                            <span class="kw">_</span> =&gt; <span class="ident">OverrideStatus::Neutral</span>,
                         },
                     );
                     <span class="kw">if</span> <span class="ident">is_isolate</span> {
@@ -275,13 +275,13 @@
                     }
                 } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">is_isolate</span> {
                     <span class="ident">overflow_isolate_count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">overflow_isolate_count</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">overflow_isolate_count</span> <span class="op">==</span> <span class="number">0</span> {
                     <span class="ident">overflow_embedding_count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 }
             }
 
             <span class="comment">// &lt;http://www.unicode.org/reports/tr9/#X6a&gt;</span>
-            <span class="ident">PDI</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">PDI</span> =&gt; {
                 <span class="kw">if</span> <span class="ident">overflow_isolate_count</span> <span class="op">&gt;</span> <span class="number">0</span> {
                     <span class="ident">overflow_isolate_count</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
                 } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">valid_isolate_count</span> <span class="op">&gt;</span> <span class="number">0</span> {
@@ -290,8 +290,8 @@
                         <span class="comment">// Pop everything up to and including the last Isolate status.</span>
                         <span class="kw">match</span> <span class="ident">stack</span>.<span class="ident">vec</span>.<span class="ident">pop</span>() {
                             <span class="prelude-val">None</span> <span class="op">|</span>
-                            <span class="prelude-val">Some</span>(<span class="ident">Status</span> { <span class="ident">status</span>: <span class="ident">OverrideStatus::Isolate</span>, .. }) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
-                            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">continue</span>,
+                            <span class="prelude-val">Some</span>(<span class="ident">Status</span> { <span class="ident">status</span>: <span class="ident">OverrideStatus::Isolate</span>, .. }) =&gt; <span class="kw">break</span>,
+                            <span class="kw">_</span> =&gt; <span class="kw">continue</span>,
                         }
                     }
                     <span class="ident">valid_isolate_count</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
@@ -299,14 +299,14 @@
                 <span class="kw">let</span> <span class="ident">last</span> <span class="op">=</span> <span class="ident">stack</span>.<span class="ident">last</span>();
                 <span class="ident">levels</span>[<span class="ident">i</span>] <span class="op">=</span> <span class="ident">last</span>.<span class="ident">level</span>;
                 <span class="kw">match</span> <span class="ident">last</span>.<span class="ident">status</span> {
-                    <span class="ident">OverrideStatus::RTL</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">processing_classes</span>[<span class="ident">i</span>] <span class="op">=</span> <span class="ident">R</span>,
-                    <span class="ident">OverrideStatus::LTR</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">processing_classes</span>[<span class="ident">i</span>] <span class="op">=</span> <span class="ident">L</span>,
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+                    <span class="ident">OverrideStatus::RTL</span> =&gt; <span class="ident">processing_classes</span>[<span class="ident">i</span>] <span class="op">=</span> <span class="ident">R</span>,
+                    <span class="ident">OverrideStatus::LTR</span> =&gt; <span class="ident">processing_classes</span>[<span class="ident">i</span>] <span class="op">=</span> <span class="ident">L</span>,
+                    <span class="kw">_</span> =&gt; {}
                 }
             }
 
             <span class="comment">// &lt;http://www.unicode.org/reports/tr9/#X7&gt;</span>
-            <span class="ident">PDF</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">PDF</span> =&gt; {
                 <span class="kw">if</span> <span class="ident">overflow_isolate_count</span> <span class="op">&gt;</span> <span class="number">0</span> {
                     <span class="kw">continue</span>;
                 }
@@ -323,16 +323,16 @@
             }
 
             <span class="comment">// Nothing</span>
-            <span class="ident">B</span> <span class="op">|</span> <span class="ident">BN</span> <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="ident">B</span> <span class="op">|</span> <span class="ident">BN</span> =&gt; {}
 
             <span class="comment">// &lt;http://www.unicode.org/reports/tr9/#X6&gt;</span>
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">_</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">last</span> <span class="op">=</span> <span class="ident">stack</span>.<span class="ident">last</span>();
                 <span class="ident">levels</span>[<span class="ident">i</span>] <span class="op">=</span> <span class="ident">last</span>.<span class="ident">level</span>;
                 <span class="kw">match</span> <span class="ident">last</span>.<span class="ident">status</span> {
-                    <span class="ident">OverrideStatus::RTL</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">processing_classes</span>[<span class="ident">i</span>] <span class="op">=</span> <span class="ident">R</span>,
-                    <span class="ident">OverrideStatus::LTR</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">processing_classes</span>[<span class="ident">i</span>] <span class="op">=</span> <span class="ident">L</span>,
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+                    <span class="ident">OverrideStatus::RTL</span> =&gt; <span class="ident">processing_classes</span>[<span class="ident">i</span>] <span class="op">=</span> <span class="ident">R</span>,
+                    <span class="ident">OverrideStatus::LTR</span> =&gt; <span class="ident">processing_classes</span>[<span class="ident">i</span>] <span class="op">=</span> <span class="ident">L</span>,
+                    <span class="kw">_</span> =&gt; {}
                 }
             }
         }
@@ -364,7 +364,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">DirectionalStatusStack</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
         <span class="ident">DirectionalStatusStack</span> { <span class="ident">vec</span>: <span class="ident">Vec::with_capacity</span>(<span class="ident">Level::max_explicit_depth</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">+</span> <span class="number">2</span>) }
     }
 
@@ -372,7 +372,7 @@
         <span class="self">self</span>.<span class="ident">vec</span>.<span class="ident">push</span>(<span class="ident">Status</span> { <span class="ident">level</span>, <span class="ident">status</span> });
     }
 
-    <span class="kw">fn</span> <span class="ident">last</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Status</span> {
+    <span class="kw">fn</span> <span class="ident">last</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Status</span> {
         <span class="self">self</span>.<span class="ident">vec</span>.<span class="ident">last</span>().<span class="ident">unwrap</span>()
     }
 }

@@ -139,7 +139,7 @@
 <span class="doccomment">/// Provide a Diagnostic with the given span and message</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">err_span</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">expr</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">msg</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> (
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">expr</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">msg</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Diagnostic::spanned_error</span>(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>, <span class="macro">format!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">msg</span>)<span class="kw-2">*</span>))
     )
 }
@@ -147,7 +147,7 @@
 <span class="doccomment">/// Immediately fail and return an Err, with the arguments passed to err_span!</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">bail_span</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> (
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; (
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">err_span!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>)<span class="kw-2">*</span>).<span class="ident">into</span>())
     )
 }
@@ -172,7 +172,7 @@
 
 <span class="kw">impl</span> <span class="ident">Diagnostic</span> {
     <span class="doccomment">/// Generate a `Diagnostic` from an informational message with no Span</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">error</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">text</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Diagnostic</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">error</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">text</span>: <span class="ident">T</span>) -&gt; <span class="ident">Diagnostic</span> {
         <span class="ident">Diagnostic</span> {
             <span class="ident">inner</span>: <span class="ident">Repr::Single</span> {
                 <span class="ident">text</span>: <span class="ident">text</span>.<span class="ident">into</span>(),
@@ -182,7 +182,7 @@
     }
 
     <span class="doccomment">/// Generate a `Diagnostic` from a Span and an informational message</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span_error</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">span</span>: <span class="ident">Span</span>, <span class="ident">text</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Diagnostic</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span_error</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">span</span>: <span class="ident">Span</span>, <span class="ident">text</span>: <span class="ident">T</span>) -&gt; <span class="ident">Diagnostic</span> {
         <span class="ident">Diagnostic</span> {
             <span class="ident">inner</span>: <span class="ident">Repr::Single</span> {
                 <span class="ident">text</span>: <span class="ident">text</span>.<span class="ident">into</span>(),
@@ -192,7 +192,7 @@
     }
 
     <span class="doccomment">/// Generate a `Diagnostic` from the span of any tokenizable object and a message</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">spanned_error</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">ToTokens</span>, <span class="ident">text</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Diagnostic</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">spanned_error</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">ToTokens</span>, <span class="ident">text</span>: <span class="ident">T</span>) -&gt; <span class="ident">Diagnostic</span> {
         <span class="ident">Diagnostic</span> {
             <span class="ident">inner</span>: <span class="ident">Repr::Single</span> {
                 <span class="ident">text</span>: <span class="ident">text</span>.<span class="ident">into</span>(),
@@ -203,8 +203,8 @@
 
     <span class="doccomment">/// Attempt to generate a `Diagnostic` from a vector of other `Diagnostic` instances.</span>
     <span class="doccomment">/// If the `Vec` is empty, returns `Ok(())`, otherwise returns the new `Diagnostic`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_vec</span>(<span class="ident">diagnostics</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Diagnostic</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">diagnostics</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_vec</span>(<span class="ident">diagnostics</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Diagnostic</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="ident">diagnostics</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span> {
             <span class="prelude-val">Ok</span>(())
         } <span class="kw">else</span> {
             <span class="prelude-val">Err</span>(<span class="ident">Diagnostic</span> {
@@ -215,24 +215,24 @@
 
     <span class="doccomment">/// Immediately trigger a panic from this `Diagnostic`</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unconditional_recursion</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">panic</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="op">!</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">panic</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="op">!</span> {
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span> {
-            <span class="ident">Repr::Single</span> { <span class="ident">text</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">text</span>),
-            <span class="ident">Repr::SynError</span>(<span class="ident">error</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">error</span>),
-            <span class="ident">Repr::Multi</span> { <span class="ident">diagnostics</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">diagnostics</span>[<span class="number">0</span>].<span class="ident">panic</span>(),
+            <span class="ident">Repr::Single</span> { <span class="ident">text</span>, .. } =&gt; <span class="macro">panic!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">text</span>),
+            <span class="ident">Repr::SynError</span>(<span class="ident">error</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">error</span>),
+            <span class="ident">Repr::Multi</span> { <span class="ident">diagnostics</span> } =&gt; <span class="ident">diagnostics</span>[<span class="number">0</span>].<span class="ident">panic</span>(),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Error</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Diagnostic</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <span class="ident">Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Diagnostic</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <span class="ident">Error</span>) -&gt; <span class="ident">Diagnostic</span> {
         <span class="ident">Diagnostic</span> {
             <span class="ident">inner</span>: <span class="ident">Repr::SynError</span>(<span class="ident">err</span>),
         }
     }
 }
 
-<span class="kw">fn</span> <span class="ident">extract_spans</span>(<span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">ToTokens</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">Span</span>, <span class="ident">Span</span>)<span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">extract_spans</span>(<span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">ToTokens</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">Span</span>, <span class="ident">Span</span>)<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">TokenStream::new</span>();
     <span class="ident">node</span>.<span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>);
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tokens</span> <span class="op">=</span> <span class="ident">t</span>.<span class="ident">into_iter</span>();
@@ -244,7 +244,7 @@
 <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">Diagnostic</span> {
     <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TokenStream</span>) {
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span> {
-            <span class="ident">Repr::Single</span> { <span class="ident">text</span>, <span class="ident">span</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Repr::Single</span> { <span class="ident">text</span>, <span class="ident">span</span> } =&gt; {
                 <span class="kw">let</span> <span class="ident">cs2</span> <span class="op">=</span> (<span class="ident">Span::call_site</span>(), <span class="ident">Span::call_site</span>());
                 <span class="kw">let</span> (<span class="ident">start</span>, <span class="ident">end</span>) <span class="op">=</span> <span class="ident">span</span>.<span class="ident">unwrap_or</span>(<span class="ident">cs2</span>);
                 <span class="ident">dst</span>.<span class="ident">append</span>(<span class="ident">Ident::new</span>(<span class="string">&quot;compile_error&quot;</span>, <span class="ident">start</span>));
@@ -255,12 +255,12 @@
                 <span class="ident">group</span>.<span class="ident">set_span</span>(<span class="ident">end</span>);
                 <span class="ident">dst</span>.<span class="ident">append</span>(<span class="ident">group</span>);
             }
-            <span class="ident">Repr::Multi</span> { <span class="ident">diagnostics</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Repr::Multi</span> { <span class="ident">diagnostics</span> } =&gt; {
                 <span class="kw">for</span> <span class="ident">diagnostic</span> <span class="kw">in</span> <span class="ident">diagnostics</span> {
                     <span class="ident">diagnostic</span>.<span class="ident">to_tokens</span>(<span class="ident">dst</span>);
                 }
             }
-            <span class="ident">Repr::SynError</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Repr::SynError</span>(<span class="ident">err</span>) =&gt; {
                 <span class="ident">err</span>.<span class="ident">to_compile_error</span>().<span class="ident">to_tokens</span>(<span class="ident">dst</span>);
             }
         }

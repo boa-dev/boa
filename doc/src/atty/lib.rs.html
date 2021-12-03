@@ -247,42 +247,42 @@
 
 <span class="doccomment">/// returns true if this is a tty</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">unix</span>, <span class="ident">not</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>)))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is</span>(<span class="ident">stream</span>: <span class="ident">Stream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is</span>(<span class="ident">stream</span>: <span class="ident">Stream</span>) -&gt; <span class="ident">bool</span> {
     <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">libc</span>;
 
     <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">stream</span> {
-        <span class="ident">Stream::Stdout</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">libc::STDOUT_FILENO</span>,
-        <span class="ident">Stream::Stderr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">libc::STDERR_FILENO</span>,
-        <span class="ident">Stream::Stdin</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">libc::STDIN_FILENO</span>,
+        <span class="ident">Stream::Stdout</span> =&gt; <span class="ident">libc::STDOUT_FILENO</span>,
+        <span class="ident">Stream::Stderr</span> =&gt; <span class="ident">libc::STDERR_FILENO</span>,
+        <span class="ident">Stream::Stdin</span> =&gt; <span class="ident">libc::STDIN_FILENO</span>,
     };
     <span class="kw">unsafe</span> { <span class="ident">libc::isatty</span>(<span class="ident">fd</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> }
 }
 
 <span class="doccomment">/// returns true if this is a tty</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;hermit&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is</span>(<span class="ident">stream</span>: <span class="ident">Stream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is</span>(<span class="ident">stream</span>: <span class="ident">Stream</span>) -&gt; <span class="ident">bool</span> {
     <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">hermit_abi</span>;
 
     <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">stream</span> {
-        <span class="ident">Stream::Stdout</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">hermit_abi::STDOUT_FILENO</span>,
-        <span class="ident">Stream::Stderr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">hermit_abi::STDERR_FILENO</span>,
-        <span class="ident">Stream::Stdin</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">hermit_abi::STDIN_FILENO</span>,
+        <span class="ident">Stream::Stdout</span> =&gt; <span class="ident">hermit_abi::STDOUT_FILENO</span>,
+        <span class="ident">Stream::Stderr</span> =&gt; <span class="ident">hermit_abi::STDERR_FILENO</span>,
+        <span class="ident">Stream::Stdin</span> =&gt; <span class="ident">hermit_abi::STDIN_FILENO</span>,
     };
     <span class="ident">hermit_abi::isatty</span>(<span class="ident">fd</span>)
 }
 
 <span class="doccomment">/// returns true if this is a tty</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is</span>(<span class="ident">stream</span>: <span class="ident">Stream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is</span>(<span class="ident">stream</span>: <span class="ident">Stream</span>) -&gt; <span class="ident">bool</span> {
     <span class="kw">use</span> <span class="ident">winapi::um::winbase</span>::{
         <span class="ident">STD_ERROR_HANDLE</span> <span class="kw">as</span> <span class="ident">STD_ERROR</span>, <span class="ident">STD_INPUT_HANDLE</span> <span class="kw">as</span> <span class="ident">STD_INPUT</span>,
         <span class="ident">STD_OUTPUT_HANDLE</span> <span class="kw">as</span> <span class="ident">STD_OUTPUT</span>,
     };
 
     <span class="kw">let</span> (<span class="ident">fd</span>, <span class="ident">others</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">stream</span> {
-        <span class="ident">Stream::Stdin</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">STD_INPUT</span>, [<span class="ident">STD_ERROR</span>, <span class="ident">STD_OUTPUT</span>]),
-        <span class="ident">Stream::Stderr</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">STD_ERROR</span>, [<span class="ident">STD_INPUT</span>, <span class="ident">STD_OUTPUT</span>]),
-        <span class="ident">Stream::Stdout</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">STD_OUTPUT</span>, [<span class="ident">STD_INPUT</span>, <span class="ident">STD_ERROR</span>]),
+        <span class="ident">Stream::Stdin</span> =&gt; (<span class="ident">STD_INPUT</span>, [<span class="ident">STD_ERROR</span>, <span class="ident">STD_OUTPUT</span>]),
+        <span class="ident">Stream::Stderr</span> =&gt; (<span class="ident">STD_ERROR</span>, [<span class="ident">STD_INPUT</span>, <span class="ident">STD_OUTPUT</span>]),
+        <span class="ident">Stream::Stdout</span> =&gt; (<span class="ident">STD_OUTPUT</span>, [<span class="ident">STD_INPUT</span>, <span class="ident">STD_ERROR</span>]),
     };
     <span class="kw">if</span> <span class="kw">unsafe</span> { <span class="ident">console_on_any</span>(<span class="kw-2">&amp;</span>[<span class="ident">fd</span>]) } {
         <span class="comment">// False positives aren&#39;t possible. If we got a console then</span>
@@ -304,13 +304,13 @@
 }
 
 <span class="doccomment">/// returns true if this is _not_ a tty</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">isnt</span>(<span class="ident">stream</span>: <span class="ident">Stream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">isnt</span>(<span class="ident">stream</span>: <span class="ident">Stream</span>) -&gt; <span class="ident">bool</span> {
     <span class="op">!</span><span class="ident">is</span>(<span class="ident">stream</span>)
 }
 
 <span class="doccomment">/// Returns true if any of the given fds are on a console.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">console_on_any</span>(<span class="ident">fds</span>: <span class="kw-2">&amp;</span>[<span class="ident">DWORD</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">console_on_any</span>(<span class="ident">fds</span>: <span class="kw-2">&amp;</span>[<span class="ident">DWORD</span>]) -&gt; <span class="ident">bool</span> {
     <span class="kw">use</span> <span class="ident">winapi::um</span>::{<span class="ident">consoleapi::GetConsoleMode</span>, <span class="ident">processenv::GetStdHandle</span>};
 
     <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">fd</span> <span class="kw">in</span> <span class="ident">fds</span> {
@@ -325,7 +325,7 @@
 
 <span class="doccomment">/// Returns true if there is an MSYS tty on the given handle.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">msys_tty_on</span>(<span class="ident">fd</span>: <span class="ident">DWORD</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">msys_tty_on</span>(<span class="ident">fd</span>: <span class="ident">DWORD</span>) -&gt; <span class="ident">bool</span> {
     <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">mem</span>, <span class="ident">slice</span>};
 
     <span class="kw">use</span> <span class="ident">winapi</span>::{
@@ -345,7 +345,7 @@
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">name_info_bytes</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
         <span class="ident">name_info_bytes</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>,
     );
-    <span class="kw">if</span> <span class="ident">res</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+    <span class="kw">if</span> <span class="ident">res</span> <span class="op">==</span> <span class="number">0</span> {
         <span class="kw">return</span> <span class="bool-val">false</span>;
     }
     <span class="kw">let</span> <span class="ident">name_info</span>: <span class="kw-2">&amp;</span><span class="ident">FILE_NAME_INFO</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span>(<span class="ident">name_info_bytes</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">FILE_NAME_INFO</span>);
@@ -365,7 +365,7 @@
 
 <span class="doccomment">/// returns true if this is a tty</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is</span>(<span class="ident">_stream</span>: <span class="ident">Stream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is</span>(<span class="ident">_stream</span>: <span class="ident">Stream</span>) -&gt; <span class="ident">bool</span> {
     <span class="bool-val">false</span>
 }
 

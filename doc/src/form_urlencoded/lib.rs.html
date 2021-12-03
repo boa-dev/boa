@@ -448,7 +448,7 @@
 <span class="doccomment">/// The names and values are percent-decoded. For instance, `%23first=%25try%25` will be</span>
 <span class="doccomment">/// converted to `[(&quot;#first&quot;, &quot;%try%&quot;)]`.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Parse</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">Parse</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="ident">Parse</span> { <span class="ident">input</span> }
 }
 <span class="doccomment">/// The return type of `parse()`.</span>
@@ -460,18 +460,18 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">Parse</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> (<span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">str</span><span class="op">&gt;</span>);
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
         <span class="kw">loop</span> {
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">is_empty</span>() {
                 <span class="kw">return</span> <span class="prelude-val">None</span>;
             }
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">split2</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">splitn</span>(<span class="number">2</span>, <span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">b</span><span class="op">|</span> <span class="ident">b</span> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;&amp;&#39;</span>);
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">split2</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">splitn</span>(<span class="number">2</span>, <span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">b</span><span class="op">|</span> <span class="ident">b</span> <span class="op">==</span> <span class="string">b&#39;&amp;&#39;</span>);
             <span class="kw">let</span> <span class="ident">sequence</span> <span class="op">=</span> <span class="ident">split2</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>();
             <span class="self">self</span>.<span class="ident">input</span> <span class="op">=</span> <span class="ident">split2</span>.<span class="ident">next</span>().<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span>[][..]);
             <span class="kw">if</span> <span class="ident">sequence</span>.<span class="ident">is_empty</span>() {
                 <span class="kw">continue</span>;
             }
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">split2</span> <span class="op">=</span> <span class="ident">sequence</span>.<span class="ident">splitn</span>(<span class="number">2</span>, <span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">b</span><span class="op">|</span> <span class="ident">b</span> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;=&#39;</span>);
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">split2</span> <span class="op">=</span> <span class="ident">sequence</span>.<span class="ident">splitn</span>(<span class="number">2</span>, <span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">b</span><span class="op">|</span> <span class="ident">b</span> <span class="op">==</span> <span class="string">b&#39;=&#39;</span>);
             <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">split2</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">split2</span>.<span class="ident">next</span>().<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span>[][..]);
             <span class="kw">return</span> <span class="prelude-val">Some</span>((<span class="ident">decode</span>(<span class="ident">name</span>), <span class="ident">decode</span>(<span class="ident">value</span>)));
@@ -479,23 +479,23 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">decode</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">str</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">decode</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">str</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">replaced</span> <span class="op">=</span> <span class="ident">replace_plus</span>(<span class="ident">input</span>);
     <span class="ident">decode_utf8_lossy</span>(<span class="kw">match</span> <span class="ident">percent_decode</span>(<span class="kw-2">&amp;</span><span class="ident">replaced</span>).<span class="ident">into</span>() {
-        <span class="ident">Cow::Owned</span>(<span class="ident">vec</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Cow::Owned</span>(<span class="ident">vec</span>),
-        <span class="ident">Cow::Borrowed</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">replaced</span>,
+        <span class="ident">Cow::Owned</span>(<span class="ident">vec</span>) =&gt; <span class="ident">Cow::Owned</span>(<span class="ident">vec</span>),
+        <span class="ident">Cow::Borrowed</span>(<span class="kw">_</span>) =&gt; <span class="ident">replaced</span>,
     })
 }
 
 <span class="doccomment">/// Replace b&#39;+&#39; with b&#39; &#39;</span>
-<span class="kw">fn</span> <span class="ident">replace_plus</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, [<span class="ident">u8</span>]<span class="op">&gt;</span> {
-    <span class="kw">match</span> <span class="ident">input</span>.<span class="ident">iter</span>().<span class="ident">position</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">b</span><span class="op">|</span> <span class="ident">b</span> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;+&#39;</span>) {
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Cow::Borrowed</span>(<span class="ident">input</span>),
-        <span class="prelude-val">Some</span>(<span class="ident">first_position</span>) <span class="op">=</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">replace_plus</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, [<span class="ident">u8</span>]<span class="op">&gt;</span> {
+    <span class="kw">match</span> <span class="ident">input</span>.<span class="ident">iter</span>().<span class="ident">position</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">b</span><span class="op">|</span> <span class="ident">b</span> <span class="op">==</span> <span class="string">b&#39;+&#39;</span>) {
+        <span class="prelude-val">None</span> =&gt; <span class="ident">Cow::Borrowed</span>(<span class="ident">input</span>),
+        <span class="prelude-val">Some</span>(<span class="ident">first_position</span>) =&gt; {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">replaced</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">to_owned</span>();
             <span class="ident">replaced</span>[<span class="ident">first_position</span>] <span class="op">=</span> <span class="string">b&#39; &#39;</span>;
             <span class="kw">for</span> <span class="ident">byte</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">replaced</span>[<span class="ident">first_position</span> <span class="op">+</span> <span class="number">1</span>..] {
-                <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">byte</span> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;+&#39;</span> {
+                <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">byte</span> <span class="op">==</span> <span class="string">b&#39;+&#39;</span> {
                     <span class="kw-2">*</span><span class="ident">byte</span> <span class="op">=</span> <span class="string">b&#39; &#39;</span>;
                 }
             }
@@ -506,7 +506,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Parse</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Return a new iterator that yields pairs of `String` instead of pairs of `Cow&lt;str&gt;`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_owned</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseIntoOwned</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_owned</span>(<span class="self">self</span>) -&gt; <span class="ident">ParseIntoOwned</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="ident">ParseIntoOwned</span> { <span class="ident">inner</span>: <span class="self">self</span> }
     }
 }
@@ -519,7 +519,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">ParseIntoOwned</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> (<span class="ident">String</span>, <span class="ident">String</span>);
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">inner</span>
             .<span class="ident">next</span>()
             .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">k</span>, <span class="ident">v</span>)<span class="op">|</span> (<span class="ident">k</span>.<span class="ident">into_owned</span>(), <span class="ident">v</span>.<span class="ident">into_owned</span>()))
@@ -530,7 +530,7 @@
 <span class="doccomment">/// https://url.spec.whatwg.org/#concept-urlencoded-byte-serializer).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Return an iterator of `&amp;str` slices.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">byte_serialize</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ByteSerialize</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">byte_serialize</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">ByteSerialize</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="ident">ByteSerialize</span> { <span class="ident">bytes</span>: <span class="ident">input</span> }
 }
 
@@ -540,18 +540,18 @@
     <span class="ident">bytes</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>],
 }
 
-<span class="kw">fn</span> <span class="ident">byte_serialized_unchanged</span>(<span class="ident">byte</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">fn</span> <span class="ident">byte_serialized_unchanged</span>(<span class="ident">byte</span>: <span class="ident">u8</span>) -&gt; <span class="ident">bool</span> {
     <span class="macro">matches!</span>(<span class="ident">byte</span>, <span class="string">b&#39;*&#39;</span> <span class="op">|</span> <span class="string">b&#39;-&#39;</span> <span class="op">|</span> <span class="string">b&#39;.&#39;</span> <span class="op">|</span> <span class="string">b&#39;0&#39;</span> ..<span class="op">=</span> <span class="string">b&#39;9&#39;</span> <span class="op">|</span> <span class="string">b&#39;A&#39;</span> ..<span class="op">=</span> <span class="string">b&#39;Z&#39;</span> <span class="op">|</span> <span class="string">b&#39;_&#39;</span> <span class="op">|</span> <span class="string">b&#39;a&#39;</span> ..<span class="op">=</span> <span class="string">b&#39;z&#39;</span>)
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">ByteSerialize</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="kw-2">&amp;</span><span class="ident">first</span>, <span class="ident">tail</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="ident">bytes</span>.<span class="ident">split_first</span>() {
             <span class="kw">if</span> <span class="op">!</span><span class="ident">byte_serialized_unchanged</span>(<span class="ident">first</span>) {
                 <span class="self">self</span>.<span class="ident">bytes</span> <span class="op">=</span> <span class="ident">tail</span>;
-                <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="kw">if</span> <span class="ident">first</span> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39; &#39;</span> {
+                <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="kw">if</span> <span class="ident">first</span> <span class="op">==</span> <span class="string">b&#39; &#39;</span> {
                     <span class="string">&quot;+&quot;</span>
                 } <span class="kw">else</span> {
                     <span class="ident">percent_encode_byte</span>(<span class="ident">first</span>)
@@ -560,8 +560,8 @@
             <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="ident">tail</span>.<span class="ident">iter</span>().<span class="ident">position</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">b</span><span class="op">|</span> <span class="op">!</span><span class="ident">byte_serialized_unchanged</span>(<span class="ident">b</span>));
             <span class="kw">let</span> (<span class="ident">unchanged_slice</span>, <span class="ident">remaining</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">position</span> {
                 <span class="comment">// 1 for first_byte + i unchanged in tail</span>
-                <span class="prelude-val">Some</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">bytes</span>.<span class="ident">split_at</span>(<span class="number">1</span> <span class="op">+</span> <span class="ident">i</span>),
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="self">self</span>.<span class="ident">bytes</span>, <span class="kw-2">&amp;</span>[][..]),
+                <span class="prelude-val">Some</span>(<span class="ident">i</span>) =&gt; <span class="self">self</span>.<span class="ident">bytes</span>.<span class="ident">split_at</span>(<span class="number">1</span> <span class="op">+</span> <span class="ident">i</span>),
+                <span class="prelude-val">None</span> =&gt; (<span class="self">self</span>.<span class="ident">bytes</span>, <span class="kw-2">&amp;</span>[][..]),
             };
             <span class="self">self</span>.<span class="ident">bytes</span> <span class="op">=</span> <span class="ident">remaining</span>;
             <span class="comment">// This unsafe is appropriate because we have already checked these</span>
@@ -574,7 +574,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
+    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">bytes</span>.<span class="ident">is_empty</span>() {
             (<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="number">0</span>))
         } <span class="kw">else</span> {
@@ -592,26 +592,26 @@
 }
 
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Target</span> {
-    <span class="kw">fn</span> <span class="ident">as_mut_string</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">String</span>;
-    <span class="kw">fn</span> <span class="ident">finish</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Finished</span>;
+    <span class="kw">fn</span> <span class="ident">as_mut_string</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">String</span>;
+    <span class="kw">fn</span> <span class="ident">finish</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Finished</span>;
     <span class="kw">type</span> <span class="ident">Finished</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">Target</span> <span class="kw">for</span> <span class="ident">String</span> {
-    <span class="kw">fn</span> <span class="ident">as_mut_string</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">String</span> {
+    <span class="kw">fn</span> <span class="ident">as_mut_string</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">String</span> {
         <span class="self">self</span>
     }
-    <span class="kw">fn</span> <span class="ident">finish</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">finish</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>
     }
     <span class="kw">type</span> <span class="ident">Finished</span> <span class="op">=</span> <span class="self">Self</span>;
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Target</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">String</span> {
-    <span class="kw">fn</span> <span class="ident">as_mut_string</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">String</span> {
+    <span class="kw">fn</span> <span class="ident">as_mut_string</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">String</span> {
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>
     }
-    <span class="kw">fn</span> <span class="ident">finish</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">finish</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>
     }
     <span class="kw">type</span> <span class="ident">Finished</span> <span class="op">=</span> <span class="self">Self</span>;
@@ -622,7 +622,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// If the target is non-empty,</span>
     <span class="doccomment">/// its content is assumed to already be in `application/x-www-form-urlencoded` syntax.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">target</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">target</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::for_suffix</span>(<span class="ident">target</span>, <span class="number">0</span>)
     }
 
@@ -631,7 +631,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// If that suffix is non-empty,</span>
     <span class="doccomment">/// its content is assumed to already be in `application/x-www-form-urlencoded` syntax.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">for_suffix</span>(<span class="kw-2">mut</span> <span class="ident">target</span>: <span class="ident">T</span>, <span class="ident">start_position</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">for_suffix</span>(<span class="kw-2">mut</span> <span class="ident">target</span>: <span class="ident">T</span>, <span class="ident">start_position</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="ident">target</span>.<span class="ident">as_mut_string</span>().<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">start_position</span> {
             <span class="macro">panic!</span>(
                 <span class="string">&quot;invalid length {} for target of length {}&quot;</span>,
@@ -650,13 +650,13 @@
     <span class="doccomment">/// Remove any existing name/value pair.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics if called after `.finish()`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="ident">string</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">target</span>).<span class="ident">truncate</span>(<span class="self">self</span>.<span class="ident">start_position</span>);
         <span class="self">self</span>
     }
 
     <span class="doccomment">/// Set the character encoding to be used for names and values before percent-encoding.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encoding_override</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">new</span>: <span class="ident">EncodingOverride</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encoding_override</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">new</span>: <span class="ident">EncodingOverride</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">encoding</span> <span class="op">=</span> <span class="ident">new</span>;
         <span class="self">self</span>
     }
@@ -664,7 +664,7 @@
     <span class="doccomment">/// Serialize and append a name/value pair.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics if called after `.finish()`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">append_pair</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">append_pair</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="ident">append_pair</span>(
             <span class="ident">string</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">target</span>),
             <span class="self">self</span>.<span class="ident">start_position</span>,
@@ -678,7 +678,7 @@
     <span class="doccomment">/// Serialize and append a name of parameter without any value.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics if called after `.finish()`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">append_key_only</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">append_key_only</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="ident">append_key_only</span>(
             <span class="ident">string</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">target</span>),
             <span class="self">self</span>.<span class="ident">start_position</span>,
@@ -695,7 +695,7 @@
     <span class="doccomment">/// to limit the scope of `Serializer`’s borrow of its string.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics if called after `.finish()`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extend_pairs</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">iter</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extend_pairs</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">iter</span>: <span class="ident">I</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">IntoIterator</span>,
         <span class="ident">I::Item</span>: <span class="ident">Borrow</span><span class="op">&lt;</span>(<span class="ident">K</span>, <span class="ident">V</span>)<span class="op">&gt;</span>,
@@ -725,7 +725,7 @@
     <span class="doccomment">/// to limit the scope of `Serializer`’s borrow of its string.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics if called after `.finish()`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extend_keys_only</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">iter</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extend_keys_only</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">iter</span>: <span class="ident">I</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">IntoIterator</span>,
         <span class="ident">I::Item</span>: <span class="ident">Borrow</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>,
@@ -753,7 +753,7 @@
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics if called more than once.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">finish</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T::Finished</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">finish</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">T::Finished</span> {
         <span class="self">self</span>.<span class="ident">target</span>
             .<span class="ident">take</span>()
             .<span class="ident">expect</span>(<span class="string">&quot;url::form_urlencoded::Serializer double finish&quot;</span>)
@@ -767,7 +767,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">string</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Target</span><span class="op">&gt;</span>(<span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">String</span> {
+<span class="kw">fn</span> <span class="ident">string</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Target</span><span class="op">&gt;</span>(<span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">String</span> {
     <span class="ident">target</span>
         .<span class="ident">as_mut</span>()
         .<span class="ident">expect</span>(<span class="string">&quot;url::form_urlencoded::Serializer finished&quot;</span>)
@@ -801,20 +801,20 @@
     <span class="ident">string</span>.<span class="ident">extend</span>(<span class="ident">byte_serialize</span>(<span class="kw-2">&amp;</span><span class="ident">encode</span>(<span class="ident">encoding</span>, <span class="ident">s</span>)))
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">encode</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">encoding_override</span>: <span class="ident">EncodingOverride</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, [<span class="ident">u8</span>]<span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">encode</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">encoding_override</span>: <span class="ident">EncodingOverride</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, [<span class="ident">u8</span>]<span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">o</span>) <span class="op">=</span> <span class="ident">encoding_override</span> {
         <span class="kw">return</span> <span class="ident">o</span>(<span class="ident">input</span>);
     }
     <span class="ident">input</span>.<span class="ident">as_bytes</span>().<span class="ident">into</span>()
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">decode_utf8_lossy</span>(<span class="ident">input</span>: <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, [<span class="ident">u8</span>]<span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">str</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">decode_utf8_lossy</span>(<span class="ident">input</span>: <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, [<span class="ident">u8</span>]<span class="op">&gt;</span>) -&gt; <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">str</span><span class="op">&gt;</span> {
     <span class="comment">// Note: This function is duplicated in `percent_encoding/lib.rs`.</span>
     <span class="kw">match</span> <span class="ident">input</span> {
-        <span class="ident">Cow::Borrowed</span>(<span class="ident">bytes</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">String::from_utf8_lossy</span>(<span class="ident">bytes</span>),
-        <span class="ident">Cow::Owned</span>(<span class="ident">bytes</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Cow::Borrowed</span>(<span class="ident">bytes</span>) =&gt; <span class="ident">String::from_utf8_lossy</span>(<span class="ident">bytes</span>),
+        <span class="ident">Cow::Owned</span>(<span class="ident">bytes</span>) =&gt; {
             <span class="kw">match</span> <span class="ident">String::from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>) {
-                <span class="ident">Cow::Borrowed</span>(<span class="ident">utf8</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Cow::Borrowed</span>(<span class="ident">utf8</span>) =&gt; {
                     <span class="comment">// If from_utf8_lossy returns a Cow::Borrowed, then we can</span>
                     <span class="comment">// be sure our original bytes were valid UTF-8. This is because</span>
                     <span class="comment">// if the bytes were invalid UTF-8 from_utf8_lossy would have</span>
@@ -824,20 +824,20 @@
                     <span class="comment">// First we do a debug_assert to confirm our description above.</span>
                     <span class="kw">let</span> <span class="ident">raw_utf8</span>: <span class="kw-2">*</span><span class="kw">const</span> [<span class="ident">u8</span>];
                     <span class="ident">raw_utf8</span> <span class="op">=</span> <span class="ident">utf8</span>.<span class="ident">as_bytes</span>();
-                    <span class="macro">debug_assert!</span>(<span class="ident">raw_utf8</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">bytes</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> [<span class="ident">u8</span>]);
+                    <span class="macro">debug_assert!</span>(<span class="ident">raw_utf8</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">bytes</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> [<span class="ident">u8</span>]);
 
                     <span class="comment">// Given we know the original input bytes are valid UTF-8,</span>
                     <span class="comment">// and we have ownership of those bytes, we re-use them and</span>
                     <span class="comment">// return a Cow::Owned here.</span>
                     <span class="ident">Cow::Owned</span>(<span class="kw">unsafe</span> { <span class="ident">String::from_utf8_unchecked</span>(<span class="ident">bytes</span>) })
                 }
-                <span class="ident">Cow::Owned</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Cow::Owned</span>(<span class="ident">s</span>),
+                <span class="ident">Cow::Owned</span>(<span class="ident">s</span>) =&gt; <span class="ident">Cow::Owned</span>(<span class="ident">s</span>),
             }
         }
     }
 }
 
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">EncodingOverride</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, [<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">EncodingOverride</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, [<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span>;
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="form_urlencoded" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>

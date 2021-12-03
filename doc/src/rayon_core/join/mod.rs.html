@@ -277,15 +277,15 @@
 <span class="doccomment">/// closure, that panic will be propagated and hence `join()` will</span>
 <span class="doccomment">/// panic with the same panic value. If both closures panic, `join()`</span>
 <span class="doccomment">/// will panic with the panic value from the first closure.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">join</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">RA</span>, <span class="ident">RB</span><span class="op">&gt;</span>(<span class="ident">oper_a</span>: <span class="ident">A</span>, <span class="ident">oper_b</span>: <span class="ident">B</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">RA</span>, <span class="ident">RB</span>)
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">join</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">RA</span>, <span class="ident">RB</span><span class="op">&gt;</span>(<span class="ident">oper_a</span>: <span class="ident">A</span>, <span class="ident">oper_b</span>: <span class="ident">B</span>) -&gt; (<span class="ident">RA</span>, <span class="ident">RB</span>)
 <span class="kw">where</span>
-    <span class="ident">A</span>: <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RA</span> <span class="op">+</span> <span class="ident">Send</span>,
-    <span class="ident">B</span>: <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RB</span> <span class="op">+</span> <span class="ident">Send</span>,
+    <span class="ident">A</span>: <span class="ident">FnOnce</span>() -&gt; <span class="ident">RA</span> <span class="op">+</span> <span class="ident">Send</span>,
+    <span class="ident">B</span>: <span class="ident">FnOnce</span>() -&gt; <span class="ident">RB</span> <span class="op">+</span> <span class="ident">Send</span>,
     <span class="ident">RA</span>: <span class="ident">Send</span>,
     <span class="ident">RB</span>: <span class="ident">Send</span>,
 {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">call</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="ident">FnContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> {
+    <span class="kw">fn</span> <span class="ident">call</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>() -&gt; <span class="ident">R</span>) -&gt; <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="ident">FnContext</span>) -&gt; <span class="ident">R</span> {
         <span class="kw">move</span> <span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">f</span>()
     }
 
@@ -299,20 +299,20 @@
 <span class="doccomment">/// the second job is stolen by a different thread, or if</span>
 <span class="doccomment">/// `join_context` was called from outside the thread pool to begin</span>
 <span class="doccomment">/// with.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">join_context</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">RA</span>, <span class="ident">RB</span><span class="op">&gt;</span>(<span class="ident">oper_a</span>: <span class="ident">A</span>, <span class="ident">oper_b</span>: <span class="ident">B</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">RA</span>, <span class="ident">RB</span>)
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">join_context</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">RA</span>, <span class="ident">RB</span><span class="op">&gt;</span>(<span class="ident">oper_a</span>: <span class="ident">A</span>, <span class="ident">oper_b</span>: <span class="ident">B</span>) -&gt; (<span class="ident">RA</span>, <span class="ident">RB</span>)
 <span class="kw">where</span>
-    <span class="ident">A</span>: <span class="ident">FnOnce</span>(<span class="ident">FnContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RA</span> <span class="op">+</span> <span class="ident">Send</span>,
-    <span class="ident">B</span>: <span class="ident">FnOnce</span>(<span class="ident">FnContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RB</span> <span class="op">+</span> <span class="ident">Send</span>,
+    <span class="ident">A</span>: <span class="ident">FnOnce</span>(<span class="ident">FnContext</span>) -&gt; <span class="ident">RA</span> <span class="op">+</span> <span class="ident">Send</span>,
+    <span class="ident">B</span>: <span class="ident">FnOnce</span>(<span class="ident">FnContext</span>) -&gt; <span class="ident">RB</span> <span class="op">+</span> <span class="ident">Send</span>,
     <span class="ident">RA</span>: <span class="ident">Send</span>,
     <span class="ident">RB</span>: <span class="ident">Send</span>,
 {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">call_a</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="ident">FnContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>, <span class="ident">injected</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> {
+    <span class="kw">fn</span> <span class="ident">call_a</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="ident">FnContext</span>) -&gt; <span class="ident">R</span>, <span class="ident">injected</span>: <span class="ident">bool</span>) -&gt; <span class="kw">impl</span> <span class="ident">FnOnce</span>() -&gt; <span class="ident">R</span> {
         <span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">f</span>(<span class="ident">FnContext::new</span>(<span class="ident">injected</span>))
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">call_b</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="ident">FnContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> {
+    <span class="kw">fn</span> <span class="ident">call_b</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="ident">FnContext</span>) -&gt; <span class="ident">R</span>) -&gt; <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="ident">bool</span>) -&gt; <span class="ident">R</span> {
         <span class="kw">move</span> <span class="op">|</span><span class="ident">migrated</span><span class="op">|</span> <span class="ident">f</span>(<span class="ident">FnContext::new</span>(<span class="ident">migrated</span>))
     }
 
@@ -327,8 +327,8 @@
         <span class="comment">// Execute task a; hopefully b gets stolen in the meantime.</span>
         <span class="kw">let</span> <span class="ident">status_a</span> <span class="op">=</span> <span class="ident">unwind::halt_unwinding</span>(<span class="ident">call_a</span>(<span class="ident">oper_a</span>, <span class="ident">injected</span>));
         <span class="kw">let</span> <span class="ident">result_a</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">status_a</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>,
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">join_recover_from_panic</span>(<span class="ident">worker_thread</span>, <span class="kw-2">&amp;</span><span class="ident">job_b</span>.<span class="ident">latch</span>, <span class="ident">err</span>),
+            <span class="prelude-val">Ok</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span>,
+            <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="ident">join_recover_from_panic</span>(<span class="ident">worker_thread</span>, <span class="kw-2">&amp;</span><span class="ident">job_b</span>.<span class="ident">latch</span>, <span class="ident">err</span>),
         };
 
         <span class="comment">// Now that task A has finished, try to pop job B from the</span>
@@ -338,7 +338,7 @@
         <span class="comment">// those off to get to it.</span>
         <span class="kw">while</span> <span class="op">!</span><span class="ident">job_b</span>.<span class="ident">latch</span>.<span class="ident">probe</span>() {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">job</span>) <span class="op">=</span> <span class="ident">worker_thread</span>.<span class="ident">take_local_job</span>() {
-                <span class="kw">if</span> <span class="ident">job</span> <span class="op">=</span><span class="op">=</span> <span class="ident">job_b_ref</span> {
+                <span class="kw">if</span> <span class="ident">job</span> <span class="op">==</span> <span class="ident">job_b_ref</span> {
                     <span class="comment">// Found it! Let&#39;s run it.</span>
                     <span class="comment">//</span>
                     <span class="comment">// Note that this could panic, but it&#39;s ok if we unwind here.</span>
@@ -368,7 +368,7 @@
     <span class="ident">worker_thread</span>: <span class="kw-2">&amp;</span><span class="ident">WorkerThread</span>,
     <span class="ident">job_b_latch</span>: <span class="kw-2">&amp;</span><span class="ident">SpinLatch</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
     <span class="ident">err</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Any</span> <span class="op">+</span> <span class="ident">Send</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="op">!</span> {
+) -&gt; <span class="op">!</span> {
     <span class="ident">worker_thread</span>.<span class="ident">wait_until</span>(<span class="ident">job_b_latch</span>);
     <span class="ident">unwind::resume_unwinding</span>(<span class="ident">err</span>)
 }

@@ -15,7 +15,7 @@
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_macros</span>)]</span>
 <span class="macro">macro_rules!</span> <span class="ident">hide_from_rustfmt</span> {
-    (<span class="macro-nonterminal">$</span><span class="kw">mod</span>:<span class="macro-nonterminal">item</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="kw">mod</span>:<span class="macro-nonterminal">item</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="kw">mod</span>
     };
 }

@@ -187,7 +187,7 @@
     <span class="doccomment">/// In general this is intended to be a more robust version of</span>
     <span class="doccomment">/// `is_instance_of`, but if you want strictly the `instanceof` operator</span>
     <span class="doccomment">/// it&#39;s recommended to use that instead.</span>
-    <span class="kw">fn</span> <span class="ident">has_type</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>
+    <span class="kw">fn</span> <span class="ident">has_type</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">JsCast</span>,
     {
@@ -200,7 +200,7 @@
     <span class="doccomment">/// This method will return `Err(self)` if `self.has_type::&lt;T&gt;()`</span>
     <span class="doccomment">/// returns `false`, and otherwise it will return `Ok(T)` manufactured with</span>
     <span class="doccomment">/// an unchecked cast (verified correct via the `has_type` operation).</span>
-    <span class="kw">fn</span> <span class="ident">dyn_into</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="self">Self</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">dyn_into</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="self">Self</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">JsCast</span>,
     {
@@ -217,7 +217,7 @@
     <span class="doccomment">/// This method will return `None` if `self.has_type::&lt;T&gt;()`</span>
     <span class="doccomment">/// returns `false`, and otherwise it will return `Some(&amp;T)` manufactured</span>
     <span class="doccomment">/// with an unchecked cast (verified correct via the `has_type` operation).</span>
-    <span class="kw">fn</span> <span class="ident">dyn_ref</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">T</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">dyn_ref</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">T</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">JsCast</span>,
     {
@@ -235,7 +235,7 @@
     <span class="doccomment">/// not check whether `self` is an instance of `T`**. If used incorrectly</span>
     <span class="doccomment">/// then this method may cause runtime exceptions in both Rust and JS, this</span>
     <span class="doccomment">/// should be used with caution.</span>
-    <span class="kw">fn</span> <span class="ident">unchecked_into</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>
+    <span class="kw">fn</span> <span class="ident">unchecked_into</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>) -&gt; <span class="ident">T</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">JsCast</span>,
     {
@@ -253,7 +253,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This method, unlike `unchecked_into`, does not consume ownership of</span>
     <span class="doccomment">/// `self` and instead works over a shared reference.</span>
-    <span class="kw">fn</span> <span class="ident">unchecked_ref</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">T</span>
+    <span class="kw">fn</span> <span class="ident">unchecked_ref</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">JsCast</span>,
     {
@@ -269,7 +269,7 @@
     <span class="doccomment">/// across different realms (e.g. iframes). If you&#39;re not sure whether you</span>
     <span class="doccomment">/// specifically need only `instanceof` it&#39;s recommended to use `has_type`</span>
     <span class="doccomment">/// instead.</span>
-    <span class="kw">fn</span> <span class="ident">is_instance_of</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>
+    <span class="kw">fn</span> <span class="ident">is_instance_of</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">JsCast</span>,
     {
@@ -282,7 +282,7 @@
     <span class="doccomment">/// This is intended to be an internal implementation detail, you likely</span>
     <span class="doccomment">/// won&#39;t need to call this. It&#39;s generally called through the</span>
     <span class="doccomment">/// `is_instance_of` method instead.</span>
-    <span class="kw">fn</span> <span class="ident">instanceof</span>(<span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">instanceof</span>(<span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) -&gt; <span class="ident">bool</span>;
 
     <span class="doccomment">/// Performs a dynamic check to see whether the `JsValue` provided</span>
     <span class="doccomment">/// is a value of this type.</span>
@@ -293,7 +293,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Other than that, this is intended to be an internal implementation</span>
     <span class="doccomment">/// detail of `has_type` and you likely won&#39;t need to call this.</span>
-    <span class="kw">fn</span> <span class="ident">is_type_of</span>(<span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">is_type_of</span>(<span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) -&gt; <span class="ident">bool</span> {
         <span class="ident"><span class="self">Self</span>::instanceof</span>(<span class="ident">val</span>)
     }
 
@@ -302,7 +302,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This is intended to be an internal implementation detail, you likely</span>
     <span class="doccomment">/// won&#39;t need to call this.</span>
-    <span class="kw">fn</span> <span class="ident">unchecked_from_js</span>(<span class="ident">val</span>: <span class="ident">JsValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">unchecked_from_js</span>(<span class="ident">val</span>: <span class="ident">JsValue</span>) -&gt; <span class="self">Self</span>;
 
     <span class="doccomment">/// Performs a zero-cost unchecked conversion from a `&amp;JsValue` into an</span>
     <span class="doccomment">/// instance of `&amp;Self`.</span>
@@ -312,7 +312,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This is intended to be an internal implementation detail, you likely</span>
     <span class="doccomment">/// won&#39;t need to call this.</span>
-    <span class="kw">fn</span> <span class="ident">unchecked_from_js_ref</span>(<span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">unchecked_from_js_ref</span>(<span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>;
 }
 
 <span class="doccomment">/// Trait implemented for wrappers around `JsValue`s generated by `#[wasm_bindgen]`.</span>

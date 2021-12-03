@@ -287,7 +287,7 @@
     <span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
     <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">PropertyKey</span>,
     <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="comment">// 1. Let desc be OrdinaryGetOwnProperty(args, P).</span>
     <span class="comment">// 2. If desc is undefined, return desc.</span>
     <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">desc</span>) <span class="op">=</span> <span class="ident"><span class="kw">super</span>::ordinary_get_own_property</span>(<span class="ident">obj</span>, <span class="ident">key</span>, <span class="ident">context</span>)<span class="question-mark">?</span> {
@@ -335,7 +335,7 @@
     <span class="ident">key</span>: <span class="ident">PropertyKey</span>,
     <span class="ident">desc</span>: <span class="ident">PropertyDescriptor</span>,
     <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
     <span class="comment">// 1. Let map be args.[[ParameterMap]].</span>
     <span class="kw">let</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">obj</span>
         .<span class="ident">borrow</span>()
@@ -353,7 +353,7 @@
         <span class="ident">DescriptorKind::Data</span> {
             <span class="ident">writable</span>: <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
             <span class="ident">value</span>: <span class="prelude-val">None</span>,
-        } <span class="kw">if</span> <span class="ident">is_mapped</span> <span class="op">=</span><span class="op">&gt;</span>
+        } <span class="kw">if</span> <span class="ident">is_mapped</span> =&gt;
         <span class="comment">// i. Set newArgDesc to a copy of Desc.</span>
         <span class="comment">// ii. Set newArgDesc.[[Value]] to Get(map, P).</span>
         {
@@ -366,7 +366,7 @@
         }
 
         <span class="comment">// 3. Let newArgDesc be Desc.</span>
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">desc</span>.<span class="ident">clone</span>(),
+        <span class="kw">_</span> =&gt; <span class="ident">desc</span>.<span class="ident">clone</span>(),
     };
 
     <span class="comment">// 5. Let allowed be ? OrdinaryDefineOwnProperty(args, P, newArgDesc).</span>
@@ -416,7 +416,7 @@
     <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">PropertyKey</span>,
     <span class="ident">receiver</span>: <span class="ident">JsValue</span>,
     <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
     <span class="comment">// 1. Let map be args.[[ParameterMap]].</span>
     <span class="kw">let</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">obj</span>
         .<span class="ident">borrow</span>()
@@ -453,7 +453,7 @@
     <span class="ident">value</span>: <span class="ident">JsValue</span>,
     <span class="ident">receiver</span>: <span class="ident">JsValue</span>,
     <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
     <span class="comment">// 1. If SameValue(args, Receiver) is false, then</span>
     <span class="comment">// a. Let isMapped be false.</span>
     <span class="comment">// 2. Else,</span>
@@ -493,7 +493,7 @@
     <span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
     <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">PropertyKey</span>,
     <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
     <span class="comment">// 1. Let map be args.[[ParameterMap]].</span>
     <span class="kw">let</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">obj</span>
         .<span class="ident">borrow</span>()

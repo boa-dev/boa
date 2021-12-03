@@ -7,7 +7,7 @@ is used where <code>String</code> would have been used.</li>
 <li>Unicode support can be disabled even when disabling it would result in
 matching invalid UTF-8 bytes.</li>
 </ol>
-<h1 id="example-match-null-terminated-string" class="section-header"><a href="#example-match-null-terminated-string">Example: match null terminated string</a></h1>
+<h2 id="example-match-null-terminated-string" class="section-header"><a href="#example-match-null-terminated-string">Example: match null terminated string</a></h2>
 <p>This shows how to find all null-terminated strings in a slice of bytes:</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let</span> <span class="ident">re</span> <span class="op">=</span> <span class="ident">Regex::new</span>(<span class="string">r&quot;(?-u)(?P&lt;cstr&gt;[^\x00]+)\x00&quot;</span>).<span class="ident">unwrap</span>();
@@ -20,7 +20,7 @@ matching invalid UTF-8 bytes.</li>
       .<span class="ident">map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span>.<span class="ident">name</span>(<span class="string">&quot;cstr&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_bytes</span>())
       .<span class="ident">collect</span>();
 <span class="macro">assert_eq!</span>(<span class="macro">vec!</span>[<span class="kw-2">&amp;</span><span class="string">b&quot;foo&quot;</span>[..], <span class="kw-2">&amp;</span><span class="string">b&quot;bar&quot;</span>[..], <span class="kw-2">&amp;</span><span class="string">b&quot;baz&quot;</span>[..]], <span class="ident">cstrs</span>);</code></pre></div>
-<h1 id="example-selectively-enable-unicode-support" class="section-header"><a href="#example-selectively-enable-unicode-support">Example: selectively enable Unicode support</a></h1>
+<h2 id="example-selectively-enable-unicode-support" class="section-header"><a href="#example-selectively-enable-unicode-support">Example: selectively enable Unicode support</a></h2>
 <p>This shows how to match an arbitrary byte pattern followed by a UTF-8 encoded
 string (e.g., to extract a title from a Matroska file):</p>
 
@@ -42,7 +42,7 @@ string (e.g., to extract a title from a Matroska file):</p>
 <p>In general, if the Unicode flag is enabled in a capture group and that capture
 is part of the overall match, then the capture is <em>guaranteed</em> to be valid
 UTF-8.</p>
-<h1 id="syntax" class="section-header"><a href="#syntax">Syntax</a></h1>
+<h2 id="syntax" class="section-header"><a href="#syntax">Syntax</a></h2>
 <p>The supported syntax is pretty much the same as the syntax for Unicode
 regular expressions with a few changes that make sense for matching arbitrary
 bytes:</p>
@@ -65,34 +65,34 @@ enabled.</li>
 <li>In ASCII compatible mode, <code>.</code> matches any <em>byte</em> except for <code>\n</code>. When the
 <code>s</code> flag is additionally enabled, <code>.</code> matches any byte.</li>
 </ol>
-<h1 id="performance" class="section-header"><a href="#performance">Performance</a></h1>
+<h2 id="performance" class="section-header"><a href="#performance">Performance</a></h2>
 <p>In general, one should expect performance on <code>&amp;[u8]</code> to be roughly similar to
 performance on <code>&amp;str</code>.</p>
 </div></details><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="struct" href="struct.CaptureLocations.html" title="regex::bytes::CaptureLocations struct">CaptureLocations</a></div><div class="item-right docblock-short"><p>CaptureLocations is a low level representation of the raw offsets of each
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.CaptureLocations.html" title="regex::bytes::CaptureLocations struct">CaptureLocations</a></div><div class="item-right docblock-short"><p>CaptureLocations is a low level representation of the raw offsets of each
 submatch.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.CaptureMatches.html" title="regex::bytes::CaptureMatches struct">CaptureMatches</a></div><div class="item-right docblock-short"><p>An iterator that yields all non-overlapping capture groups matching a
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.CaptureMatches.html" title="regex::bytes::CaptureMatches struct">CaptureMatches</a></div><div class="item-right docblock-short"><p>An iterator that yields all non-overlapping capture groups matching a
 particular regular expression.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.CaptureNames.html" title="regex::bytes::CaptureNames struct">CaptureNames</a></div><div class="item-right docblock-short"><p>An iterator over the names of all possible captures.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.Captures.html" title="regex::bytes::Captures struct">Captures</a></div><div class="item-right docblock-short"><p>Captures represents a group of captured byte strings for a single match.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.Match.html" title="regex::bytes::Match struct">Match</a></div><div class="item-right docblock-short"><p>Match represents a single match of a regex in a haystack.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.Matches.html" title="regex::bytes::Matches struct">Matches</a></div><div class="item-right docblock-short"><p>An iterator over all non-overlapping matches for a particular string.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.NoExpand.html" title="regex::bytes::NoExpand struct">NoExpand</a></div><div class="item-right docblock-short"><p><code>NoExpand</code> indicates literal byte string replacement.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.Regex.html" title="regex::bytes::Regex struct">Regex</a></div><div class="item-right docblock-short"><p>A compiled regular expression for matching arbitrary bytes.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.RegexBuilder.html" title="regex::bytes::RegexBuilder struct">RegexBuilder</a></div><div class="item-right docblock-short"><p>A configurable builder for a regular expression.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.RegexSet.html" title="regex::bytes::RegexSet struct">RegexSet</a></div><div class="item-right docblock-short"><p>Match multiple (possibly overlapping) regular expressions in a single scan.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.RegexSetBuilder.html" title="regex::bytes::RegexSetBuilder struct">RegexSetBuilder</a></div><div class="item-right docblock-short"><p>A configurable builder for a set of regular expressions.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.ReplacerRef.html" title="regex::bytes::ReplacerRef struct">ReplacerRef</a></div><div class="item-right docblock-short"><p>By-reference adaptor for a <code>Replacer</code></p>
-</div><div class="item-left module-item"><a class="struct" href="struct.SetMatches.html" title="regex::bytes::SetMatches struct">SetMatches</a></div><div class="item-right docblock-short"><p>A set of matches returned by a regex set.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.SetMatchesIntoIter.html" title="regex::bytes::SetMatchesIntoIter struct">SetMatchesIntoIter</a></div><div class="item-right docblock-short"><p>An owned iterator over the set of matches from a regex set.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.SetMatchesIter.html" title="regex::bytes::SetMatchesIter struct">SetMatchesIter</a></div><div class="item-right docblock-short"><p>A borrowed iterator over the set of matches from a regex set.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.Split.html" title="regex::bytes::Split struct">Split</a></div><div class="item-right docblock-short"><p>Yields all substrings delimited by a regular expression match.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.SplitN.html" title="regex::bytes::SplitN struct">SplitN</a></div><div class="item-right docblock-short"><p>Yields at most <code>N</code> substrings delimited by a regular expression match.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.SubCaptureMatches.html" title="regex::bytes::SubCaptureMatches struct">SubCaptureMatches</a></div><div class="item-right docblock-short"><p>An iterator that yields all capturing matches in the order in which they
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.CaptureNames.html" title="regex::bytes::CaptureNames struct">CaptureNames</a></div><div class="item-right docblock-short"><p>An iterator over the names of all possible captures.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Captures.html" title="regex::bytes::Captures struct">Captures</a></div><div class="item-right docblock-short"><p>Captures represents a group of captured byte strings for a single match.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Match.html" title="regex::bytes::Match struct">Match</a></div><div class="item-right docblock-short"><p>Match represents a single match of a regex in a haystack.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Matches.html" title="regex::bytes::Matches struct">Matches</a></div><div class="item-right docblock-short"><p>An iterator over all non-overlapping matches for a particular string.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.NoExpand.html" title="regex::bytes::NoExpand struct">NoExpand</a></div><div class="item-right docblock-short"><p><code>NoExpand</code> indicates literal byte string replacement.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Regex.html" title="regex::bytes::Regex struct">Regex</a></div><div class="item-right docblock-short"><p>A compiled regular expression for matching arbitrary bytes.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.RegexBuilder.html" title="regex::bytes::RegexBuilder struct">RegexBuilder</a></div><div class="item-right docblock-short"><p>A configurable builder for a regular expression.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.RegexSet.html" title="regex::bytes::RegexSet struct">RegexSet</a></div><div class="item-right docblock-short"><p>Match multiple (possibly overlapping) regular expressions in a single scan.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.RegexSetBuilder.html" title="regex::bytes::RegexSetBuilder struct">RegexSetBuilder</a></div><div class="item-right docblock-short"><p>A configurable builder for a set of regular expressions.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.ReplacerRef.html" title="regex::bytes::ReplacerRef struct">ReplacerRef</a></div><div class="item-right docblock-short"><p>By-reference adaptor for a <code>Replacer</code></p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.SetMatches.html" title="regex::bytes::SetMatches struct">SetMatches</a></div><div class="item-right docblock-short"><p>A set of matches returned by a regex set.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.SetMatchesIntoIter.html" title="regex::bytes::SetMatchesIntoIter struct">SetMatchesIntoIter</a></div><div class="item-right docblock-short"><p>An owned iterator over the set of matches from a regex set.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.SetMatchesIter.html" title="regex::bytes::SetMatchesIter struct">SetMatchesIter</a></div><div class="item-right docblock-short"><p>A borrowed iterator over the set of matches from a regex set.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Split.html" title="regex::bytes::Split struct">Split</a></div><div class="item-right docblock-short"><p>Yields all substrings delimited by a regular expression match.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.SplitN.html" title="regex::bytes::SplitN struct">SplitN</a></div><div class="item-right docblock-short"><p>Yields at most <code>N</code> substrings delimited by a regular expression match.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.SubCaptureMatches.html" title="regex::bytes::SubCaptureMatches struct">SubCaptureMatches</a></div><div class="item-right docblock-short"><p>An iterator that yields all capturing matches in the order in which they
 appear in the regex.</p>
-</div></div><h2 id="traits" class="section-header"><a href="#traits">Traits</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="trait" href="trait.Replacer.html" title="regex::bytes::Replacer trait">Replacer</a></div><div class="item-right docblock-short"><p>Replacer describes types that can be used to replace matches in a byte
+</div></div></div><h2 id="traits" class="section-header"><a href="#traits">Traits</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.Replacer.html" title="regex::bytes::Replacer trait">Replacer</a></div><div class="item-right docblock-short"><p>Replacer describes types that can be used to replace matches in a byte
 string.</p>
-</div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="regex" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
+</div></div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="regex" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script>
 </body></html>

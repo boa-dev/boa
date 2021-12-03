@@ -2504,12 +2504,12 @@
     <span class="kw">let</span> <span class="ident">calculated_min</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="ident">MIN_YEAR</span>, <span class="number">1</span>, <span class="number">1</span>);
     <span class="kw">let</span> <span class="ident">calculated_max</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="ident">MAX_YEAR</span>, <span class="number">12</span>, <span class="number">31</span>);
     <span class="macro">assert!</span>(
-        <span class="ident">MIN_DATE</span> <span class="op">=</span><span class="op">=</span> <span class="ident">calculated_min</span>,
+        <span class="ident">MIN_DATE</span> <span class="op">==</span> <span class="ident">calculated_min</span>,
         <span class="string">&quot;`MIN_DATE` should have a year flag {:?}&quot;</span>,
         <span class="ident">calculated_min</span>.<span class="ident">of</span>().<span class="ident">flags</span>()
     );
     <span class="macro">assert!</span>(
-        <span class="ident">MAX_DATE</span> <span class="op">=</span><span class="op">=</span> <span class="ident">calculated_max</span>,
+        <span class="ident">MAX_DATE</span> <span class="op">==</span> <span class="ident">calculated_max</span>,
         <span class="string">&quot;`MAX_DATE` should have a year flag {:?}&quot;</span>,
         <span class="ident">calculated_max</span>.<span class="ident">of</span>().<span class="ident">flags</span>()
     );
@@ -2527,7 +2527,7 @@
 
 <span class="kw">impl</span> <span class="ident">NaiveDate</span> {
     <span class="doccomment">/// Makes a new `NaiveDate` from year and packed ordinal-flags, with a verification.</span>
-    <span class="kw">fn</span> <span class="ident">from_of</span>(<span class="ident">year</span>: <span class="ident">i32</span>, <span class="ident">of</span>: <span class="ident">Of</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_of</span>(<span class="ident">year</span>: <span class="ident">i32</span>, <span class="ident">of</span>: <span class="ident">Of</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">year</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">MIN_YEAR</span> <span class="op">&amp;&amp;</span> <span class="ident">year</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">MAX_YEAR</span> <span class="op">&amp;&amp;</span> <span class="ident">of</span>.<span class="ident">valid</span>() {
             <span class="kw">let</span> <span class="ident">Of</span>(<span class="ident">of</span>) <span class="op">=</span> <span class="ident">of</span>;
             <span class="prelude-val">Some</span>(<span class="ident">NaiveDate</span> { <span class="ident">ymdf</span>: (<span class="ident">year</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">13</span>) <span class="op">|</span> (<span class="ident">of</span> <span class="kw">as</span> <span class="ident">DateImpl</span>) })
@@ -2537,7 +2537,7 @@
     }
 
     <span class="doccomment">/// Makes a new `NaiveDate` from year and packed month-day-flags, with a verification.</span>
-    <span class="kw">fn</span> <span class="ident">from_mdf</span>(<span class="ident">year</span>: <span class="ident">i32</span>, <span class="ident">mdf</span>: <span class="ident">Mdf</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_mdf</span>(<span class="ident">year</span>: <span class="ident">i32</span>, <span class="ident">mdf</span>: <span class="ident">Mdf</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
         <span class="ident">NaiveDate::from_of</span>(<span class="ident">year</span>, <span class="ident">mdf</span>.<span class="ident">to_of</span>())
     }
 
@@ -2561,7 +2561,7 @@
     <span class="doccomment">/// assert_eq!(d.weekday(), Weekday::Sat);</span>
     <span class="doccomment">/// assert_eq!(d.num_days_from_ce(), 735671); // days since January 1, 1 CE</span>
     <span class="doccomment">/// ~~~~</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_ymd</span>(<span class="ident">year</span>: <span class="ident">i32</span>, <span class="ident">month</span>: <span class="ident">u32</span>, <span class="ident">day</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NaiveDate</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_ymd</span>(<span class="ident">year</span>: <span class="ident">i32</span>, <span class="ident">month</span>: <span class="ident">u32</span>, <span class="ident">day</span>: <span class="ident">u32</span>) -&gt; <span class="ident">NaiveDate</span> {
         <span class="ident">NaiveDate::from_ymd_opt</span>(<span class="ident">year</span>, <span class="ident">month</span>, <span class="ident">day</span>).<span class="ident">expect</span>(<span class="string">&quot;invalid or out-of-range date&quot;</span>)
     }
 
@@ -2584,7 +2584,7 @@
     <span class="doccomment">/// assert!(from_ymd_opt(400000, 1, 1).is_none());</span>
     <span class="doccomment">/// assert!(from_ymd_opt(-400000, 1, 1).is_none());</span>
     <span class="doccomment">/// ~~~~</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_ymd_opt</span>(<span class="ident">year</span>: <span class="ident">i32</span>, <span class="ident">month</span>: <span class="ident">u32</span>, <span class="ident">day</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_ymd_opt</span>(<span class="ident">year</span>: <span class="ident">i32</span>, <span class="ident">month</span>: <span class="ident">u32</span>, <span class="ident">day</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">YearFlags::from_year</span>(<span class="ident">year</span>);
         <span class="ident">NaiveDate::from_mdf</span>(<span class="ident">year</span>, <span class="ident">Mdf::new</span>(<span class="ident">month</span>, <span class="ident">day</span>, <span class="ident">flags</span>))
     }
@@ -2609,7 +2609,7 @@
     <span class="doccomment">/// assert_eq!(d.weekday(), Weekday::Sat);</span>
     <span class="doccomment">/// assert_eq!(d.num_days_from_ce(), 735671); // days since January 1, 1 CE</span>
     <span class="doccomment">/// ~~~~</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_yo</span>(<span class="ident">year</span>: <span class="ident">i32</span>, <span class="ident">ordinal</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NaiveDate</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_yo</span>(<span class="ident">year</span>: <span class="ident">i32</span>, <span class="ident">ordinal</span>: <span class="ident">u32</span>) -&gt; <span class="ident">NaiveDate</span> {
         <span class="ident">NaiveDate::from_yo_opt</span>(<span class="ident">year</span>, <span class="ident">ordinal</span>).<span class="ident">expect</span>(<span class="string">&quot;invalid or out-of-range date&quot;</span>)
     }
 
@@ -2633,7 +2633,7 @@
     <span class="doccomment">/// assert!(from_yo_opt(400000, 1).is_none());</span>
     <span class="doccomment">/// assert!(from_yo_opt(-400000, 1).is_none());</span>
     <span class="doccomment">/// ~~~~</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_yo_opt</span>(<span class="ident">year</span>: <span class="ident">i32</span>, <span class="ident">ordinal</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_yo_opt</span>(<span class="ident">year</span>: <span class="ident">i32</span>, <span class="ident">ordinal</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">YearFlags::from_year</span>(<span class="ident">year</span>);
         <span class="ident">NaiveDate::from_of</span>(<span class="ident">year</span>, <span class="ident">Of::new</span>(<span class="ident">ordinal</span>, <span class="ident">flags</span>))
     }
@@ -2659,7 +2659,7 @@
     <span class="doccomment">/// assert_eq!(d.ordinal(), 73); // day of year</span>
     <span class="doccomment">/// assert_eq!(d.num_days_from_ce(), 735671); // days since January 1, 1 CE</span>
     <span class="doccomment">/// ~~~~</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_isoywd</span>(<span class="ident">year</span>: <span class="ident">i32</span>, <span class="ident">week</span>: <span class="ident">u32</span>, <span class="ident">weekday</span>: <span class="ident">Weekday</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NaiveDate</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_isoywd</span>(<span class="ident">year</span>: <span class="ident">i32</span>, <span class="ident">week</span>: <span class="ident">u32</span>, <span class="ident">weekday</span>: <span class="ident">Weekday</span>) -&gt; <span class="ident">NaiveDate</span> {
         <span class="ident">NaiveDate::from_isoywd_opt</span>(<span class="ident">year</span>, <span class="ident">week</span>, <span class="ident">weekday</span>).<span class="ident">expect</span>(<span class="string">&quot;invalid or out-of-range date&quot;</span>)
     }
 
@@ -2707,7 +2707,7 @@
     <span class="doccomment">/// assert_eq!(from_isoywd_opt(2015, 54, Weekday::Mon), None);</span>
     <span class="doccomment">/// assert_eq!(from_isoywd_opt(2016, 1, Weekday::Mon), Some(from_ymd(2016, 1, 4)));</span>
     <span class="doccomment">/// ~~~~</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_isoywd_opt</span>(<span class="ident">year</span>: <span class="ident">i32</span>, <span class="ident">week</span>: <span class="ident">u32</span>, <span class="ident">weekday</span>: <span class="ident">Weekday</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_isoywd_opt</span>(<span class="ident">year</span>: <span class="ident">i32</span>, <span class="ident">week</span>: <span class="ident">u32</span>, <span class="ident">weekday</span>: <span class="ident">Weekday</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">YearFlags::from_year</span>(<span class="ident">year</span>);
         <span class="kw">let</span> <span class="ident">nweeks</span> <span class="op">=</span> <span class="ident">flags</span>.<span class="ident">nisoweeks</span>();
         <span class="kw">if</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">week</span> <span class="op">&amp;&amp;</span> <span class="ident">week</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">nweeks</span> {
@@ -2782,7 +2782,7 @@
     <span class="doccomment">/// assert_eq!(jd_to_date(2451545), NaiveDate::from_ymd(2000, 1, 1));</span>
     <span class="doccomment">/// ~~~~</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_num_days_from_ce</span>(<span class="ident">days</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NaiveDate</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_num_days_from_ce</span>(<span class="ident">days</span>: <span class="ident">i32</span>) -&gt; <span class="ident">NaiveDate</span> {
         <span class="ident">NaiveDate::from_num_days_from_ce_opt</span>(<span class="ident">days</span>).<span class="ident">expect</span>(<span class="string">&quot;out-of-range date&quot;</span>)
     }
 
@@ -2806,7 +2806,7 @@
     <span class="doccomment">/// assert_eq!(from_ndays_opt(100_000_000),  None);</span>
     <span class="doccomment">/// assert_eq!(from_ndays_opt(-100_000_000), None);</span>
     <span class="doccomment">/// ~~~~</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_num_days_from_ce_opt</span>(<span class="ident">days</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_num_days_from_ce_opt</span>(<span class="ident">days</span>: <span class="ident">i32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">days</span> <span class="op">=</span> <span class="ident">days</span> <span class="op">+</span> <span class="number">365</span>; <span class="comment">// make December 31, 1 BCE equal to day 0</span>
         <span class="kw">let</span> (<span class="ident">year_div_400</span>, <span class="ident">cycle</span>) <span class="op">=</span> <span class="ident">div_mod_floor</span>(<span class="ident">days</span>, <span class="number">146_097</span>);
         <span class="kw">let</span> (<span class="ident">year_mod_400</span>, <span class="ident">ordinal</span>) <span class="op">=</span> <span class="ident">internals::cycle_to_yo</span>(<span class="ident">cycle</span> <span class="kw">as</span> <span class="ident">u32</span>);
@@ -2839,7 +2839,7 @@
     <span class="doccomment">/// assert_eq!(from_weekday_of_month(2018, 8, Weekday::Fri, 4), from_ymd(2018, 8, 24));</span>
     <span class="doccomment">/// assert_eq!(from_weekday_of_month(2018, 8, Weekday::Fri, 5), from_ymd(2018, 8, 31));</span>
     <span class="doccomment">/// ~~~~</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_weekday_of_month</span>(<span class="ident">year</span>: <span class="ident">i32</span>, <span class="ident">month</span>: <span class="ident">u32</span>, <span class="ident">weekday</span>: <span class="ident">Weekday</span>, <span class="ident">n</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NaiveDate</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_weekday_of_month</span>(<span class="ident">year</span>: <span class="ident">i32</span>, <span class="ident">month</span>: <span class="ident">u32</span>, <span class="ident">weekday</span>: <span class="ident">Weekday</span>, <span class="ident">n</span>: <span class="ident">u8</span>) -&gt; <span class="ident">NaiveDate</span> {
         <span class="ident">NaiveDate::from_weekday_of_month_opt</span>(<span class="ident">year</span>, <span class="ident">month</span>, <span class="ident">weekday</span>, <span class="ident">n</span>).<span class="ident">expect</span>(<span class="string">&quot;out-of-range date&quot;</span>)
     }
 
@@ -2860,8 +2860,8 @@
         <span class="ident">month</span>: <span class="ident">u32</span>,
         <span class="ident">weekday</span>: <span class="ident">Weekday</span>,
         <span class="ident">n</span>: <span class="ident">u8</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">n</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="ident">n</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
         <span class="kw">let</span> <span class="ident">first</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="ident">year</span>, <span class="ident">month</span>, <span class="number">1</span>).<span class="ident">weekday</span>();
@@ -2912,7 +2912,7 @@
     <span class="doccomment">/// # let parse_from_str = NaiveDate::parse_from_str;</span>
     <span class="doccomment">/// assert!(parse_from_str(&quot;Sat, 09 Aug 2013&quot;, &quot;%a, %d %b %Y&quot;).is_err());</span>
     <span class="doccomment">/// ~~~~</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parsed</span> <span class="op">=</span> <span class="ident">Parsed::new</span>();
         <span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">parsed</span>, <span class="ident">s</span>, <span class="ident">StrftimeItems::new</span>(<span class="ident">fmt</span>))<span class="question-mark">?</span>;
         <span class="ident">parsed</span>.<span class="ident">to_naive_date</span>()
@@ -2933,7 +2933,7 @@
     <span class="doccomment">/// assert_eq!(dt.time(), t);</span>
     <span class="doccomment">/// ~~~~</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">and_time</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">time</span>: <span class="ident">NaiveTime</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NaiveDateTime</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">and_time</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">time</span>: <span class="ident">NaiveTime</span>) -&gt; <span class="ident">NaiveDateTime</span> {
         <span class="ident">NaiveDateTime::new</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="ident">time</span>)
     }
 
@@ -2957,7 +2957,7 @@
     <span class="doccomment">/// assert_eq!(dt.second(), 56);</span>
     <span class="doccomment">/// ~~~~</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">and_hms</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">hour</span>: <span class="ident">u32</span>, <span class="ident">min</span>: <span class="ident">u32</span>, <span class="ident">sec</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NaiveDateTime</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">and_hms</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">hour</span>: <span class="ident">u32</span>, <span class="ident">min</span>: <span class="ident">u32</span>, <span class="ident">sec</span>: <span class="ident">u32</span>) -&gt; <span class="ident">NaiveDateTime</span> {
         <span class="self">self</span>.<span class="ident">and_hms_opt</span>(<span class="ident">hour</span>, <span class="ident">min</span>, <span class="ident">sec</span>).<span class="ident">expect</span>(<span class="string">&quot;invalid time&quot;</span>)
     }
 
@@ -2980,7 +2980,7 @@
     <span class="doccomment">/// assert!(d.and_hms_opt(24, 34, 56).is_none());</span>
     <span class="doccomment">/// ~~~~</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">and_hms_opt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">hour</span>: <span class="ident">u32</span>, <span class="ident">min</span>: <span class="ident">u32</span>, <span class="ident">sec</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDateTime</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">and_hms_opt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">hour</span>: <span class="ident">u32</span>, <span class="ident">min</span>: <span class="ident">u32</span>, <span class="ident">sec</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDateTime</span><span class="op">&gt;</span> {
         <span class="ident">NaiveTime::from_hms_opt</span>(<span class="ident">hour</span>, <span class="ident">min</span>, <span class="ident">sec</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">time</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">and_time</span>(<span class="ident">time</span>))
     }
 
@@ -3005,7 +3005,7 @@
     <span class="doccomment">/// assert_eq!(dt.nanosecond(), 789_000_000);</span>
     <span class="doccomment">/// ~~~~</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">and_hms_milli</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">hour</span>: <span class="ident">u32</span>, <span class="ident">min</span>: <span class="ident">u32</span>, <span class="ident">sec</span>: <span class="ident">u32</span>, <span class="ident">milli</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NaiveDateTime</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">and_hms_milli</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">hour</span>: <span class="ident">u32</span>, <span class="ident">min</span>: <span class="ident">u32</span>, <span class="ident">sec</span>: <span class="ident">u32</span>, <span class="ident">milli</span>: <span class="ident">u32</span>) -&gt; <span class="ident">NaiveDateTime</span> {
         <span class="self">self</span>.<span class="ident">and_hms_milli_opt</span>(<span class="ident">hour</span>, <span class="ident">min</span>, <span class="ident">sec</span>, <span class="ident">milli</span>).<span class="ident">expect</span>(<span class="string">&quot;invalid time&quot;</span>)
     }
 
@@ -3036,7 +3036,7 @@
         <span class="ident">min</span>: <span class="ident">u32</span>,
         <span class="ident">sec</span>: <span class="ident">u32</span>,
         <span class="ident">milli</span>: <span class="ident">u32</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDateTime</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDateTime</span><span class="op">&gt;</span> {
         <span class="ident">NaiveTime::from_hms_milli_opt</span>(<span class="ident">hour</span>, <span class="ident">min</span>, <span class="ident">sec</span>, <span class="ident">milli</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">time</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">and_time</span>(<span class="ident">time</span>))
     }
 
@@ -3061,7 +3061,7 @@
     <span class="doccomment">/// assert_eq!(dt.nanosecond(), 789_012_000);</span>
     <span class="doccomment">/// ~~~~</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">and_hms_micro</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">hour</span>: <span class="ident">u32</span>, <span class="ident">min</span>: <span class="ident">u32</span>, <span class="ident">sec</span>: <span class="ident">u32</span>, <span class="ident">micro</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NaiveDateTime</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">and_hms_micro</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">hour</span>: <span class="ident">u32</span>, <span class="ident">min</span>: <span class="ident">u32</span>, <span class="ident">sec</span>: <span class="ident">u32</span>, <span class="ident">micro</span>: <span class="ident">u32</span>) -&gt; <span class="ident">NaiveDateTime</span> {
         <span class="self">self</span>.<span class="ident">and_hms_micro_opt</span>(<span class="ident">hour</span>, <span class="ident">min</span>, <span class="ident">sec</span>, <span class="ident">micro</span>).<span class="ident">expect</span>(<span class="string">&quot;invalid time&quot;</span>)
     }
 
@@ -3092,7 +3092,7 @@
         <span class="ident">min</span>: <span class="ident">u32</span>,
         <span class="ident">sec</span>: <span class="ident">u32</span>,
         <span class="ident">micro</span>: <span class="ident">u32</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDateTime</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDateTime</span><span class="op">&gt;</span> {
         <span class="ident">NaiveTime::from_hms_micro_opt</span>(<span class="ident">hour</span>, <span class="ident">min</span>, <span class="ident">sec</span>, <span class="ident">micro</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">time</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">and_time</span>(<span class="ident">time</span>))
     }
 
@@ -3117,7 +3117,7 @@
     <span class="doccomment">/// assert_eq!(dt.nanosecond(), 789_012_345);</span>
     <span class="doccomment">/// ~~~~</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">and_hms_nano</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">hour</span>: <span class="ident">u32</span>, <span class="ident">min</span>: <span class="ident">u32</span>, <span class="ident">sec</span>: <span class="ident">u32</span>, <span class="ident">nano</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NaiveDateTime</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">and_hms_nano</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">hour</span>: <span class="ident">u32</span>, <span class="ident">min</span>: <span class="ident">u32</span>, <span class="ident">sec</span>: <span class="ident">u32</span>, <span class="ident">nano</span>: <span class="ident">u32</span>) -&gt; <span class="ident">NaiveDateTime</span> {
         <span class="self">self</span>.<span class="ident">and_hms_nano_opt</span>(<span class="ident">hour</span>, <span class="ident">min</span>, <span class="ident">sec</span>, <span class="ident">nano</span>).<span class="ident">expect</span>(<span class="string">&quot;invalid time&quot;</span>)
     }
 
@@ -3148,19 +3148,19 @@
         <span class="ident">min</span>: <span class="ident">u32</span>,
         <span class="ident">sec</span>: <span class="ident">u32</span>,
         <span class="ident">nano</span>: <span class="ident">u32</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDateTime</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDateTime</span><span class="op">&gt;</span> {
         <span class="ident">NaiveTime::from_hms_nano_opt</span>(<span class="ident">hour</span>, <span class="ident">min</span>, <span class="ident">sec</span>, <span class="ident">nano</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">time</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">and_time</span>(<span class="ident">time</span>))
     }
 
     <span class="doccomment">/// Returns the packed month-day-flags.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">mdf</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Mdf</span> {
+    <span class="kw">fn</span> <span class="ident">mdf</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Mdf</span> {
         <span class="self">self</span>.<span class="ident">of</span>().<span class="ident">to_mdf</span>()
     }
 
     <span class="doccomment">/// Returns the packed ordinal-flags.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">of</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Of</span> {
+    <span class="kw">fn</span> <span class="ident">of</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Of</span> {
         <span class="ident">Of</span>((<span class="self">self</span>.<span class="ident">ymdf</span> <span class="op">&amp;</span> <span class="number">0b1_1111_1111_1111</span>) <span class="kw">as</span> <span class="ident">u32</span>)
     }
 
@@ -3168,7 +3168,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns `None` when the resulting `NaiveDate` would be invalid.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">with_mdf</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">mdf</span>: <span class="ident">Mdf</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">with_mdf</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">mdf</span>: <span class="ident">Mdf</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">with_of</span>(<span class="ident">mdf</span>.<span class="ident">to_of</span>())
     }
 
@@ -3176,7 +3176,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns `None` when the resulting `NaiveDate` would be invalid.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">with_of</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">of</span>: <span class="ident">Of</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">with_of</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">of</span>: <span class="ident">Of</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">of</span>.<span class="ident">valid</span>() {
             <span class="kw">let</span> <span class="ident">Of</span>(<span class="ident">of</span>) <span class="op">=</span> <span class="ident">of</span>;
             <span class="prelude-val">Some</span>(<span class="ident">NaiveDate</span> { <span class="ident">ymdf</span>: (<span class="self">self</span>.<span class="ident">ymdf</span> <span class="op">&amp;</span> <span class="op">!</span><span class="number">0b1_1111_1111_1111</span>) <span class="op">|</span> <span class="ident">of</span> <span class="kw">as</span> <span class="ident">DateImpl</span> })
@@ -3199,7 +3199,7 @@
     <span class="doccomment">/// assert_eq!(NaiveDate::from_ymd(2015, 12, 31).succ(), NaiveDate::from_ymd(2016, 1, 1));</span>
     <span class="doccomment">/// ~~~~</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">succ</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NaiveDate</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">succ</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">NaiveDate</span> {
         <span class="self">self</span>.<span class="ident">succ_opt</span>().<span class="ident">expect</span>(<span class="string">&quot;out of bound&quot;</span>)
     }
 
@@ -3218,7 +3218,7 @@
     <span class="doccomment">/// assert_eq!(MAX_DATE.succ_opt(), None);</span>
     <span class="doccomment">/// ~~~~</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">succ_opt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">succ_opt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">with_of</span>(<span class="self">self</span>.<span class="ident">of</span>().<span class="ident">succ</span>()).<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">NaiveDate::from_ymd_opt</span>(<span class="self">self</span>.<span class="ident">year</span>() <span class="op">+</span> <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>))
     }
 
@@ -3236,7 +3236,7 @@
     <span class="doccomment">/// assert_eq!(NaiveDate::from_ymd(2015, 1, 1).pred(), NaiveDate::from_ymd(2014, 12, 31));</span>
     <span class="doccomment">/// ~~~~</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pred</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NaiveDate</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pred</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">NaiveDate</span> {
         <span class="self">self</span>.<span class="ident">pred_opt</span>().<span class="ident">expect</span>(<span class="string">&quot;out of bound&quot;</span>)
     }
 
@@ -3255,7 +3255,7 @@
     <span class="doccomment">/// assert_eq!(MIN_DATE.pred_opt(), None);</span>
     <span class="doccomment">/// ~~~~</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pred_opt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pred_opt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">with_of</span>(<span class="self">self</span>.<span class="ident">of</span>().<span class="ident">pred</span>()).<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">NaiveDate::from_ymd_opt</span>(<span class="self">self</span>.<span class="ident">year</span>() <span class="op">-</span> <span class="number">1</span>, <span class="number">12</span>, <span class="number">31</span>))
     }
 
@@ -3280,7 +3280,7 @@
     <span class="doccomment">/// assert_eq!(MAX_DATE.checked_add_signed(Duration::days(1)), None);</span>
     <span class="doccomment">/// # }</span>
     <span class="doccomment">/// ~~~~</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">checked_add_signed</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">OldDuration</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">checked_add_signed</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">OldDuration</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">year</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">year</span>();
         <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">year_div_400</span>, <span class="ident">year_mod_400</span>) <span class="op">=</span> <span class="ident">div_mod_floor</span>(<span class="ident">year</span>, <span class="number">400</span>);
         <span class="kw">let</span> <span class="ident">cycle</span> <span class="op">=</span> <span class="ident">internals::yo_to_cycle</span>(<span class="ident">year_mod_400</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="self">self</span>.<span class="ident">of</span>().<span class="ident">ordinal</span>());
@@ -3314,7 +3314,7 @@
     <span class="doccomment">/// assert_eq!(MIN_DATE.checked_sub_signed(Duration::days(1)), None);</span>
     <span class="doccomment">/// # }</span>
     <span class="doccomment">/// ~~~~</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">checked_sub_signed</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">OldDuration</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">checked_sub_signed</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">OldDuration</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">year</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">year</span>();
         <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">year_div_400</span>, <span class="ident">year_mod_400</span>) <span class="op">=</span> <span class="ident">div_mod_floor</span>(<span class="ident">year</span>, <span class="number">400</span>);
         <span class="kw">let</span> <span class="ident">cycle</span> <span class="op">=</span> <span class="ident">internals::yo_to_cycle</span>(<span class="ident">year_mod_400</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="self">self</span>.<span class="ident">of</span>().<span class="ident">ordinal</span>());
@@ -3351,7 +3351,7 @@
     <span class="doccomment">/// assert_eq!(since(from_ymd(2014, 1, 1), from_ymd(1614, 1, 1)), Duration::days(365*400 + 97));</span>
     <span class="doccomment">/// # }</span>
     <span class="doccomment">/// ~~~~</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">signed_duration_since</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">NaiveDate</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OldDuration</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">signed_duration_since</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">NaiveDate</span>) -&gt; <span class="ident">OldDuration</span> {
         <span class="kw">let</span> <span class="ident">year1</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">year</span>();
         <span class="kw">let</span> <span class="ident">year2</span> <span class="op">=</span> <span class="ident">rhs</span>.<span class="ident">year</span>();
         <span class="kw">let</span> (<span class="ident">year1_div_400</span>, <span class="ident">year1_mod_400</span>) <span class="op">=</span> <span class="ident">div_mod_floor</span>(<span class="ident">year1</span>, <span class="number">400</span>);
@@ -3392,7 +3392,7 @@
     <span class="doccomment">/// ~~~~</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">format_with_items</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">items</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DelayedFormat</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">format_with_items</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">items</span>: <span class="ident">I</span>) -&gt; <span class="ident">DelayedFormat</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">B</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span>,
         <span class="ident">B</span>: <span class="ident">Borrow</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
@@ -3434,7 +3434,7 @@
     <span class="doccomment">/// ~~~~</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">format</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DelayedFormat</span><span class="op">&lt;</span><span class="ident">StrftimeItems</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">format</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="ident">DelayedFormat</span><span class="op">&lt;</span><span class="ident">StrftimeItems</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">format_with_items</span>(<span class="ident">StrftimeItems::new</span>(<span class="ident">fmt</span>))
     }
 
@@ -3460,7 +3460,7 @@
     <span class="doccomment">/// assert_eq!(count, 4);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter_days</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NaiveDateDaysIterator</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter_days</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">NaiveDateDaysIterator</span> {
         <span class="ident">NaiveDateDaysIterator</span> { <span class="ident">value</span>: <span class="kw-2">*</span><span class="self">self</span> }
     }
 
@@ -3486,7 +3486,7 @@
     <span class="doccomment">/// assert_eq!(count, 4);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter_weeks</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NaiveDateWeeksIterator</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter_weeks</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">NaiveDateWeeksIterator</span> {
         <span class="ident">NaiveDateWeeksIterator</span> { <span class="ident">value</span>: <span class="kw-2">*</span><span class="self">self</span> }
     }
 }
@@ -3503,7 +3503,7 @@
     <span class="doccomment">/// assert_eq!(NaiveDate::from_ymd(-308, 3, 14).year(), -308); // 309 BCE</span>
     <span class="doccomment">/// ~~~~</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">year</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
+    <span class="kw">fn</span> <span class="ident">year</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">i32</span> {
         <span class="self">self</span>.<span class="ident">ymdf</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">13</span>
     }
 
@@ -3520,7 +3520,7 @@
     <span class="doccomment">/// assert_eq!(NaiveDate::from_ymd(-308, 3, 14).month(), 3);</span>
     <span class="doccomment">/// ~~~~</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">month</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">month</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span> {
         <span class="self">self</span>.<span class="ident">mdf</span>().<span class="ident">month</span>()
     }
 
@@ -3537,7 +3537,7 @@
     <span class="doccomment">/// assert_eq!(NaiveDate::from_ymd(-308, 3, 14).month0(), 2);</span>
     <span class="doccomment">/// ~~~~</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">month0</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">month0</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span> {
         <span class="self">self</span>.<span class="ident">mdf</span>().<span class="ident">month</span>() <span class="op">-</span> <span class="number">1</span>
     }
 
@@ -3577,7 +3577,7 @@
     <span class="doccomment">/// assert_eq!(ndays_in_month(2017, 2), 28);</span>
     <span class="doccomment">/// ~~~~</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">day</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">day</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span> {
         <span class="self">self</span>.<span class="ident">mdf</span>().<span class="ident">day</span>()
     }
 
@@ -3594,7 +3594,7 @@
     <span class="doccomment">/// assert_eq!(NaiveDate::from_ymd(-308, 3, 14).day0(), 13);</span>
     <span class="doccomment">/// ~~~~</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">day0</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">day0</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span> {
         <span class="self">self</span>.<span class="ident">mdf</span>().<span class="ident">day</span>() <span class="op">-</span> <span class="number">1</span>
     }
 
@@ -3633,7 +3633,7 @@
     <span class="doccomment">/// assert_eq!(ndays_in_year(2100), 365);</span>
     <span class="doccomment">/// ~~~~</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">ordinal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">ordinal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span> {
         <span class="self">self</span>.<span class="ident">of</span>().<span class="ident">ordinal</span>()
     }
 
@@ -3650,7 +3650,7 @@
     <span class="doccomment">/// assert_eq!(NaiveDate::from_ymd(-308, 3, 14).ordinal0(), 73);</span>
     <span class="doccomment">/// ~~~~</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">ordinal0</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">ordinal0</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span> {
         <span class="self">self</span>.<span class="ident">of</span>().<span class="ident">ordinal</span>() <span class="op">-</span> <span class="number">1</span>
     }
 
@@ -3665,12 +3665,12 @@
     <span class="doccomment">/// assert_eq!(NaiveDate::from_ymd(-308, 3, 14).weekday(), Weekday::Fri);</span>
     <span class="doccomment">/// ~~~~</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">weekday</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Weekday</span> {
+    <span class="kw">fn</span> <span class="ident">weekday</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Weekday</span> {
         <span class="self">self</span>.<span class="ident">of</span>().<span class="ident">weekday</span>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">iso_week</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IsoWeek</span> {
+    <span class="kw">fn</span> <span class="ident">iso_week</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">IsoWeek</span> {
         <span class="ident">isoweek::iso_week_from_yof</span>(<span class="self">self</span>.<span class="ident">year</span>(), <span class="self">self</span>.<span class="ident">of</span>())
     }
 
@@ -3697,7 +3697,7 @@
     <span class="doccomment">/// assert!(NaiveDate::from_ymd(2016, 2, 29).with_year(2020).is_some());</span>
     <span class="doccomment">/// ~~~~</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">with_year</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">year</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">with_year</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">year</span>: <span class="ident">i32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
         <span class="comment">// we need to operate with `mdf` since we should keep the month and day number as is</span>
         <span class="kw">let</span> <span class="ident">mdf</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">mdf</span>();
 
@@ -3723,7 +3723,7 @@
     <span class="doccomment">/// assert_eq!(NaiveDate::from_ymd(2015, 9, 30).with_month(2), None); // no February 30</span>
     <span class="doccomment">/// ~~~~</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">with_month</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">month</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">with_month</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">month</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">with_mdf</span>(<span class="self">self</span>.<span class="ident">mdf</span>().<span class="ident">with_month</span>(<span class="ident">month</span>))
     }
 
@@ -3742,7 +3742,7 @@
     <span class="doccomment">/// assert_eq!(NaiveDate::from_ymd(2015, 9, 30).with_month0(1), None); // no February 30</span>
     <span class="doccomment">/// ~~~~</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">with_month0</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">month0</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">with_month0</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">month0</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">with_mdf</span>(<span class="self">self</span>.<span class="ident">mdf</span>().<span class="ident">with_month</span>(<span class="ident">month0</span> <span class="op">+</span> <span class="number">1</span>))
     }
 
@@ -3761,7 +3761,7 @@
     <span class="doccomment">///            None); // no September 31</span>
     <span class="doccomment">/// ~~~~</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">with_day</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">day</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">with_day</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">day</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">with_mdf</span>(<span class="self">self</span>.<span class="ident">mdf</span>().<span class="ident">with_day</span>(<span class="ident">day</span>))
     }
 
@@ -3780,7 +3780,7 @@
     <span class="doccomment">///            None); // no September 31</span>
     <span class="doccomment">/// ~~~~</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">with_day0</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">day0</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">with_day0</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">day0</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">with_mdf</span>(<span class="self">self</span>.<span class="ident">mdf</span>().<span class="ident">with_day</span>(<span class="ident">day0</span> <span class="op">+</span> <span class="number">1</span>))
     }
 
@@ -3804,7 +3804,7 @@
     <span class="doccomment">///            Some(NaiveDate::from_ymd(2016, 12, 31)));</span>
     <span class="doccomment">/// ~~~~</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">with_ordinal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ordinal</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">with_ordinal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ordinal</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">with_of</span>(<span class="self">self</span>.<span class="ident">of</span>().<span class="ident">with_ordinal</span>(<span class="ident">ordinal</span>))
     }
 
@@ -3828,7 +3828,7 @@
     <span class="doccomment">///            Some(NaiveDate::from_ymd(2016, 12, 31)));</span>
     <span class="doccomment">/// ~~~~</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">with_ordinal0</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ordinal0</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">with_ordinal0</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ordinal0</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">with_of</span>(<span class="self">self</span>.<span class="ident">of</span>().<span class="ident">with_ordinal</span>(<span class="ident">ordinal0</span> <span class="op">+</span> <span class="number">1</span>))
     }
 }
@@ -3861,7 +3861,7 @@
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">NaiveDate</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">add</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">OldDuration</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NaiveDate</span> {
+    <span class="kw">fn</span> <span class="ident">add</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">OldDuration</span>) -&gt; <span class="ident">NaiveDate</span> {
         <span class="self">self</span>.<span class="ident">checked_add_signed</span>(<span class="ident">rhs</span>).<span class="ident">expect</span>(<span class="string">&quot;`NaiveDate + Duration` overflowed&quot;</span>)
     }
 }
@@ -3902,7 +3902,7 @@
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">NaiveDate</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">sub</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">OldDuration</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NaiveDate</span> {
+    <span class="kw">fn</span> <span class="ident">sub</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">OldDuration</span>) -&gt; <span class="ident">NaiveDate</span> {
         <span class="self">self</span>.<span class="ident">checked_sub_signed</span>(<span class="ident">rhs</span>).<span class="ident">expect</span>(<span class="string">&quot;`NaiveDate - Duration` overflowed&quot;</span>)
     }
 }
@@ -3944,7 +3944,7 @@
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">OldDuration</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">sub</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">NaiveDate</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OldDuration</span> {
+    <span class="kw">fn</span> <span class="ident">sub</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">NaiveDate</span>) -&gt; <span class="ident">OldDuration</span> {
         <span class="self">self</span>.<span class="ident">signed_duration_since</span>(<span class="ident">rhs</span>)
     }
 }
@@ -3958,8 +3958,8 @@
 <span class="kw">impl</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">NaiveDateDaysIterator</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">NaiveDate</span>;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">value</span> <span class="op">=</span><span class="op">=</span> <span class="ident">MAX_DATE</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">value</span> <span class="op">==</span> <span class="ident">MAX_DATE</span> {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
         <span class="comment">// current &lt; MAX_DATE from here on:</span>
@@ -3969,7 +3969,7 @@
         <span class="prelude-val">Some</span>(<span class="ident">current</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
+    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
         <span class="kw">let</span> <span class="ident">exact_size</span> <span class="op">=</span> <span class="ident">MAX_DATE</span>.<span class="ident">signed_duration_since</span>(<span class="self">self</span>.<span class="ident">value</span>).<span class="ident">num_days</span>();
         (<span class="ident">exact_size</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="prelude-val">Some</span>(<span class="ident">exact_size</span> <span class="kw">as</span> <span class="ident">usize</span>))
     }
@@ -3985,7 +3985,7 @@
 <span class="kw">impl</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">NaiveDateWeeksIterator</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">NaiveDate</span>;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">MAX_DATE</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">value</span> <span class="op">&lt;</span> <span class="ident">OldDuration::weeks</span>(<span class="number">1</span>) {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
@@ -3994,7 +3994,7 @@
         <span class="prelude-val">Some</span>(<span class="ident">current</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
+    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
         <span class="kw">let</span> <span class="ident">exact_size</span> <span class="op">=</span> <span class="ident">MAX_DATE</span>.<span class="ident">signed_duration_since</span>(<span class="self">self</span>.<span class="ident">value</span>).<span class="ident">num_weeks</span>();
         (<span class="ident">exact_size</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="prelude-val">Some</span>(<span class="ident">exact_size</span> <span class="kw">as</span> <span class="ident">usize</span>))
     }
@@ -4029,7 +4029,7 @@
 <span class="doccomment">/// assert_eq!(format!(&quot;{:?}&quot;, NaiveDate::from_ymd(10000, 12, 31)), &quot;+10000-12-31&quot;);</span>
 <span class="doccomment">/// ~~~~</span>
 <span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">NaiveDate</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">let</span> <span class="ident">year</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">year</span>();
         <span class="kw">let</span> <span class="ident">mdf</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">mdf</span>();
         <span class="kw">if</span> <span class="number">0</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">year</span> <span class="op">&amp;&amp;</span> <span class="ident">year</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">9999</span> {
@@ -4064,7 +4064,7 @@
 <span class="doccomment">/// assert_eq!(format!(&quot;{}&quot;, NaiveDate::from_ymd(10000, 12, 31)), &quot;+10000-12-31&quot;);</span>
 <span class="doccomment">/// ~~~~</span>
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">NaiveDate</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="ident">fmt::Debug::fmt</span>(<span class="self">self</span>, <span class="ident">f</span>)
     }
 }
@@ -4088,7 +4088,7 @@
 <span class="kw">impl</span> <span class="ident">str::FromStr</span> <span class="kw">for</span> <span class="ident">NaiveDate</span> {
     <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">ParseError</span>;
 
-    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span> {
         <span class="kw">const</span> <span class="ident">ITEMS</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">Item</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>] <span class="op">=</span> <span class="kw-2">&amp;</span>[
             <span class="ident">Item::Numeric</span>(<span class="ident">Numeric::Year</span>, <span class="ident">Pad::Zero</span>),
             <span class="ident">Item::Space</span>(<span class="string">&quot;&quot;</span>),
@@ -4109,7 +4109,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">test</span>, <span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustc-serialize&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>)))]</span>
 <span class="kw">fn</span> <span class="ident">test_encodable_json</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">to_string</span>: <span class="ident">F</span>)
 <span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">NaiveDate</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">E</span><span class="op">&gt;</span>,
+    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">NaiveDate</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">E</span><span class="op">&gt;</span>,
     <span class="ident">E</span>: <span class="ident">::std::fmt::Debug</span>,
 {
     <span class="macro">assert_eq!</span>(<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">NaiveDate::from_ymd</span>(<span class="number">2014</span>, <span class="number">7</span>, <span class="number">24</span>)).<span class="ident">ok</span>(), <span class="prelude-val">Some</span>(<span class="string">r#&quot;&quot;2014-07-24&quot;&quot;#</span>.<span class="ident">into</span>()));
@@ -4122,7 +4122,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">test</span>, <span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustc-serialize&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>)))]</span>
 <span class="kw">fn</span> <span class="ident">test_decodable_json</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">from_str</span>: <span class="ident">F</span>)
 <span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NaiveDate</span>, <span class="ident">E</span><span class="op">&gt;</span>,
+    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NaiveDate</span>, <span class="ident">E</span><span class="op">&gt;</span>,
     <span class="ident">E</span>: <span class="ident">::std::fmt::Debug</span>,
 {
     <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">i32</span>, <span class="ident">i64</span>};
@@ -4162,13 +4162,13 @@
     <span class="kw">use</span> <span class="ident">rustc_serialize</span>::{<span class="ident">Decodable</span>, <span class="ident">Decoder</span>, <span class="ident">Encodable</span>, <span class="ident">Encoder</span>};
 
     <span class="kw">impl</span> <span class="ident">Encodable</span> <span class="kw">for</span> <span class="ident">NaiveDate</span> {
-        <span class="kw">fn</span> <span class="ident">encode</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Encoder</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">S::Error</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">encode</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Encoder</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">S::Error</span><span class="op">&gt;</span> {
             <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="self">self</span>).<span class="ident">encode</span>(<span class="ident">s</span>)
         }
     }
 
     <span class="kw">impl</span> <span class="ident">Decodable</span> <span class="kw">for</span> <span class="ident">NaiveDate</span> {
-        <span class="kw">fn</span> <span class="ident">decode</span><span class="op">&lt;</span><span class="ident">D</span>: <span class="ident">Decoder</span><span class="op">&gt;</span>(<span class="ident">d</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NaiveDate</span>, <span class="ident">D::Error</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">decode</span><span class="op">&lt;</span><span class="ident">D</span>: <span class="ident">Decoder</span><span class="op">&gt;</span>(<span class="ident">d</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">D</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NaiveDate</span>, <span class="ident">D::Error</span><span class="op">&gt;</span> {
             <span class="ident">d</span>.<span class="ident">read_str</span>()<span class="question-mark">?</span>.<span class="ident">parse</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">d</span>.<span class="ident">error</span>(<span class="string">&quot;invalid date&quot;</span>))
         }
     }
@@ -4196,7 +4196,7 @@
     <span class="comment">// TODO not very optimized for space (binary formats would want something better)</span>
 
     <span class="kw">impl</span> <span class="ident">ser::Serialize</span> <span class="kw">for</span> <span class="ident">NaiveDate</span> {
-        <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S::Ok</span>, <span class="ident">S::Error</span><span class="op">&gt;</span>
+        <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S::Ok</span>, <span class="ident">S::Error</span><span class="op">&gt;</span>
         <span class="kw">where</span>
             <span class="ident">S</span>: <span class="ident">ser::Serializer</span>,
         {
@@ -4205,7 +4205,7 @@
             }
 
             <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">D</span>: <span class="ident">fmt::Debug</span><span class="op">&gt;</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">FormatWrapped</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">D</span><span class="op">&gt;</span> {
-                <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+                <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
                     <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">fmt</span>(<span class="ident">f</span>)
                 }
             }
@@ -4219,12 +4219,12 @@
     <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">NaiveDateVisitor</span> {
         <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> <span class="ident">NaiveDate</span>;
 
-        <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+        <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
             <span class="macro">write!</span>(<span class="ident">formatter</span>, <span class="string">&quot;a formatted date string&quot;</span>)
         }
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
-        <span class="kw">fn</span> <span class="ident">visit_str</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NaiveDate</span>, <span class="ident">E</span><span class="op">&gt;</span>
+        <span class="kw">fn</span> <span class="ident">visit_str</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NaiveDate</span>, <span class="ident">E</span><span class="op">&gt;</span>
         <span class="kw">where</span>
             <span class="ident">E</span>: <span class="ident">de::Error</span>,
         {
@@ -4232,7 +4232,7 @@
         }
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>)))]</span>
-        <span class="kw">fn</span> <span class="ident">visit_str</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NaiveDate</span>, <span class="ident">E</span><span class="op">&gt;</span>
+        <span class="kw">fn</span> <span class="ident">visit_str</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NaiveDate</span>, <span class="ident">E</span><span class="op">&gt;</span>
         <span class="kw">where</span>
             <span class="ident">E</span>: <span class="ident">de::Error</span>,
         {
@@ -4241,7 +4241,7 @@
     }
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">de::Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">NaiveDate</span> {
-        <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">D::Error</span><span class="op">&gt;</span>
+        <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">D::Error</span><span class="op">&gt;</span>
         <span class="kw">where</span>
             <span class="ident">D</span>: <span class="ident">de::Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
         {
@@ -4676,19 +4676,19 @@
         ];
         <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">s</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">valid</span> {
             <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">s</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span>() {
-                <span class="prelude-val">Ok</span>(<span class="ident">d</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">d</span>,
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;parsing `{}` has failed: {}&quot;</span>, <span class="ident">s</span>, <span class="ident">e</span>),
+                <span class="prelude-val">Ok</span>(<span class="ident">d</span>) =&gt; <span class="ident">d</span>,
+                <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;parsing `{}` has failed: {}&quot;</span>, <span class="ident">s</span>, <span class="ident">e</span>),
             };
             <span class="kw">let</span> <span class="ident">s_</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">d</span>);
             <span class="comment">// `s` and `s_` may differ, but `s.parse()` and `s_.parse()` must be same</span>
             <span class="kw">let</span> <span class="ident">d_</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">s_</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span>() {
-                <span class="prelude-val">Ok</span>(<span class="ident">d</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">d</span>,
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Ok</span>(<span class="ident">d</span>) =&gt; <span class="ident">d</span>,
+                <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
                     <span class="macro">panic!</span>(<span class="string">&quot;`{}` is parsed into `{:?}`, but reparsing that has failed: {}&quot;</span>, <span class="ident">s</span>, <span class="ident">d</span>, <span class="ident">e</span>)
                 }
             };
             <span class="macro">assert!</span>(
-                <span class="ident">d</span> <span class="op">=</span><span class="op">=</span> <span class="ident">d_</span>,
+                <span class="ident">d</span> <span class="op">==</span> <span class="ident">d_</span>,
                 <span class="string">&quot;`{}` is parsed into `{:?}`, but reparsed result \
                               `{:?}` does not match&quot;</span>,
                 <span class="ident">s</span>,

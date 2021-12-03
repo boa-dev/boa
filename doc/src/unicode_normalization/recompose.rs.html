@@ -184,7 +184,7 @@
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_canonical</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">char</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Recompositions</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_canonical</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">char</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">I</span>) -&gt; <span class="ident">Recompositions</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
     <span class="ident">Recompositions</span> {
         <span class="ident">iter</span>: <span class="ident"><span class="kw">super</span>::decompose::new_canonical</span>(<span class="ident">iter</span>),
         <span class="ident">state</span>: <span class="ident"><span class="self">self</span>::RecompositionState::Composing</span>,
@@ -195,7 +195,7 @@
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_compatible</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">char</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Recompositions</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_compatible</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">char</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">I</span>) -&gt; <span class="ident">Recompositions</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
     <span class="ident">Recompositions</span> {
         <span class="ident">iter</span>: <span class="ident"><span class="kw">super</span>::decompose::new_compatible</span>(<span class="ident">iter</span>),
         <span class="ident">state</span>: <span class="ident"><span class="self">self</span>::RecompositionState::Composing</span>,
@@ -209,32 +209,32 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">char</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident"><span class="self">self</span>::RecompositionState</span>::<span class="kw-2">*</span>;
 
         <span class="kw">loop</span> {
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span> {
-                <span class="ident">Composing</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Composing</span> =&gt; {
                     <span class="kw">for</span> <span class="ident">ch</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">by_ref</span>() {
                         <span class="kw">let</span> <span class="ident">ch_class</span> <span class="op">=</span> <span class="ident"><span class="kw">super</span>::char::canonical_combining_class</span>(<span class="ident">ch</span>);
                         <span class="kw">let</span> <span class="ident">k</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">composee</span> {
-                            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="prelude-val">None</span> =&gt; {
                                 <span class="kw">if</span> <span class="ident">ch_class</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
                                     <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">ch</span>);
                                 }
                                 <span class="self">self</span>.<span class="ident">composee</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">ch</span>);
                                 <span class="kw">continue</span>;
                             }
-                            <span class="prelude-val">Some</span>(<span class="ident">k</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">k</span>,
+                            <span class="prelude-val">Some</span>(<span class="ident">k</span>) =&gt; <span class="ident">k</span>,
                         };
                         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">last_ccc</span> {
-                            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident"><span class="kw">super</span>::char::compose</span>(<span class="ident">k</span>, <span class="ident">ch</span>) {
-                                <span class="prelude-val">Some</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="prelude-val">None</span> =&gt; <span class="kw">match</span> <span class="ident"><span class="kw">super</span>::char::compose</span>(<span class="ident">k</span>, <span class="ident">ch</span>) {
+                                <span class="prelude-val">Some</span>(<span class="ident">r</span>) =&gt; {
                                     <span class="self">self</span>.<span class="ident">composee</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">r</span>);
                                     <span class="kw">continue</span>;
                                 }
-                                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
-                                    <span class="kw">if</span> <span class="ident">ch_class</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+                                <span class="prelude-val">None</span> =&gt; {
+                                    <span class="kw">if</span> <span class="ident">ch_class</span> <span class="op">==</span> <span class="number">0</span> {
                                         <span class="self">self</span>.<span class="ident">composee</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">ch</span>);
                                         <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">k</span>);
                                     }
@@ -242,10 +242,10 @@
                                     <span class="self">self</span>.<span class="ident">last_ccc</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">ch_class</span>);
                                 }
                             },
-                            <span class="prelude-val">Some</span>(<span class="ident">l_class</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="prelude-val">Some</span>(<span class="ident">l_class</span>) =&gt; {
                                 <span class="kw">if</span> <span class="ident">l_class</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">ch_class</span> {
                                     <span class="comment">// `ch` is blocked from `composee`</span>
-                                    <span class="kw">if</span> <span class="ident">ch_class</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+                                    <span class="kw">if</span> <span class="ident">ch_class</span> <span class="op">==</span> <span class="number">0</span> {
                                         <span class="self">self</span>.<span class="ident">composee</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">ch</span>);
                                         <span class="self">self</span>.<span class="ident">last_ccc</span> <span class="op">=</span> <span class="prelude-val">None</span>;
                                         <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">Purging</span>(<span class="number">0</span>);
@@ -256,11 +256,11 @@
                                     <span class="kw">continue</span>;
                                 }
                                 <span class="kw">match</span> <span class="ident"><span class="kw">super</span>::char::compose</span>(<span class="ident">k</span>, <span class="ident">ch</span>) {
-                                    <span class="prelude-val">Some</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                                    <span class="prelude-val">Some</span>(<span class="ident">r</span>) =&gt; {
                                         <span class="self">self</span>.<span class="ident">composee</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">r</span>);
                                         <span class="kw">continue</span>;
                                     }
-                                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+                                    <span class="prelude-val">None</span> =&gt; {
                                         <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">push</span>(<span class="ident">ch</span>);
                                         <span class="self">self</span>.<span class="ident">last_ccc</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">ch_class</span>);
                                     }
@@ -273,22 +273,22 @@
                         <span class="kw">return</span> <span class="self">self</span>.<span class="ident">composee</span>.<span class="ident">take</span>();
                     }
                 }
-                <span class="ident">Purging</span>(<span class="ident">next</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">get</span>(<span class="ident">next</span>).<span class="ident">cloned</span>() {
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Purging</span>(<span class="ident">next</span>) =&gt; <span class="kw">match</span> <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">get</span>(<span class="ident">next</span>).<span class="ident">cloned</span>() {
+                    <span class="prelude-val">None</span> =&gt; {
                         <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">clear</span>();
                         <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">Composing</span>;
                     }
-                    <span class="ident">s</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">s</span> =&gt; {
                         <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">Purging</span>(<span class="ident">next</span> <span class="op">+</span> <span class="number">1</span>);
                         <span class="kw">return</span> <span class="ident">s</span>;
                     }
                 },
-                <span class="ident">Finished</span>(<span class="ident">next</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">get</span>(<span class="ident">next</span>).<span class="ident">cloned</span>() {
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Finished</span>(<span class="ident">next</span>) =&gt; <span class="kw">match</span> <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">get</span>(<span class="ident">next</span>).<span class="ident">cloned</span>() {
+                    <span class="prelude-val">None</span> =&gt; {
                         <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">clear</span>();
                         <span class="kw">return</span> <span class="self">self</span>.<span class="ident">composee</span>.<span class="ident">take</span>();
                     }
-                    <span class="ident">s</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">s</span> =&gt; {
                         <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">Finished</span>(<span class="ident">next</span> <span class="op">+</span> <span class="number">1</span>);
                         <span class="kw">return</span> <span class="ident">s</span>;
                     }
@@ -299,7 +299,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">char</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span><span class="op">&gt;</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Recompositions</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">for</span> <span class="ident">c</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">clone</span>() {
             <span class="ident">f</span>.<span class="ident">write_char</span>(<span class="ident">c</span>)<span class="question-mark">?</span>;
         }

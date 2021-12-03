@@ -118,15 +118,15 @@
 <span class="doccomment">/// with target_feature.)</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait</span> <span class="ident">Vector</span>: <span class="ident">Copy</span> <span class="op">+</span> <span class="ident">core::fmt::Debug</span> {
     <span class="doccomment">/// _mm_set1_epi8 or _mm256_set1_epi8</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">splat</span>(<span class="ident">byte</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">splat</span>(<span class="ident">byte</span>: <span class="ident">u8</span>) -&gt; <span class="self">Self</span>;
     <span class="doccomment">/// _mm_loadu_si128 or _mm256_loadu_si256</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">load_unaligned</span>(<span class="ident">data</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">load_unaligned</span>(<span class="ident">data</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>) -&gt; <span class="self">Self</span>;
     <span class="doccomment">/// _mm_movemask_epi8 or _mm256_movemask_epi8</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">movemask</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">movemask</span>(<span class="self">self</span>) -&gt; <span class="ident">u32</span>;
     <span class="doccomment">/// _mm_cmpeq_epi8 or _mm256_cmpeq_epi8</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">cmpeq</span>(<span class="self">self</span>, <span class="ident">vector2</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">cmpeq</span>(<span class="self">self</span>, <span class="ident">vector2</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
     <span class="doccomment">/// _mm_and_si128 or _mm256_and_si256</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">and</span>(<span class="self">self</span>, <span class="ident">vector2</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">and</span>(<span class="self">self</span>, <span class="ident">vector2</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>)]</span>
@@ -136,27 +136,27 @@
 
     <span class="kw">impl</span> <span class="ident">Vector</span> <span class="kw">for</span> <span class="ident">__m128i</span> {
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">splat</span>(<span class="ident">byte</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">__m128i</span> {
+        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">splat</span>(<span class="ident">byte</span>: <span class="ident">u8</span>) -&gt; <span class="ident">__m128i</span> {
             <span class="ident">_mm_set1_epi8</span>(<span class="ident">byte</span> <span class="kw">as</span> <span class="ident">i8</span>)
         }
 
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">load_unaligned</span>(<span class="ident">data</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">__m128i</span> {
+        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">load_unaligned</span>(<span class="ident">data</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>) -&gt; <span class="ident">__m128i</span> {
             <span class="ident">_mm_loadu_si128</span>(<span class="ident">data</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">__m128i</span>)
         }
 
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">movemask</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">movemask</span>(<span class="self">self</span>) -&gt; <span class="ident">u32</span> {
             <span class="ident">_mm_movemask_epi8</span>(<span class="self">self</span>) <span class="kw">as</span> <span class="ident">u32</span>
         }
 
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">cmpeq</span>(<span class="self">self</span>, <span class="ident">vector2</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">__m128i</span> {
+        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">cmpeq</span>(<span class="self">self</span>, <span class="ident">vector2</span>: <span class="self">Self</span>) -&gt; <span class="ident">__m128i</span> {
             <span class="ident">_mm_cmpeq_epi8</span>(<span class="self">self</span>, <span class="ident">vector2</span>)
         }
 
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">and</span>(<span class="self">self</span>, <span class="ident">vector2</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">__m128i</span> {
+        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">and</span>(<span class="self">self</span>, <span class="ident">vector2</span>: <span class="self">Self</span>) -&gt; <span class="ident">__m128i</span> {
             <span class="ident">_mm_and_si128</span>(<span class="self">self</span>, <span class="ident">vector2</span>)
         }
     }
@@ -169,27 +169,27 @@
 
     <span class="kw">impl</span> <span class="ident">Vector</span> <span class="kw">for</span> <span class="ident">__m256i</span> {
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">splat</span>(<span class="ident">byte</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">__m256i</span> {
+        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">splat</span>(<span class="ident">byte</span>: <span class="ident">u8</span>) -&gt; <span class="ident">__m256i</span> {
             <span class="ident">_mm256_set1_epi8</span>(<span class="ident">byte</span> <span class="kw">as</span> <span class="ident">i8</span>)
         }
 
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">load_unaligned</span>(<span class="ident">data</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">__m256i</span> {
+        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">load_unaligned</span>(<span class="ident">data</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>) -&gt; <span class="ident">__m256i</span> {
             <span class="ident">_mm256_loadu_si256</span>(<span class="ident">data</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">__m256i</span>)
         }
 
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">movemask</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">movemask</span>(<span class="self">self</span>) -&gt; <span class="ident">u32</span> {
             <span class="ident">_mm256_movemask_epi8</span>(<span class="self">self</span>) <span class="kw">as</span> <span class="ident">u32</span>
         }
 
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">cmpeq</span>(<span class="self">self</span>, <span class="ident">vector2</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">__m256i</span> {
+        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">cmpeq</span>(<span class="self">self</span>, <span class="ident">vector2</span>: <span class="self">Self</span>) -&gt; <span class="ident">__m256i</span> {
             <span class="ident">_mm256_cmpeq_epi8</span>(<span class="self">self</span>, <span class="ident">vector2</span>)
         }
 
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">and</span>(<span class="self">self</span>, <span class="ident">vector2</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">__m256i</span> {
+        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">and</span>(<span class="self">self</span>, <span class="ident">vector2</span>: <span class="self">Self</span>) -&gt; <span class="ident">__m256i</span> {
             <span class="ident">_mm256_and_si256</span>(<span class="self">self</span>, <span class="ident">vector2</span>)
         }
     }

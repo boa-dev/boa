@@ -1192,7 +1192,7 @@
     (@<span class="ident">list</span>
         ()
         ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">head</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::crossbeam_channel_internal!</span>(
             @<span class="macro-nonterminal">case</span>
             ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">head</span>)<span class="kw-2">*</span>)
@@ -1202,129 +1202,129 @@
     };
     <span class="comment">// If necessary, insert an empty argument list after `default`.</span>
     (@<span class="ident">list</span>
-        (<span class="ident">default</span> <span class="op">=</span><span class="op">&gt;</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
+        (<span class="ident">default</span> =&gt; $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">head</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::crossbeam_channel_internal!</span>(
             @<span class="macro-nonterminal">list</span>
-            (<span class="ident">default</span>() <span class="op">=</span><span class="op">&gt;</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>)<span class="kw-2">*</span>)
+            (<span class="ident">default</span>() =&gt; $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>)<span class="kw-2">*</span>)
             ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">head</span>)<span class="kw-2">*</span>)
         )
     };
     <span class="comment">// But print an error if `default` is followed by a `-&gt;`.</span>
     (@<span class="ident">list</span>
-        (<span class="ident">default</span> <span class="op">-</span><span class="op">&gt;</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
+        (<span class="ident">default</span> -&gt; $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">head</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro">compile_error!</span>(
             <span class="string">&quot;expected `=&gt;` after `default` case, found `-&gt;`&quot;</span>
         )
     };
     <span class="comment">// Print an error if there&#39;s an `-&gt;` after the argument list in the default case.</span>
     (@<span class="ident">list</span>
-        (<span class="ident">default</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span> <span class="op">-</span><span class="op">&gt;</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
+        (<span class="ident">default</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span> -&gt; $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">head</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro">compile_error!</span>(
             <span class="string">&quot;expected `=&gt;` after `default` case, found `-&gt;`&quot;</span>
         )
     };
     <span class="comment">// Print an error if there is a missing result in a recv case.</span>
     (@<span class="ident">list</span>
-        (<span class="ident">recv</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
+        (<span class="ident">recv</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">head</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro">compile_error!</span>(
             <span class="string">&quot;expected `-&gt;` after `recv` case, found `=&gt;`&quot;</span>
         )
     };
     <span class="comment">// Print an error if there is a missing result in a send case.</span>
     (@<span class="ident">list</span>
-        (<span class="ident">send</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
+        (<span class="ident">send</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">head</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro">compile_error!</span>(
             <span class="string">&quot;expected `-&gt;` after `send` operation, found `=&gt;`&quot;</span>
         )
     };
     <span class="comment">// Make sure the arrow and the result are not repeated.</span>
     (@<span class="ident">list</span>
-        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span> <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">tt</span> <span class="op">-</span><span class="op">&gt;</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
+        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span> -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">tt</span> -&gt; $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">head</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro">compile_error!</span>(<span class="string">&quot;expected `=&gt;`, found `-&gt;`&quot;</span>)
     };
     <span class="comment">// Print an error if there is a semicolon after the block.</span>
     (@<span class="ident">list</span>
-        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span> $(<span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span>)<span class="op">*</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">block</span>; $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
+        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span> $(-&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span>)<span class="op">*</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">block</span>; $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">head</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro">compile_error!</span>(
             <span class="string">&quot;did you mean to put a comma instead of the semicolon after `}`?&quot;</span>
         )
     };
     <span class="comment">// The first case is separated by a comma.</span>
     (@<span class="ident">list</span>
-        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(<span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span>)<span class="op">*</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">expr</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
+        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(-&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span>)<span class="op">*</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">expr</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">head</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::crossbeam_channel_internal!</span>(
             @<span class="macro-nonterminal">list</span>
             ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>)<span class="kw-2">*</span>)
-            ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">head</span>)<span class="op">*</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>)<span class="kw-2">*</span>) $(<span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>)<span class="op">*</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span> },)
+            ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">head</span>)<span class="op">*</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>)<span class="kw-2">*</span>) $(-&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>)<span class="op">*</span> =&gt; { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span> },)
         )
     };
     <span class="comment">// Don&#39;t require a comma after the case if it has a proper block.</span>
     (@<span class="ident">list</span>
-        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(<span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span>)<span class="op">*</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">block</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
+        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(-&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span>)<span class="op">*</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">block</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">head</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::crossbeam_channel_internal!</span>(
             @<span class="macro-nonterminal">list</span>
             ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>)<span class="kw-2">*</span>)
-            ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">head</span>)<span class="op">*</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>)<span class="kw-2">*</span>) $(<span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>)<span class="op">*</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span> },)
+            ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">head</span>)<span class="op">*</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>)<span class="kw-2">*</span>) $(-&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>)<span class="op">*</span> =&gt; { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span> },)
         )
     };
     <span class="comment">// Only one case remains.</span>
     (@<span class="ident">list</span>
-        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(<span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span>)<span class="op">*</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">expr</span>)
+        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(-&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span>)<span class="op">*</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">expr</span>)
         ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">head</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::crossbeam_channel_internal!</span>(
             @<span class="macro-nonterminal">list</span>
             ()
-            ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">head</span>)<span class="op">*</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>)<span class="kw-2">*</span>) $(<span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>)<span class="op">*</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span> },)
+            ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">head</span>)<span class="op">*</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>)<span class="kw-2">*</span>) $(-&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>)<span class="op">*</span> =&gt; { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span> },)
         )
     };
     <span class="comment">// Accept a trailing comma at the end of the list.</span>
     (@<span class="ident">list</span>
-        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(<span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span>)<span class="op">*</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">expr</span>,)
+        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(-&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span>)<span class="op">*</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">expr</span>,)
         ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">head</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::crossbeam_channel_internal!</span>(
             @<span class="macro-nonterminal">list</span>
             ()
-            ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">head</span>)<span class="op">*</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>)<span class="kw-2">*</span>) $(<span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>)<span class="op">*</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span> },)
+            ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">head</span>)<span class="op">*</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>)<span class="kw-2">*</span>) $(-&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>)<span class="op">*</span> =&gt; { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span> },)
         )
     };
     <span class="comment">// Diagnose and print an error.</span>
     (@<span class="ident">list</span>
         ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">head</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::crossbeam_channel_internal!</span>(@<span class="macro-nonterminal">list_error1</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>)<span class="kw-2">*</span>)
     };
     <span class="comment">// Stage 1: check the case type.</span>
-    (@<span class="ident">list_error1</span> <span class="ident">recv</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">list_error1</span> <span class="ident">recv</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::crossbeam_channel_internal!</span>(@<span class="macro-nonterminal">list_error2</span> <span class="ident">recv</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>)<span class="kw-2">*</span>)
     };
-    (@<span class="ident">list_error1</span> <span class="ident">send</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">list_error1</span> <span class="ident">send</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::crossbeam_channel_internal!</span>(@<span class="macro-nonterminal">list_error2</span> <span class="ident">send</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>)<span class="kw-2">*</span>)
     };
-    (@<span class="ident">list_error1</span> <span class="ident">default</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">list_error1</span> <span class="ident">default</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::crossbeam_channel_internal!</span>(@<span class="macro-nonterminal">list_error2</span> <span class="ident">default</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>)<span class="kw-2">*</span>)
     };
-    (@<span class="ident">list_error1</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">tt</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">list_error1</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">tt</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="macro">compile_error!</span>(
             <span class="macro">concat!</span>(
                 <span class="string">&quot;expected one of `recv`, `send`, or `default`, found `&quot;</span>,
@@ -1333,11 +1333,11 @@
             )
         )
     };
-    (@<span class="ident">list_error1</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">list_error1</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::crossbeam_channel_internal!</span>(@<span class="macro-nonterminal">list_error2</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>)<span class="kw-2">*</span>);
     };
     <span class="comment">// Stage 2: check the argument list.</span>
-    (@<span class="ident">list_error2</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">list_error2</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span>) =&gt; {
         <span class="macro">compile_error!</span>(
             <span class="macro">concat!</span>(
                 <span class="string">&quot;missing argument list after `&quot;</span>,
@@ -1346,7 +1346,7 @@
             )
         )
     };
-    (@<span class="ident">list_error2</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span> <span class="op">=</span><span class="op">&gt;</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">list_error2</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span> =&gt; $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="macro">compile_error!</span>(
             <span class="macro">concat!</span>(
                 <span class="string">&quot;missing argument list after `&quot;</span>,
@@ -1355,11 +1355,11 @@
             )
         )
     };
-    (@<span class="ident">list_error2</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">list_error2</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::crossbeam_channel_internal!</span>(@<span class="macro-nonterminal">list_error3</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>)<span class="kw-2">*</span>)
     };
     <span class="comment">// Stage 3: check the `=&gt;` and what comes after it.</span>
-    (@<span class="ident">list_error3</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(<span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">pat</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">list_error3</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(-&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">pat</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="macro">compile_error!</span>(
             <span class="macro">concat!</span>(
                 <span class="string">&quot;missing `=&gt;` after `&quot;</span>,
@@ -1368,12 +1368,12 @@
             )
         )
     };
-    (@<span class="ident">list_error3</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(<span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">pat</span>)<span class="op">*</span> <span class="op">=</span><span class="op">&gt;</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">list_error3</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(-&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">pat</span>)<span class="op">*</span> =&gt;) =&gt; {
         <span class="macro">compile_error!</span>(
             <span class="string">&quot;expected expression after `=&gt;`&quot;</span>
         )
     };
-    (@<span class="ident">list_error3</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(<span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">pat</span>)<span class="op">*</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">expr</span>; $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">list_error3</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(-&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">pat</span>)<span class="op">*</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">expr</span>; $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="macro">compile_error!</span>(
             <span class="macro">concat!</span>(
                 <span class="string">&quot;did you mean to put a comma instead of the semicolon after `&quot;</span>,
@@ -1382,22 +1382,22 @@
             )
         )
     };
-    (@<span class="ident">list_error3</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(<span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">pat</span>)<span class="op">*</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">recv</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">list_error3</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(-&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">pat</span>)<span class="op">*</span> =&gt; <span class="ident">recv</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="macro">compile_error!</span>(
             <span class="string">&quot;expected an expression after `=&gt;`&quot;</span>
         )
     };
-    (@<span class="ident">list_error3</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(<span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">pat</span>)<span class="op">*</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">send</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">list_error3</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(-&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">pat</span>)<span class="op">*</span> =&gt; <span class="ident">send</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="macro">compile_error!</span>(
             <span class="string">&quot;expected an expression after `=&gt;`&quot;</span>
         )
     };
-    (@<span class="ident">list_error3</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(<span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">pat</span>)<span class="op">*</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">default</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">list_error3</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(-&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">pat</span>)<span class="op">*</span> =&gt; <span class="ident">default</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="macro">compile_error!</span>(
             <span class="string">&quot;expected an expression after `=&gt;`&quot;</span>
         )
     };
-    (@<span class="ident">list_error3</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(<span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">pat</span>)<span class="op">*</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">list_error3</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(-&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">pat</span>)<span class="op">*</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="macro">compile_error!</span>(
             <span class="macro">concat!</span>(
                 <span class="string">&quot;did you mean to put a comma after `&quot;</span>,
@@ -1408,7 +1408,7 @@
             )
         )
     };
-    (@<span class="ident">list_error3</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(<span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">pat</span>)<span class="op">*</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span>:<span class="macro">ident!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">list_error3</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(-&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">pat</span>)<span class="op">*</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span>:<span class="macro">ident!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="macro">compile_error!</span>(
             <span class="macro">concat!</span>(
                 <span class="string">&quot;did you mean to put a comma after `&quot;</span>,
@@ -1419,7 +1419,7 @@
             )
         )
     };
-    (@<span class="ident">list_error3</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(<span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">pat</span>)<span class="op">*</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span>:<span class="macro">ident!</span>[$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>] $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">list_error3</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(-&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">pat</span>)<span class="op">*</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span>:<span class="macro">ident!</span>[$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>] $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="macro">compile_error!</span>(
             <span class="macro">concat!</span>(
                 <span class="string">&quot;did you mean to put a comma after `&quot;</span>,
@@ -1430,7 +1430,7 @@
             )
         )
     };
-    (@<span class="ident">list_error3</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(<span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">pat</span>)<span class="op">*</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span>:<span class="macro">ident!</span>{$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>} $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">list_error3</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(-&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">pat</span>)<span class="op">*</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span>:<span class="macro">ident!</span>{$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>} $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="macro">compile_error!</span>(
             <span class="macro">concat!</span>(
                 <span class="string">&quot;did you mean to put a comma after `&quot;</span>,
@@ -1441,7 +1441,7 @@
             )
         )
     };
-    (@<span class="ident">list_error3</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(<span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">pat</span>)<span class="op">*</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">list_error3</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(-&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">pat</span>)<span class="op">*</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="macro">compile_error!</span>(
             <span class="macro">concat!</span>(
                 <span class="string">&quot;did you mean to put a comma after `&quot;</span>,
@@ -1450,10 +1450,10 @@
             )
         )
     };
-    (@<span class="ident">list_error3</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="op">=</span><span class="op">&gt;</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">list_error3</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) -&gt; =&gt; $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="macro">compile_error!</span>(<span class="string">&quot;missing pattern after `-&gt;`&quot;</span>)
     };
-    (@<span class="ident">list_error3</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">tt</span> $(<span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">pat</span>)<span class="op">*</span> <span class="op">=</span><span class="op">&gt;</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">list_error3</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">tt</span> $(-&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">pat</span>)<span class="op">*</span> =&gt; $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="macro">compile_error!</span>(
             <span class="macro">concat!</span>(
                 <span class="string">&quot;expected `-&gt;`, found `&quot;</span>,
@@ -1462,7 +1462,7 @@
             )
         )
     };
-    (@<span class="ident">list_error3</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">tt</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">list_error3</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">tt</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="macro">compile_error!</span>(
             <span class="macro">concat!</span>(
                 <span class="string">&quot;expected a pattern, found `&quot;</span>,
@@ -1471,7 +1471,7 @@
             )
         )
     };
-    (@<span class="ident">list_error3</span> <span class="ident">recv</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">tt</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">list_error3</span> <span class="ident">recv</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">tt</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="macro">compile_error!</span>(
             <span class="macro">concat!</span>(
                 <span class="string">&quot;expected `-&gt;`, found `&quot;</span>,
@@ -1480,7 +1480,7 @@
             )
         )
     };
-    (@<span class="ident">list_error3</span> <span class="ident">send</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">tt</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">list_error3</span> <span class="ident">send</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">tt</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="macro">compile_error!</span>(
             <span class="macro">concat!</span>(
                 <span class="string">&quot;expected `-&gt;`, found `&quot;</span>,
@@ -1489,7 +1489,7 @@
             )
         )
     };
-    (@<span class="ident">list_error3</span> <span class="ident">recv</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">list_error3</span> <span class="ident">recv</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="macro">compile_error!</span>(
             <span class="macro">concat!</span>(
                 <span class="string">&quot;expected an argument list after `recv`, found `&quot;</span>,
@@ -1498,7 +1498,7 @@
             )
         )
     };
-    (@<span class="ident">list_error3</span> <span class="ident">send</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">list_error3</span> <span class="ident">send</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="macro">compile_error!</span>(
             <span class="macro">concat!</span>(
                 <span class="string">&quot;expected an argument list after `send`, found `&quot;</span>,
@@ -1507,7 +1507,7 @@
             )
         )
     };
-    (@<span class="ident">list_error3</span> <span class="ident">default</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">list_error3</span> <span class="ident">default</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="macro">compile_error!</span>(
             <span class="macro">concat!</span>(
                 <span class="string">&quot;expected an argument list or `=&gt;` after `default`, found `&quot;</span>,
@@ -1516,11 +1516,11 @@
             )
         )
     };
-    (@<span class="ident">list_error3</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">list_error3</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::crossbeam_channel_internal!</span>(@<span class="macro-nonterminal">list_error4</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>)<span class="kw-2">*</span>)
     };
     <span class="comment">// Stage 4: fail with a generic error message.</span>
-    (@<span class="ident">list_error4</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">list_error4</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="macro">compile_error!</span>(<span class="string">&quot;invalid syntax&quot;</span>)
     };
 
@@ -1529,7 +1529,7 @@
         ()
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>:<span class="ident">tt</span>
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">default</span>:<span class="ident">tt</span>
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::crossbeam_channel_internal!</span>(
             @<span class="macro-nonterminal">init</span>
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>
@@ -1539,36 +1539,36 @@
 
     <span class="comment">// Check the format of a recv case.</span>
     (@<span class="ident">case</span>
-        (<span class="ident">recv</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">expr</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
+        (<span class="ident">recv</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">expr</span>) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">default</span>:<span class="ident">tt</span>
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::crossbeam_channel_internal!</span>(
             @<span class="macro-nonterminal">case</span>
             ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>)<span class="kw-2">*</span>)
-            ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>)<span class="op">*</span> <span class="ident">recv</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>,)
+            ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>)<span class="op">*</span> <span class="ident">recv</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>,)
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">default</span>
         )
     };
     <span class="comment">// Allow trailing comma...</span>
     (@<span class="ident">case</span>
-        (<span class="ident">recv</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">expr</span>,) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
+        (<span class="ident">recv</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">expr</span>,) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">default</span>:<span class="ident">tt</span>
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::crossbeam_channel_internal!</span>(
             @<span class="macro-nonterminal">case</span>
             ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>)<span class="kw-2">*</span>)
-            ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>)<span class="op">*</span> <span class="ident">recv</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>,)
+            ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>)<span class="op">*</span> <span class="ident">recv</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>,)
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">default</span>
         )
     };
     <span class="comment">// Print an error if the argument list is invalid.</span>
     (@<span class="ident">case</span>
-        (<span class="ident">recv</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
+        (<span class="ident">recv</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">default</span>:<span class="ident">tt</span>
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro">compile_error!</span>(
             <span class="macro">concat!</span>(
                 <span class="string">&quot;invalid argument list in `recv(&quot;</span>,
@@ -1582,7 +1582,7 @@
         (<span class="ident">recv</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">tt</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">default</span>:<span class="ident">tt</span>
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro">compile_error!</span>(
             <span class="macro">concat!</span>(
                 <span class="string">&quot;expected an argument list after `recv`, found `&quot;</span>,
@@ -1594,36 +1594,36 @@
 
     <span class="comment">// Check the format of a send case.</span>
     (@<span class="ident">case</span>
-        (<span class="ident">send</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>:<span class="ident">expr</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
+        (<span class="ident">send</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>:<span class="ident">expr</span>) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">default</span>:<span class="ident">tt</span>
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::crossbeam_channel_internal!</span>(
             @<span class="macro-nonterminal">case</span>
             ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>)<span class="kw-2">*</span>)
-            ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>)<span class="op">*</span> <span class="ident">send</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>,)
+            ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>)<span class="op">*</span> <span class="ident">send</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>,)
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">default</span>
         )
     };
     <span class="comment">// Allow trailing comma...</span>
     (@<span class="ident">case</span>
-        (<span class="ident">send</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>:<span class="ident">expr</span>,) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
+        (<span class="ident">send</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>:<span class="ident">expr</span>,) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">default</span>:<span class="ident">tt</span>
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::crossbeam_channel_internal!</span>(
             @<span class="macro-nonterminal">case</span>
             ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>)<span class="kw-2">*</span>)
-            ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>)<span class="op">*</span> <span class="ident">send</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>,)
+            ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>)<span class="op">*</span> <span class="ident">send</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>,)
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">default</span>
         )
     };
     <span class="comment">// Print an error if the argument list is invalid.</span>
     (@<span class="ident">case</span>
-        (<span class="ident">send</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
+        (<span class="ident">send</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">default</span>:<span class="ident">tt</span>
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro">compile_error!</span>(
             <span class="macro">concat!</span>(
                 <span class="string">&quot;invalid argument list in `send(&quot;</span>,
@@ -1637,7 +1637,7 @@
         (<span class="ident">send</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">tt</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">default</span>:<span class="ident">tt</span>
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro">compile_error!</span>(
             <span class="macro">concat!</span>(
                 <span class="string">&quot;expected an argument list after `send`, found `&quot;</span>,
@@ -1649,41 +1649,41 @@
 
     <span class="comment">// Check the format of a default case.</span>
     (@<span class="ident">case</span>
-        (<span class="ident">default</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
+        (<span class="ident">default</span>() =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>:<span class="ident">tt</span>
         ()
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::crossbeam_channel_internal!</span>(
             @<span class="macro-nonterminal">case</span>
             ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>)<span class="kw-2">*</span>)
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>
-            (<span class="ident">default</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>,)
+            (<span class="ident">default</span>() =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>,)
         )
     };
     <span class="comment">// Check the format of a default case with timeout.</span>
     (@<span class="ident">case</span>
-        (<span class="ident">default</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">timeout</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
+        (<span class="ident">default</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">timeout</span>:<span class="ident">expr</span>) =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>:<span class="ident">tt</span>
         ()
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::crossbeam_channel_internal!</span>(
             @<span class="macro-nonterminal">case</span>
             ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>)<span class="kw-2">*</span>)
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>
-            (<span class="ident">default</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">timeout</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>,)
+            (<span class="ident">default</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">timeout</span>) =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>,)
         )
     };
     <span class="comment">// Allow trailing comma...</span>
     (@<span class="ident">case</span>
-        (<span class="ident">default</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">timeout</span>:<span class="ident">expr</span>,) <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
+        (<span class="ident">default</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">timeout</span>:<span class="ident">expr</span>,) =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>:<span class="ident">tt</span>
         ()
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::crossbeam_channel_internal!</span>(
             @<span class="macro-nonterminal">case</span>
             ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>)<span class="kw-2">*</span>)
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>
-            (<span class="ident">default</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">timeout</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>,)
+            (<span class="ident">default</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">timeout</span>) =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>,)
         )
     };
     <span class="comment">// Check for duplicate default cases...</span>
@@ -1691,17 +1691,17 @@
         (<span class="ident">default</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>:<span class="ident">tt</span>
         ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">def</span>:<span class="ident">tt</span>)<span class="op">+</span>)
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro">compile_error!</span>(
             <span class="string">&quot;there can be only one `default` case in a `select!` block&quot;</span>
         )
     };
     <span class="comment">// Print an error if the argument list is invalid.</span>
     (@<span class="ident">case</span>
-        (<span class="ident">default</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
+        (<span class="ident">default</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>:<span class="ident">tt</span>
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">default</span>:<span class="ident">tt</span>
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro">compile_error!</span>(
             <span class="macro">concat!</span>(
                 <span class="string">&quot;invalid argument list in `default(&quot;</span>,
@@ -1715,7 +1715,7 @@
         (<span class="ident">default</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">tt</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>:<span class="ident">tt</span>
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">default</span>:<span class="ident">tt</span>
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro">compile_error!</span>(
             <span class="macro">concat!</span>(
                 <span class="string">&quot;expected an argument list or `=&gt;` after `default`, found `&quot;</span>,
@@ -1730,7 +1730,7 @@
         (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>:<span class="ident">tt</span>
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">default</span>:<span class="ident">tt</span>
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro">compile_error!</span>(
             <span class="macro">concat!</span>(
                 <span class="string">&quot;expected one of `recv`, `send`, or `default`, found `&quot;</span>,
@@ -1742,17 +1742,17 @@
 
     <span class="comment">// Optimize `select!` into `try_recv()`.</span>
     (@<span class="ident">init</span>
-        (<span class="ident">recv</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">expr</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">recv_body</span>:<span class="ident">tt</span>,)
-        (<span class="ident">default</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">default_body</span>:<span class="ident">tt</span>,)
-    ) <span class="op">=</span><span class="op">&gt;</span> {{
+        (<span class="ident">recv</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">expr</span>) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">recv_body</span>:<span class="ident">tt</span>,)
+        (<span class="ident">default</span>() =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">default_body</span>:<span class="ident">tt</span>,)
+    ) =&gt; {{
         <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span> {
-            <span class="kw-2">ref</span> <span class="ident">_r</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw-2">ref</span> <span class="ident">_r</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">_r</span>: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Receiver</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">_r</span>;
                 <span class="kw">match</span> <span class="ident">_r</span>.<span class="ident">try_recv</span>() {
-                    <span class="ident">::std::result::Result::Err</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::TryRecvError::Empty</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">::std::result::Result::Err</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::TryRecvError::Empty</span>) =&gt; {
                         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">default_body</span>
                     }
-                    <span class="ident">_res</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">_res</span> =&gt; {
                         <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">_res</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::RecvError</span>);
                         <span class="kw">let</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span> <span class="op">=</span> <span class="ident">_res</span>;
                         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">recv_body</span>
@@ -1763,11 +1763,11 @@
     }};
     <span class="comment">// Optimize `select!` into `recv()`.</span>
     (@<span class="ident">init</span>
-        (<span class="ident">recv</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">expr</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>,)
+        (<span class="ident">recv</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">expr</span>) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>,)
         ()
-    ) <span class="op">=</span><span class="op">&gt;</span> {{
+    ) =&gt; {{
         <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span> {
-            <span class="kw-2">ref</span> <span class="ident">_r</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw-2">ref</span> <span class="ident">_r</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">_r</span>: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Receiver</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">_r</span>;
                 <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">_r</span>.<span class="ident">recv</span>();
                 <span class="kw">let</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span> <span class="op">=</span> <span class="ident">_res</span>;
@@ -1777,17 +1777,17 @@
     }};
     <span class="comment">// Optimize `select!` into `recv_timeout()`.</span>
     (@<span class="ident">init</span>
-        (<span class="ident">recv</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">expr</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">recv_body</span>:<span class="ident">tt</span>,)
-        (<span class="ident">default</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">timeout</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">default_body</span>:<span class="ident">tt</span>,)
-    ) <span class="op">=</span><span class="op">&gt;</span> {{
+        (<span class="ident">recv</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">expr</span>) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">recv_body</span>:<span class="ident">tt</span>,)
+        (<span class="ident">default</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">timeout</span>:<span class="ident">expr</span>) =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">default_body</span>:<span class="ident">tt</span>,)
+    ) =&gt; {{
         <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span> {
-            <span class="kw-2">ref</span> <span class="ident">_r</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw-2">ref</span> <span class="ident">_r</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">_r</span>: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Receiver</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">_r</span>;
                 <span class="kw">match</span> <span class="ident">_r</span>.<span class="ident">recv_timeout</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">timeout</span>) {
-                    <span class="ident">::std::result::Result::Err</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::RecvTimeoutError::Timeout</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">::std::result::Result::Err</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::RecvTimeoutError::Timeout</span>) =&gt; {
                         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">default_body</span>
                     }
-                    <span class="ident">_res</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">_res</span> =&gt; {
                         <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">_res</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::RecvError</span>);
                         <span class="kw">let</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span> <span class="op">=</span> <span class="ident">_res</span>;
                         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">recv_body</span>
@@ -1899,7 +1899,7 @@
     (@<span class="ident">init</span>
         ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">default</span>:<span class="ident">tt</span>
-    ) <span class="op">=</span><span class="op">&gt;</span> {{
+    ) =&gt; {{
         <span class="kw">const</span> <span class="ident">_LEN</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro">crate::crossbeam_channel_internal!</span>(@<span class="macro-nonterminal">count</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>)<span class="kw-2">*</span>));
         <span class="kw">let</span> <span class="ident">_handle</span>: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::internal::SelectHandle</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::never</span>::<span class="op">&lt;</span>()<span class="op">&gt;</span>();
 
@@ -1950,10 +1950,10 @@
     }};
 
     <span class="comment">// Count the listed cases.</span>
-    (@<span class="ident">count</span> ()) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">count</span> ()) =&gt; {
         <span class="number">0</span>
     };
-    (@<span class="ident">count</span> (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">oper</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span> <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+    (@<span class="ident">count</span> (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">oper</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span> -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)) =&gt; {
         <span class="number">1</span> <span class="op">+</span> <span class="macro-nonterminal">$</span><span class="macro">crate::crossbeam_channel_internal!</span>(@<span class="macro-nonterminal">count</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>)<span class="kw-2">*</span>))
     };
 
@@ -1964,7 +1964,7 @@
         ()
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">labels</span>:<span class="ident">tt</span>
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>:<span class="ident">tt</span>
-    ) <span class="op">=</span><span class="op">&gt;</span> {{
+    ) =&gt; {{
         <span class="kw">let</span> <span class="ident">_oper</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::SelectedOperation</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> <span class="op">=</span> {
             <span class="kw">let</span> <span class="ident">_oper</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::internal::select</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sel</span>);
 
@@ -1983,10 +1983,10 @@
     (@<span class="ident">add</span>
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sel</span>:<span class="ident">ident</span>
         ()
-        (<span class="ident">default</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>,)
+        (<span class="ident">default</span>() =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>,)
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">labels</span>:<span class="ident">tt</span>
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>:<span class="ident">tt</span>
-    ) <span class="op">=</span><span class="op">&gt;</span> {{
+    ) =&gt; {{
         <span class="kw">let</span> <span class="ident">_oper</span>: <span class="ident">::std::option::Option</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::SelectedOperation</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> {
             <span class="kw">let</span> <span class="ident">_oper</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::internal::try_select</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sel</span>);
 
@@ -1995,11 +1995,11 @@
         };
 
         <span class="kw">match</span> <span class="ident">_oper</span> {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">None</span> =&gt; {
                 { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sel</span> };
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>
             }
-            <span class="prelude-val">Some</span>(<span class="ident">_oper</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">_oper</span>) =&gt; {
                 <span class="macro-nonterminal">$</span><span class="macro">crate::crossbeam_channel_internal!</span> {
                     @<span class="macro-nonterminal">complete</span>
                     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sel</span>
@@ -2013,10 +2013,10 @@
     (@<span class="ident">add</span>
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sel</span>:<span class="ident">ident</span>
         ()
-        (<span class="ident">default</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">timeout</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>,)
+        (<span class="ident">default</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">timeout</span>:<span class="ident">expr</span>) =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>,)
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">labels</span>:<span class="ident">tt</span>
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>:<span class="ident">tt</span>
-    ) <span class="op">=</span><span class="op">&gt;</span> {{
+    ) =&gt; {{
         <span class="kw">let</span> <span class="ident">_oper</span>: <span class="ident">::std::option::Option</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::SelectedOperation</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> {
             <span class="kw">let</span> <span class="ident">_oper</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::internal::select_timeout</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sel</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">timeout</span>);
 
@@ -2025,11 +2025,11 @@
         };
 
         <span class="kw">match</span> <span class="ident">_oper</span> {
-            <span class="ident">::std::option::Option::None</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">::std::option::Option::None</span> =&gt; {
                 { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sel</span> };
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>
             }
-            <span class="ident">::std::option::Option::Some</span>(<span class="ident">_oper</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">::std::option::Option::Some</span>(<span class="ident">_oper</span>) =&gt; {
                 <span class="macro-nonterminal">$</span><span class="macro">crate::crossbeam_channel_internal!</span> {
                     @<span class="macro-nonterminal">complete</span>
                     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sel</span>
@@ -2046,24 +2046,24 @@
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">default</span>:<span class="ident">tt</span>
         ()
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>:<span class="ident">tt</span>
-    ) <span class="op">=</span><span class="op">&gt;</span> {
+    ) =&gt; {
         <span class="macro">compile_error!</span>(<span class="string">&quot;too many operations in a `select!` block&quot;</span>)
     };
     <span class="comment">// Add a receive operation to `sel`.</span>
     (@<span class="ident">add</span>
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sel</span>:<span class="ident">ident</span>
-        (<span class="ident">recv</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">expr</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
+        (<span class="ident">recv</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">expr</span>) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">default</span>:<span class="ident">tt</span>
         ((<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">tt</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>:<span class="ident">ident</span>) $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">labels</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
-    ) <span class="op">=</span><span class="op">&gt;</span> {{
+    ) =&gt; {{
         <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span> {
-            <span class="kw-2">ref</span> <span class="ident">_r</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw-2">ref</span> <span class="ident">_r</span> =&gt; {
                 <span class="kw">let</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Receiver</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">unsafe</span> {
                     <span class="kw">let</span> <span class="ident">_r</span>: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Receiver</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">_r</span>;
 
                     <span class="comment">// Erase the lifetime so that `sel` can be dropped early even without NLL.</span>
-                    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unbind</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span> {
+                    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unbind</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span> {
                         <span class="ident">::std::mem::transmute</span>(<span class="ident">x</span>)
                     }
                     <span class="ident">unbind</span>(<span class="ident">_r</span>)
@@ -2076,7 +2076,7 @@
                     ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>)<span class="kw-2">*</span>)
                     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">default</span>
                     ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">labels</span>)<span class="kw-2">*</span>)
-                    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>)<span class="op">*</span> [<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>] <span class="ident">recv</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>,)
+                    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>)<span class="op">*</span> [<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>] <span class="ident">recv</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>,)
                 )
             }
         }
@@ -2084,18 +2084,18 @@
     <span class="comment">// Add a send operation to `sel`.</span>
     (@<span class="ident">add</span>
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sel</span>:<span class="ident">ident</span>
-        (<span class="ident">send</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>:<span class="ident">expr</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
+        (<span class="ident">send</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>:<span class="ident">expr</span>) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">default</span>:<span class="ident">tt</span>
         ((<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">tt</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>:<span class="ident">ident</span>) $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">labels</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
         ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
-    ) <span class="op">=</span><span class="op">&gt;</span> {{
+    ) =&gt; {{
         <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span> {
-            <span class="kw-2">ref</span> <span class="ident">_s</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw-2">ref</span> <span class="ident">_s</span> =&gt; {
                 <span class="kw">let</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Sender</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">unsafe</span> {
                     <span class="kw">let</span> <span class="ident">_s</span>: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Sender</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">_s</span>;
 
                     <span class="comment">// Erase the lifetime so that `sel` can be dropped early even without NLL.</span>
-                    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unbind</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span> {
+                    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unbind</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span> {
                         <span class="ident">::std::mem::transmute</span>(<span class="ident">x</span>)
                     }
                     <span class="ident">unbind</span>(<span class="ident">_s</span>)
@@ -2108,7 +2108,7 @@
                     ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>)<span class="kw-2">*</span>)
                     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">default</span>
                     ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">labels</span>)<span class="kw-2">*</span>)
-                    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>)<span class="op">*</span> [<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>] <span class="ident">send</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>,)
+                    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cases</span>)<span class="op">*</span> [<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>] <span class="ident">send</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>,)
                 )
             }
         }
@@ -2118,9 +2118,9 @@
     (@<span class="ident">complete</span>
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sel</span>:<span class="ident">ident</span>
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">oper</span>:<span class="ident">ident</span>
-        ([<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">tt</span>] <span class="ident">recv</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">ident</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
-    ) <span class="op">=</span><span class="op">&gt;</span> {{
-        <span class="kw">if</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">oper</span>.<span class="ident">index</span>() <span class="op">=</span><span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span> {
+        ([<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">tt</span>] <span class="ident">recv</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">ident</span>) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
+    ) =&gt; {{
+        <span class="kw">if</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">oper</span>.<span class="ident">index</span>() <span class="op">==</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span> {
             <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">oper</span>.<span class="ident">recv</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>);
             { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sel</span> };
 
@@ -2139,9 +2139,9 @@
     (@<span class="ident">complete</span>
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sel</span>:<span class="ident">ident</span>
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">oper</span>:<span class="ident">ident</span>
-        ([<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">tt</span>] <span class="ident">send</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>:<span class="ident">expr</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
-    ) <span class="op">=</span><span class="op">&gt;</span> {{
-        <span class="kw">if</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">oper</span>.<span class="ident">index</span>() <span class="op">=</span><span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span> {
+        ([<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">tt</span>] <span class="ident">send</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>:<span class="ident">expr</span>) -&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">pat</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)
+    ) =&gt; {{
+        <span class="kw">if</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">oper</span>.<span class="ident">index</span>() <span class="op">==</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span> {
             <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">oper</span>.<span class="ident">send</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>);
             { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sel</span> };
 
@@ -2161,14 +2161,14 @@
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sel</span>:<span class="ident">ident</span>
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">oper</span>:<span class="ident">ident</span>
         ()
-    ) <span class="op">=</span><span class="op">&gt;</span> {{
+    ) =&gt; {{
         <span class="macro">unreachable!</span>(
             <span class="string">&quot;internal error in crossbeam-channel: invalid case&quot;</span>
         )
     }};
 
     <span class="comment">// Catches a bug within this macro (should not happen).</span>
-    (@$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (@$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="macro">compile_error!</span>(
             <span class="macro">concat!</span>(
                 <span class="string">&quot;internal error in crossbeam-channel: &quot;</span>,
@@ -2178,17 +2178,17 @@
     };
 
     <span class="comment">// The entry points.</span>
-    () <span class="op">=</span><span class="op">&gt;</span> {
+    () =&gt; {
         <span class="macro">compile_error!</span>(<span class="string">&quot;empty `select!` block&quot;</span>)
     };
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span> $(($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>))<span class="op">*</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">expr</span> $(,)<span class="kw-2">*</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">ident</span> $(($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>))<span class="op">*</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">expr</span> $(,)<span class="kw-2">*</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::crossbeam_channel_internal!</span>(
             @<span class="macro-nonterminal">list</span>
-            ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span> $(($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>)<span class="kw-2">*</span>))<span class="op">*</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span> },)<span class="kw-2">*</span>)
+            ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span> $(($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>)<span class="kw-2">*</span>))<span class="op">*</span> =&gt; { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span> },)<span class="kw-2">*</span>)
             ()
         )
     };
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::crossbeam_channel_internal!</span>(
             @<span class="macro-nonterminal">list</span>
             ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>)<span class="kw-2">*</span>)
@@ -2324,7 +2324,7 @@
 <span class="doccomment">/// [example]: super::never#examples</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">select</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::crossbeam_channel_internal!</span>(
             $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>)<span class="op">*</span>
         )

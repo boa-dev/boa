@@ -68,7 +68,7 @@
     <span class="kw">type</span> <span class="ident">Position</span>: <span class="ident">PositionType</span>;
 
     <span class="doccomment">/// \return an initial position for the given start offset.</span>
-    <span class="kw">fn</span> <span class="ident">initial_position</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">offset</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Position</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">initial_position</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">offset</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Position</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Attempt to match at the given location.</span>
     <span class="doccomment">/// \return either the Match and the position to start looking for the next</span>
@@ -77,7 +77,7 @@
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">pos</span>: <span class="ident"><span class="self">Self</span>::Position</span>,
         <span class="ident">next_start</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Position</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span>;
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span>;
 }
 
 <span class="doccomment">/// A trait for executing a regex.</span>
@@ -86,7 +86,7 @@
     <span class="kw">type</span> <span class="ident">AsAscii</span>: <span class="ident">Executor</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Construct a new Executor.</span>
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">re</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r</span> <span class="ident">CompiledRegex</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">re</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r</span> <span class="ident">CompiledRegex</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span>;
 }
 
 <span class="doccomment">/// A struct which enables iteration over matches.</span>
@@ -97,7 +97,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Producer</span>: <span class="ident">MatchProducer</span><span class="op">&gt;</span> <span class="ident">Matches</span><span class="op">&lt;</span><span class="ident">Producer</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">mp</span>: <span class="ident">Producer</span>, <span class="ident">start</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">mp</span>: <span class="ident">Producer</span>, <span class="ident">start</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="ident">mp</span>.<span class="ident">initial_position</span>(<span class="ident">start</span>);
         <span class="ident">Matches</span> { <span class="ident">mp</span>, <span class="ident">position</span> }
     }
@@ -105,7 +105,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Producer</span>: <span class="ident">MatchProducer</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">Matches</span><span class="op">&lt;</span><span class="ident">Producer</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">Match</span>;
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">position</span><span class="question-mark">?</span>;
         <span class="self">self</span>.<span class="ident">mp</span>.<span class="ident">next_match</span>(<span class="ident">pos</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">position</span>)
     }

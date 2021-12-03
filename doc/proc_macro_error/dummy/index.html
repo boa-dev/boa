@@ -15,7 +15,7 @@ compilation process looking for other errors to report.</p>
 <span class="comment">// this proc macro is supposed to generate MyTrait impl</span>
 <span class="attribute">#[<span class="ident">proc_macro_derive</span>(<span class="ident">MyTrait</span>)]</span>
 <span class="attribute">#[<span class="ident">proc_macro_error</span>]</span>
-<span class="kw">fn</span> <span class="ident">example</span>(<span class="ident">input</span>: <span class="ident">TokenStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span> {
+<span class="kw">fn</span> <span class="ident">example</span>(<span class="ident">input</span>: <span class="ident">TokenStream</span>) -&gt; <span class="ident">TokenStream</span> {
     <span class="comment">// somewhere deep inside</span>
     <span class="macro">abort!</span>(<span class="ident">span</span>, <span class="string">&quot;something&#39;s wrong&quot;</span>);
 
@@ -69,7 +69,7 @@ omit <code>impl MyTrait for #name</code> and fill functions bodies with <code>un
  <span class="comment">// this proc macro is supposed to generate MyTrait impl</span>
  <span class="attribute">#[<span class="ident">proc_macro_derive</span>(<span class="ident">MyTrait</span>)]</span>
  <span class="attribute">#[<span class="ident">proc_macro_error</span>]</span>
- <span class="kw">fn</span> <span class="ident">example</span>(<span class="ident">input</span>: <span class="ident">TokenStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span> {
+ <span class="kw">fn</span> <span class="ident">example</span>(<span class="ident">input</span>: <span class="ident">TokenStream</span>) -&gt; <span class="ident">TokenStream</span> {
      <span class="comment">// first of all - we set a dummy impl which will be appended to</span>
      <span class="comment">// `compile_error!` invocations in case a trigger does happen</span>
      <span class="ident">set_dummy</span>(<span class="macro">quote!</span> {
@@ -100,10 +100,10 @@ omit <code>impl MyTrait for #name</code> and fill functions bodies with <code>un
      <span class="ident">Foo::do_thing</span>(); <span class="comment">// no more errors!</span>
  }</code></pre></div>
 </div></details><h2 id="functions" class="section-header"><a href="#functions">Functions</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="fn" href="fn.append_dummy.html" title="proc_macro_error::dummy::append_dummy fn">append_dummy</a></div><div class="item-right docblock-short"><p>Same as <a href="fn.set_dummy.html" title="set_dummy"><code>set_dummy</code></a> but, instead of resetting, appends tokens to the
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.append_dummy.html" title="proc_macro_error::dummy::append_dummy fn">append_dummy</a></div><div class="item-right docblock-short"><p>Same as <a href="fn.set_dummy.html" title="set_dummy"><code>set_dummy</code></a> but, instead of resetting, appends tokens to the
 existing dummy (if any). Behaves as <code>set_dummy</code> if no dummy is present.</p>
-</div><div class="item-left module-item"><a class="fn" href="fn.set_dummy.html" title="proc_macro_error::dummy::set_dummy fn">set_dummy</a></div><div class="item-right docblock-short"><p>Sets dummy token stream which will be appended to <code>compile_error!(msg);...</code>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.set_dummy.html" title="proc_macro_error::dummy::set_dummy fn">set_dummy</a></div><div class="item-right docblock-short"><p>Sets dummy token stream which will be appended to <code>compile_error!(msg);...</code>
 invocations in case you’ll emit any errors.</p>
-</div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="proc_macro_error" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
+</div></div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="proc_macro_error" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script>
 </body></html>

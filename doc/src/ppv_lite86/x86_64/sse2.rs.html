@@ -1730,11 +1730,11 @@
 };
 
 <span class="macro">macro_rules!</span> <span class="ident">impl_binop</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="kw">trait</span>:<span class="macro-nonterminal">ident</span>, <span class="macro-nonterminal">$</span><span class="kw">fn</span>:<span class="macro-nonterminal">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">impl_fn</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="kw">trait</span>:<span class="macro-nonterminal">ident</span>, <span class="macro-nonterminal">$</span><span class="kw">fn</span>:<span class="macro-nonterminal">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">impl_fn</span>:<span class="ident">ident</span>) =&gt; {
         <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="kw">trait</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> {
             <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="self">Self</span>;
             <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-            <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="kw">fn</span>(<span class="macro-nonterminal">self</span>, <span class="ident">rhs</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Output</span> {
+            <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="kw">fn</span>(<span class="macro-nonterminal">self</span>, <span class="ident">rhs</span>: <span class="self">Self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Output</span> {
                 <span class="ident"><span class="self">Self</span>::new</span>(<span class="kw">unsafe</span> { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">impl_fn</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="ident">rhs</span>.<span class="ident">x</span>) })
             }
         }
@@ -1742,7 +1742,7 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">impl_binop_assign</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="kw">trait</span>:<span class="macro-nonterminal">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_assign</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="kw">fn</span>:<span class="macro-nonterminal">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="kw">trait</span>:<span class="macro-nonterminal">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_assign</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="kw">fn</span>:<span class="macro-nonterminal">ident</span>) =&gt; {
         <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="kw">trait</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span>
         <span class="kw">where</span>
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span>: <span class="ident">Copy</span>,
@@ -1756,7 +1756,7 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">def_vec</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">word</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">word</span>:<span class="ident">ident</span>) =&gt; {
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_camel_case_types</span>)]</span>
         <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
         <span class="kw">pub</span> <span class="kw">struct</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> {
@@ -1768,19 +1768,19 @@
 
         <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">Store</span><span class="op">&lt;</span><span class="ident">vec128_storage</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> {
             <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-            <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unpack</span>(<span class="ident">x</span>: <span class="ident">vec128_storage</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unpack</span>(<span class="ident">x</span>: <span class="ident">vec128_storage</span>) -&gt; <span class="self">Self</span> {
                 <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span>.<span class="ident">sse2</span>)
             }
         }
         <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">vec128_storage</span> {
             <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-            <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">x</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">x</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
                 <span class="ident">vec128_storage</span> { <span class="ident">sse2</span>: <span class="ident">x</span>.<span class="ident">x</span> }
             }
         }
         <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> {
             <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-            <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">x</span>: <span class="ident">__m128i</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">x</span>: <span class="ident">__m128i</span>) -&gt; <span class="self">Self</span> {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span> {
                     <span class="ident">x</span>,
                     <span class="ident">s3</span>: <span class="ident">PhantomData</span>,
@@ -1795,12 +1795,12 @@
             <span class="self">Self</span>: <span class="ident">BSwap</span>,
         {
             <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-            <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unsafe_read_le</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unsafe_read_le</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="self">Self</span> {
                 <span class="macro">assert_eq!</span>(<span class="ident">input</span>.<span class="ident">len</span>(), <span class="number">16</span>);
                 <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">_mm_loadu_si128</span>(<span class="ident">input</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>))
             }
             <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-            <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unsafe_read_be</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unsafe_read_be</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="self">Self</span> {
                 <span class="macro">assert_eq!</span>(<span class="ident">input</span>.<span class="ident">len</span>(), <span class="number">16</span>);
                 <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">_mm_loadu_si128</span>(<span class="ident">input</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>)).<span class="ident">bswap</span>()
             }
@@ -1821,7 +1821,7 @@
 
         <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> {
             <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-            <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
                 <span class="ident"><span class="self">Self</span>::new</span>(<span class="kw">unsafe</span> { <span class="ident">_mm_setzero_si128</span>() })
             }
         }
@@ -1829,7 +1829,7 @@
         <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">Not</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> {
             <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="self">Self</span>;
             <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-            <span class="kw">fn</span> <span class="ident">not</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Output</span> {
+            <span class="kw">fn</span> <span class="ident">not</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Output</span> {
                 <span class="kw">unsafe</span> {
                     <span class="kw">let</span> <span class="ident">ff</span> <span class="op">=</span> <span class="ident">_mm_set1_epi64x</span>(<span class="op">-</span><span class="number">1i64</span>);
                     <span class="self">self</span> <span class="op">^</span> <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">ff</span>)
@@ -1847,7 +1847,7 @@
         <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S3</span>: <span class="ident">Copy</span>, <span class="ident">S4</span>: <span class="ident">Copy</span>, <span class="ident">NI</span>: <span class="ident">Copy</span><span class="op">&gt;</span> <span class="ident">AndNot</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> {
             <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="self">Self</span>;
             <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-            <span class="kw">fn</span> <span class="ident">andnot</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="kw">fn</span> <span class="ident">andnot</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
                 <span class="ident"><span class="self">Self</span>::new</span>(<span class="kw">unsafe</span> { <span class="ident">_mm_andnot_si128</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="ident">rhs</span>.<span class="ident">x</span>) })
             }
         }
@@ -1855,7 +1855,7 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">impl_bitops32</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span>:<span class="ident">ident</span>) =&gt; {
         <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S3</span>: <span class="ident">Copy</span>, <span class="ident">S4</span>: <span class="ident">Copy</span>, <span class="ident">NI</span>: <span class="ident">Copy</span><span class="op">&gt;</span> <span class="ident">BitOps32</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> <span class="kw">where</span>
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span>: <span class="ident">RotateEachWord32</span>
         {
@@ -1864,7 +1864,7 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">impl_bitops64</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span>:<span class="ident">ident</span>) =&gt; {
         <span class="macro">impl_bitops32!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span>);
         <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S3</span>: <span class="ident">Copy</span>, <span class="ident">S4</span>: <span class="ident">Copy</span>, <span class="ident">NI</span>: <span class="ident">Copy</span><span class="op">&gt;</span> <span class="ident">BitOps64</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> <span class="kw">where</span>
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span>: <span class="ident">RotateEachWord64</span> <span class="op">+</span> <span class="ident">RotateEachWord32</span>
@@ -1874,7 +1874,7 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">impl_bitops128</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span>:<span class="ident">ident</span>) =&gt; {
         <span class="macro">impl_bitops64!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span>);
         <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S3</span>: <span class="ident">Copy</span>, <span class="ident">S4</span>: <span class="ident">Copy</span>, <span class="ident">NI</span>: <span class="ident">Copy</span><span class="op">&gt;</span> <span class="ident">BitOps128</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> <span class="kw">where</span>
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span>: <span class="ident">RotateEachWord128</span>
@@ -1884,17 +1884,17 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">rotr_32_s3</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">k0</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">k1</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">k0</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">k1</span>:<span class="ident">expr</span>) =&gt; {
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
             <span class="ident"><span class="self">Self</span>::new</span>(<span class="kw">unsafe</span> { <span class="ident">_mm_shuffle_epi8</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="ident">_mm_set_epi64x</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">k0</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">k1</span>)) })
         }
     };
 }
 <span class="macro">macro_rules!</span> <span class="ident">rotr_32</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">expr</span>) =&gt; {
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
             <span class="ident"><span class="self">Self</span>::new</span>(<span class="kw">unsafe</span> {
                 <span class="ident">_mm_or_si128</span>(
                     <span class="ident">_mm_srli_epi32</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span> <span class="kw">as</span> <span class="ident">i32</span>),
@@ -1932,7 +1932,7 @@
     <span class="macro">rotr_32!</span>(<span class="ident">rotate_each_word_right11</span>, <span class="number">11</span>);
     <span class="macro">rotr_32!</span>(<span class="ident">rotate_each_word_right12</span>, <span class="number">12</span>);
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">rotate_each_word_right16</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">rotate_each_word_right16</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">swap16_s2</span>(<span class="self">self</span>.<span class="ident">x</span>))
     }
     <span class="macro">rotr_32!</span>(<span class="ident">rotate_each_word_right20</span>, <span class="number">20</span>);
@@ -1941,17 +1941,17 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">rotr_64_s3</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">k0</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">k1</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">k0</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">k1</span>:<span class="ident">expr</span>) =&gt; {
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
             <span class="ident"><span class="self">Self</span>::new</span>(<span class="kw">unsafe</span> { <span class="ident">_mm_shuffle_epi8</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="ident">_mm_set_epi64x</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">k0</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">k1</span>)) })
         }
     };
 }
 <span class="macro">macro_rules!</span> <span class="ident">rotr_64</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">expr</span>) =&gt; {
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
             <span class="ident"><span class="self">Self</span>::new</span>(<span class="kw">unsafe</span> {
                 <span class="ident">_mm_or_si128</span>(
                     <span class="ident">_mm_srli_epi64</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span> <span class="kw">as</span> <span class="ident">i32</span>),
@@ -1989,7 +1989,7 @@
     <span class="macro">rotr_64!</span>(<span class="ident">rotate_each_word_right11</span>, <span class="number">11</span>);
     <span class="macro">rotr_64!</span>(<span class="ident">rotate_each_word_right12</span>, <span class="number">12</span>);
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">rotate_each_word_right16</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">rotate_each_word_right16</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">swap16_s2</span>(<span class="self">self</span>.<span class="ident">x</span>))
     }
     <span class="macro">rotr_64!</span>(<span class="ident">rotate_each_word_right20</span>, <span class="number">20</span>);
@@ -1998,15 +1998,15 @@
 }
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S3</span>: <span class="ident">Copy</span>, <span class="ident">S4</span>: <span class="ident">Copy</span>, <span class="ident">NI</span>: <span class="ident">Copy</span><span class="op">&gt;</span> <span class="ident">RotateEachWord64</span> <span class="kw">for</span> <span class="ident">u64x2_sse2</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">rotate_each_word_right32</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">rotate_each_word_right32</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::new</span>(<span class="kw">unsafe</span> { <span class="ident">_mm_shuffle_epi32</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="number">0b10110001</span>) })
     }
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">rotr_128</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">expr</span>) =&gt; {
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
             <span class="ident"><span class="self">Self</span>::new</span>(<span class="kw">unsafe</span> {
                 <span class="ident">_mm_or_si128</span>(
                     <span class="ident">_mm_srli_si128</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span> <span class="kw">as</span> <span class="ident">i32</span>),
@@ -2039,7 +2039,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">MultiLane</span><span class="op">&lt;</span>[<span class="ident">u32</span>; <span class="number">4</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">u32x4_sse2</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">YesS4</span>, <span class="ident">NI</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">to_lanes</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> [<span class="ident">u32</span>; <span class="number">4</span>] {
+    <span class="kw">fn</span> <span class="ident">to_lanes</span>(<span class="self">self</span>) -&gt; [<span class="ident">u32</span>; <span class="number">4</span>] {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">_mm_cvtsi128_si64</span>(<span class="self">self</span>.<span class="ident">x</span>) <span class="kw">as</span> <span class="ident">u64</span>;
             <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="ident">_mm_extract_epi64</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="number">1</span>) <span class="kw">as</span> <span class="ident">u64</span>;
@@ -2047,7 +2047,7 @@
         }
     }
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">from_lanes</span>(<span class="ident">xs</span>: [<span class="ident">u32</span>; <span class="number">4</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from_lanes</span>(<span class="ident">xs</span>: [<span class="ident">u32</span>; <span class="number">4</span>]) -&gt; <span class="self">Self</span> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">_mm_cvtsi64_si128</span>((<span class="ident">xs</span>[<span class="number">0</span>] <span class="kw">as</span> <span class="ident">u64</span> <span class="op">|</span> ((<span class="ident">xs</span>[<span class="number">1</span>] <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">32</span>)) <span class="kw">as</span> <span class="ident">i64</span>);
             <span class="ident">x</span> <span class="op">=</span> <span class="ident">_mm_insert_epi64</span>(<span class="ident">x</span>, (<span class="ident">xs</span>[<span class="number">2</span>] <span class="kw">as</span> <span class="ident">u64</span> <span class="op">|</span> ((<span class="ident">xs</span>[<span class="number">3</span>] <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">32</span>)) <span class="kw">as</span> <span class="ident">i64</span>, <span class="number">1</span>);
@@ -2057,7 +2057,7 @@
 }
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">MultiLane</span><span class="op">&lt;</span>[<span class="ident">u32</span>; <span class="number">4</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">u32x4_sse2</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">NoS4</span>, <span class="ident">NI</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">to_lanes</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> [<span class="ident">u32</span>; <span class="number">4</span>] {
+    <span class="kw">fn</span> <span class="ident">to_lanes</span>(<span class="self">self</span>) -&gt; [<span class="ident">u32</span>; <span class="number">4</span>] {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">_mm_cvtsi128_si64</span>(<span class="self">self</span>.<span class="ident">x</span>) <span class="kw">as</span> <span class="ident">u64</span>;
             <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="ident">_mm_cvtsi128_si64</span>(<span class="ident">_mm_shuffle_epi32</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="number">0b11101110</span>)) <span class="kw">as</span> <span class="ident">u64</span>;
@@ -2065,7 +2065,7 @@
         }
     }
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">from_lanes</span>(<span class="ident">xs</span>: [<span class="ident">u32</span>; <span class="number">4</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from_lanes</span>(<span class="ident">xs</span>: [<span class="ident">u32</span>; <span class="number">4</span>]) -&gt; <span class="self">Self</span> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> (<span class="ident">xs</span>[<span class="number">0</span>] <span class="kw">as</span> <span class="ident">u64</span> <span class="op">|</span> ((<span class="ident">xs</span>[<span class="number">1</span>] <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">32</span>)) <span class="kw">as</span> <span class="ident">i64</span>;
             <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> (<span class="ident">xs</span>[<span class="number">2</span>] <span class="kw">as</span> <span class="ident">u64</span> <span class="op">|</span> ((<span class="ident">xs</span>[<span class="number">3</span>] <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">32</span>)) <span class="kw">as</span> <span class="ident">i64</span>;
@@ -2077,7 +2077,7 @@
 }
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">MultiLane</span><span class="op">&lt;</span>[<span class="ident">u64</span>; <span class="number">2</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">u64x2_sse2</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">YesS4</span>, <span class="ident">NI</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">to_lanes</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> [<span class="ident">u64</span>; <span class="number">2</span>] {
+    <span class="kw">fn</span> <span class="ident">to_lanes</span>(<span class="self">self</span>) -&gt; [<span class="ident">u64</span>; <span class="number">2</span>] {
         <span class="kw">unsafe</span> {
             [
                 <span class="ident">_mm_cvtsi128_si64</span>(<span class="self">self</span>.<span class="ident">x</span>) <span class="kw">as</span> <span class="ident">u64</span>,
@@ -2086,7 +2086,7 @@
         }
     }
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">from_lanes</span>(<span class="ident">xs</span>: [<span class="ident">u64</span>; <span class="number">2</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from_lanes</span>(<span class="ident">xs</span>: [<span class="ident">u64</span>; <span class="number">2</span>]) -&gt; <span class="self">Self</span> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">_mm_cvtsi64_si128</span>(<span class="ident">xs</span>[<span class="number">0</span>] <span class="kw">as</span> <span class="ident">i64</span>);
             <span class="ident">x</span> <span class="op">=</span> <span class="ident">_mm_insert_epi64</span>(<span class="ident">x</span>, <span class="ident">xs</span>[<span class="number">1</span>] <span class="kw">as</span> <span class="ident">i64</span>, <span class="number">1</span>);
@@ -2096,7 +2096,7 @@
 }
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">MultiLane</span><span class="op">&lt;</span>[<span class="ident">u64</span>; <span class="number">2</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">u64x2_sse2</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">NoS4</span>, <span class="ident">NI</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">to_lanes</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> [<span class="ident">u64</span>; <span class="number">2</span>] {
+    <span class="kw">fn</span> <span class="ident">to_lanes</span>(<span class="self">self</span>) -&gt; [<span class="ident">u64</span>; <span class="number">2</span>] {
         <span class="kw">unsafe</span> {
             [
                 <span class="ident">_mm_cvtsi128_si64</span>(<span class="self">self</span>.<span class="ident">x</span>) <span class="kw">as</span> <span class="ident">u64</span>,
@@ -2105,7 +2105,7 @@
         }
     }
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">from_lanes</span>(<span class="ident">xs</span>: [<span class="ident">u64</span>; <span class="number">2</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from_lanes</span>(<span class="ident">xs</span>: [<span class="ident">u64</span>; <span class="number">2</span>]) -&gt; <span class="self">Self</span> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">_mm_cvtsi64_si128</span>(<span class="ident">xs</span>[<span class="number">0</span>] <span class="kw">as</span> <span class="ident">i64</span>);
             <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="ident">_mm_slli_si128</span>(<span class="ident">_mm_cvtsi64_si128</span>(<span class="ident">xs</span>[<span class="number">1</span>] <span class="kw">as</span> <span class="ident">i64</span>), <span class="number">8</span>);
@@ -2115,11 +2115,11 @@
 }
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">MultiLane</span><span class="op">&lt;</span>[<span class="ident">u128</span>; <span class="number">1</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">u128x1_sse2</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">to_lanes</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> [<span class="ident">u128</span>; <span class="number">1</span>] {
+    <span class="kw">fn</span> <span class="ident">to_lanes</span>(<span class="self">self</span>) -&gt; [<span class="ident">u128</span>; <span class="number">1</span>] {
         <span class="macro">unimplemented!</span>()
     }
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">from_lanes</span>(<span class="ident">xs</span>: [<span class="ident">u128</span>; <span class="number">1</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from_lanes</span>(<span class="ident">xs</span>: [<span class="ident">u128</span>; <span class="number">1</span>]) -&gt; <span class="self">Self</span> {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">xs</span>)
     }
 }
@@ -2129,12 +2129,12 @@
     <span class="ident">u64x2_sse2</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span>: <span class="ident">MultiLane</span><span class="op">&lt;</span>[<span class="ident">u64</span>; <span class="number">2</span>]<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Copy</span>,
 {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">to_lanes</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> [<span class="ident">u64</span>; <span class="number">4</span>] {
+    <span class="kw">fn</span> <span class="ident">to_lanes</span>(<span class="self">self</span>) -&gt; [<span class="ident">u64</span>; <span class="number">4</span>] {
         <span class="kw">let</span> (<span class="ident">a</span>, <span class="ident">b</span>) <span class="op">=</span> (<span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].<span class="ident">to_lanes</span>(), <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].<span class="ident">to_lanes</span>());
         [<span class="ident">a</span>[<span class="number">0</span>], <span class="ident">a</span>[<span class="number">1</span>], <span class="ident">b</span>[<span class="number">0</span>], <span class="ident">b</span>[<span class="number">1</span>]]
     }
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">from_lanes</span>(<span class="ident">xs</span>: [<span class="ident">u64</span>; <span class="number">4</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from_lanes</span>(<span class="ident">xs</span>: [<span class="ident">u64</span>; <span class="number">4</span>]) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> (<span class="ident">a</span>, <span class="ident">b</span>) <span class="op">=</span> (
             <span class="ident">u64x2_sse2::from_lanes</span>([<span class="ident">xs</span>[<span class="number">0</span>], <span class="ident">xs</span>[<span class="number">1</span>]]),
             <span class="ident">u64x2_sse2::from_lanes</span>([<span class="ident">xs</span>[<span class="number">2</span>], <span class="ident">xs</span>[<span class="number">3</span>]]),
@@ -2144,10 +2144,10 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">impl_into</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">from</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">to</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">from</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">to</span>:<span class="ident">ident</span>) =&gt; {
         <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">from</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">to</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> {
             <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-            <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">x</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">from</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">x</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">from</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">to::new</span>(<span class="ident">x</span>.<span class="ident">x</span>)
             }
         }
@@ -2220,7 +2220,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">UnsafeFrom</span><span class="op">&lt;</span>[<span class="ident">u32</span>; <span class="number">4</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">u32x4_sse2</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unsafe_from</span>(<span class="ident">xs</span>: [<span class="ident">u32</span>; <span class="number">4</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unsafe_from</span>(<span class="ident">xs</span>: [<span class="ident">u32</span>; <span class="number">4</span>]) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">_mm_set_epi32</span>(
             <span class="ident">xs</span>[<span class="number">3</span>] <span class="kw">as</span> <span class="ident">i32</span>,
             <span class="ident">xs</span>[<span class="number">2</span>] <span class="kw">as</span> <span class="ident">i32</span>,
@@ -2235,18 +2235,18 @@
     <span class="self">Self</span>: <span class="ident">MultiLane</span><span class="op">&lt;</span>[<span class="ident">u32</span>; <span class="number">4</span>]<span class="op">&gt;</span>,
 {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">extract</span>(<span class="self">self</span>, <span class="ident">i</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">extract</span>(<span class="self">self</span>, <span class="ident">i</span>: <span class="ident">u32</span>) -&gt; <span class="ident">u32</span> {
         <span class="self">self</span>.<span class="ident">to_lanes</span>()[<span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>]
     }
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">insert</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="ident">u32</span>, <span class="ident">i</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">insert</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="ident">u32</span>, <span class="ident">i</span>: <span class="ident">u32</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::new</span>(<span class="kw">unsafe</span> {
             <span class="kw">match</span> <span class="ident">i</span> {
-                <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">_mm_insert_epi32</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="ident">v</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="number">0</span>),
-                <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">_mm_insert_epi32</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="ident">v</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="number">1</span>),
-                <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">_mm_insert_epi32</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="ident">v</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="number">2</span>),
-                <span class="number">3</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">_mm_insert_epi32</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="ident">v</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="number">3</span>),
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+                <span class="number">0</span> =&gt; <span class="ident">_mm_insert_epi32</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="ident">v</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="number">0</span>),
+                <span class="number">1</span> =&gt; <span class="ident">_mm_insert_epi32</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="ident">v</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="number">1</span>),
+                <span class="number">2</span> =&gt; <span class="ident">_mm_insert_epi32</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="ident">v</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="number">2</span>),
+                <span class="number">3</span> =&gt; <span class="ident">_mm_insert_epi32</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="ident">v</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="number">3</span>),
+                <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
             }
         })
     }
@@ -2256,35 +2256,35 @@
     <span class="self">Self</span>: <span class="ident">MultiLane</span><span class="op">&lt;</span>[<span class="ident">u32</span>; <span class="number">4</span>]<span class="op">&gt;</span>,
 {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">extract</span>(<span class="self">self</span>, <span class="ident">i</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">extract</span>(<span class="self">self</span>, <span class="ident">i</span>: <span class="ident">u32</span>) -&gt; <span class="ident">u32</span> {
         <span class="self">self</span>.<span class="ident">to_lanes</span>()[<span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>]
     }
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">insert</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="ident">u32</span>, <span class="ident">i</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">insert</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="ident">u32</span>, <span class="ident">i</span>: <span class="ident">u32</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::new</span>(<span class="kw">unsafe</span> {
             <span class="kw">match</span> <span class="ident">i</span> {
-                <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="number">0</span> =&gt; {
                     <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">_mm_andnot_si128</span>(<span class="ident">_mm_cvtsi32_si128</span>(<span class="op">-</span><span class="number">1</span>), <span class="self">self</span>.<span class="ident">x</span>);
                     <span class="ident">_mm_or_si128</span>(<span class="ident">x</span>, <span class="ident">_mm_cvtsi32_si128</span>(<span class="ident">v</span> <span class="kw">as</span> <span class="ident">i32</span>))
                 }
-                <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="number">1</span> =&gt; {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">_mm_shuffle_epi32</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="number">0b0111_1000</span>);
                     <span class="ident">x</span> <span class="op">=</span> <span class="ident">_mm_slli_si128</span>(<span class="ident">x</span>, <span class="number">4</span>);
                     <span class="ident">x</span> <span class="op">=</span> <span class="ident">_mm_or_si128</span>(<span class="ident">x</span>, <span class="ident">_mm_cvtsi32_si128</span>(<span class="ident">v</span> <span class="kw">as</span> <span class="ident">i32</span>));
                     <span class="ident">_mm_shuffle_epi32</span>(<span class="ident">x</span>, <span class="number">0b1110_0001</span>)
                 }
-                <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="number">2</span> =&gt; {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">_mm_shuffle_epi32</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="number">0b1011_0100</span>);
                     <span class="ident">x</span> <span class="op">=</span> <span class="ident">_mm_slli_si128</span>(<span class="ident">x</span>, <span class="number">4</span>);
                     <span class="ident">x</span> <span class="op">=</span> <span class="ident">_mm_or_si128</span>(<span class="ident">x</span>, <span class="ident">_mm_cvtsi32_si128</span>(<span class="ident">v</span> <span class="kw">as</span> <span class="ident">i32</span>));
                     <span class="ident">_mm_shuffle_epi32</span>(<span class="ident">x</span>, <span class="number">0b1100_1001</span>)
                 }
-                <span class="number">3</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="number">3</span> =&gt; {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">_mm_slli_si128</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="number">4</span>);
                     <span class="ident">x</span> <span class="op">=</span> <span class="ident">_mm_or_si128</span>(<span class="ident">x</span>, <span class="ident">_mm_cvtsi32_si128</span>(<span class="ident">v</span> <span class="kw">as</span> <span class="ident">i32</span>));
                     <span class="ident">_mm_shuffle_epi32</span>(<span class="ident">x</span>, <span class="number">0b0011_1001</span>)
                 }
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+                <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
             }
         })
     }
@@ -2292,41 +2292,41 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">LaneWords4</span> <span class="kw">for</span> <span class="ident">u32x4_sse2</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">shuffle_lane_words2301</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">shuffle_lane_words2301</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">shuffle2301</span>()
     }
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">shuffle_lane_words1230</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">shuffle_lane_words1230</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">shuffle1230</span>()
     }
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">shuffle_lane_words3012</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">shuffle_lane_words3012</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">shuffle3012</span>()
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">Words4</span> <span class="kw">for</span> <span class="ident">u32x4_sse2</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">shuffle2301</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">shuffle2301</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::new</span>(<span class="kw">unsafe</span> { <span class="ident">_mm_shuffle_epi32</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="number">0b0100_1110</span>) })
     }
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">shuffle1230</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">shuffle1230</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::new</span>(<span class="kw">unsafe</span> { <span class="ident">_mm_shuffle_epi32</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="number">0b1001_0011</span>) })
     }
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">shuffle3012</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">shuffle3012</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::new</span>(<span class="kw">unsafe</span> { <span class="ident">_mm_shuffle_epi32</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="number">0b0011_1001</span>) })
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">Words4</span> <span class="kw">for</span> <span class="ident">u64x4_sse2</span><span class="op">&lt;</span><span class="ident">YesS3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">shuffle2301</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">shuffle2301</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">x2::new</span>([<span class="ident">u64x2_sse2::new</span>(<span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].<span class="ident">x</span>), <span class="ident">u64x2_sse2::new</span>(<span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].<span class="ident">x</span>)])
     }
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">shuffle3012</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">shuffle3012</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">unsafe</span> {
             <span class="ident">x2::new</span>([
                 <span class="ident">u64x2_sse2::new</span>(<span class="ident">_mm_alignr_epi8</span>(<span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].<span class="ident">x</span>, <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].<span class="ident">x</span>, <span class="number">8</span>)),
@@ -2335,7 +2335,7 @@
         }
     }
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">shuffle1230</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">shuffle1230</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">unsafe</span> {
             <span class="ident">x2::new</span>([
                 <span class="ident">u64x2_sse2::new</span>(<span class="ident">_mm_alignr_epi8</span>(<span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].<span class="ident">x</span>, <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].<span class="ident">x</span>, <span class="number">8</span>)),
@@ -2346,11 +2346,11 @@
 }
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">Words4</span> <span class="kw">for</span> <span class="ident">u64x4_sse2</span><span class="op">&lt;</span><span class="ident">NoS3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">shuffle2301</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">shuffle2301</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">x2::new</span>([<span class="ident">u64x2_sse2::new</span>(<span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].<span class="ident">x</span>), <span class="ident">u64x2_sse2::new</span>(<span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].<span class="ident">x</span>)])
     }
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">shuffle3012</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">shuffle3012</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">_mm_srli_si128</span>(<span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].<span class="ident">x</span>, <span class="number">8</span>);
             <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">_mm_slli_si128</span>(<span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].<span class="ident">x</span>, <span class="number">8</span>);
@@ -2362,7 +2362,7 @@
         }
     }
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">shuffle1230</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">shuffle1230</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">_mm_srli_si128</span>(<span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].<span class="ident">x</span>, <span class="number">8</span>);
             <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">_mm_slli_si128</span>(<span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].<span class="ident">x</span>, <span class="number">8</span>);
@@ -2377,57 +2377,57 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">UnsafeFrom</span><span class="op">&lt;</span>[<span class="ident">u64</span>; <span class="number">2</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">u64x2_sse2</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unsafe_from</span>(<span class="ident">xs</span>: [<span class="ident">u64</span>; <span class="number">2</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unsafe_from</span>(<span class="ident">xs</span>: [<span class="ident">u64</span>; <span class="number">2</span>]) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">_mm_set_epi64x</span>(<span class="ident">xs</span>[<span class="number">1</span>] <span class="kw">as</span> <span class="ident">i64</span>, <span class="ident">xs</span>[<span class="number">0</span>] <span class="kw">as</span> <span class="ident">i64</span>))
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">Vec2</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">u64x2_sse2</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">YesS4</span>, <span class="ident">NI</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">extract</span>(<span class="self">self</span>, <span class="ident">i</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
+    <span class="kw">fn</span> <span class="ident">extract</span>(<span class="self">self</span>, <span class="ident">i</span>: <span class="ident">u32</span>) -&gt; <span class="ident">u64</span> {
         <span class="kw">unsafe</span> {
             <span class="kw">match</span> <span class="ident">i</span> {
-                <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">_mm_cvtsi128_si64</span>(<span class="self">self</span>.<span class="ident">x</span>) <span class="kw">as</span> <span class="ident">u64</span>,
-                <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">_mm_extract_epi64</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="number">1</span>) <span class="kw">as</span> <span class="ident">u64</span>,
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+                <span class="number">0</span> =&gt; <span class="ident">_mm_cvtsi128_si64</span>(<span class="self">self</span>.<span class="ident">x</span>) <span class="kw">as</span> <span class="ident">u64</span>,
+                <span class="number">1</span> =&gt; <span class="ident">_mm_extract_epi64</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="number">1</span>) <span class="kw">as</span> <span class="ident">u64</span>,
+                <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
             }
         }
     }
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">insert</span>(<span class="self">self</span>, <span class="ident">x</span>: <span class="ident">u64</span>, <span class="ident">i</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">insert</span>(<span class="self">self</span>, <span class="ident">x</span>: <span class="ident">u64</span>, <span class="ident">i</span>: <span class="ident">u32</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::new</span>(<span class="kw">unsafe</span> {
             <span class="kw">match</span> <span class="ident">i</span> {
-                <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">_mm_insert_epi64</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="ident">x</span> <span class="kw">as</span> <span class="ident">i64</span>, <span class="number">0</span>),
-                <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">_mm_insert_epi64</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="ident">x</span> <span class="kw">as</span> <span class="ident">i64</span>, <span class="number">1</span>),
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+                <span class="number">0</span> =&gt; <span class="ident">_mm_insert_epi64</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="ident">x</span> <span class="kw">as</span> <span class="ident">i64</span>, <span class="number">0</span>),
+                <span class="number">1</span> =&gt; <span class="ident">_mm_insert_epi64</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="ident">x</span> <span class="kw">as</span> <span class="ident">i64</span>, <span class="number">1</span>),
+                <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
             }
         })
     }
 }
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">Vec2</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">u64x2_sse2</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">NoS4</span>, <span class="ident">NI</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">extract</span>(<span class="self">self</span>, <span class="ident">i</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
+    <span class="kw">fn</span> <span class="ident">extract</span>(<span class="self">self</span>, <span class="ident">i</span>: <span class="ident">u32</span>) -&gt; <span class="ident">u64</span> {
         <span class="kw">unsafe</span> {
             <span class="kw">match</span> <span class="ident">i</span> {
-                <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">_mm_cvtsi128_si64</span>(<span class="self">self</span>.<span class="ident">x</span>) <span class="kw">as</span> <span class="ident">u64</span>,
-                <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">_mm_cvtsi128_si64</span>(<span class="ident">_mm_shuffle_epi32</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="number">0b11101110</span>)) <span class="kw">as</span> <span class="ident">u64</span>,
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+                <span class="number">0</span> =&gt; <span class="ident">_mm_cvtsi128_si64</span>(<span class="self">self</span>.<span class="ident">x</span>) <span class="kw">as</span> <span class="ident">u64</span>,
+                <span class="number">1</span> =&gt; <span class="ident">_mm_cvtsi128_si64</span>(<span class="ident">_mm_shuffle_epi32</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="number">0b11101110</span>)) <span class="kw">as</span> <span class="ident">u64</span>,
+                <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
             }
         }
     }
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">insert</span>(<span class="self">self</span>, <span class="ident">x</span>: <span class="ident">u64</span>, <span class="ident">i</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">insert</span>(<span class="self">self</span>, <span class="ident">x</span>: <span class="ident">u64</span>, <span class="ident">i</span>: <span class="ident">u32</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::new</span>(<span class="kw">unsafe</span> {
             <span class="kw">match</span> <span class="ident">i</span> {
-                <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">_mm_or_si128</span>(
+                <span class="number">0</span> =&gt; <span class="ident">_mm_or_si128</span>(
                     <span class="ident">_mm_andnot_si128</span>(<span class="ident">_mm_cvtsi64_si128</span>(<span class="op">-</span><span class="number">1</span>), <span class="self">self</span>.<span class="ident">x</span>),
                     <span class="ident">_mm_cvtsi64_si128</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">i64</span>),
                 ),
-                <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">_mm_or_si128</span>(
+                <span class="number">1</span> =&gt; <span class="ident">_mm_or_si128</span>(
                     <span class="ident">_mm_move_epi64</span>(<span class="self">self</span>.<span class="ident">x</span>),
                     <span class="ident">_mm_slli_si128</span>(<span class="ident">_mm_cvtsi64_si128</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">i64</span>), <span class="number">8</span>),
                 ),
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+                <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
             }
         })
     }
@@ -2435,7 +2435,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">BSwap</span> <span class="kw">for</span> <span class="ident">u32x4_sse2</span><span class="op">&lt;</span><span class="ident">YesS3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">bswap</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">bswap</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::new</span>(<span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="ident">k</span> <span class="op">=</span> <span class="ident">_mm_set_epi64x</span>(<span class="number">0x0c0d_0e0f_0809_0a0b</span>, <span class="number">0x0405_0607_0001_0203</span>);
             <span class="ident">_mm_shuffle_epi8</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="ident">k</span>)
@@ -2443,7 +2443,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">fn</span> <span class="ident">bswap32_s2</span>(<span class="ident">x</span>: <span class="ident">__m128i</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">__m128i</span> {
+<span class="kw">fn</span> <span class="ident">bswap32_s2</span>(<span class="ident">x</span>: <span class="ident">__m128i</span>) -&gt; <span class="ident">__m128i</span> {
     <span class="kw">unsafe</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">y</span> <span class="op">=</span> <span class="ident">_mm_unpacklo_epi8</span>(<span class="ident">x</span>, <span class="ident">_mm_setzero_si128</span>());
         <span class="ident">y</span> <span class="op">=</span> <span class="ident">_mm_shufflehi_epi16</span>(<span class="ident">y</span>, <span class="number">0b0001_1011</span>);
@@ -2456,14 +2456,14 @@
 }
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">BSwap</span> <span class="kw">for</span> <span class="ident">u32x4_sse2</span><span class="op">&lt;</span><span class="ident">NoS3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">bswap</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">bswap</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">bswap32_s2</span>(<span class="self">self</span>.<span class="ident">x</span>))
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">BSwap</span> <span class="kw">for</span> <span class="ident">u64x2_sse2</span><span class="op">&lt;</span><span class="ident">YesS3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">bswap</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">bswap</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::new</span>(<span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="ident">k</span> <span class="op">=</span> <span class="ident">_mm_set_epi64x</span>(<span class="number">0x0809_0a0b_0c0d_0e0f</span>, <span class="number">0x0001_0203_0405_0607</span>);
             <span class="ident">_mm_shuffle_epi8</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="ident">k</span>)
@@ -2472,14 +2472,14 @@
 }
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">BSwap</span> <span class="kw">for</span> <span class="ident">u64x2_sse2</span><span class="op">&lt;</span><span class="ident">NoS3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">bswap</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">bswap</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::new</span>(<span class="kw">unsafe</span> { <span class="ident">bswap32_s2</span>(<span class="ident">_mm_shuffle_epi32</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="number">0b1011_0001</span>)) })
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">BSwap</span> <span class="kw">for</span> <span class="ident">u128x1_sse2</span><span class="op">&lt;</span><span class="ident">YesS3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">bswap</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">bswap</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::new</span>(<span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="ident">k</span> <span class="op">=</span> <span class="ident">_mm_set_epi64x</span>(<span class="number">0x0f0e_0d0c_0b0a_0908</span>, <span class="number">0x0706_0504_0302_0100</span>);
             <span class="ident">_mm_shuffle_epi8</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="ident">k</span>)
@@ -2488,13 +2488,13 @@
 }
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">BSwap</span> <span class="kw">for</span> <span class="ident">u128x1_sse2</span><span class="op">&lt;</span><span class="ident">NoS3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">bswap</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">bswap</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="macro">unimplemented!</span>()
     }
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">swapi</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">k</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">k</span>:<span class="ident">expr</span>) =&gt; {
         <span class="kw">unsafe</span> {
             <span class="kw">const</span> <span class="ident">K</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">k</span>;
             <span class="kw">let</span> <span class="ident">k</span> <span class="op">=</span> <span class="ident">_mm_set1_epi8</span>(<span class="ident">K</span> <span class="kw">as</span> <span class="ident">i8</span>);
@@ -2506,74 +2506,74 @@
     };
 }
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">fn</span> <span class="ident">swap16_s2</span>(<span class="ident">x</span>: <span class="ident">__m128i</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">__m128i</span> {
+<span class="kw">fn</span> <span class="ident">swap16_s2</span>(<span class="ident">x</span>: <span class="ident">__m128i</span>) -&gt; <span class="ident">__m128i</span> {
     <span class="kw">unsafe</span> { <span class="ident">_mm_shufflehi_epi16</span>(<span class="ident">_mm_shufflelo_epi16</span>(<span class="ident">x</span>, <span class="number">0b1011_0001</span>), <span class="number">0b1011_0001</span>) }
 }
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">Swap64</span> <span class="kw">for</span> <span class="ident">u128x1_sse2</span><span class="op">&lt;</span><span class="ident">YesS3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">swap1</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">swap1</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="macro">swapi!</span>(<span class="self">self</span>, <span class="number">1</span>, <span class="number">0xaa</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">swap2</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">swap2</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="macro">swapi!</span>(<span class="self">self</span>, <span class="number">2</span>, <span class="number">0xcc</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">swap4</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">swap4</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="macro">swapi!</span>(<span class="self">self</span>, <span class="number">4</span>, <span class="number">0xf0</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">swap8</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">swap8</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">u128x1_sse2::new</span>(<span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="ident">k</span> <span class="op">=</span> <span class="ident">_mm_set_epi64x</span>(<span class="number">0x0e0f_0c0d_0a0b_0809</span>, <span class="number">0x0607_0405_0203_0001</span>);
             <span class="ident">_mm_shuffle_epi8</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="ident">k</span>)
         })
     }
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">swap16</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">swap16</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">u128x1_sse2::new</span>(<span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="ident">k</span> <span class="op">=</span> <span class="ident">_mm_set_epi64x</span>(<span class="number">0x0d0c_0f0e_0908_0b0a</span>, <span class="number">0x0504_0706_0100_0302</span>);
             <span class="ident">_mm_shuffle_epi8</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="ident">k</span>)
         })
     }
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">swap32</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">swap32</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">u128x1_sse2::new</span>(<span class="kw">unsafe</span> { <span class="ident">_mm_shuffle_epi32</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="number">0b1011_0001</span>) })
     }
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">swap64</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">swap64</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">u128x1_sse2::new</span>(<span class="kw">unsafe</span> { <span class="ident">_mm_shuffle_epi32</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="number">0b0100_1110</span>) })
     }
 }
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">Swap64</span> <span class="kw">for</span> <span class="ident">u128x1_sse2</span><span class="op">&lt;</span><span class="ident">NoS3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">swap1</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">swap1</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="macro">swapi!</span>(<span class="self">self</span>, <span class="number">1</span>, <span class="number">0xaa</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">swap2</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">swap2</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="macro">swapi!</span>(<span class="self">self</span>, <span class="number">2</span>, <span class="number">0xcc</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">swap4</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">swap4</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="macro">swapi!</span>(<span class="self">self</span>, <span class="number">4</span>, <span class="number">0xf0</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">swap8</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">swap8</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">u128x1_sse2::new</span>(<span class="kw">unsafe</span> {
             <span class="ident">_mm_or_si128</span>(<span class="ident">_mm_slli_epi16</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="number">8</span>), <span class="ident">_mm_srli_epi16</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="number">8</span>))
         })
     }
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">swap16</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">swap16</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">u128x1_sse2::new</span>(<span class="ident">swap16_s2</span>(<span class="self">self</span>.<span class="ident">x</span>))
     }
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">swap32</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">swap32</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">u128x1_sse2::new</span>(<span class="kw">unsafe</span> { <span class="ident">_mm_shuffle_epi32</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="number">0b1011_0001</span>) })
     }
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">swap64</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">swap64</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">u128x1_sse2::new</span>(<span class="kw">unsafe</span> { <span class="ident">_mm_shuffle_epi32</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="number">0b0100_1110</span>) })
     }
 }
@@ -2601,7 +2601,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">Vector</span><span class="op">&lt;</span>[<span class="ident">u32</span>; <span class="number">16</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">u32x4x4_sse2</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">to_scalars</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> [<span class="ident">u32</span>; <span class="number">16</span>] {
+    <span class="kw">fn</span> <span class="ident">to_scalars</span>(<span class="self">self</span>) -&gt; [<span class="ident">u32</span>; <span class="number">16</span>] {
         <span class="kw">unsafe</span> {
             <span class="ident">core::mem::transmute</span>(<span class="self">self</span>)
         }
@@ -2683,23 +2683,23 @@
     <span class="ident">u64x2_sse2</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span>: <span class="ident">Copy</span> <span class="op">+</span> <span class="ident">Vec2</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
 {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">extract</span>(<span class="self">self</span>, <span class="ident">i</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
+    <span class="kw">fn</span> <span class="ident">extract</span>(<span class="self">self</span>, <span class="ident">i</span>: <span class="ident">u32</span>) -&gt; <span class="ident">u64</span> {
         <span class="kw">match</span> <span class="ident">i</span> {
-            <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].<span class="ident">extract</span>(<span class="number">0</span>),
-            <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].<span class="ident">extract</span>(<span class="number">1</span>),
-            <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].<span class="ident">extract</span>(<span class="number">0</span>),
-            <span class="number">3</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].<span class="ident">extract</span>(<span class="number">1</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(),
+            <span class="number">0</span> =&gt; <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].<span class="ident">extract</span>(<span class="number">0</span>),
+            <span class="number">1</span> =&gt; <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].<span class="ident">extract</span>(<span class="number">1</span>),
+            <span class="number">2</span> =&gt; <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].<span class="ident">extract</span>(<span class="number">0</span>),
+            <span class="number">3</span> =&gt; <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].<span class="ident">extract</span>(<span class="number">1</span>),
+            <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(),
         }
     }
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">insert</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">w</span>: <span class="ident">u64</span>, <span class="ident">i</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">insert</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">w</span>: <span class="ident">u64</span>, <span class="ident">i</span>: <span class="ident">u32</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">match</span> <span class="ident">i</span> {
-            <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>] <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].<span class="ident">insert</span>(<span class="ident">w</span>, <span class="number">0</span>),
-            <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>] <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].<span class="ident">insert</span>(<span class="ident">w</span>, <span class="number">1</span>),
-            <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>] <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].<span class="ident">insert</span>(<span class="ident">w</span>, <span class="number">0</span>),
-            <span class="number">3</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>] <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].<span class="ident">insert</span>(<span class="ident">w</span>, <span class="number">1</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(),
+            <span class="number">0</span> =&gt; <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>] <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].<span class="ident">insert</span>(<span class="ident">w</span>, <span class="number">0</span>),
+            <span class="number">1</span> =&gt; <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>] <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].<span class="ident">insert</span>(<span class="ident">w</span>, <span class="number">1</span>),
+            <span class="number">2</span> =&gt; <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>] <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].<span class="ident">insert</span>(<span class="ident">w</span>, <span class="number">0</span>),
+            <span class="number">3</span> =&gt; <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>] <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].<span class="ident">insert</span>(<span class="ident">w</span>, <span class="number">1</span>),
+            <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(),
         };
         <span class="self">self</span>
     }
@@ -2754,18 +2754,18 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">impl_into_x</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">from</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">to</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">from</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">to</span>:<span class="ident">ident</span>) =&gt; {
         <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S3</span>: <span class="ident">Copy</span>, <span class="ident">S4</span>: <span class="ident">Copy</span>, <span class="ident">NI</span>: <span class="ident">Copy</span>, <span class="ident">Gf</span>, <span class="ident">Gt</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">x2</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">from</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span>, <span class="ident">Gf</span><span class="op">&gt;</span><span class="op">&gt;</span>
             <span class="kw">for</span> <span class="ident">x2</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">to</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span>, <span class="ident">Gt</span><span class="op">&gt;</span>
         {
             <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-            <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">x</span>: <span class="ident">x2</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">from</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span>, <span class="ident">Gf</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">x</span>: <span class="ident">x2</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">from</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span>, <span class="ident">Gf</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
                 <span class="ident">x2::new</span>([<span class="macro-nonterminal">$</span><span class="macro-nonterminal">to::from</span>(<span class="ident">x</span>.<span class="number">0</span>[<span class="number">0</span>]), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">to::from</span>(<span class="ident">x</span>.<span class="number">0</span>[<span class="number">1</span>])])
             }
         }
         <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S3</span>: <span class="ident">Copy</span>, <span class="ident">S4</span>: <span class="ident">Copy</span>, <span class="ident">NI</span>: <span class="ident">Copy</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">x4</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">from</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">x4</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">to</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span><span class="op">&gt;</span> {
             <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-            <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">x</span>: <span class="ident">x4</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">from</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">x</span>: <span class="ident">x4</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">from</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
                 <span class="ident">x4::new</span>([
                     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">to::from</span>(<span class="ident">x</span>.<span class="number">0</span>[<span class="number">0</span>]),
                     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">to::from</span>(<span class="ident">x</span>.<span class="number">0</span>[<span class="number">1</span>]),
@@ -2785,29 +2785,29 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">PartialEq</span>, <span class="ident">G</span><span class="op">&gt;</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">x2</span><span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">G</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">rhs</span>.<span class="number">0</span>[<span class="number">0</span>] <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">rhs</span>.<span class="number">0</span>[<span class="number">1</span>]
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>] <span class="op">==</span> <span class="ident">rhs</span>.<span class="number">0</span>[<span class="number">0</span>] <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>] <span class="op">==</span> <span class="ident">rhs</span>.<span class="number">0</span>[<span class="number">1</span>]
     }
 }
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused</span>)]</span>
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">eq128_s4</span>(<span class="ident">x</span>: <span class="ident">__m128i</span>, <span class="ident">y</span>: <span class="ident">__m128i</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">eq128_s4</span>(<span class="ident">x</span>: <span class="ident">__m128i</span>, <span class="ident">y</span>: <span class="ident">__m128i</span>) -&gt; <span class="ident">bool</span> {
     <span class="kw">let</span> <span class="ident">q</span> <span class="op">=</span> <span class="ident">_mm_shuffle_epi32</span>(<span class="ident">_mm_cmpeq_epi64</span>(<span class="ident">x</span>, <span class="ident">y</span>), <span class="number">0b1100_0110</span>);
-    <span class="ident">_mm_cvtsi128_si64</span>(<span class="ident">q</span>) <span class="op">=</span><span class="op">=</span> <span class="op">-</span><span class="number">1</span>
+    <span class="ident">_mm_cvtsi128_si64</span>(<span class="ident">q</span>) <span class="op">==</span> <span class="op">-</span><span class="number">1</span>
 }
 
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">eq128_s2</span>(<span class="ident">x</span>: <span class="ident">__m128i</span>, <span class="ident">y</span>: <span class="ident">__m128i</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">eq128_s2</span>(<span class="ident">x</span>: <span class="ident">__m128i</span>, <span class="ident">y</span>: <span class="ident">__m128i</span>) -&gt; <span class="ident">bool</span> {
     <span class="kw">let</span> <span class="ident">q</span> <span class="op">=</span> <span class="ident">_mm_cmpeq_epi32</span>(<span class="ident">x</span>, <span class="ident">y</span>);
     <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">_mm_cvtsi128_si64</span>(<span class="ident">_mm_srli_si128</span>(<span class="ident">q</span>, <span class="number">8</span>));
     <span class="kw">let</span> <span class="ident">q</span> <span class="op">=</span> <span class="ident">_mm_cvtsi128_si64</span>(<span class="ident">q</span>);
-    (<span class="ident">p</span> <span class="op">&amp;</span> <span class="ident">q</span>) <span class="op">=</span><span class="op">=</span> <span class="op">-</span><span class="number">1</span>
+    (<span class="ident">p</span> <span class="op">&amp;</span> <span class="ident">q</span>) <span class="op">==</span> <span class="op">-</span><span class="number">1</span>
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">u32x4_sse2</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">unsafe</span> { <span class="ident">eq128_s2</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="ident">rhs</span>.<span class="ident">x</span>) }
     }
 }
@@ -2816,14 +2816,14 @@
     <span class="self">Self</span>: <span class="ident">Copy</span> <span class="op">+</span> <span class="ident">MultiLane</span><span class="op">&lt;</span>[<span class="ident">u32</span>; <span class="number">4</span>]<span class="op">&gt;</span>,
 {
     <span class="attribute">#[<span class="ident">cold</span>]</span>
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span>) -&gt; <span class="prelude-ty">Result</span> {
         <span class="ident">fmt</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:08x?}&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">to_lanes</span>()))
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">u64x2_sse2</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">unsafe</span> { <span class="ident">eq128_s2</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="ident">rhs</span>.<span class="ident">x</span>) }
     }
 }
@@ -2832,7 +2832,7 @@
     <span class="self">Self</span>: <span class="ident">Copy</span> <span class="op">+</span> <span class="ident">MultiLane</span><span class="op">&lt;</span>[<span class="ident">u64</span>; <span class="number">2</span>]<span class="op">&gt;</span>,
 {
     <span class="attribute">#[<span class="ident">cold</span>]</span>
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span>) -&gt; <span class="prelude-ty">Result</span> {
         <span class="ident">fmt</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:016x?}&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">to_lanes</span>()))
     }
 }
@@ -2842,7 +2842,7 @@
     <span class="ident">u64x2_sse2</span><span class="op">&lt;</span><span class="ident">S3</span>, <span class="ident">S4</span>, <span class="ident">NI</span><span class="op">&gt;</span>: <span class="ident">Copy</span> <span class="op">+</span> <span class="ident">MultiLane</span><span class="op">&lt;</span>[<span class="ident">u64</span>; <span class="number">2</span>]<span class="op">&gt;</span>,
 {
     <span class="attribute">#[<span class="ident">cold</span>]</span>
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span>) -&gt; <span class="prelude-ty">Result</span> {
         <span class="kw">let</span> (<span class="ident">a</span>, <span class="ident">b</span>) <span class="op">=</span> (<span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].<span class="ident">to_lanes</span>(), <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].<span class="ident">to_lanes</span>());
         <span class="ident">fmt</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:016x?}&quot;</span>, <span class="kw-2">&amp;</span>[<span class="ident">a</span>[<span class="number">0</span>], <span class="ident">a</span>[<span class="number">1</span>], <span class="ident">b</span>[<span class="number">0</span>], <span class="ident">b</span>[<span class="number">1</span>]]))
     }
@@ -3112,7 +3112,7 @@
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">u32x4x2_avx2</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">x</span>: <span class="ident">__m256i</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">x</span>: <span class="ident">__m256i</span>) -&gt; <span class="self">Self</span> {
             <span class="self">Self</span> { <span class="ident">x</span>, <span class="ident">ni</span>: <span class="ident">PhantomData</span> }
         }
     }
@@ -3120,18 +3120,18 @@
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">u32x4x2</span><span class="op">&lt;</span><span class="ident">Avx2Machine</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">u32x4x2_avx2</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">NI</span>: <span class="ident">Copy</span> {}
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">Store</span><span class="op">&lt;</span><span class="ident">vec256_storage</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">u32x4x2_avx2</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unpack</span>(<span class="ident">p</span>: <span class="ident">vec256_storage</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unpack</span>(<span class="ident">p</span>: <span class="ident">vec256_storage</span>) -&gt; <span class="self">Self</span> {
             <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">p</span>.<span class="ident">avx</span>)
         }
     }
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">StoreBytes</span> <span class="kw">for</span> <span class="ident">u32x4x2_avx2</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unsafe_read_le</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unsafe_read_le</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="self">Self</span> {
             <span class="macro">assert_eq!</span>(<span class="ident">input</span>.<span class="ident">len</span>(), <span class="number">32</span>);
             <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">_mm256_loadu_si256</span>(<span class="ident">input</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>))
         }
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unsafe_read_be</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unsafe_read_be</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="self">Self</span> {
             <span class="ident"><span class="self">Self</span>::unsafe_read_le</span>(<span class="ident">input</span>).<span class="ident">bswap</span>()
         }
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
@@ -3148,7 +3148,7 @@
     }
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">MultiLane</span><span class="op">&lt;</span>[<span class="ident">u32x4_sse2</span><span class="op">&lt;</span><span class="ident">YesS3</span>, <span class="ident">YesS4</span>, <span class="ident">NI</span><span class="op">&gt;</span>; <span class="number">2</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">u32x4x2_avx2</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">fn</span> <span class="ident">to_lanes</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> [<span class="ident">u32x4_sse2</span><span class="op">&lt;</span><span class="ident">YesS3</span>, <span class="ident">YesS4</span>, <span class="ident">NI</span><span class="op">&gt;</span>; <span class="number">2</span>] {
+        <span class="kw">fn</span> <span class="ident">to_lanes</span>(<span class="self">self</span>) -&gt; [<span class="ident">u32x4_sse2</span><span class="op">&lt;</span><span class="ident">YesS3</span>, <span class="ident">YesS4</span>, <span class="ident">NI</span><span class="op">&gt;</span>; <span class="number">2</span>] {
             <span class="kw">unsafe</span> {
                 [
                     <span class="ident">u32x4_sse2::new</span>(<span class="ident">_mm256_extracti128_si256</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="number">0</span>)),
@@ -3157,7 +3157,7 @@
             }
         }
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">fn</span> <span class="ident">from_lanes</span>(<span class="ident">x</span>: [<span class="ident">u32x4_sse2</span><span class="op">&lt;</span><span class="ident">YesS3</span>, <span class="ident">YesS4</span>, <span class="ident">NI</span><span class="op">&gt;</span>; <span class="number">2</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">fn</span> <span class="ident">from_lanes</span>(<span class="ident">x</span>: [<span class="ident">u32x4_sse2</span><span class="op">&lt;</span><span class="ident">YesS3</span>, <span class="ident">YesS4</span>, <span class="ident">NI</span><span class="op">&gt;</span>; <span class="number">2</span>]) -&gt; <span class="self">Self</span> {
             <span class="ident"><span class="self">Self</span>::new</span>(<span class="kw">unsafe</span> {
                 <span class="ident">_mm256_setr_m128i</span>(<span class="ident">x</span>[<span class="number">0</span>].<span class="ident">x</span>, <span class="ident">x</span>[<span class="number">1</span>].<span class="ident">x</span>)
             })
@@ -3165,22 +3165,22 @@
     }
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">Vec2</span><span class="op">&lt;</span><span class="ident">u32x4_sse2</span><span class="op">&lt;</span><span class="ident">YesS3</span>, <span class="ident">YesS4</span>, <span class="ident">NI</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">u32x4x2_avx2</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">fn</span> <span class="ident">extract</span>(<span class="self">self</span>, <span class="ident">i</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32x4_sse2</span><span class="op">&lt;</span><span class="ident">YesS3</span>, <span class="ident">YesS4</span>, <span class="ident">NI</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">extract</span>(<span class="self">self</span>, <span class="ident">i</span>: <span class="ident">u32</span>) -&gt; <span class="ident">u32x4_sse2</span><span class="op">&lt;</span><span class="ident">YesS3</span>, <span class="ident">YesS4</span>, <span class="ident">NI</span><span class="op">&gt;</span> {
             <span class="kw">unsafe</span> {
                 <span class="kw">match</span> <span class="ident">i</span> {
-                    <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">u32x4_sse2::new</span>(<span class="ident">_mm256_extracti128_si256</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="number">0</span>)),
-                    <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">u32x4_sse2::new</span>(<span class="ident">_mm256_extracti128_si256</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="number">1</span>)),
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(),
+                    <span class="number">0</span> =&gt; <span class="ident">u32x4_sse2::new</span>(<span class="ident">_mm256_extracti128_si256</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="number">0</span>)),
+                    <span class="number">1</span> =&gt; <span class="ident">u32x4_sse2::new</span>(<span class="ident">_mm256_extracti128_si256</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="number">1</span>)),
+                    <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(),
                 }
             }
         }
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">fn</span> <span class="ident">insert</span>(<span class="self">self</span>, <span class="ident">w</span>: <span class="ident">u32x4_sse2</span><span class="op">&lt;</span><span class="ident">YesS3</span>, <span class="ident">YesS4</span>, <span class="ident">NI</span><span class="op">&gt;</span>, <span class="ident">i</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">fn</span> <span class="ident">insert</span>(<span class="self">self</span>, <span class="ident">w</span>: <span class="ident">u32x4_sse2</span><span class="op">&lt;</span><span class="ident">YesS3</span>, <span class="ident">YesS4</span>, <span class="ident">NI</span><span class="op">&gt;</span>, <span class="ident">i</span>: <span class="ident">u32</span>) -&gt; <span class="self">Self</span> {
             <span class="ident"><span class="self">Self</span>::new</span>(<span class="kw">unsafe</span> {
                 <span class="kw">match</span> <span class="ident">i</span> {
-                    <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">_mm256_inserti128_si256</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="ident">w</span>.<span class="ident">x</span>, <span class="number">0</span>),
-                    <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">_mm256_inserti128_si256</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="ident">w</span>.<span class="ident">x</span>, <span class="number">1</span>),
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(),
+                    <span class="number">0</span> =&gt; <span class="ident">_mm256_inserti128_si256</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="ident">w</span>.<span class="ident">x</span>, <span class="number">0</span>),
+                    <span class="number">1</span> =&gt; <span class="ident">_mm256_inserti128_si256</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="ident">w</span>.<span class="ident">x</span>, <span class="number">1</span>),
+                    <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(),
                 }
             })
         }
@@ -3188,9 +3188,9 @@
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">BitOps32</span> <span class="kw">for</span> <span class="ident">u32x4x2_avx2</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">NI</span>: <span class="ident">Copy</span> {}
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">ArithOps</span> <span class="kw">for</span> <span class="ident">u32x4x2_avx2</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">NI</span>: <span class="ident">Copy</span> {}
     <span class="macro">macro_rules!</span> <span class="ident">shuf_lane_bytes</span> {
-        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">k0</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">k1</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">k0</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">k1</span>:<span class="ident">expr</span>) =&gt; {
             <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-            <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
                 <span class="ident"><span class="self">Self</span>::new</span>(<span class="kw">unsafe</span> {
                     <span class="ident">_mm256_shuffle_epi8</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="ident">_mm256_set_epi64x</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">k0</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">k1</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">k0</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">k1</span>))
                 })
@@ -3198,9 +3198,9 @@
         };
     }
     <span class="macro">macro_rules!</span> <span class="ident">rotr_32</span> {
-        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">expr</span>) =&gt; {
             <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-            <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
                 <span class="ident"><span class="self">Self</span>::new</span>(<span class="kw">unsafe</span> {
                     <span class="ident">_mm256_or_si256</span>(
                         <span class="ident">_mm256_srli_epi32</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span> <span class="kw">as</span> <span class="ident">i32</span>),
@@ -3235,7 +3235,7 @@
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">BitOps0</span> <span class="kw">for</span> <span class="ident">u32x4x2_avx2</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">NI</span>: <span class="ident">Copy</span> {}
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u32x4x2_avx2</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">vec256_storage</span> {
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">x</span>: <span class="ident">u32x4x2_avx2</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">x</span>: <span class="ident">u32x4x2_avx2</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
             <span class="self">Self</span> {
                 <span class="ident">avx</span>: <span class="ident">x</span>.<span class="ident">x</span>,
             }
@@ -3243,7 +3243,7 @@
     }
 
     <span class="macro">macro_rules!</span> <span class="ident">impl_assign</span> {
-        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">Assign</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">assign_fn</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bin_fn</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">Assign</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">assign_fn</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bin_fn</span>:<span class="ident">ident</span>) =&gt; {
             <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">Assign</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span>
             <span class="kw">where</span>
                 <span class="ident">NI</span>: <span class="ident">Copy</span>,
@@ -3261,11 +3261,11 @@
     <span class="macro">impl_assign!</span>(<span class="ident">u32x4x2_avx2</span>, <span class="ident">AddAssign</span>, <span class="ident">add_assign</span>, <span class="ident">add</span>);
 
     <span class="macro">macro_rules!</span> <span class="ident">impl_bitop</span> {
-        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">Op</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op_fn</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">impl_fn</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">Op</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op_fn</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">impl_fn</span>:<span class="ident">ident</span>) =&gt; {
             <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">Op</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">vec</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span> {
                 <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="self">Self</span>;
                 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-                <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op_fn</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Output</span> {
+                <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op_fn</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="self">Self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Output</span> {
                     <span class="ident"><span class="self">Self</span>::new</span>(<span class="kw">unsafe</span> {
                         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">impl_fn</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="ident">rhs</span>.<span class="ident">x</span>)
                     })
@@ -3282,7 +3282,7 @@
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">Not</span> <span class="kw">for</span> <span class="ident">u32x4x2_avx2</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span> {
         <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="self">Self</span>;
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">fn</span> <span class="ident">not</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Output</span> {
+        <span class="kw">fn</span> <span class="ident">not</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Output</span> {
             <span class="kw">unsafe</span> {
                 <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">_mm256_set1_epi8</span>(<span class="op">-</span><span class="number">0x7f</span>);
                 <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f</span>) <span class="op">^</span> <span class="self">self</span>
@@ -3299,7 +3299,7 @@
         <span class="ident">NI</span>: <span class="ident">Copy</span>,
     {
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">x</span>: <span class="ident">x2</span><span class="op">&lt;</span><span class="ident">u128x1_sse2</span><span class="op">&lt;</span><span class="ident">YesS3</span>, <span class="ident">YesS4</span>, <span class="ident">NI</span><span class="op">&gt;</span>, <span class="ident">G0</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">x</span>: <span class="ident">x2</span><span class="op">&lt;</span><span class="ident">u128x1_sse2</span><span class="op">&lt;</span><span class="ident">YesS3</span>, <span class="ident">YesS4</span>, <span class="ident">NI</span><span class="op">&gt;</span>, <span class="ident">G0</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
             <span class="ident"><span class="self">Self</span>::new</span>(<span class="kw">unsafe</span> {
                 <span class="ident">_mm256_setr_m128i</span>(<span class="ident">x</span>.<span class="number">0</span>[<span class="number">0</span>].<span class="ident">x</span>, <span class="ident">x</span>.<span class="number">0</span>[<span class="number">1</span>].<span class="ident">x</span>)
             })
@@ -3308,19 +3308,19 @@
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span> <span class="ident">LaneWords4</span> <span class="kw">for</span> <span class="ident">u32x4x2_avx2</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">fn</span> <span class="ident">shuffle_lane_words1230</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">fn</span> <span class="ident">shuffle_lane_words1230</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
             <span class="ident"><span class="self">Self</span>::new</span>(<span class="kw">unsafe</span> {
                 <span class="ident">_mm256_shuffle_epi32</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="number">0b1001_0011</span>)
             })
         }
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">fn</span> <span class="ident">shuffle_lane_words2301</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">fn</span> <span class="ident">shuffle_lane_words2301</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
             <span class="ident"><span class="self">Self</span>::new</span>(<span class="kw">unsafe</span> {
                 <span class="ident">_mm256_shuffle_epi32</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="number">0b0100_1110</span>)
             })
         }
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">fn</span> <span class="ident">shuffle_lane_words3012</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">fn</span> <span class="ident">shuffle_lane_words3012</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
             <span class="ident"><span class="self">Self</span>::new</span>(<span class="kw">unsafe</span> {
                 <span class="ident">_mm256_shuffle_epi32</span>(<span class="self">self</span>.<span class="ident">x</span>, <span class="number">0b0011_1001</span>)
             })
@@ -3334,19 +3334,19 @@
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">NI</span>: <span class="ident">Copy</span><span class="op">&gt;</span> <span class="ident">Store</span><span class="op">&lt;</span><span class="ident">vec512_storage</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">u32x4x4_avx2</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unpack</span>(<span class="ident">p</span>: <span class="ident">vec512_storage</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unpack</span>(<span class="ident">p</span>: <span class="ident">vec512_storage</span>) -&gt; <span class="self">Self</span> {
             <span class="ident"><span class="self">Self</span>::new</span>([<span class="ident">u32x4x2_avx2::unpack</span>(<span class="ident">p</span>.<span class="ident">avx</span>[<span class="number">0</span>]), <span class="ident">u32x4x2_avx2::unpack</span>(<span class="ident">p</span>.<span class="ident">avx</span>[<span class="number">1</span>])])
         }
     }
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">NI</span>: <span class="ident">Copy</span><span class="op">&gt;</span> <span class="ident">MultiLane</span><span class="op">&lt;</span>[<span class="ident">u32x4_sse2</span><span class="op">&lt;</span><span class="ident">YesS3</span>, <span class="ident">YesS4</span>, <span class="ident">NI</span><span class="op">&gt;</span>; <span class="number">4</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">u32x4x4_avx2</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">fn</span> <span class="ident">to_lanes</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> [<span class="ident">u32x4_sse2</span><span class="op">&lt;</span><span class="ident">YesS3</span>, <span class="ident">YesS4</span>, <span class="ident">NI</span><span class="op">&gt;</span>; <span class="number">4</span>] {
+        <span class="kw">fn</span> <span class="ident">to_lanes</span>(<span class="self">self</span>) -&gt; [<span class="ident">u32x4_sse2</span><span class="op">&lt;</span><span class="ident">YesS3</span>, <span class="ident">YesS4</span>, <span class="ident">NI</span><span class="op">&gt;</span>; <span class="number">4</span>] {
             <span class="kw">let</span> [<span class="ident">a</span>, <span class="ident">b</span>] <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].<span class="ident">to_lanes</span>();
             <span class="kw">let</span> [<span class="ident">c</span>, <span class="ident">d</span>] <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].<span class="ident">to_lanes</span>();
             [<span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">c</span>, <span class="ident">d</span>]
         }
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">fn</span> <span class="ident">from_lanes</span>(<span class="ident">x</span>: [<span class="ident">u32x4_sse2</span><span class="op">&lt;</span><span class="ident">YesS3</span>, <span class="ident">YesS4</span>, <span class="ident">NI</span><span class="op">&gt;</span>; <span class="number">4</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">fn</span> <span class="ident">from_lanes</span>(<span class="ident">x</span>: [<span class="ident">u32x4_sse2</span><span class="op">&lt;</span><span class="ident">YesS3</span>, <span class="ident">YesS4</span>, <span class="ident">NI</span><span class="op">&gt;</span>; <span class="number">4</span>]) -&gt; <span class="self">Self</span> {
             <span class="kw">let</span> <span class="ident">ab</span> <span class="op">=</span> <span class="ident">u32x4x2_avx2::from_lanes</span>([<span class="ident">x</span>[<span class="number">0</span>], <span class="ident">x</span>[<span class="number">1</span>]]);
             <span class="kw">let</span> <span class="ident">cd</span> <span class="op">=</span> <span class="ident">u32x4x2_avx2::from_lanes</span>([<span class="ident">x</span>[<span class="number">2</span>], <span class="ident">x</span>[<span class="number">3</span>]]);
             <span class="ident"><span class="self">Self</span>::new</span>([<span class="ident">ab</span>, <span class="ident">cd</span>])
@@ -3354,27 +3354,27 @@
     }
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">NI</span>: <span class="ident">Copy</span><span class="op">&gt;</span> <span class="ident">Vec4</span><span class="op">&lt;</span><span class="ident">u32x4_sse2</span><span class="op">&lt;</span><span class="ident">YesS3</span>, <span class="ident">YesS4</span>, <span class="ident">NI</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">u32x4x4_avx2</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">fn</span> <span class="ident">extract</span>(<span class="self">self</span>, <span class="ident">i</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32x4_sse2</span><span class="op">&lt;</span><span class="ident">YesS3</span>, <span class="ident">YesS4</span>, <span class="ident">NI</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">extract</span>(<span class="self">self</span>, <span class="ident">i</span>: <span class="ident">u32</span>) -&gt; <span class="ident">u32x4_sse2</span><span class="op">&lt;</span><span class="ident">YesS3</span>, <span class="ident">YesS4</span>, <span class="ident">NI</span><span class="op">&gt;</span> {
             <span class="kw">match</span> <span class="ident">i</span> {
-                <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].<span class="ident">extract</span>(<span class="number">0</span>),
-                <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].<span class="ident">extract</span>(<span class="number">1</span>),
-                <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].<span class="ident">extract</span>(<span class="number">0</span>),
-                <span class="number">3</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].<span class="ident">extract</span>(<span class="number">1</span>),
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(),
+                <span class="number">0</span> =&gt; <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].<span class="ident">extract</span>(<span class="number">0</span>),
+                <span class="number">1</span> =&gt; <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].<span class="ident">extract</span>(<span class="number">1</span>),
+                <span class="number">2</span> =&gt; <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].<span class="ident">extract</span>(<span class="number">0</span>),
+                <span class="number">3</span> =&gt; <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].<span class="ident">extract</span>(<span class="number">1</span>),
+                <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(),
             }
         }
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">fn</span> <span class="ident">insert</span>(<span class="self">self</span>, <span class="ident">w</span>: <span class="ident">u32x4_sse2</span><span class="op">&lt;</span><span class="ident">YesS3</span>, <span class="ident">YesS4</span>, <span class="ident">NI</span><span class="op">&gt;</span>, <span class="ident">i</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">fn</span> <span class="ident">insert</span>(<span class="self">self</span>, <span class="ident">w</span>: <span class="ident">u32x4_sse2</span><span class="op">&lt;</span><span class="ident">YesS3</span>, <span class="ident">YesS4</span>, <span class="ident">NI</span><span class="op">&gt;</span>, <span class="ident">i</span>: <span class="ident">u32</span>) -&gt; <span class="self">Self</span> {
             <span class="ident"><span class="self">Self</span>::new</span>(<span class="kw">match</span> <span class="ident">i</span> {
-                <span class="number">0</span> <span class="op">|</span> <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> [<span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].<span class="ident">insert</span>(<span class="ident">w</span>, <span class="ident">i</span>), <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>]],
-                <span class="number">2</span> <span class="op">|</span> <span class="number">3</span> <span class="op">=</span><span class="op">&gt;</span> [<span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>], <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].<span class="ident">insert</span>(<span class="ident">w</span>, <span class="ident">i</span> <span class="op">-</span> <span class="number">2</span>)],
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(),
+                <span class="number">0</span> <span class="op">|</span> <span class="number">1</span> =&gt; [<span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].<span class="ident">insert</span>(<span class="ident">w</span>, <span class="ident">i</span>), <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>]],
+                <span class="number">2</span> <span class="op">|</span> <span class="number">3</span> =&gt; [<span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>], <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>].<span class="ident">insert</span>(<span class="ident">w</span>, <span class="ident">i</span> <span class="op">-</span> <span class="number">2</span>)],
+                <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(),
             })
         }
     }
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">NI</span>: <span class="ident">Copy</span><span class="op">&gt;</span> <span class="ident">Vec4Ext</span><span class="op">&lt;</span><span class="ident">u32x4_sse2</span><span class="op">&lt;</span><span class="ident">YesS3</span>, <span class="ident">YesS4</span>, <span class="ident">NI</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">u32x4x4_avx2</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">fn</span> <span class="ident">transpose4</span>(<span class="ident">a</span>: <span class="self">Self</span>, <span class="ident">b</span>: <span class="self">Self</span>, <span class="ident">c</span>: <span class="self">Self</span>, <span class="ident">d</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="self">Self</span>, <span class="self">Self</span>, <span class="self">Self</span>, <span class="self">Self</span>) {
+        <span class="kw">fn</span> <span class="ident">transpose4</span>(<span class="ident">a</span>: <span class="self">Self</span>, <span class="ident">b</span>: <span class="self">Self</span>, <span class="ident">c</span>: <span class="self">Self</span>, <span class="ident">d</span>: <span class="self">Self</span>) -&gt; (<span class="self">Self</span>, <span class="self">Self</span>, <span class="self">Self</span>, <span class="self">Self</span>) {
             <span class="comment">/*
              * a00:a01 a10:a11
              * b00:b01 b10:b11
@@ -3406,7 +3406,7 @@
     }
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">NI</span>: <span class="ident">Copy</span><span class="op">&gt;</span> <span class="ident">Vector</span><span class="op">&lt;</span>[<span class="ident">u32</span>; <span class="number">16</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">u32x4x4_avx2</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">fn</span> <span class="ident">to_scalars</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> [<span class="ident">u32</span>; <span class="number">16</span>] {
+        <span class="kw">fn</span> <span class="ident">to_scalars</span>(<span class="self">self</span>) -&gt; [<span class="ident">u32</span>; <span class="number">16</span>] {
             <span class="kw">unsafe</span> {
                 <span class="ident">core::mem::transmute</span>(<span class="self">self</span>)
             }
@@ -3414,7 +3414,7 @@
     }
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">NI</span>: <span class="ident">Copy</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u32x4x4_avx2</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">vec512_storage</span> {
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">x</span>: <span class="ident">u32x4x4_avx2</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">x</span>: <span class="ident">u32x4x4_avx2</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
             <span class="self">Self</span> {
                 <span class="ident">avx</span>: [
                     <span class="ident">vec256_storage</span> { <span class="ident">avx</span>: <span class="ident">x</span>.<span class="number">0</span>[<span class="number">0</span>].<span class="ident">x</span> },
@@ -3426,7 +3426,7 @@
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">NI</span>: <span class="ident">Copy</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">x4</span><span class="op">&lt;</span><span class="ident">u128x1_sse2</span><span class="op">&lt;</span><span class="ident">YesS3</span>, <span class="ident">YesS4</span>, <span class="ident">NI</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">u32x4x4_avx2</span><span class="op">&lt;</span><span class="ident">NI</span><span class="op">&gt;</span>
     {
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">x</span>: <span class="ident">x4</span><span class="op">&lt;</span><span class="ident">u128x1_sse2</span><span class="op">&lt;</span><span class="ident">YesS3</span>, <span class="ident">YesS4</span>, <span class="ident">NI</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">x</span>: <span class="ident">x4</span><span class="op">&lt;</span><span class="ident">u128x1_sse2</span><span class="op">&lt;</span><span class="ident">YesS3</span>, <span class="ident">YesS4</span>, <span class="ident">NI</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
             <span class="ident"><span class="self">Self</span>::new</span>(<span class="kw">unsafe</span> {
                 [
                     <span class="ident">u32x4x2_avx2::new</span>(<span class="ident">_mm256_setr_m128i</span>(<span class="ident">x</span>.<span class="number">0</span>[<span class="number">0</span>].<span class="ident">x</span>, <span class="ident">x</span>.<span class="number">0</span>[<span class="number">1</span>].<span class="ident">x</span>)),

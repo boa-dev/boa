@@ -156,18 +156,18 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::BidiClass</span>::<span class="kw-2">*</span>;
 
 <span class="doccomment">/// Find the `BidiClass` of a single char.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bidi_class</span>(<span class="ident">c</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BidiClass</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bidi_class</span>(<span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="ident">BidiClass</span> {
     <span class="ident">bsearch_range_value_table</span>(<span class="ident">c</span>, <span class="ident">bidi_class_table</span>)
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_rtl</span>(<span class="ident">bidi_class</span>: <span class="ident">BidiClass</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_rtl</span>(<span class="ident">bidi_class</span>: <span class="ident">BidiClass</span>) -&gt; <span class="ident">bool</span> {
     <span class="kw">match</span> <span class="ident">bidi_class</span> {
-        <span class="ident">RLE</span> <span class="op">|</span> <span class="ident">RLO</span> <span class="op">|</span> <span class="ident">RLI</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+        <span class="ident">RLE</span> <span class="op">|</span> <span class="ident">RLO</span> <span class="op">|</span> <span class="ident">RLI</span> =&gt; <span class="bool-val">true</span>,
+        <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
     }
 }
 
-<span class="kw">fn</span> <span class="ident">bsearch_range_value_table</span>(<span class="ident">c</span>: <span class="ident">char</span>, <span class="ident">r</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [(<span class="ident">char</span>, <span class="ident">char</span>, <span class="ident">BidiClass</span>)]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BidiClass</span> {
+<span class="kw">fn</span> <span class="ident">bsearch_range_value_table</span>(<span class="ident">c</span>: <span class="ident">char</span>, <span class="ident">r</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [(<span class="ident">char</span>, <span class="ident">char</span>, <span class="ident">BidiClass</span>)]) -&gt; <span class="ident">BidiClass</span> {
     <span class="kw">match</span> <span class="ident">r</span>.<span class="ident">binary_search_by</span>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="ident">lo</span>, <span class="ident">hi</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="kw">if</span> <span class="ident">lo</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">c</span> <span class="op">&amp;&amp;</span> <span class="ident">c</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">hi</span> {
         <span class="ident">Equal</span>
     } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">hi</span> <span class="op">&lt;</span> <span class="ident">c</span> {
@@ -175,13 +175,13 @@
     } <span class="kw">else</span> {
         <span class="ident">Greater</span>
     }) {
-        <span class="prelude-val">Ok</span>(<span class="ident">idx</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="ident">idx</span>) =&gt; {
             <span class="kw">let</span> (<span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">cat</span>) <span class="op">=</span> <span class="ident">r</span>[<span class="ident">idx</span>];
             <span class="ident">cat</span>
         }
         <span class="comment">// UCD/extracted/DerivedBidiClass.txt: &quot;All code points not explicitly listed</span>
         <span class="comment">// for Bidi_Class have the value Left_To_Right (L).&quot;</span>
-        <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">L</span>,
+        <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="ident">L</span>,
     }
 }
 

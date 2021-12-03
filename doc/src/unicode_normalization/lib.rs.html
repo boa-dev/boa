@@ -302,19 +302,19 @@
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">UnicodeNormalization</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">char</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Returns an iterator over the string in Unicode Normalization Form D</span>
     <span class="doccomment">/// (canonical decomposition).</span>
-    <span class="kw">fn</span> <span class="ident">nfd</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Decompositions</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">nfd</span>(<span class="self">self</span>) -&gt; <span class="ident">Decompositions</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Returns an iterator over the string in Unicode Normalization Form KD</span>
     <span class="doccomment">/// (compatibility decomposition).</span>
-    <span class="kw">fn</span> <span class="ident">nfkd</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Decompositions</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">nfkd</span>(<span class="self">self</span>) -&gt; <span class="ident">Decompositions</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// An Iterator over the string in Unicode Normalization Form C</span>
     <span class="doccomment">/// (canonical decomposition followed by canonical composition).</span>
-    <span class="kw">fn</span> <span class="ident">nfc</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Recompositions</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">nfc</span>(<span class="self">self</span>) -&gt; <span class="ident">Recompositions</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// An Iterator over the string in Unicode Normalization Form KC</span>
     <span class="doccomment">/// (compatibility decomposition followed by canonical composition).</span>
-    <span class="kw">fn</span> <span class="ident">nfkc</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Recompositions</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">nfkc</span>(<span class="self">self</span>) -&gt; <span class="ident">Recompositions</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// A transformation which replaces CJK Compatibility Ideograph codepoints</span>
     <span class="doccomment">/// with normal forms using Standardized Variation Sequences. This is not</span>
@@ -326,73 +326,73 @@
     <span class="doccomment">/// may not immediately help text display as intended, but they at</span>
     <span class="doccomment">/// least preserve the information in a standardized form, giving</span>
     <span class="doccomment">/// implementations the option to recognize them.</span>
-    <span class="kw">fn</span> <span class="ident">cjk_compat_variants</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Replacements</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">cjk_compat_variants</span>(<span class="self">self</span>) -&gt; <span class="ident">Replacements</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// An Iterator over the string with Conjoining Grapheme Joiner characters</span>
     <span class="doccomment">/// inserted according to the Stream-Safe Text Process (UAX15-D4)</span>
-    <span class="kw">fn</span> <span class="ident">stream_safe</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StreamSafe</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">stream_safe</span>(<span class="self">self</span>) -&gt; <span class="ident">StreamSafe</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>;
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">UnicodeNormalization</span><span class="op">&lt;</span><span class="ident">Chars</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">nfd</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Decompositions</span><span class="op">&lt;</span><span class="ident">Chars</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">nfd</span>(<span class="self">self</span>) -&gt; <span class="ident">Decompositions</span><span class="op">&lt;</span><span class="ident">Chars</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="ident">decompose::new_canonical</span>(<span class="self">self</span>.<span class="ident">chars</span>())
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">nfkd</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Decompositions</span><span class="op">&lt;</span><span class="ident">Chars</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">nfkd</span>(<span class="self">self</span>) -&gt; <span class="ident">Decompositions</span><span class="op">&lt;</span><span class="ident">Chars</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="ident">decompose::new_compatible</span>(<span class="self">self</span>.<span class="ident">chars</span>())
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">nfc</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Recompositions</span><span class="op">&lt;</span><span class="ident">Chars</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">nfc</span>(<span class="self">self</span>) -&gt; <span class="ident">Recompositions</span><span class="op">&lt;</span><span class="ident">Chars</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="ident">recompose::new_canonical</span>(<span class="self">self</span>.<span class="ident">chars</span>())
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">nfkc</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Recompositions</span><span class="op">&lt;</span><span class="ident">Chars</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">nfkc</span>(<span class="self">self</span>) -&gt; <span class="ident">Recompositions</span><span class="op">&lt;</span><span class="ident">Chars</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="ident">recompose::new_compatible</span>(<span class="self">self</span>.<span class="ident">chars</span>())
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">cjk_compat_variants</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Replacements</span><span class="op">&lt;</span><span class="ident">Chars</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">cjk_compat_variants</span>(<span class="self">self</span>) -&gt; <span class="ident">Replacements</span><span class="op">&lt;</span><span class="ident">Chars</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="ident">replace::new_cjk_compat_variants</span>(<span class="self">self</span>.<span class="ident">chars</span>())
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">stream_safe</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StreamSafe</span><span class="op">&lt;</span><span class="ident">Chars</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">stream_safe</span>(<span class="self">self</span>) -&gt; <span class="ident">StreamSafe</span><span class="op">&lt;</span><span class="ident">Chars</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="ident">StreamSafe::new</span>(<span class="self">self</span>.<span class="ident">chars</span>())
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">char</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">UnicodeNormalization</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">I</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">nfd</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Decompositions</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">nfd</span>(<span class="self">self</span>) -&gt; <span class="ident">Decompositions</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
         <span class="ident">decompose::new_canonical</span>(<span class="self">self</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">nfkd</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Decompositions</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">nfkd</span>(<span class="self">self</span>) -&gt; <span class="ident">Decompositions</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
         <span class="ident">decompose::new_compatible</span>(<span class="self">self</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">nfc</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Recompositions</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">nfc</span>(<span class="self">self</span>) -&gt; <span class="ident">Recompositions</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
         <span class="ident">recompose::new_canonical</span>(<span class="self">self</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">nfkc</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Recompositions</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">nfkc</span>(<span class="self">self</span>) -&gt; <span class="ident">Recompositions</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
         <span class="ident">recompose::new_compatible</span>(<span class="self">self</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">cjk_compat_variants</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Replacements</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">cjk_compat_variants</span>(<span class="self">self</span>) -&gt; <span class="ident">Replacements</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
         <span class="ident">replace::new_cjk_compat_variants</span>(<span class="self">self</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">stream_safe</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StreamSafe</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">stream_safe</span>(<span class="self">self</span>) -&gt; <span class="ident">StreamSafe</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
         <span class="ident">StreamSafe::new</span>(<span class="self">self</span>)
     }
 }
