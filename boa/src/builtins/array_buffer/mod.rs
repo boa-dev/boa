@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod tests;
+
 use crate::{
     builtins::{typed_array::TypedArrayName, BuiltIn, JsArgs},
     context::StandardObjects,
@@ -313,11 +316,7 @@ impl ArrayBuffer {
         obj.set_prototype(prototype.into());
 
         // 2. Let block be ? CreateByteDataBlock(byteLength).
-        // TODO: for now just a arbitrary limit to not OOM.
-        if byte_length > 8589934592 {
-            return Err(context.construct_range_error("ArrayBuffer allocation failed"));
-        }
-        let block = vec![0; byte_length];
+        let block = create_byte_data_block(byte_length, context)?;
 
         // 3. Set obj.[[ArrayBufferData]] to block.
         // 4. Set obj.[[ArrayBufferByteLength]] to byteLength.
@@ -733,6 +732,27 @@ impl ArrayBuffer {
     }
 }
 
+/// `CreateByteDataBlock ( size )` abstract operation.
+///
+/// The abstract operation `CreateByteDataBlock` takes argument `size` (a non-negative
+/// integer). For more information, check the [spec][spec].
+///
+/// [spec]: https://tc39.es/ecma262/#sec-createbytedatablock
+pub fn create_byte_data_block(size: usize, context: &mut Context) -> JsResult<Vec<u8>> {
+    // 1. Let db be a new Data Block value consisting of size bytes. If it is impossible to
+    //    create such a Data Block, throw a RangeError exception.
+    let mut data_block = Vec::new();
+    data_block.try_reserve(size).map_err(|e| {
+        context.construct_range_error(format!("couldn't allocate the data block: {}", e))
+    })?;
+
+    // 2. Set all of the bytes of db to 0.
+    data_block.resize(size, 0);
+
+    // 3. Return db.
+    Ok(data_block)
+}
+
 /// `6.2.8.3 CopyDataBlockBytes ( toBlock, toIndex, fromBlock, fromIndex, count )`
 ///
 /// More information:
@@ -747,6 +767,12 @@ fn copy_data_block_bytes(
     mut count: usize,
 ) {
     // 1. Assert: fromBlock and toBlock are distinct values.
+    assert_ne!(
+        from_block.as_ptr(),
+        to_block.as_ptr(),
+        "fromBlock and toBlock were not distinct"
+    );
+
     // 2. Let fromSize be the number of bytes in fromBlock.
     let from_size = from_block.len();
 

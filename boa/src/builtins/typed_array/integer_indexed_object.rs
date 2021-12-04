@@ -12,7 +12,7 @@ use crate::{
     builtins::typed_array::TypedArrayName,
     gc::{empty_trace, Finalize, Trace},
     object::{JsObject, ObjectData},
-    Context, JsResult,
+    Context,
 };
 
 /// Type of the array content.
@@ -145,40 +145,5 @@ impl IntegerIndexed {
     /// Set the integer indexed object's array length.
     pub(crate) fn set_array_length(&mut self, array_length: usize) {
         self.array_length = array_length;
-    }
-}
-
-/// A Data Block
-///
-/// The Data Block specification type is used to describe a distinct and mutable sequence of
-/// byte-sized (8 bit) numeric values. A byte value is an integer value in the range `0` through
-/// `255`, inclusive. A Data Block value is created with a fixed number of bytes that each have
-/// the initial value `0`.
-///
-/// For more information, check the [spec][spec].
-///
-/// [spec]: https://tc39.es/ecma262/#sec-data-blocks
-#[derive(Debug, Clone, Default, Trace, Finalize)]
-pub struct DataBlock {
-    inner: Vec<u8>,
-}
-
-impl DataBlock {
-    /// `CreateByteDataBlock ( size )` abstract operation.
-    ///
-    /// The abstract operation `CreateByteDataBlock` takes argument `size` (a non-negative
-    /// integer). For more information, check the [spec][spec].
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-createbytedatablock
-    pub fn create_byte_data_block(size: usize) -> JsResult<Self> {
-        // 1. Let db be a new Data Block value consisting of size bytes. If it is impossible to
-        //    create such a Data Block, throw a RangeError exception.
-        // 2. Set all of the bytes of db to 0.
-        // 3. Return db.
-        // TODO: waiting on <https://github.com/rust-lang/rust/issues/48043> for having fallible
-        // allocation.
-        Ok(Self {
-            inner: vec![0u8; size],
-        })
     }
 }
