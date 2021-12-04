@@ -767,12 +767,6 @@ fn copy_data_block_bytes(
     mut count: usize,
 ) {
     // 1. Assert: fromBlock and toBlock are distinct values.
-    assert_ne!(
-        from_block.as_ptr(),
-        to_block.as_ptr(),
-        "fromBlock and toBlock were not distinct"
-    );
-
     // 2. Let fromSize be the number of bytes in fromBlock.
     let from_size = from_block.len();
 
