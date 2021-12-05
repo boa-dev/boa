@@ -1,3 +1,7 @@
+//! CodeBlock
+//!
+//! This module is for the CodeBlock which implements a function representation in the VM
+
 use crate::{
     builtins::function::{
         arguments::Arguments, Captures, ClosureFunctionSignature, Function,
@@ -21,7 +25,7 @@ use std::{convert::TryInto, fmt::Write, mem::size_of};
 
 use super::CallFrame;
 
-/// This represents wether a value can be read from [`CodeBlock`] code.
+/// This represents whether a value can be read from [`CodeBlock`] code.
 pub unsafe trait Readable {}
 
 unsafe impl Readable for u8 {}
@@ -35,12 +39,16 @@ unsafe impl Readable for i64 {}
 unsafe impl Readable for f32 {}
 unsafe impl Readable for f64 {}
 
+/// The internal representation of a JavaScript function.
+///
+/// A CodeBlock is generated for each function compiled by the [ByteCompiler](crate::bytecompiler::ByteCompiler).
+/// It stores the bytecode and the other attributes of the function.
 #[derive(Debug, Trace, Finalize)]
 pub struct CodeBlock {
     /// Name of this function
     pub(crate) name: JsString,
 
-    // The length of this function.
+    /// The number of arguments expected.
     pub(crate) length: u32,
 
     /// Is this function in strict mode.
@@ -52,6 +60,7 @@ pub struct CodeBlock {
     /// [[ThisMode]]
     pub(crate) this_mode: ThisMode,
 
+    /// Parameters passed to this function.
     pub(crate) params: Box<[FormalParameter]>,
 
     /// Bytecode
@@ -63,7 +72,7 @@ pub struct CodeBlock {
     /// Variables names
     pub(crate) variables: Vec<JsString>,
 
-    // Functions inside this function
+    /// Functions inside this function
     pub(crate) functions: Vec<Gc<CodeBlock>>,
 
     /// Indicates if the codeblock contains a lexical name `arguments`
@@ -71,6 +80,7 @@ pub struct CodeBlock {
 }
 
 impl CodeBlock {
+    /// Constructs a new `CodeBlock`.
     pub fn new(name: JsString, length: u32, strict: bool, constructor: bool) -> Self {
         Self {
             code: Vec::new(),
@@ -108,6 +118,10 @@ impl CodeBlock {
         unsafe { self.read_unchecked(offset) }
     }
 
+    /// Get the operands after the `Opcode` pointed to by `pc` as a `String`.
+    /// Modifies the `pc` to point to the next instruction.
+    ///
+    /// Returns an empty `String` if no operands are present.
     pub(crate) fn instruction_operands(&self, pc: &mut usize) -> String {
         let opcode: Opcode = self.code[*pc].try_into().unwrap();
         *pc += size_of::<Opcode>();
