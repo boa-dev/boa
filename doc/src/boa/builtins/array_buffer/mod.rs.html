@@ -790,7 +790,30 @@
 <span id="790">790</span>
 <span id="791">791</span>
 <span id="792">792</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
+<span id="800">800</span>
+<span id="801">801</span>
+<span id="802">802</span>
+<span id="803">803</span>
+<span id="804">804</span>
+<span id="805">805</span>
+<span id="806">806</span>
+<span id="807">807</span>
+<span id="808">808</span>
+<span id="809">809</span>
+<span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
+</pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="kw">mod</span> <span class="ident">tests</span>;
+
+<span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{<span class="ident">typed_array::TypedArrayName</span>, <span class="ident">BuiltIn</span>, <span class="ident">JsArgs</span>},
     <span class="ident">context::StandardObjects</span>,
     <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
@@ -1105,11 +1128,7 @@
         <span class="ident">obj</span>.<span class="ident">set_prototype</span>(<span class="ident">prototype</span>.<span class="ident">into</span>());
 
         <span class="comment">// 2. Let block be ? CreateByteDataBlock(byteLength).</span>
-        <span class="comment">// TODO: for now just a arbitrary limit to not OOM.</span>
-        <span class="kw">if</span> <span class="ident">byte_length</span> <span class="op">&gt;</span> <span class="number">8589934592</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_range_error</span>(<span class="string">&quot;ArrayBuffer allocation failed&quot;</span>));
-        }
-        <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0</span>; <span class="ident">byte_length</span>];
+        <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="ident">create_byte_data_block</span>(<span class="ident">byte_length</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Set obj.[[ArrayBufferData]] to block.</span>
         <span class="comment">// 4. Set obj.[[ArrayBufferByteLength]] to byteLength.</span>
@@ -1523,6 +1542,27 @@
         <span class="comment">// 10. Return NormalCompletion(undefined).</span>
         <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
     }
+}
+
+<span class="doccomment">/// `CreateByteDataBlock ( size )` abstract operation.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// The abstract operation `CreateByteDataBlock` takes argument `size` (a non-negative</span>
+<span class="doccomment">/// integer). For more information, check the [spec][spec].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-createbytedatablock</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_byte_data_block</span>(<span class="ident">size</span>: <span class="ident">usize</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="comment">// 1. Let db be a new Data Block value consisting of size bytes. If it is impossible to</span>
+    <span class="comment">//    create such a Data Block, throw a RangeError exception.</span>
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data_block</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+    <span class="ident">data_block</span>.<span class="ident">try_reserve</span>(<span class="ident">size</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
+        <span class="ident">context</span>.<span class="ident">construct_range_error</span>(<span class="macro">format!</span>(<span class="string">&quot;couldn&#39;t allocate the data block: {}&quot;</span>, <span class="ident">e</span>))
+    })<span class="question-mark">?</span>;
+
+    <span class="comment">// 2. Set all of the bytes of db to 0.</span>
+    <span class="ident">data_block</span>.<span class="ident">resize</span>(<span class="ident">size</span>, <span class="number">0</span>);
+
+    <span class="comment">// 3. Return db.</span>
+    <span class="prelude-val">Ok</span>(<span class="ident">data_block</span>)
 }
 
 <span class="doccomment">/// `6.2.8.3 CopyDataBlockBytes ( toBlock, toIndex, fromBlock, fromIndex, count )`</span>
