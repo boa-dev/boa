@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;ansi_term-0.11.0&#x2F;src&#x2F;ansi.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ansi.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../ansi_term/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;ansi_term-0.12.1&#x2F;src&#x2F;ansi.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ansi.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../ansi_term/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -256,6 +256,122 @@
 <span id="256">256</span>
 <span id="257">257</span>
 <span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">style</span>::{<span class="ident">Colour</span>, <span class="ident">Style</span>};
 
 <span class="kw">use</span> <span class="ident">std::fmt</span>;
@@ -267,8 +383,7 @@
 
 <span class="kw">impl</span> <span class="ident">Style</span> {
 
-    <span class="doccomment">/// Write any ANSI codes that go *before* a piece of text. These should be</span>
-    <span class="doccomment">/// the codes to set the terminal to a different colour or font style.</span>
+    <span class="doccomment">/// Write any bytes that go *before* a piece of text to the given writer.</span>
     <span class="kw">fn</span> <span class="ident">write_prefix</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">AnyWrite</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">W</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">W::Error</span><span class="op">&gt;</span> {
 
         <span class="comment">// If there are actually no styles here, then don’t write *any* codes</span>
@@ -321,8 +436,7 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Write any ANSI codes that go *after* a piece of text. These should be</span>
-    <span class="doccomment">/// the codes to *reset* the terminal back to its normal colour and style.</span>
+    <span class="doccomment">/// Write any bytes that go *after* a piece of text to the given writer.</span>
     <span class="kw">fn</span> <span class="ident">write_suffix</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">AnyWrite</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">W</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">W::Error</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_plain</span>() {
             <span class="prelude-val">Ok</span>(())
@@ -373,32 +487,105 @@
 
 
 <span class="doccomment">/// Like `ANSIString`, but only displays the style prefix.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This type implements the `Display` trait, meaning it can be written to a</span>
+<span class="doccomment">/// `std::fmt` formatting without doing any extra allocation, and written to a</span>
+<span class="doccomment">/// string with the `.to_string()` method. For examples, see</span>
+<span class="doccomment">/// [`Style::prefix`](struct.Style.html#method.prefix).</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Prefix</span>(<span class="ident">Style</span>);
 
 <span class="doccomment">/// Like `ANSIString`, but only displays the difference between two</span>
 <span class="doccomment">/// styles.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This type implements the `Display` trait, meaning it can be written to a</span>
+<span class="doccomment">/// `std::fmt` formatting without doing any extra allocation, and written to a</span>
+<span class="doccomment">/// string with the `.to_string()` method. For examples, see</span>
+<span class="doccomment">/// [`Style::infix`](struct.Style.html#method.infix).</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Infix</span>(<span class="ident">Style</span>, <span class="ident">Style</span>);
 
 <span class="doccomment">/// Like `ANSIString`, but only displays the style suffix.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This type implements the `Display` trait, meaning it can be written to a</span>
+<span class="doccomment">/// `std::fmt` formatting without doing any extra allocation, and written to a</span>
+<span class="doccomment">/// string with the `.to_string()` method. For examples, see</span>
+<span class="doccomment">/// [`Style::suffix`](struct.Style.html#method.suffix).</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Suffix</span>(<span class="ident">Style</span>);
 
 
 <span class="kw">impl</span> <span class="ident">Style</span> {
 
-    <span class="doccomment">/// The prefix for this style.</span>
+    <span class="doccomment">/// The prefix bytes for this style. These are the bytes that tell the</span>
+    <span class="doccomment">/// terminal to use a different colour or font style.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use ansi_term::{Style, Colour::Blue};</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let style = Style::default().bold();</span>
+    <span class="doccomment">/// assert_eq!(&quot;\x1b[1m&quot;,</span>
+    <span class="doccomment">///            style.prefix().to_string());</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let style = Blue.bold();</span>
+    <span class="doccomment">/// assert_eq!(&quot;\x1b[1;34m&quot;,</span>
+    <span class="doccomment">///            style.prefix().to_string());</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let style = Style::default();</span>
+    <span class="doccomment">/// assert_eq!(&quot;&quot;,</span>
+    <span class="doccomment">///            style.prefix().to_string());</span>
+    <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prefix</span>(<span class="self">self</span>) -&gt; <span class="ident">Prefix</span> {
         <span class="ident">Prefix</span>(<span class="self">self</span>)
     }
 
-    <span class="doccomment">/// The infix between this style and another.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">infix</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="ident">Style</span>) -&gt; <span class="ident">Infix</span> {
-        <span class="ident">Infix</span>(<span class="self">self</span>, <span class="ident">other</span>)
+    <span class="doccomment">/// The infix bytes between this style and `next` style. These are the bytes</span>
+    <span class="doccomment">/// that tell the terminal to change the style to `next`. These may include</span>
+    <span class="doccomment">/// a reset followed by the next colour and style, depending on the two styles.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use ansi_term::{Style, Colour::Green};</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let style = Style::default().bold();</span>
+    <span class="doccomment">/// assert_eq!(&quot;\x1b[32m&quot;,</span>
+    <span class="doccomment">///            style.infix(Green.bold()).to_string());</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let style = Green.normal();</span>
+    <span class="doccomment">/// assert_eq!(&quot;\x1b[1m&quot;,</span>
+    <span class="doccomment">///            style.infix(Green.bold()).to_string());</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let style = Style::default();</span>
+    <span class="doccomment">/// assert_eq!(&quot;&quot;,</span>
+    <span class="doccomment">///            style.infix(style).to_string());</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">infix</span>(<span class="self">self</span>, <span class="ident">next</span>: <span class="ident">Style</span>) -&gt; <span class="ident">Infix</span> {
+        <span class="ident">Infix</span>(<span class="self">self</span>, <span class="ident">next</span>)
     }
 
-    <span class="doccomment">/// The suffix for this style.</span>
+    <span class="doccomment">/// The suffix for this style. These are the bytes that tell the terminal</span>
+    <span class="doccomment">/// to reset back to its normal colour and font style.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use ansi_term::{Style, Colour::Green};</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let style = Style::default().bold();</span>
+    <span class="doccomment">/// assert_eq!(&quot;\x1b[0m&quot;,</span>
+    <span class="doccomment">///            style.suffix().to_string());</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let style = Green.normal().bold();</span>
+    <span class="doccomment">/// assert_eq!(&quot;\x1b[0m&quot;,</span>
+    <span class="doccomment">///            style.suffix().to_string());</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let style = Style::default();</span>
+    <span class="doccomment">/// assert_eq!(&quot;&quot;,</span>
+    <span class="doccomment">///            style.suffix().to_string());</span>
+    <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">suffix</span>(<span class="self">self</span>) -&gt; <span class="ident">Suffix</span> {
         <span class="ident">Suffix</span>(<span class="self">self</span>)
     }
@@ -407,17 +594,54 @@
 
 <span class="kw">impl</span> <span class="ident">Colour</span> {
 
-    <span class="doccomment">/// The prefix for this colour.</span>
+    <span class="doccomment">/// The prefix bytes for this colour as a `Style`. These are the bytes</span>
+    <span class="doccomment">/// that tell the terminal to use a different colour or font style.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// See also [`Style::prefix`](struct.Style.html#method.prefix).</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use ansi_term::Colour::Green;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert_eq!(&quot;\x1b[0m&quot;,</span>
+    <span class="doccomment">///            Green.suffix().to_string());</span>
+    <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prefix</span>(<span class="self">self</span>) -&gt; <span class="ident">Prefix</span> {
         <span class="ident">Prefix</span>(<span class="self">self</span>.<span class="ident">normal</span>())
     }
 
-    <span class="doccomment">/// The infix between this colour and another.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">infix</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="ident">Colour</span>) -&gt; <span class="ident">Infix</span> {
-        <span class="ident">Infix</span>(<span class="self">self</span>.<span class="ident">normal</span>(), <span class="ident">other</span>.<span class="ident">normal</span>())
+    <span class="doccomment">/// The infix bytes between this colour and `next` colour. These are the bytes</span>
+    <span class="doccomment">/// that tell the terminal to use the `next` colour, or to do nothing if</span>
+    <span class="doccomment">/// the two colours are equal.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// See also [`Style::infix`](struct.Style.html#method.infix).</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use ansi_term::Colour::{Red, Yellow};</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert_eq!(&quot;\x1b[33m&quot;,</span>
+    <span class="doccomment">///            Red.infix(Yellow).to_string());</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">infix</span>(<span class="self">self</span>, <span class="ident">next</span>: <span class="ident">Colour</span>) -&gt; <span class="ident">Infix</span> {
+        <span class="ident">Infix</span>(<span class="self">self</span>.<span class="ident">normal</span>(), <span class="ident">next</span>.<span class="ident">normal</span>())
     }
 
-    <span class="doccomment">/// The suffix for this colour.</span>
+    <span class="doccomment">/// The suffix for this colour as a `Style`. These are the bytes that</span>
+    <span class="doccomment">/// tell the terminal to reset back to its normal colour and font style.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// See also [`Style::suffix`](struct.Style.html#method.suffix).</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use ansi_term::Colour::Purple;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert_eq!(&quot;\x1b[0m&quot;,</span>
+    <span class="doccomment">///            Purple.suffix().to_string());</span>
+    <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">suffix</span>(<span class="self">self</span>) -&gt; <span class="ident">Suffix</span> {
         <span class="ident">Suffix</span>(<span class="self">self</span>.<span class="ident">normal</span>())
     }
@@ -443,7 +667,7 @@
             },
             <span class="ident">Difference::Reset</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Write</span> <span class="op">=</span> <span class="ident">f</span>;
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}{}&quot;</span>, <span class="ident">RESET</span>, <span class="self">self</span>.<span class="number">0</span>.<span class="ident">prefix</span>())
+                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}{}&quot;</span>, <span class="ident">RESET</span>, <span class="self">self</span>.<span class="number">1</span>.<span class="ident">prefix</span>())
             },
             <span class="ident">Difference::NoDifference</span> =&gt; {
                 <span class="prelude-val">Ok</span>(())   <span class="comment">// nothing to write</span>
@@ -513,6 +737,14 @@
     <span class="macro">test!</span>(<span class="ident">hidden</span>:                <span class="ident">Style::new</span>().<span class="ident">hidden</span>();             <span class="string">&quot;hi&quot;</span> =&gt; <span class="string">&quot;\x1B[8mhi\x1B[0m&quot;</span>);
     <span class="macro">test!</span>(<span class="ident">stricken</span>:              <span class="ident">Style::new</span>().<span class="ident">strikethrough</span>();      <span class="string">&quot;hi&quot;</span> =&gt; <span class="string">&quot;\x1B[9mhi\x1B[0m&quot;</span>);
 
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_infix</span>() {
+        <span class="macro">assert_eq!</span>(<span class="ident">Style::new</span>().<span class="ident">dimmed</span>().<span class="ident">infix</span>(<span class="ident">Style::new</span>()).<span class="ident">to_string</span>(), <span class="string">&quot;\x1B[0m&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">White</span>.<span class="ident">dimmed</span>().<span class="ident">infix</span>(<span class="ident">White</span>.<span class="ident">normal</span>()).<span class="ident">to_string</span>(), <span class="string">&quot;\x1B[0m\x1B[37m&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">White</span>.<span class="ident">normal</span>().<span class="ident">infix</span>(<span class="ident">White</span>.<span class="ident">bold</span>()).<span class="ident">to_string</span>(), <span class="string">&quot;\x1B[1m&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">White</span>.<span class="ident">normal</span>().<span class="ident">infix</span>(<span class="ident">Blue</span>.<span class="ident">normal</span>()).<span class="ident">to_string</span>(), <span class="string">&quot;\x1B[34m&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">Blue</span>.<span class="ident">bold</span>().<span class="ident">infix</span>(<span class="ident">Blue</span>.<span class="ident">bold</span>()).<span class="ident">to_string</span>(), <span class="string">&quot;&quot;</span>);
+    }
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="ansi_term" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>

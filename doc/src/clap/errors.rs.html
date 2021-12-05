@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;clap-2.33.3&#x2F;src&#x2F;errors.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>errors.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../clap/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;clap-2.34.0&#x2F;src&#x2F;errors.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>errors.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../clap/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -916,19 +916,38 @@
 <span id="916">916</span>
 <span id="917">917</span>
 <span id="918">918</span>
+<span id="919">919</span>
+<span id="920">920</span>
+<span id="921">921</span>
+<span id="922">922</span>
+<span id="923">923</span>
+<span id="924">924</span>
+<span id="925">925</span>
+<span id="926">926</span>
+<span id="927">927</span>
+<span id="928">928</span>
+<span id="929">929</span>
+<span id="930">930</span>
+<span id="931">931</span>
+<span id="932">932</span>
+<span id="933">933</span>
 </pre><pre class="rust"><code><span class="comment">// Std</span>
-<span class="kw">use</span> <span class="ident">std::convert::From</span>;
-<span class="kw">use</span> <span class="ident">std::error::Error</span> <span class="kw">as</span> <span class="ident">StdError</span>;
-<span class="kw">use</span> <span class="ident">std::fmt</span> <span class="kw">as</span> <span class="ident">std_fmt</span>;
-<span class="kw">use</span> <span class="ident">std::fmt::Display</span>;
-<span class="kw">use</span> <span class="ident">std::io</span>::{<span class="self">self</span>, <span class="ident">Write</span>};
-<span class="kw">use</span> <span class="ident">std::process</span>;
-<span class="kw">use</span> <span class="ident">std::result::Result</span> <span class="kw">as</span> <span class="ident">StdResult</span>;
+<span class="kw">use</span> <span class="ident">std</span>::{
+    <span class="ident">convert::From</span>,
+    <span class="ident">error::Error</span> <span class="kw">as</span> <span class="ident">StdError</span>,
+    <span class="ident">fmt</span> <span class="kw">as</span> <span class="ident">std_fmt</span>,
+    <span class="ident">fmt::Display</span>,
+    <span class="ident">io</span>::{<span class="self">self</span>, <span class="ident">Write</span>},
+    <span class="ident">process</span>,
+    <span class="ident">result::Result</span> <span class="kw">as</span> <span class="ident">StdResult</span>,
+};
 
 <span class="comment">// Internal</span>
-<span class="kw">use</span> <span class="ident">args::AnyArg</span>;
-<span class="kw">use</span> <span class="ident">fmt</span>::{<span class="ident">ColorWhen</span>, <span class="ident">Colorizer</span>, <span class="ident">ColorizerOption</span>};
-<span class="kw">use</span> <span class="ident">suggestions</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">args::AnyArg</span>,
+    <span class="ident">fmt</span>::{<span class="ident">ColorWhen</span>, <span class="ident">Colorizer</span>, <span class="ident">ColorizerOption</span>},
+    <span class="ident">suggestions</span>,
+};
 
 <span class="doccomment">/// Short hand for [`Result`] type</span>
 <span class="doccomment">///</span>
@@ -1303,20 +1322,35 @@
 <span class="kw">impl</span> <span class="ident">Error</span> {
     <span class="doccomment">/// Should the message be written to `stdout` or not</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">use_stderr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">kind</span> {
-            <span class="ident">ErrorKind::HelpDisplayed</span> <span class="op">|</span> <span class="ident">ErrorKind::VersionDisplayed</span> =&gt; <span class="bool-val">false</span>,
-            <span class="kw">_</span> =&gt; <span class="bool-val">true</span>,
-        }
+        <span class="op">!</span><span class="macro">matches!</span>(
+            <span class="self">self</span>.<span class="ident">kind</span>,
+            <span class="ident">ErrorKind::HelpDisplayed</span> <span class="op">|</span> <span class="ident">ErrorKind::VersionDisplayed</span>
+        )
     }
 
-    <span class="doccomment">/// Prints the error to `stderr` and exits with a status of `1`</span>
+    <span class="doccomment">/// Prints the error message and exits. If `Error::use_stderr` evaluates to `true`, the message</span>
+    <span class="doccomment">/// will be written to `stderr` and exits with a status of `1`. Otherwise, `stdout` is used</span>
+    <span class="doccomment">/// with a status of `0`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">exit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="op">!</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">use_stderr</span>() {
-            <span class="macro">wlnerr!</span>(<span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">message</span>);
+            <span class="macro">wlnerr!</span>(@<span class="ident">nopanic</span> <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">message</span>);
             <span class="ident">process::exit</span>(<span class="number">1</span>);
         }
-        <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">io::stdout</span>();
-        <span class="macro">writeln!</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">out</span>.<span class="ident">lock</span>(), <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">message</span>).<span class="ident">expect</span>(<span class="string">&quot;Error writing Error to stdout&quot;</span>);
+        <span class="comment">// We are deliberately dropping errors here. We could match on the error kind, and only</span>
+        <span class="comment">// drop things such as `std::io::ErrorKind::BrokenPipe`, however nothing is being bubbled</span>
+        <span class="comment">// up or reported back to the caller and we will be exit&#39;ing the process anyways.</span>
+        <span class="comment">// Additionally, changing this API to bubble up the result would be a breaking change.</span>
+        <span class="comment">//</span>
+        <span class="comment">// Another approach could be to try and write to stdout, if that fails due to a broken pipe</span>
+        <span class="comment">// then use stderr. However, that would change the semantics in what could be argued is a</span>
+        <span class="comment">// breaking change. Simply dropping the error, can always be changed to this &quot;use stderr if</span>
+        <span class="comment">// stdout is closed&quot; approach later if desired.</span>
+        <span class="comment">//</span>
+        <span class="comment">// A good explanation of the types of errors are SIGPIPE where the read side of the pipe</span>
+        <span class="comment">// closes before the write side. See the README in `calm_io` for a good explanation:</span>
+        <span class="comment">//</span>
+        <span class="comment">// https://github.com/myrrlyn/calm_io/blob/a42845575a04cd8b65e92c19d104627f5fcad3d7/README.md</span>
+        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="macro">writeln!</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">io::stdout</span>().<span class="ident">lock</span>(), <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">message</span>);
         <span class="ident">process::exit</span>(<span class="number">0</span>);
     }
 
@@ -1784,11 +1818,7 @@
             <span class="ident">when</span>: <span class="ident">ColorWhen::Auto</span>,
         });
         <span class="ident">Error</span> {
-            <span class="ident">message</span>: <span class="macro">format!</span>(
-                <span class="string">&quot;{} The argument &#39;{}&#39; wasn&#39;t found&quot;</span>,
-                <span class="ident">c</span>.<span class="ident">error</span>(<span class="string">&quot;error:&quot;</span>),
-                <span class="ident">a</span>.<span class="ident">clone</span>()
-            ),
+            <span class="ident">message</span>: <span class="macro">format!</span>(<span class="string">&quot;{} The argument &#39;{}&#39; wasn&#39;t found&quot;</span>, <span class="ident">c</span>.<span class="ident">error</span>(<span class="string">&quot;error:&quot;</span>), <span class="ident">a</span>),
             <span class="ident">kind</span>: <span class="ident">ErrorKind::ArgumentNotFound</span>,
             <span class="ident">info</span>: <span class="prelude-val">Some</span>(<span class="macro">vec!</span>[<span class="ident">a</span>]),
         }
@@ -1805,7 +1835,7 @@
         });
         <span class="ident">Error</span> {
             <span class="ident">message</span>: <span class="macro">format!</span>(<span class="string">&quot;{} {}&quot;</span>, <span class="ident">c</span>.<span class="ident">error</span>(<span class="string">&quot;error:&quot;</span>), <span class="ident">description</span>),
-            <span class="ident">kind</span>: <span class="ident">kind</span>,
+            <span class="ident">kind</span>,
             <span class="ident">info</span>: <span class="prelude-val">None</span>,
         }
     }

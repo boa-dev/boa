@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;clap-2.33.3&#x2F;src&#x2F;app&#x2F;parser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parser.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../clap/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;clap-2.34.0&#x2F;src&#x2F;app&#x2F;parser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parser.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../clap/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -2234,51 +2234,42 @@
 <span id="2234">2234</span>
 <span id="2235">2235</span>
 <span id="2236">2236</span>
-<span id="2237">2237</span>
-<span id="2238">2238</span>
-<span id="2239">2239</span>
-<span id="2240">2240</span>
-<span id="2241">2241</span>
 </pre><pre class="rust"><code><span class="comment">// Std</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;debug&quot;</span>, <span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;windows&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>)))]</span>
-<span class="kw">use</span> <span class="ident">osstringext::OsStrExt3</span>;
-<span class="kw">use</span> <span class="ident">std::cell::Cell</span>;
-<span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">OsStr</span>, <span class="ident">OsString</span>};
-<span class="kw">use</span> <span class="ident">std::fmt::Display</span>;
-<span class="kw">use</span> <span class="ident">std::fs::File</span>;
-<span class="kw">use</span> <span class="ident">std::io</span>::{<span class="self">self</span>, <span class="ident">BufWriter</span>, <span class="ident">Write</span>};
-<span class="kw">use</span> <span class="ident">std::iter::Peekable</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(
-    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;debug&quot;</span>,
-    <span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;windows&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>))
-))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;windows&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>)))]</span>
 <span class="kw">use</span> <span class="ident">std::os::unix::ffi::OsStrExt</span>;
-<span class="kw">use</span> <span class="ident">std::path::PathBuf</span>;
-<span class="kw">use</span> <span class="ident">std::slice::Iter</span>;
+<span class="kw">use</span> <span class="ident">std</span>::{
+    <span class="ident">cell::Cell</span>,
+    <span class="ident">ffi</span>::{<span class="ident">OsStr</span>, <span class="ident">OsString</span>},
+    <span class="ident">fmt::Display</span>,
+    <span class="ident">fs::File</span>,
+    <span class="ident">io</span>::{<span class="self">self</span>, <span class="ident">BufWriter</span>, <span class="ident">Write</span>},
+    <span class="ident">iter::Peekable</span>,
+    <span class="ident">path::PathBuf</span>,
+    <span class="ident">slice::Iter</span>,
+};
 
 <span class="comment">// Internal</span>
-<span class="kw">use</span> <span class="ident">app::help::Help</span>;
-<span class="kw">use</span> <span class="ident">app::meta::AppMeta</span>;
-<span class="kw">use</span> <span class="ident">app::settings::AppFlags</span>;
-<span class="kw">use</span> <span class="ident">app::settings::AppSettings</span> <span class="kw">as</span> <span class="ident">AS</span>;
-<span class="kw">use</span> <span class="ident">app::usage</span>;
-<span class="kw">use</span> <span class="ident">app::validator::Validator</span>;
-<span class="kw">use</span> <span class="ident">app::App</span>;
-<span class="kw">use</span> <span class="ident">args::settings::ArgSettings</span>;
-<span class="kw">use</span> <span class="ident">args</span>::{
-    <span class="ident">AnyArg</span>, <span class="ident">Arg</span>, <span class="ident">ArgGroup</span>, <span class="ident">ArgMatcher</span>, <span class="ident">Base</span>, <span class="ident">FlagBuilder</span>, <span class="ident">OptBuilder</span>, <span class="ident">PosBuilder</span>, <span class="ident">Switched</span>,
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;debug&quot;</span>, <span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;windows&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>)))]</span>
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::osstringext::OsStrExt3</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;windows&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>))]</span>
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::osstringext::OsStrExt3</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">app</span>::{
+        <span class="ident">help::Help</span>, <span class="ident">meta::AppMeta</span>, <span class="ident">settings::AppFlags</span>, <span class="ident">settings::AppSettings</span> <span class="kw">as</span> <span class="ident">AS</span>, <span class="ident">usage</span>,
+        <span class="ident">validator::Validator</span>, <span class="ident">App</span>,
+    },
+    <span class="ident">args</span>::{
+        <span class="ident">settings::ArgSettings</span>, <span class="ident">AnyArg</span>, <span class="ident">Arg</span>, <span class="ident">ArgGroup</span>, <span class="ident">ArgMatcher</span>, <span class="ident">Base</span>, <span class="ident">FlagBuilder</span>, <span class="ident">OptBuilder</span>,
+        <span class="ident">PosBuilder</span>, <span class="ident">Switched</span>,
+    },
+    <span class="ident">completions</span>::{<span class="ident">ComplGen</span>, <span class="ident">Shell</span>},
+    <span class="ident">errors::Result</span> <span class="kw">as</span> <span class="ident">ClapResult</span>,
+    <span class="ident">errors</span>::{<span class="ident">Error</span>, <span class="ident">ErrorKind</span>},
+    <span class="ident">fmt::ColorWhen</span>,
+    <span class="ident">map</span>::{<span class="self">self</span>, <span class="ident">VecMap</span>},
+    <span class="ident">osstringext::OsStrExt2</span>,
+    <span class="ident">suggestions</span>, <span class="ident">SubCommand</span>, <span class="ident">INTERNAL_ERROR_MSG</span>, <span class="ident">INVALID_UTF8</span>,
 };
-<span class="kw">use</span> <span class="ident">completions::ComplGen</span>;
-<span class="kw">use</span> <span class="ident">completions::Shell</span>;
-<span class="kw">use</span> <span class="ident">errors::Result</span> <span class="kw">as</span> <span class="ident">ClapResult</span>;
-<span class="kw">use</span> <span class="ident">errors</span>::{<span class="ident">Error</span>, <span class="ident">ErrorKind</span>};
-<span class="kw">use</span> <span class="ident">fmt::ColorWhen</span>;
-<span class="kw">use</span> <span class="ident">map</span>::{<span class="self">self</span>, <span class="ident">VecMap</span>};
-<span class="kw">use</span> <span class="ident">osstringext::OsStrExt2</span>;
-<span class="kw">use</span> <span class="ident">suggestions</span>;
-<span class="kw">use</span> <span class="ident">SubCommand</span>;
-<span class="kw">use</span> <span class="ident">INTERNAL_ERROR_MSG</span>;
-<span class="kw">use</span> <span class="ident">INVALID_UTF8</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
@@ -2336,7 +2327,7 @@
         <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">s</span>
             .<span class="ident">trim_left_matches</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;-&#39;</span>)
             .<span class="ident">chars</span>()
-            .<span class="ident">nth</span>(<span class="number">0</span>)
+            .<span class="ident">next</span>()
             .<span class="ident">unwrap_or</span>(<span class="string">&#39;h&#39;</span>);
         <span class="self">self</span>.<span class="ident">help_short</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>);
     }
@@ -2345,7 +2336,7 @@
         <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">s</span>
             .<span class="ident">trim_left_matches</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;-&#39;</span>)
             .<span class="ident">chars</span>()
-            .<span class="ident">nth</span>(<span class="number">0</span>)
+            .<span class="ident">next</span>()
             .<span class="ident">unwrap_or</span>(<span class="string">&#39;V&#39;</span>);
         <span class="self">self</span>.<span class="ident">version_short</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>);
     }
@@ -2387,10 +2378,10 @@
         <span class="macro">assert!</span>(<span class="self">self</span>.<span class="ident">verify_positionals</span>());
         <span class="kw">let</span> <span class="ident">should_err</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">groups</span>.<span class="ident">iter</span>().<span class="ident">all</span>(<span class="op">|</span><span class="ident">g</span><span class="op">|</span> {
             <span class="ident">g</span>.<span class="ident">args</span>.<span class="ident">iter</span>().<span class="ident">all</span>(<span class="op">|</span><span class="ident">arg</span><span class="op">|</span> {
-                (<span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">f</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">f</span>.<span class="ident">b</span>.<span class="ident">name</span> <span class="op">==</span> <span class="ident">arg</span>)
+                <span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">f</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">f</span>.<span class="ident">b</span>.<span class="ident">name</span> <span class="op">==</span> <span class="ident">arg</span>)
                     <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">opts</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">o</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">o</span>.<span class="ident">b</span>.<span class="ident">name</span> <span class="op">==</span> <span class="ident">arg</span>)
                     <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">positionals</span>.<span class="ident">values</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">p</span>.<span class="ident">b</span>.<span class="ident">name</span> <span class="op">==</span> <span class="ident">arg</span>)
-                    <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">groups</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">g</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">g</span>.<span class="ident">name</span> <span class="op">==</span> <span class="ident">arg</span>))
+                    <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">groups</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">g</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">g</span>.<span class="ident">name</span> <span class="op">==</span> <span class="ident">arg</span>)
             })
         });
         <span class="kw">let</span> <span class="ident">g</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">groups</span>.<span class="ident">iter</span>().<span class="ident">find</span>(<span class="op">|</span><span class="ident">g</span><span class="op">|</span> {
@@ -2421,7 +2412,8 @@
     <span class="kw">fn</span> <span class="ident">debug_asserts</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">Arg</span>) -&gt; <span class="ident">bool</span> {
         <span class="macro">assert!</span>(
             <span class="op">!</span><span class="macro">arg_names!</span>(<span class="self">self</span>).<span class="ident">any</span>(<span class="op">|</span><span class="ident">name</span><span class="op">|</span> <span class="ident">name</span> <span class="op">==</span> <span class="ident">a</span>.<span class="ident">b</span>.<span class="ident">name</span>),
-            <span class="macro">format!</span>(<span class="string">&quot;Non-unique argument name: {} is already in use&quot;</span>, <span class="ident">a</span>.<span class="ident">b</span>.<span class="ident">name</span>)
+            <span class="string">&quot;Non-unique argument name: {} is already in use&quot;</span>,
+            <span class="ident">a</span>.<span class="ident">b</span>.<span class="ident">name</span>
         );
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">l</span>) <span class="op">=</span> <span class="ident">a</span>.<span class="ident">s</span>.<span class="ident">long</span> {
             <span class="macro">assert!</span>(
@@ -2438,7 +2430,7 @@
             );
         }
         <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">index</span>.<span class="ident">is_none</span>() {
-            (<span class="self">self</span>.<span class="ident">positionals</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span>)
+            <span class="self">self</span>.<span class="ident">positionals</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span>
         } <span class="kw">else</span> {
             <span class="ident">a</span>.<span class="ident">index</span>.<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">usize</span>
         };
@@ -2547,7 +2539,7 @@
         <span class="self">self</span>.<span class="ident">implied_settings</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>);
         <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">index</span>.<span class="ident">is_some</span>() <span class="op">|</span><span class="op">|</span> (<span class="ident">a</span>.<span class="ident">s</span>.<span class="ident">short</span>.<span class="ident">is_none</span>() <span class="op">&amp;&amp;</span> <span class="ident">a</span>.<span class="ident">s</span>.<span class="ident">long</span>.<span class="ident">is_none</span>()) {
             <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">index</span>.<span class="ident">is_none</span>() {
-                (<span class="self">self</span>.<span class="ident">positionals</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span>)
+                <span class="self">self</span>.<span class="ident">positionals</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span>
             } <span class="kw">else</span> {
                 <span class="ident">a</span>.<span class="ident">index</span>.<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">usize</span>
             };
@@ -2572,7 +2564,7 @@
         <span class="self">self</span>.<span class="ident">implied_settings</span>(<span class="ident">a</span>);
         <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">index</span>.<span class="ident">is_some</span>() <span class="op">|</span><span class="op">|</span> (<span class="ident">a</span>.<span class="ident">s</span>.<span class="ident">short</span>.<span class="ident">is_none</span>() <span class="op">&amp;&amp;</span> <span class="ident">a</span>.<span class="ident">s</span>.<span class="ident">long</span>.<span class="ident">is_none</span>()) {
             <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">index</span>.<span class="ident">is_none</span>() {
-                (<span class="self">self</span>.<span class="ident">positionals</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span>)
+                <span class="self">self</span>.<span class="ident">positionals</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span>
             } <span class="kw">else</span> {
                 <span class="ident">a</span>.<span class="ident">index</span>.<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">usize</span>
             };
@@ -2666,7 +2658,6 @@
         }
     }
 
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;lints&quot;</span>, <span class="ident">allow</span>(<span class="ident">needless_borrow</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">derive_display_order</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_set</span>(<span class="ident">AS::DeriveDisplayOrder</span>) {
             <span class="kw">let</span> <span class="ident">unified</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">is_set</span>(<span class="ident">AS::UnifiedHelpMessage</span>);
@@ -2704,7 +2695,6 @@
         <span class="self">self</span>.<span class="ident">required</span>.<span class="ident">iter</span>()
     }
 
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;lints&quot;</span>, <span class="ident">allow</span>(<span class="ident">needless_borrow</span>))]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_args</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="op">!</span>(<span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">opts</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">positionals</span>.<span class="ident">is_empty</span>())
@@ -2781,7 +2771,6 @@
         <span class="self">self</span>.<span class="ident">settings</span>.<span class="ident">unset</span>(<span class="ident">s</span>)
     }
 
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;lints&quot;</span>, <span class="ident">allow</span>(<span class="ident">block_in_if_condition_stmt</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">verify_positionals</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="comment">// Because you must wait until all arguments have been supplied, this is the first chance</span>
         <span class="comment">// to make assertions on positional argument indexes</span>
@@ -2843,10 +2832,10 @@
             );
         }
 
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">found</span> <span class="op">=</span> <span class="bool-val">false</span>;
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_set</span>(<span class="ident">AS::AllowMissingPositional</span>) {
             <span class="comment">// Check that if a required positional argument is found, all positions with a lower</span>
             <span class="comment">// index are also required.</span>
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">found</span> <span class="op">=</span> <span class="bool-val">false</span>;
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">foundx2</span> <span class="op">=</span> <span class="bool-val">false</span>;
             <span class="kw">for</span> <span class="ident">p</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">positionals</span>.<span class="ident">values</span>().<span class="ident">rev</span>() {
                 <span class="kw">if</span> <span class="ident">foundx2</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">p</span>.<span class="ident">b</span>.<span class="ident">settings</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Required</span>) {
@@ -2878,7 +2867,6 @@
         } <span class="kw">else</span> {
             <span class="comment">// Check that if a required positional argument is found, all positions with a lower</span>
             <span class="comment">// index are also required</span>
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">found</span> <span class="op">=</span> <span class="bool-val">false</span>;
             <span class="kw">for</span> <span class="ident">p</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">positionals</span>.<span class="ident">values</span>().<span class="ident">rev</span>() {
                 <span class="kw">if</span> <span class="ident">found</span> {
                     <span class="macro">assert!</span>(
@@ -2931,10 +2919,6 @@
 
     <span class="comment">// Checks if the arg matches a subcommand name, or any of it&#39;s aliases (if defined)</span>
     <span class="kw">fn</span> <span class="ident">possible_subcommand</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">arg_os</span>: <span class="kw-2">&amp;</span><span class="ident">OsStr</span>) -&gt; (<span class="ident">bool</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>) {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;windows&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>))]</span>
-        <span class="kw">use</span> <span class="ident">osstringext::OsStrExt3</span>;
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;windows&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>)))]</span>
-        <span class="kw">use</span> <span class="ident">std::os::unix::ffi::OsStrExt</span>;
         <span class="macro">debugln!</span>(<span class="string">&quot;Parser::possible_subcommand: arg={:?}&quot;</span>, <span class="ident">arg_os</span>);
         <span class="kw">fn</span> <span class="ident">starts</span>(<span class="ident">h</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">n</span>: <span class="kw-2">&amp;</span><span class="ident">OsStr</span>) -&gt; <span class="ident">bool</span> {
             <span class="kw">let</span> <span class="ident">n_bytes</span> <span class="op">=</span> <span class="ident">n</span>.<span class="ident">as_bytes</span>();
@@ -3080,7 +3064,7 @@
                     .<span class="ident">iter</span>()
                     .<span class="ident">find</span>(<span class="op">|</span><span class="ident">o</span><span class="op">|</span> <span class="ident">o</span>.<span class="ident">b</span>.<span class="ident">name</span> <span class="op">==</span> <span class="ident">name</span>)
                     .<span class="ident">expect</span>(<span class="ident">INTERNAL_ERROR_MSG</span>);
-                (<span class="ident">o</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::AllowLeadingHyphen</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">app_wide_settings</span>)
+                <span class="ident">o</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::AllowLeadingHyphen</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">app_wide_settings</span>
             }
             <span class="ident">ParseResult::Pos</span>(<span class="ident">name</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="self">self</span>
@@ -3088,7 +3072,7 @@
                     .<span class="ident">values</span>()
                     .<span class="ident">find</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">b</span>.<span class="ident">name</span> <span class="op">==</span> <span class="ident">name</span>)
                     .<span class="ident">expect</span>(<span class="ident">INTERNAL_ERROR_MSG</span>);
-                (<span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::AllowLeadingHyphen</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">app_wide_settings</span>)
+                <span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::AllowLeadingHyphen</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">app_wide_settings</span>
             }
             <span class="ident">ParseResult::ValuesDone</span> =&gt; <span class="kw">return</span> <span class="bool-val">true</span>,
             <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
@@ -3107,7 +3091,7 @@
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">arg_os</span>.<span class="ident">starts_with</span>(<span class="string">b&quot;-&quot;</span>) {
             <span class="macro">debugln!</span>(<span class="string">&quot;Parser::is_new_arg: - found&quot;</span>);
             <span class="comment">// a singe &#39;-&#39; by itself is a value and typically means &quot;stdin&quot; on unix systems</span>
-            <span class="op">!</span>(<span class="ident">arg_os</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span>)
+            <span class="ident">arg_os</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="number">1</span>
         } <span class="kw">else</span> {
             <span class="macro">debugln!</span>(<span class="string">&quot;Parser::is_new_arg: probably value&quot;</span>);
             <span class="bool-val">false</span>
@@ -3120,7 +3104,10 @@
     }
 
     <span class="comment">// The actual parsing function</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;lints&quot;</span>, <span class="ident">allow</span>(<span class="ident">while_let_on_iterator</span>, <span class="ident">collapsible_if</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(
+        <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;cargo-clippy&quot;</span>,
+        <span class="ident">allow</span>(<span class="ident">clippy::while_let_on_iterator</span>, <span class="ident">clippy::nonminimal_bool</span>)
+    )]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_matches_with</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">T</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ArgMatcher</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
@@ -3252,19 +3239,17 @@
                             <span class="kw">_</span> =&gt; (),
                         }
                     }
-                } <span class="kw">else</span> {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ParseResult::Opt</span>(<span class="ident">name</span>) <span class="op">=</span> <span class="ident">needs_val_of</span> {
-                        <span class="comment">// Check to see if parsing a value from a previous arg</span>
-                        <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="self">self</span>
-                            .<span class="ident">opts</span>
-                            .<span class="ident">iter</span>()
-                            .<span class="ident">find</span>(<span class="op">|</span><span class="ident">o</span><span class="op">|</span> <span class="ident">o</span>.<span class="ident">b</span>.<span class="ident">name</span> <span class="op">==</span> <span class="ident">name</span>)
-                            .<span class="ident">expect</span>(<span class="ident">INTERNAL_ERROR_MSG</span>);
-                        <span class="comment">// get the OptBuilder so we can check the settings</span>
-                        <span class="ident">needs_val_of</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">add_val_to_arg</span>(<span class="ident">arg</span>, <span class="kw-2">&amp;</span><span class="ident">arg_os</span>, <span class="ident">matcher</span>)<span class="question-mark">?</span>;
-                        <span class="comment">// get the next value from the iterator</span>
-                        <span class="kw">continue</span>;
-                    }
+                } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ParseResult::Opt</span>(<span class="ident">name</span>) <span class="op">=</span> <span class="ident">needs_val_of</span> {
+                    <span class="comment">// Check to see if parsing a value from a previous arg</span>
+                    <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="self">self</span>
+                        .<span class="ident">opts</span>
+                        .<span class="ident">iter</span>()
+                        .<span class="ident">find</span>(<span class="op">|</span><span class="ident">o</span><span class="op">|</span> <span class="ident">o</span>.<span class="ident">b</span>.<span class="ident">name</span> <span class="op">==</span> <span class="ident">name</span>)
+                        .<span class="ident">expect</span>(<span class="ident">INTERNAL_ERROR_MSG</span>);
+                    <span class="comment">// get the OptBuilder so we can check the settings</span>
+                    <span class="ident">needs_val_of</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">add_val_to_arg</span>(<span class="ident">arg</span>, <span class="kw-2">&amp;</span><span class="ident">arg_os</span>, <span class="ident">matcher</span>)<span class="question-mark">?</span>;
+                    <span class="comment">// get the next value from the iterator</span>
+                    <span class="kw">continue</span>;
                 }
             }
 
@@ -3363,7 +3348,7 @@
                 <span class="ident">matcher</span>.<span class="ident">inc_occurrence_of</span>(<span class="ident">p</span>.<span class="ident">b</span>.<span class="ident">name</span>);
                 <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>
                     .<span class="ident">groups_for_arg</span>(<span class="ident">p</span>.<span class="ident">b</span>.<span class="ident">name</span>)
-                    .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">vec</span><span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">matcher</span>.<span class="ident">inc_occurrences_of</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">vec</span>)));
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">vec</span><span class="op">|</span> <span class="ident">matcher</span>.<span class="ident">inc_occurrences_of</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">vec</span>));
 
                 <span class="self">self</span>.<span class="ident">settings</span>.<span class="ident">set</span>(<span class="ident">AS::ValidArgFound</span>);
                 <span class="comment">// Only increment the positional counter if it doesn&#39;t allow multiples</span>
@@ -3388,6 +3373,8 @@
 
                 <span class="comment">// Collect the external subcommand args</span>
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sc_m</span> <span class="op">=</span> <span class="ident">ArgMatcher::new</span>();
+                <span class="comment">// Due to borrow rules, this has to be a while let...</span>
+                <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;cargo-clippy&quot;</span>, <span class="ident">allow</span>(<span class="ident">clippy::while_let_on_iterator</span>))]</span>
                 <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="ident">it</span>.<span class="ident">next</span>() {
                     <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">into</span>();
                     <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">to_str</span>().<span class="ident">is_none</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_set</span>(<span class="ident">AS::StrictUtf8</span>) {
@@ -3586,7 +3573,7 @@
                 <span class="macro">write!</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">mid_string</span>, <span class="string">&quot; {}&quot;</span>, <span class="ident">s</span>).<span class="ident">expect</span>(<span class="ident">INTERNAL_ERROR_MSG</span>);
             }
         }
-        <span class="ident">mid_string</span>.<span class="ident">push_str</span>(<span class="string">&quot; &quot;</span>);
+        <span class="ident">mid_string</span>.<span class="ident">push</span>(<span class="string">&#39; &#39;</span>);
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">sc</span>) <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">subcommands</span>
             .<span class="ident">iter_mut</span>()
@@ -3703,7 +3690,7 @@
             }
         }
 
-        <span class="ident">args</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">s</span>).<span class="ident">collect</span>()
+        <span class="ident">args</span>.<span class="ident">iter</span>().<span class="ident">copied</span>().<span class="ident">collect</span>()
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_help_and_version</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
@@ -3918,7 +3905,7 @@
 
         <span class="macro">debugln!</span>(<span class="string">&quot;Parser::parse_long_arg: Didn&#39;t match anything&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">args_rest</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">it</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">clone</span>().<span class="ident">into</span>()).<span class="ident">collect</span>();
+        <span class="kw">let</span> <span class="ident">args_rest</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">it</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">into</span>()).<span class="ident">collect</span>();
         <span class="kw">let</span> <span class="ident">args_rest2</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">args_rest</span>
             .<span class="ident">iter</span>()
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">to_str</span>().<span class="ident">expect</span>(<span class="ident">INVALID_UTF8</span>))
@@ -3927,7 +3914,6 @@
             .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">ParseResult::NotFound</span>)
     }
 
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;lints&quot;</span>, <span class="ident">allow</span>(<span class="ident">len_zero</span>))]</span>
     <span class="kw">fn</span> <span class="ident">parse_short_arg</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ArgMatcher</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
@@ -3977,7 +3963,7 @@
                     <span class="ident">p</span>[<span class="number">1</span>].<span class="ident">as_bytes</span>()
                 );
                 <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="ident">p</span>[<span class="number">0</span>].<span class="ident">as_bytes</span>().<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span>;
-                <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">p</span>[<span class="number">1</span>].<span class="ident">as_bytes</span>().<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">0</span> {
+                <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">p</span>[<span class="number">1</span>].<span class="ident">as_bytes</span>().<span class="ident">is_empty</span>() {
                     <span class="macro">debugln!</span>(
                         <span class="string">&quot;Parser::parse_short_arg:iter:{}: val={:?} (bytes), val={:?} (ascii)&quot;</span>,
                         <span class="ident">c</span>,
@@ -4041,7 +4027,7 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">fv</span>) <span class="op">=</span> <span class="ident">val</span> {
             <span class="ident">has_eq</span> <span class="op">=</span> <span class="ident">fv</span>.<span class="ident">starts_with</span>(<span class="kw-2">&amp;</span>[<span class="string">b&#39;=&#39;</span>]) <span class="op">|</span><span class="op">|</span> <span class="ident">had_eq</span>;
             <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">fv</span>.<span class="ident">trim_left_matches</span>(<span class="string">b&#39;=&#39;</span>);
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">empty_vals</span> <span class="op">&amp;&amp;</span> (<span class="ident">v</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> (<span class="ident">needs_eq</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">has_eq</span>)) {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">empty_vals</span> <span class="op">&amp;&amp;</span> (<span class="ident">v</span>.<span class="ident">is_empty</span>() <span class="op">|</span><span class="op">|</span> (<span class="ident">needs_eq</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">has_eq</span>)) {
                 <span class="macro">sdebugln!</span>(<span class="string">&quot;Found Empty - Error&quot;</span>);
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::empty_value</span>(
                     <span class="ident">opt</span>,
@@ -4069,8 +4055,9 @@
 
         <span class="ident">matcher</span>.<span class="ident">inc_occurrence_of</span>(<span class="ident">opt</span>.<span class="ident">b</span>.<span class="ident">name</span>);
         <span class="comment">// Increment or create the group &quot;args&quot;</span>
-        <span class="self">self</span>.<span class="ident">groups_for_arg</span>(<span class="ident">opt</span>.<span class="ident">b</span>.<span class="ident">name</span>)
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">vec</span><span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">matcher</span>.<span class="ident">inc_occurrences_of</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">vec</span>)));
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">vec</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">groups_for_arg</span>(<span class="ident">opt</span>.<span class="ident">b</span>.<span class="ident">name</span>) {
+            <span class="ident">matcher</span>.<span class="ident">inc_occurrences_of</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">vec</span>);
+        }
 
         <span class="kw">let</span> <span class="ident">needs_delim</span> <span class="op">=</span> <span class="ident">opt</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::RequireDelimiter</span>);
         <span class="kw">let</span> <span class="ident">mult</span> <span class="op">=</span> <span class="ident">opt</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Multiple</span>);
@@ -4175,8 +4162,9 @@
         <span class="ident">matcher</span>.<span class="ident">add_index_to</span>(<span class="ident">flag</span>.<span class="ident">b</span>.<span class="ident">name</span>, <span class="self">self</span>.<span class="ident">cur_idx</span>.<span class="ident">get</span>());
 
         <span class="comment">// Increment or create the group &quot;args&quot;</span>
-        <span class="self">self</span>.<span class="ident">groups_for_arg</span>(<span class="ident">flag</span>.<span class="ident">b</span>.<span class="ident">name</span>)
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">vec</span><span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">matcher</span>.<span class="ident">inc_occurrences_of</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">vec</span>)));
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">vec</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">groups_for_arg</span>(<span class="ident">flag</span>.<span class="ident">b</span>.<span class="ident">name</span>) {
+            <span class="ident">matcher</span>.<span class="ident">inc_occurrences_of</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">vec</span>);
+        }
 
         <span class="prelude-val">Ok</span>(<span class="ident">ParseResult::Flag</span>)
     }
@@ -4189,17 +4177,19 @@
     ) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="comment">// Didn&#39;t match a flag or option</span>
         <span class="kw">let</span> <span class="ident">suffix</span> <span class="op">=</span>
-            <span class="ident">suggestions::did_you_mean_flag_suffix</span>(<span class="ident">arg</span>, <span class="kw-2">&amp;</span><span class="ident">args_rest</span>, <span class="macro">longs!</span>(<span class="self">self</span>), <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">subcommands</span>);
+            <span class="ident">suggestions::did_you_mean_flag_suffix</span>(<span class="ident">arg</span>, <span class="ident">args_rest</span>, <span class="macro">longs!</span>(<span class="self">self</span>), <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">subcommands</span>);
 
         <span class="comment">// Add the arg to the matches to build a proper usage string</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">name</span>) <span class="op">=</span> <span class="ident">suffix</span>.<span class="number">1</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">opt</span>) <span class="op">=</span> <span class="macro">find_opt_by_long!</span>(<span class="self">self</span>, <span class="ident">name</span>) {
-                <span class="self">self</span>.<span class="ident">groups_for_arg</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">b</span>.<span class="ident">name</span>)
-                    .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">grps</span><span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">matcher</span>.<span class="ident">inc_occurrences_of</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">grps</span>)));
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">grps</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">groups_for_arg</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">b</span>.<span class="ident">name</span>) {
+                    <span class="ident">matcher</span>.<span class="ident">inc_occurrences_of</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">grps</span>);
+                }
                 <span class="ident">matcher</span>.<span class="ident">insert</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">b</span>.<span class="ident">name</span>);
             } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">flg</span>) <span class="op">=</span> <span class="macro">find_flag_by_long!</span>(<span class="self">self</span>, <span class="ident">name</span>) {
-                <span class="self">self</span>.<span class="ident">groups_for_arg</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">flg</span>.<span class="ident">b</span>.<span class="ident">name</span>)
-                    .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">grps</span><span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">matcher</span>.<span class="ident">inc_occurrences_of</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">grps</span>)));
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">grps</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">groups_for_arg</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">flg</span>.<span class="ident">b</span>.<span class="ident">name</span>) {
+                    <span class="ident">matcher</span>.<span class="ident">inc_occurrences_of</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">grps</span>);
+                }
                 <span class="ident">matcher</span>.<span class="ident">insert</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">flg</span>.<span class="ident">b</span>.<span class="ident">name</span>);
             }
         }
@@ -4424,7 +4414,7 @@
         <span class="self">self</span>.<span class="ident">meta</span>
             .<span class="ident">bin_name</span>
             .<span class="ident">as_ref</span>()
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">name</span><span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">value</span> <span class="op">==</span> <span class="ident">name</span>))
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">name</span><span class="op">|</span> <span class="ident">value</span> <span class="op">==</span> <span class="ident">name</span>)
             .<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
     }
 
@@ -4433,13 +4423,13 @@
         <span class="self">self</span>.<span class="ident">meta</span>
             .<span class="ident">aliases</span>
             .<span class="ident">as_ref</span>()
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">aliases</span><span class="op">|</span> {
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">aliases</span><span class="op">|</span> {
                 <span class="kw">for</span> <span class="ident">alias</span> <span class="kw">in</span> <span class="ident">aliases</span> {
                     <span class="kw">if</span> <span class="ident">alias</span>.<span class="number">0</span> <span class="op">==</span> <span class="ident">value</span> {
-                        <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="bool-val">true</span>);
+                        <span class="kw">return</span> <span class="bool-val">true</span>;
                     }
                 }
-                <span class="prelude-val">Some</span>(<span class="bool-val">false</span>)
+                <span class="bool-val">false</span>
             })
             .<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
     }

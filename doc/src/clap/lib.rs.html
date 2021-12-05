@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;clap-2.33.3&#x2F;src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../clap/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;clap-2.34.0&#x2F;src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../clap/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -636,7 +636,6 @@
 <span id="636">636</span>
 <span id="637">637</span>
 <span id="638">638</span>
-<span id="639">639</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright ⓒ 2015-2016 Kevin B. Knapp and [`clap-rs` contributors](https://github.com/clap-rs/clap/blob/v2.33.1/CONTRIBUTORS.md).</span>
 <span class="comment">// Licensed under the MIT license</span>
 <span class="comment">// (see LICENSE or &lt;http://opensource.org/licenses/MIT&gt;) All files in the project carrying such</span>
@@ -1005,7 +1004,7 @@
 <span class="doccomment">//!  * **Red** Color: **NOT** included by default (must use cargo `features` to enable)</span>
 <span class="doccomment">//!  * **Blue** Color: Dev dependency, only used while developing.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! ![clap dependencies](https://github.com/clap-rs/clap/blob/v2.33.1/clap_dep_graph.png)</span>
+<span class="doccomment">//! ![clap dependencies](https://github.com/clap-rs/clap/blob/v2.34.0/clap_dep_graph.png)</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ### More Information</span>
 <span class="doccomment">//!</span>
@@ -1030,7 +1029,7 @@
 <span class="doccomment">//! `clap`. You can either add it to the [examples/] directory, or file an issue and tell</span>
 <span class="doccomment">//! me. I&#39;m all about giving credit where credit is due :)</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! Please read [CONTRIBUTING.md](https://github.com/clap-rs/clap/blob/v2.33.1/.github/CONTRIBUTING.md) before you start contributing.</span>
+<span class="doccomment">//! Please read [CONTRIBUTING.md](https://github.com/clap-rs/clap/blob/v2.34.0/.github/CONTRIBUTING.md) before you start contributing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ### Testing Code</span>
@@ -1151,12 +1150,12 @@
 <span class="doccomment">//! `clap` is licensed under the MIT license. Please read the [LICENSE-MIT][license] file in</span>
 <span class="doccomment">//! this repository for more information.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! [examples/]: https://github.com/clap-rs/clap/tree/v2.33.1/examples</span>
+<span class="doccomment">//! [examples/]: https://github.com/clap-rs/clap/tree/v2.34.0/examples</span>
 <span class="doccomment">//! [video tutorials]: https://www.youtube.com/playlist?list=PLza5oFLQGTl2Z5T8g1pRkIynR3E0_pc7U</span>
-<span class="doccomment">//! [license]: https://github.com/clap-rs/clap/blob/v2.33.1/LICENSE-MIT</span>
+<span class="doccomment">//! [license]: https://github.com/clap-rs/clap/blob/v2.34.0/LICENSE-MIT</span>
 
 <span class="attribute">#![<span class="ident">crate_type</span> <span class="op">=</span> <span class="string">&quot;lib&quot;</span>]</span>
-<span class="attribute">#![<span class="ident">doc</span>(<span class="ident">html_root_url</span> <span class="op">=</span> <span class="string">&quot;https://docs.rs/clap/2.33.3&quot;</span>)]</span>
+<span class="attribute">#![<span class="ident">doc</span>(<span class="ident">html_root_url</span> <span class="op">=</span> <span class="string">&quot;https://docs.rs/clap/2.34.0&quot;</span>)]</span>
 <span class="attribute">#![<span class="ident">deny</span>(
     <span class="ident">missing_docs</span>,
     <span class="ident">missing_debug_implementations</span>,
@@ -1169,16 +1168,15 @@
 <span class="comment">//      unused_qualifications       (bitflags, clippy)</span>
 <span class="comment">//      trivial_numeric_casts       (bitflags)</span>
 <span class="attribute">#![<span class="ident">cfg_attr</span>(
-    <span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;lints&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;nightly&quot;</span>)),
+    <span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;cargo-clippy&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;nightly&quot;</span>)),
     <span class="ident">forbid</span>(<span class="ident">unstable_features</span>)
 )]</span>
-<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;lints&quot;</span>, <span class="ident">feature</span>(<span class="ident">plugin</span>))]</span>
-<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;lints&quot;</span>, <span class="ident">plugin</span>(<span class="ident">clippy</span>))]</span>
+<span class="comment">//#![cfg_attr(feature = &quot;lints&quot;, feature(plugin))]</span>
+<span class="comment">//#![cfg_attr(feature = &quot;lints&quot;, plugin(clippy))]</span>
 <span class="comment">// Need to disable deny(warnings) while deprecations are active</span>
-<span class="comment">// #![cfg_attr(feature = &quot;lints&quot;, deny(warnings))]</span>
-<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;lints&quot;</span>, <span class="ident">allow</span>(<span class="ident">cyclomatic_complexity</span>))]</span>
-<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;lints&quot;</span>, <span class="ident">allow</span>(<span class="ident">doc_markdown</span>))]</span>
-<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;lints&quot;</span>, <span class="ident">allow</span>(<span class="ident">explicit_iter_loop</span>))]</span>
+<span class="comment">//#![cfg_attr(feature = &quot;cargo-clippy&quot;, deny(warnings))]</span>
+<span class="comment">// Due to our &quot;MSRV for 2.x will remain unchanged&quot; policy, we can&#39;t fix these warnings</span>
+<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">bare_trait_objects</span>, <span class="ident">deprecated</span>)]</span>
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;color&quot;</span>, <span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;windows&quot;</span>)))]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">ansi_term</span>;
@@ -1218,9 +1216,9 @@
 <span class="kw">mod</span> <span class="ident">suggestions</span>;
 <span class="kw">mod</span> <span class="ident">usage_parser</span>;
 
-<span class="kw">const</span> <span class="ident">INTERNAL_ERROR_MSG</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Fatal internal error. Please consider filing a bug \
+<span class="kw">const</span> <span class="ident">INTERNAL_ERROR_MSG</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Fatal internal error. Please consider filing a bug \
                                           report at https://github.com/clap-rs/clap/issues&quot;</span>;
-<span class="kw">const</span> <span class="ident">INVALID_UTF8</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;unexpected invalid UTF-8 code point&quot;</span>;
+<span class="kw">const</span> <span class="ident">INVALID_UTF8</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;unexpected invalid UTF-8 code point&quot;</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unstable</span>)]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">derive</span>::{<span class="ident">ArgEnum</span>, <span class="ident">ClapApp</span>, <span class="ident">FromArgMatches</span>, <span class="ident">IntoApp</span>};

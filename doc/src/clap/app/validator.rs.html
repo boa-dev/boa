@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;clap-2.33.3&#x2F;src&#x2F;app&#x2F;validator.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>validator.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../clap/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;clap-2.34.0&#x2F;src&#x2F;app&#x2F;validator.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>validator.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../clap/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -581,22 +581,23 @@
 <span id="581">581</span>
 <span id="582">582</span>
 <span id="583">583</span>
+<span id="584">584</span>
 </pre><pre class="rust"><code><span class="comment">// std</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>, <span class="ident">unused_imports</span>)]</span>
-<span class="kw">use</span> <span class="ident">std::ascii::AsciiExt</span>;
-<span class="kw">use</span> <span class="ident">std::fmt::Display</span>;
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">ascii::AsciiExt</span>, <span class="ident">fmt::Display</span>};
 
 <span class="comment">// Internal</span>
-<span class="kw">use</span> <span class="ident">app::parser</span>::{<span class="ident">ParseResult</span>, <span class="ident">Parser</span>};
-<span class="kw">use</span> <span class="ident">app::settings::AppSettings</span> <span class="kw">as</span> <span class="ident">AS</span>;
-<span class="kw">use</span> <span class="ident">app::usage</span>;
-<span class="kw">use</span> <span class="ident">args::settings::ArgSettings</span>;
-<span class="kw">use</span> <span class="ident">args</span>::{<span class="ident">AnyArg</span>, <span class="ident">ArgMatcher</span>, <span class="ident">MatchedArg</span>};
-<span class="kw">use</span> <span class="ident">errors::Result</span> <span class="kw">as</span> <span class="ident">ClapResult</span>;
-<span class="kw">use</span> <span class="ident">errors</span>::{<span class="ident">Error</span>, <span class="ident">ErrorKind</span>};
-<span class="kw">use</span> <span class="ident">fmt</span>::{<span class="ident">Colorizer</span>, <span class="ident">ColorizerOption</span>};
-<span class="kw">use</span> <span class="ident">INTERNAL_ERROR_MSG</span>;
-<span class="kw">use</span> <span class="ident">INVALID_UTF8</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">app</span>::{
+        <span class="ident">parser</span>::{<span class="ident">ParseResult</span>, <span class="ident">Parser</span>},
+        <span class="ident">settings::AppSettings</span> <span class="kw">as</span> <span class="ident">AS</span>,
+        <span class="ident">usage</span>,
+    },
+    <span class="ident">args</span>::{<span class="ident">settings::ArgSettings</span>, <span class="ident">AnyArg</span>, <span class="ident">ArgMatcher</span>, <span class="ident">MatchedArg</span>},
+    <span class="ident">errors</span>::{<span class="ident">Error</span>, <span class="ident">ErrorKind</span>, <span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">ClapResult</span>},
+    <span class="ident">fmt</span>::{<span class="ident">Colorizer</span>, <span class="ident">ColorizerOption</span>},
+    <span class="ident">INTERNAL_ERROR_MSG</span>, <span class="ident">INVALID_UTF8</span>,
+};
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Validator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;z</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;z</span> <span class="kw-2">mut</span> <span class="ident">Parser</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>)
 <span class="kw">where</span>
@@ -657,7 +658,7 @@
             });
         }
         <span class="self">self</span>.<span class="ident">validate_blacklist</span>(<span class="ident">matcher</span>)<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="op">!</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">is_set</span>(<span class="ident">AS::SubcommandsNegateReqs</span>) <span class="op">&amp;&amp;</span> <span class="ident">subcmd_name</span>.<span class="ident">is_some</span>()) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">reqs_validated</span> {
+        <span class="kw">if</span> <span class="op">!</span>(<span class="ident">reqs_validated</span> <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">is_set</span>(<span class="ident">AS::SubcommandsNegateReqs</span>) <span class="op">&amp;&amp;</span> <span class="ident">subcmd_name</span>.<span class="ident">is_some</span>()) {
             <span class="self">self</span>.<span class="ident">validate_required</span>(<span class="ident">matcher</span>)<span class="question-mark">?</span>;
         }
         <span class="self">self</span>.<span class="ident">validate_matched_args</span>(<span class="ident">matcher</span>)<span class="question-mark">?</span>;
@@ -745,13 +746,14 @@
     <span class="kw">fn</span> <span class="ident">build_err</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="ident">ArgMatcher</span>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;build_err!: name={}&quot;</span>, <span class="ident">name</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">c_with</span> <span class="op">=</span> <span class="macro">find_from!</span>(<span class="self">self</span>.<span class="number">0</span>, <span class="kw-2">&amp;</span><span class="ident">name</span>, <span class="ident">blacklist</span>, <span class="ident">matcher</span>);
-        <span class="ident">c_with</span> <span class="op">=</span> <span class="ident">c_with</span>.<span class="ident">or</span>(<span class="self">self</span>
-            .<span class="number">0</span>
-            .<span class="ident">find_any_arg</span>(<span class="ident">name</span>)
-            .<span class="ident">map_or</span>(<span class="prelude-val">None</span>, <span class="op">|</span><span class="ident">aa</span><span class="op">|</span> <span class="ident">aa</span>.<span class="ident">blacklist</span>())
-            .<span class="ident">map_or</span>(<span class="prelude-val">None</span>, <span class="op">|</span><span class="ident">bl</span><span class="op">|</span> <span class="ident">bl</span>.<span class="ident">iter</span>().<span class="ident">find</span>(<span class="op">|</span><span class="ident">arg</span><span class="op">|</span> <span class="ident">matcher</span>.<span class="ident">contains</span>(<span class="ident">arg</span>)))
-            .<span class="ident">map_or</span>(<span class="prelude-val">None</span>, <span class="op">|</span><span class="ident">an</span><span class="op">|</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_any_arg</span>(<span class="ident">an</span>))
-            .<span class="ident">map_or</span>(<span class="prelude-val">None</span>, <span class="op">|</span><span class="ident">aa</span><span class="op">|</span> <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">aa</span>))));
+        <span class="ident">c_with</span> <span class="op">=</span> <span class="ident">c_with</span>.<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="self">self</span>.<span class="number">0</span>
+                .<span class="ident">find_any_arg</span>(<span class="ident">name</span>)
+                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">aa</span><span class="op">|</span> <span class="ident">aa</span>.<span class="ident">blacklist</span>())
+                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">bl</span><span class="op">|</span> <span class="ident">bl</span>.<span class="ident">iter</span>().<span class="ident">find</span>(<span class="op">|</span><span class="ident">arg</span><span class="op">|</span> <span class="ident">matcher</span>.<span class="ident">contains</span>(<span class="ident">arg</span>)))
+                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">an</span><span class="op">|</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_any_arg</span>(<span class="ident">an</span>))
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">aa</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">aa</span>))
+        });
         <span class="macro">debugln!</span>(<span class="string">&quot;build_err!: &#39;{:?}&#39; conflicts with &#39;{}&#39;&quot;</span>, <span class="ident">c_with</span>, <span class="kw-2">&amp;</span><span class="ident">name</span>);
         <span class="comment">//        matcher.remove(&amp;name);</span>
         <span class="kw">let</span> <span class="ident">usg</span> <span class="op">=</span> <span class="ident">usage::create_error_usage</span>(<span class="self">self</span>.<span class="number">0</span>, <span class="ident">matcher</span>, <span class="prelude-val">None</span>);
@@ -767,7 +769,7 @@
                     <span class="macro">debugln!</span>(<span class="string">&quot;build_err!: It was a positional...&quot;</span>);
                     <span class="prelude-val">Err</span>(<span class="ident">Error::argument_conflict</span>(<span class="ident">p</span>, <span class="ident">c_with</span>, <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">usg</span>, <span class="self">self</span>.<span class="number">0</span>.<span class="ident">color</span>()))
                 }
-                <span class="prelude-val">None</span> =&gt; <span class="macro">panic!</span>(<span class="ident">INTERNAL_ERROR_MSG</span>),
+                <span class="prelude-val">None</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">INTERNAL_ERROR_MSG</span>),
             }
         }
     }
@@ -944,7 +946,7 @@
                     <span class="ident">a</span>,
                     <span class="ident">num</span>,
                     <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Multiple</span>) {
-                        (<span class="ident">ma</span>.<span class="ident">vals</span>.<span class="ident">len</span>() <span class="op">%</span> <span class="ident">num</span> <span class="kw">as</span> <span class="ident">usize</span>)
+                        <span class="ident">ma</span>.<span class="ident">vals</span>.<span class="ident">len</span>() <span class="op">%</span> <span class="ident">num</span> <span class="kw">as</span> <span class="ident">usize</span>
                     } <span class="kw">else</span> {
                         <span class="ident">ma</span>.<span class="ident">vals</span>.<span class="ident">len</span>()
                     },
