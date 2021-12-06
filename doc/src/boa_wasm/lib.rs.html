@@ -20,9 +20,6 @@
 <span id="20">20</span>
 <span id="21">21</span>
 <span id="22">22</span>
-<span id="23">23</span>
-<span id="24">24</span>
-<span id="25">25</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">boa</span>::{<span class="ident">exec::Executable</span>, <span class="ident">parse</span>, <span class="ident">Context</span>};
 <span class="kw">use</span> <span class="ident">wasm_bindgen::prelude</span>::<span class="kw-2">*</span>;
 
@@ -36,10 +33,7 @@
         <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">format!</span>(
                 <span class="string">&quot;Uncaught {}&quot;</span>,
-                <span class="ident">context</span>
-                    .<span class="ident">throw_syntax_error</span>(<span class="ident">e</span>.<span class="ident">to_string</span>())
-                    .<span class="ident">expect_err</span>(<span class="string">&quot;interpreter.throw_syntax_error() did not return an error&quot;</span>)
-                    .<span class="ident">display</span>()
+                <span class="ident">context</span>.<span class="ident">construct_syntax_error</span>(<span class="ident">e</span>.<span class="ident">to_string</span>()).<span class="ident">display</span>()
             )
             .<span class="ident">into</span>());
         }

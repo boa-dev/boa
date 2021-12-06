@@ -2891,7 +2891,7 @@
                 <span class="kw">let</span> <span class="ident">int_len</span> <span class="op">=</span> <span class="ident">len</span>.<span class="ident">to_u32</span>(<span class="ident">context</span>).<span class="ident">unwrap</span>();
                 <span class="comment">// ii. If SameValueZero(intLen, len) is false, throw a RangeError exception.</span>
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">JsValue::same_value_zero</span>(<span class="kw-2">&amp;</span><span class="ident">int_len</span>.<span class="ident">into</span>(), <span class="ident">len</span>) {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_range_error</span>(<span class="string">&quot;invalid array length&quot;</span>));
+                    <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;invalid array length&quot;</span>);
                 }
                 <span class="ident">int_len</span>
             };
@@ -2936,7 +2936,7 @@
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
         <span class="comment">// 1. If length &gt; 2^32 - 1, throw a RangeError exception.</span>
         <span class="kw">if</span> <span class="ident">length</span> <span class="op">&gt;</span> <span class="number">2usize</span>.<span class="ident">pow</span>(<span class="number">32</span>) <span class="op">-</span> <span class="number">1</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_range_error</span>(<span class="string">&quot;array exceeded max size&quot;</span>));
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;array exceeded max size&quot;</span>);
         }
         <span class="comment">// 7. Return A.</span>
         <span class="comment">// 2. If proto is not present, set proto to %Array.prototype%.</span>
@@ -3091,7 +3091,7 @@
                     .<span class="ident">unwrap</span>(),
             )
         } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Symbol.species must be a constructor&quot;</span>))
+            <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Symbol.species must be a constructor&quot;</span>)
         }
     }
 
@@ -4395,8 +4395,8 @@
                 } <span class="kw">else</span> {
                     <span class="comment">// 1. If targetIndex &gt;= 2^53 - 1, throw a TypeError exception</span>
                     <span class="kw">if</span> <span class="ident">target_index</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">Number::MAX_SAFE_INTEGER</span> <span class="kw">as</span> <span class="ident">u64</span> {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>
-                            .<span class="ident">construct_type_error</span>(<span class="string">&quot;Target index exceeded max safe integer value&quot;</span>));
+                        <span class="kw">return</span> <span class="ident">context</span>
+                            .<span class="ident">throw_type_error</span>(<span class="string">&quot;Target index exceeded max safe integer value&quot;</span>);
                     }
 
                     <span class="comment">// 2. Perform ? CreateDataPropertyOrThrow(target, targetIndex, element)</span>

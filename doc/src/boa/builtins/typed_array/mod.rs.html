@@ -3376,11 +3376,6 @@
 <span id="3376">3376</span>
 <span id="3377">3377</span>
 <span id="3378">3378</span>
-<span id="3379">3379</span>
-<span id="3380">3380</span>
-<span id="3381">3381</span>
-<span id="3382">3382</span>
-<span id="3383">3383</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `TypedArray` objects.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! A `TypedArray` object describes an array-like view of an underlying binary data buffer.</span>
@@ -3930,7 +3925,7 @@
             .<span class="ident">as_typed_array</span>()
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>));
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
         }
 
         <span class="comment">// 3. Let len be O.[[ArrayLength]].</span>
@@ -4065,7 +4060,7 @@
 
             <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
             <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>));
+                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
             }
 
             <span class="comment">// 3. Let len be O.[[ArrayLength]].</span>
@@ -4130,7 +4125,7 @@
             <span class="comment">// b. Let buffer be O.[[ViewedArrayBuffer]].</span>
             <span class="comment">// c. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.</span>
             <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>));
+                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
             }
 
             <span class="comment">// d. Let typedArrayName be the String value of O.[[TypedArrayName]].</span>
@@ -4231,7 +4226,7 @@
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>
             .<span class="ident">is_detached</span>()
         {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>));
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
         }
 
         <span class="comment">// 3. Return CreateArrayIterator(O, key+value).</span>
@@ -4259,7 +4254,7 @@
             .<span class="ident">as_typed_array</span>()
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>));
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
         }
 
         <span class="comment">// 3. Let len be O.[[ArrayLength]].</span>
@@ -4318,7 +4313,7 @@
             .<span class="ident">as_typed_array</span>()
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>));
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
         }
 
         <span class="comment">// 3. Let len be O.[[ArrayLength]].</span>
@@ -4363,7 +4358,7 @@
 
         <span class="comment">// 14. If IsDetachedBuffer(O.[[ViewedArrayBuffer]]) is true, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>));
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
         }
 
         <span class="comment">// 15. Repeat, while k &lt; final,</span>
@@ -4398,7 +4393,7 @@
             .<span class="ident">as_typed_array</span>()
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>));
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
         }
 
         <span class="comment">// 3. Let len be O.[[ArrayLength]].</span>
@@ -4479,7 +4474,7 @@
             .<span class="ident">as_typed_array</span>()
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>));
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
         }
 
         <span class="comment">// 3. Let len be O.[[ArrayLength]].</span>
@@ -4537,7 +4532,7 @@
             .<span class="ident">as_typed_array</span>()
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>));
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
         }
 
         <span class="comment">// 3. Let len be O.[[ArrayLength]].</span>
@@ -4594,7 +4589,7 @@
             .<span class="ident">as_typed_array</span>()
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>));
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
         }
 
         <span class="comment">// 3. Let len be O.[[ArrayLength]].</span>
@@ -4646,7 +4641,7 @@
             .<span class="ident">as_typed_array</span>()
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>));
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
         }
 
         <span class="comment">// 3. Let len be O.[[ArrayLength]].</span>
@@ -4719,7 +4714,7 @@
             .<span class="ident">as_typed_array</span>()
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>));
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
         }
 
         <span class="comment">// 3. Let len be O.[[ArrayLength]].</span>
@@ -4801,7 +4796,7 @@
             .<span class="ident">as_typed_array</span>()
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>));
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
         }
 
         <span class="comment">// 3. Let len be O.[[ArrayLength]].</span>
@@ -4858,7 +4853,7 @@
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>
             .<span class="ident">is_detached</span>()
         {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>));
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
         }
 
         <span class="comment">// 3. Return CreateArrayIterator(O, key).</span>
@@ -4886,7 +4881,7 @@
             .<span class="ident">as_typed_array</span>()
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>));
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
         }
 
         <span class="comment">// 3. Let len be O.[[ArrayLength]].</span>
@@ -4989,7 +4984,7 @@
             .<span class="ident">as_typed_array</span>()
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>));
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
         }
 
         <span class="comment">// 3. Let len be O.[[ArrayLength]].</span>
@@ -5047,7 +5042,7 @@
             .<span class="ident">as_typed_array</span>()
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>));
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
         }
 
         <span class="comment">// 3. Let len be O.[[ArrayLength]].</span>
@@ -5124,7 +5119,7 @@
             .<span class="ident">as_typed_array</span>()
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>));
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
         }
 
         <span class="comment">// 3. Let len be O.[[ArrayLength]].</span>
@@ -5204,7 +5199,7 @@
             .<span class="ident">as_typed_array</span>()
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>));
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
         }
 
         <span class="comment">// 3. Let len be O.[[ArrayLength]].</span>
@@ -5316,7 +5311,7 @@
         <span class="comment">// 1. Let targetBuffer be target.[[ViewedArrayBuffer]].</span>
         <span class="comment">// 2. If IsDetachedBuffer(targetBuffer) is true, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="ident">target_array</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>));
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
         }
         <span class="kw">let</span> <span class="ident">target_buffer_obj</span> <span class="op">=</span> <span class="ident">target_array</span>
             .<span class="ident">viewed_array_buffer</span>()
@@ -5328,7 +5323,7 @@
         <span class="comment">// 4. Let srcBuffer be source.[[ViewedArrayBuffer]].</span>
         <span class="comment">// 5. If IsDetachedBuffer(srcBuffer) is true, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="ident">source_array</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>));
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
         }
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">src_buffer_obj</span> <span class="op">=</span> <span class="ident">source_array</span>
             .<span class="ident">viewed_array_buffer</span>()
@@ -5362,23 +5357,23 @@
         <span class="kw">let</span> <span class="ident">target_offset</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">target_offset</span> {
             <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> =&gt; <span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>,
             <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_range_error</span>(<span class="string">&quot;Target offset cannot be Infinity&quot;</span>))
+                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Target offset cannot be Infinity&quot;</span>);
             }
             <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
         };
 
         <span class="comment">// 16. If srcLength + targetOffset &gt; targetLength, throw a RangeError exception.</span>
         <span class="kw">if</span> <span class="ident">src_length</span> <span class="op">+</span> <span class="ident">target_offset</span> <span class="op">&gt;</span> <span class="ident">target_length</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_range_error</span>(
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(
                 <span class="string">&quot;Source typed array and target offset longer than target typed array&quot;</span>,
-            ));
+            );
         }
 
         <span class="comment">// 17. If target.[[ContentType]] ≠ source.[[ContentType]], throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="ident">target_name</span>.<span class="ident">content_type</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">src_name</span>.<span class="ident">content_type</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
                 <span class="string">&quot;Source typed array and target typed array have different content types&quot;</span>,
-            ));
+            );
         }
 
         <span class="comment">// TODO: Shared Array Buffer</span>
@@ -5525,7 +5520,7 @@
         <span class="comment">// 1. Let targetBuffer be target.[[ViewedArrayBuffer]].</span>
         <span class="comment">// 2. If IsDetachedBuffer(targetBuffer) is true, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="ident">target_array</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>));
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
         }
 
         <span class="comment">// 3. Let targetLength be target.[[ArrayLength]].</span>
@@ -5550,7 +5545,7 @@
         <span class="kw">let</span> <span class="ident">target_offset</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">target_offset</span> {
             <span class="comment">// 10. If targetOffset is +∞, throw a RangeError exception.</span>
             <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_range_error</span>(<span class="string">&quot;Target offset cannot be Infinity&quot;</span>))
+                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Target offset cannot be Infinity&quot;</span>)
             }
             <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> =&gt; <span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>,
             <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
@@ -5558,9 +5553,9 @@
 
         <span class="comment">// 11. If srcLength + targetOffset &gt; targetLength, throw a RangeError exception.</span>
         <span class="kw">if</span> <span class="ident">src_length</span> <span class="op">+</span> <span class="ident">target_offset</span> <span class="op">&gt;</span> <span class="ident">target_length</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_range_error</span>(
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(
                 <span class="string">&quot;Source object and target offset longer than target typed array&quot;</span>,
-            ));
+            );
         }
 
         <span class="comment">// 12. Let targetByteIndex be targetOffset × targetElementSize + targetByteOffset.</span>
@@ -5596,9 +5591,7 @@
 
             <span class="comment">// e. If IsDetachedBuffer(targetBuffer) is true, throw a TypeError exception.</span>
             <span class="kw">if</span> <span class="ident">target_buffer</span>.<span class="ident">is_detached_buffer</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(
-                    <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Cannot set value on detached array buffer&quot;</span>)
-                );
+                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Cannot set value on detached array buffer&quot;</span>);
             }
 
             <span class="comment">// f. Perform SetValueInBuffer(targetBuffer, targetByteIndex, targetType, value, true, Unordered).</span>
@@ -5638,7 +5631,7 @@
             .<span class="ident">as_typed_array</span>()
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>));
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
         }
 
         <span class="comment">// 3. Let len be O.[[ArrayLength]].</span>
@@ -5687,7 +5680,7 @@
         <span class="kw">if</span> <span class="ident">count</span> <span class="op">&gt;</span> <span class="number">0</span> {
             <span class="comment">// a. If IsDetachedBuffer(O.[[ViewedArrayBuffer]]) is true, throw a TypeError exception.</span>
             <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>));
+                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
             }
 
             <span class="comment">// b. Let srcName be the String value of O.[[TypedArrayName]].</span>
@@ -5802,7 +5795,7 @@
             .<span class="ident">as_typed_array</span>()
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>));
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
         }
 
         <span class="comment">// 3. Let len be O.[[ArrayLength]].</span>
@@ -5928,8 +5921,8 @@
                     .<span class="ident">expect</span>(<span class="string">&quot;Must be array buffer&quot;</span>)
                     .<span class="ident">is_detached_buffer</span>()
                 {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>
-                        .<span class="ident">construct_type_error</span>(<span class="string">&quot;Cannot sort typed array with detached buffer&quot;</span>));
+                    <span class="kw">return</span> <span class="ident">context</span>
+                        .<span class="ident">throw_type_error</span>(<span class="string">&quot;Cannot sort typed array with detached buffer&quot;</span>);
                 }
 
                 <span class="comment">// c. If v is NaN, return +0𝔽.</span>
@@ -6153,7 +6146,7 @@
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>
             .<span class="ident">is_detached</span>()
         {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>));
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
         }
 
         <span class="comment">// 3. Return CreateArrayIterator(O, value).</span>
@@ -6231,8 +6224,8 @@
             .<span class="ident">content_type</span>()
             <span class="op">!</span><span class="op">=</span> <span class="ident">typed_array_name</span>.<span class="ident">content_type</span>()
         {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>
-                .<span class="ident">construct_type_error</span>(<span class="string">&quot;New typed array has different context type than exemplar&quot;</span>));
+            <span class="kw">return</span> <span class="ident">context</span>
+                .<span class="ident">throw_type_error</span>(<span class="string">&quot;New typed array has different context type than exemplar&quot;</span>);
         }
 
         <span class="comment">// 6. Return result.</span>
@@ -6262,7 +6255,7 @@
             .<span class="ident">as_typed_array</span>()
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>));
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
         }
 
         <span class="comment">// 3. If argumentList is a List of a single Number, then</span>
@@ -6270,8 +6263,8 @@
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">number</span>) <span class="op">=</span> <span class="ident">args</span>[<span class="number">0</span>].<span class="ident">as_number</span>() {
                 <span class="comment">// a. If newTypedArray.[[ArrayLength]] &lt; ℝ(argumentList[0]), throw a TypeError exception.</span>
                 <span class="kw">if</span> (<span class="ident">o</span>.<span class="ident">array_length</span>() <span class="kw">as</span> <span class="ident">f64</span>) <span class="op">&lt;</span> <span class="ident">number</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>
-                        .<span class="ident">construct_type_error</span>(<span class="string">&quot;New typed array length is smaller than expected&quot;</span>));
+                    <span class="kw">return</span> <span class="ident">context</span>
+                        .<span class="ident">throw_type_error</span>(<span class="string">&quot;New typed array length is smaller than expected&quot;</span>);
                 }
             }
         }
@@ -6418,9 +6411,7 @@
         <span class="comment">// 1. Let srcData be srcArray.[[ViewedArrayBuffer]].</span>
         <span class="comment">// 2. If IsDetachedBuffer(srcData) is true, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="ident">src_array</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(
-                <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Cannot initialize typed array from detached buffer&quot;</span>)
-            );
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Cannot initialize typed array from detached buffer&quot;</span>);
         }
         <span class="kw">let</span> <span class="ident">src_data_obj</span> <span class="op">=</span> <span class="ident">src_array</span>
             .<span class="ident">viewed_array_buffer</span>()
@@ -6478,15 +6469,14 @@
 
             <span class="comment">// b. If IsDetachedBuffer(srcData) is true, throw a TypeError exception.</span>
             <span class="kw">if</span> <span class="ident">src_data</span>.<span class="ident">is_detached_buffer</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>
-                    .<span class="ident">construct_type_error</span>(<span class="string">&quot;Cannot initialize typed array from detached buffer&quot;</span>));
+                <span class="kw">return</span> <span class="ident">context</span>
+                    .<span class="ident">throw_type_error</span>(<span class="string">&quot;Cannot initialize typed array from detached buffer&quot;</span>);
             }
 
             <span class="comment">// c. If srcArray.[[ContentType]] ≠ O.[[ContentType]], throw a TypeError exception.</span>
             <span class="kw">if</span> <span class="ident">src_name</span>.<span class="ident">content_type</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">constructor_name</span>.<span class="ident">content_type</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(
-                    <span class="string">&quot;Cannot initialize typed array from different content type&quot;</span>,
-                ));
+                <span class="kw">return</span> <span class="ident">context</span>
+                    .<span class="ident">throw_type_error</span>(<span class="string">&quot;Cannot initialize typed array from different content type&quot;</span>);
             }
 
             <span class="comment">// d. Let srcByteIndex be srcByteOffset.</span>
@@ -6571,7 +6561,7 @@
 
         <span class="comment">// 4. If offset modulo elementSize ≠ 0, throw a RangeError exception.</span>
         <span class="kw">if</span> <span class="ident">offset</span> <span class="op">%</span> <span class="ident">constructor_name</span>.<span class="ident">element_size</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_range_error</span>(<span class="string">&quot;Invalid length for typed array&quot;</span>));
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Invalid length for typed array&quot;</span>);
         }
 
         <span class="kw">let</span> <span class="ident">buffer_byte_length</span> <span class="op">=</span> {
@@ -6582,8 +6572,8 @@
 
             <span class="comment">// 6. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.</span>
             <span class="kw">if</span> <span class="ident">buffer_array</span>.<span class="ident">is_detached_buffer</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>
-                    .<span class="ident">construct_type_error</span>(<span class="string">&quot;Cannot construct typed array from detached buffer&quot;</span>));
+                <span class="kw">return</span> <span class="ident">context</span>
+                    .<span class="ident">throw_type_error</span>(<span class="string">&quot;Cannot construct typed array from detached buffer&quot;</span>);
             }
 
             <span class="comment">// 7. Let bufferByteLength be buffer.[[ArrayBufferByteLength]].</span>
@@ -6594,7 +6584,7 @@
         <span class="kw">let</span> <span class="ident">new_byte_length</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">length</span>.<span class="ident">is_undefined</span>() {
             <span class="comment">// a. If bufferByteLength modulo elementSize ≠ 0, throw a RangeError exception.</span>
             <span class="kw">if</span> <span class="ident">buffer_byte_length</span> <span class="op">%</span> <span class="ident">constructor_name</span>.<span class="ident">element_size</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_range_error</span>(<span class="string">&quot;Invalid length for typed array&quot;</span>));
+                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Invalid length for typed array&quot;</span>);
             }
 
             <span class="comment">// b. Let newByteLength be bufferByteLength - offset.</span>
@@ -6602,7 +6592,7 @@
 
             <span class="comment">// c. If newByteLength &lt; 0, throw a RangeError exception.</span>
             <span class="kw">if</span> <span class="ident">new_byte_length</span> <span class="op">&lt;</span> <span class="number">0</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_range_error</span>(<span class="string">&quot;Invalid length for typed array&quot;</span>));
+                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Invalid length for typed array&quot;</span>);
             }
 
             <span class="ident">new_byte_length</span> <span class="kw">as</span> <span class="ident">usize</span>
@@ -6616,7 +6606,7 @@
 
             <span class="comment">// b. If offset + newByteLength &gt; bufferByteLength, throw a RangeError exception.</span>
             <span class="kw">if</span> <span class="ident">offset</span> <span class="op">+</span> <span class="ident">new_byte_length</span> <span class="op">&gt;</span> <span class="ident">buffer_byte_length</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_range_error</span>(<span class="string">&quot;Invalid length for typed array&quot;</span>));
+                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Invalid length for typed array&quot;</span>);
             }
 
             <span class="ident">new_byte_length</span>

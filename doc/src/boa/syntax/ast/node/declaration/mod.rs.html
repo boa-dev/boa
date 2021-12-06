@@ -1558,10 +1558,10 @@
         };
 
         <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_null</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Cannot destructure &#39;null&#39; value&quot;</span>));
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Cannot destructure &#39;null&#39; value&quot;</span>);
         }
         <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_undefined</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Cannot destructure &#39;undefined&#39; value&quot;</span>));
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Cannot destructure &#39;undefined&#39; value&quot;</span>);
         }
 
         <span class="comment">// 1. Perform ? RequireObjectCoercible(value).</span>
@@ -1771,10 +1771,10 @@
         };
 
         <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_null</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Cannot destructure &#39;null&#39; value&quot;</span>));
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Cannot destructure &#39;null&#39; value&quot;</span>);
         }
         <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_undefined</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Cannot destructure &#39;undefined&#39; value&quot;</span>));
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Cannot destructure &#39;undefined&#39; value&quot;</span>);
         }
 
         <span class="comment">// 1. Let iteratorRecord be ? GetIterator(value).</span>

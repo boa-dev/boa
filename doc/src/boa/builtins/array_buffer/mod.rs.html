@@ -1175,7 +1175,7 @@
         <span class="kw">let</span> <span class="ident">src_block</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">b</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">array_buffer_data</span> {
             <span class="ident">b</span>
         } <span class="kw">else</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_syntax_error</span>(<span class="string">&quot;Cannot clone detached array buffer&quot;</span>));
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="string">&quot;Cannot clone detached array buffer&quot;</span>);
         };
 
         {

@@ -1009,19 +1009,6 @@
 <span id="1009">1009</span>
 <span id="1010">1010</span>
 <span id="1011">1011</span>
-<span id="1012">1012</span>
-<span id="1013">1013</span>
-<span id="1014">1014</span>
-<span id="1015">1015</span>
-<span id="1016">1016</span>
-<span id="1017">1017</span>
-<span id="1018">1018</span>
-<span id="1019">1019</span>
-<span id="1020">1020</span>
-<span id="1021">1021</span>
-<span id="1022">1022</span>
-<span id="1023">1023</span>
-<span id="1024">1024</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{<span class="ident">array</span>, <span class="ident">object::Object</span>},
     <span class="ident">object</span>::{<span class="ident">InternalObjectMethods</span>, <span class="ident">JsObject</span>, <span class="ident">JsPrototype</span>},
@@ -1124,9 +1111,7 @@
     <span class="kw">let</span> <span class="ident">handler_proto</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">handler_proto</span> {
         <span class="ident">JsValue::Object</span>(<span class="ident">obj</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">obj</span>.<span class="ident">clone</span>()),
         <span class="ident">JsValue::Null</span> =&gt; <span class="prelude-val">None</span>,
-        <span class="kw">_</span> =&gt; {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Proxy trap result is neither object nor null&quot;</span>))
-        }
+        <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Proxy trap result is neither object nor null&quot;</span>),
     };
 
     <span class="comment">// 9. Let extensibleTarget be ? IsExtensible(target).</span>
@@ -1140,7 +1125,7 @@
 
     <span class="comment">// 12. If SameValue(handlerProto, targetProto) is false, throw a TypeError exception.</span>
     <span class="kw">if</span> <span class="ident">handler_proto</span> <span class="op">!</span><span class="op">=</span> <span class="ident">target_proto</span> {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Proxy trap returned unexpected prototype&quot;</span>));
+        <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Proxy trap returned unexpected prototype&quot;</span>);
     }
 
     <span class="comment">// 13. Return handlerProto.</span>
@@ -1205,7 +1190,7 @@
 
     <span class="comment">// 12. If SameValue(V, targetProto) is false, throw a TypeError exception.</span>
     <span class="kw">if</span> <span class="ident">val</span> <span class="op">!</span><span class="op">=</span> <span class="ident">target_proto</span> {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Proxy trap failed to set prototype&quot;</span>));
+        <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Proxy trap failed to set prototype&quot;</span>);
     }
 
     <span class="comment">// 13. Return true.</span>
@@ -1249,7 +1234,7 @@
 
     <span class="comment">// 9. If SameValue(booleanTrapResult, targetResult) is false, throw a TypeError exception.</span>
     <span class="kw">if</span> <span class="ident">boolean_trap_result</span> <span class="op">!</span><span class="op">=</span> <span class="ident">target_result</span> {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Proxy trap returned unexpected extensible value&quot;</span>));
+        <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Proxy trap returned unexpected extensible value&quot;</span>);
     }
 
     <span class="comment">// 10. Return booleanTrapResult.</span>
@@ -1295,7 +1280,7 @@
     <span class="kw">if</span> <span class="ident">boolean_trap_result</span> <span class="op">&amp;&amp;</span> <span class="ident">target</span>.<span class="ident">is_extensible</span>(<span class="ident">context</span>)<span class="question-mark">?</span> {
         <span class="comment">// a. Let extensibleTarget be ? IsExtensible(target).</span>
         <span class="comment">// b. If extensibleTarget is true, throw a TypeError exception.</span>
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Proxy trap failed to set extensible&quot;</span>));
+        <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Proxy trap failed to set extensible&quot;</span>);
     }
 
     <span class="comment">// 9. Return booleanTrapResult.</span>
@@ -1342,9 +1327,7 @@
 
     <span class="comment">// 8. If Type(trapResultObj) is neither Object nor Undefined, throw a TypeError exception.</span>
     <span class="kw">if</span> <span class="op">!</span><span class="ident">trap_result_obj</span>.<span class="ident">is_object</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">trap_result_obj</span>.<span class="ident">is_undefined</span>() {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(
-            <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Proxy trap result is neither object nor undefined&quot;</span>)
-        );
+        <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Proxy trap result is neither object nor undefined&quot;</span>);
     }
 
     <span class="comment">// 9. Let targetDesc be ? target.[[GetOwnProperty]](P).</span>
@@ -1355,17 +1338,17 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">desc</span>) <span class="op">=</span> <span class="ident">target_desc</span> {
             <span class="comment">// b. If targetDesc.[[Configurable]] is false, throw a TypeError exception.</span>
             <span class="kw">if</span> <span class="op">!</span><span class="ident">desc</span>.<span class="ident">expect_configurable</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(
+                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
                     <span class="string">&quot;Proxy trap result is undefined adn target result is not configurable&quot;</span>,
-                ));
+                );
             }
 
             <span class="comment">// c. Let extensibleTarget be ? IsExtensible(target).</span>
             <span class="comment">// d. If extensibleTarget is false, throw a TypeError exception.</span>
             <span class="kw">if</span> <span class="op">!</span><span class="ident">target</span>.<span class="ident">is_extensible</span>(<span class="ident">context</span>)<span class="question-mark">?</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(
+                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
                     <span class="string">&quot;Proxy trap result is undefined and target is not extensible&quot;</span>,
-                ));
+                );
             <span class="comment">// e. Return undefined.</span>
             } <span class="kw">else</span> {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
@@ -1392,7 +1375,7 @@
         <span class="ident">result_desc</span>.<span class="ident">clone</span>(),
         <span class="ident">target_desc</span>.<span class="ident">clone</span>(),
     ) {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Proxy trap returned unexpected property&quot;</span>));
+        <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Proxy trap returned unexpected property&quot;</span>);
     }
 
     <span class="comment">// 16. If resultDesc.[[Configurable]] is false, then</span>
@@ -1404,17 +1387,17 @@
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="bool-val">false</span>) <span class="op">=</span> <span class="ident">result_desc</span>.<span class="ident">writable</span>() {
                     <span class="comment">// i. If targetDesc.[[Writable]] is true, throw a TypeError exception.</span>
                     <span class="kw">if</span> <span class="ident">desc</span>.<span class="ident">expect_writable</span>() {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(
-                            <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Proxy trap result is writable and not configurable while target result is not configurable&quot;</span>)
-                        );
+                        <span class="kw">return</span>
+                            <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Proxy trap result is writable and not configurable while target result is not configurable&quot;</span>)
+                        ;
                     }
                 }
             }
             <span class="comment">// i. Throw a TypeError exception.</span>
             <span class="kw">_</span> =&gt; {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(
+                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
                     <span class="string">&quot;Proxy trap result is not configurable and target result is undefined&quot;</span>,
-                ))
+                )
             }
         }
     }
@@ -1485,12 +1468,12 @@
         <span class="prelude-val">None</span> =&gt; {
             <span class="comment">// a. If extensibleTarget is false, throw a TypeError exception.</span>
             <span class="kw">if</span> <span class="op">!</span><span class="ident">extensible_target</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Proxy trap failed to set property&quot;</span>));
+                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Proxy trap failed to set property&quot;</span>);
             }
 
             <span class="comment">// b. If settingConfigFalse is true, throw a TypeError exception.</span>
             <span class="kw">if</span> <span class="ident">setting_config_false</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Proxy trap failed to set property&quot;</span>));
+                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Proxy trap failed to set property&quot;</span>);
             }
         }
         <span class="comment">// 15. Else,</span>
@@ -1501,16 +1484,14 @@
                 <span class="ident">desc</span>.<span class="ident">clone</span>(),
                 <span class="prelude-val">Some</span>(<span class="ident">target_desc</span>.<span class="ident">clone</span>()),
             ) {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(
-                    <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Proxy trap set property to unexpected value&quot;</span>)
-                );
+                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Proxy trap set property to unexpected value&quot;</span>);
             }
 
             <span class="comment">// b. If settingConfigFalse is true and targetDesc.[[Configurable]] is true, throw a TypeError exception.</span>
             <span class="kw">if</span> <span class="ident">setting_config_false</span> <span class="op">&amp;&amp;</span> <span class="ident">target_desc</span>.<span class="ident">expect_configurable</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(
+                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
                     <span class="string">&quot;Proxy trap set property with unexpected configurable field&quot;</span>,
-                ));
+                );
             }
 
             <span class="comment">// c. If IsDataDescriptor(targetDesc) is true, targetDesc.[[Configurable]] is false, and targetDesc.[[Writable]] is true, then</span>
@@ -1521,9 +1502,9 @@
                 <span class="comment">// i. If Desc has a [[Writable]] field and Desc.[[Writable]] is false, throw a TypeError exception.</span>
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">writable</span>) <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">writable</span>() {
                     <span class="kw">if</span> <span class="op">!</span><span class="ident">writable</span> {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(
+                        <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
                             <span class="string">&quot;Proxy trap set property with unexpected writable field&quot;</span>,
-                        ));
+                        );
                     }
                 }
             }
@@ -1583,13 +1564,13 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">target_desc</span>) <span class="op">=</span> <span class="ident">target_desc</span> {
             <span class="comment">// i. If targetDesc.[[Configurable]] is false, throw a TypeError exception.</span>
             <span class="kw">if</span> <span class="op">!</span><span class="ident">target_desc</span>.<span class="ident">expect_configurable</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Proxy trap returned unexpected property&quot;</span>));
+                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Proxy trap returned unexpected property&quot;</span>);
             }
 
             <span class="comment">// ii. Let extensibleTarget be ? IsExtensible(target).</span>
             <span class="comment">// iii. If extensibleTarget is false, throw a TypeError exception.</span>
             <span class="kw">if</span> <span class="op">!</span><span class="ident">target</span>.<span class="ident">is_extensible</span>(<span class="ident">context</span>)<span class="question-mark">?</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Proxy trap returned unexpected property&quot;</span>));
+                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Proxy trap returned unexpected property&quot;</span>);
             }
         }
     }
@@ -1647,8 +1628,8 @@
             <span class="kw">if</span> <span class="ident">target_desc</span>.<span class="ident">is_data_descriptor</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">target_desc</span>.<span class="ident">expect_writable</span>() {
                 <span class="comment">// i. If SameValue(trapResult, targetDesc.[[Value]]) is false, throw a TypeError exception.</span>
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">JsValue::same_value</span>(<span class="kw-2">&amp;</span><span class="ident">trap_result</span>, <span class="ident">target_desc</span>.<span class="ident">expect_value</span>()) {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>
-                        .<span class="ident">construct_type_error</span>(<span class="string">&quot;Proxy trap returned unexpected data descriptor&quot;</span>));
+                    <span class="kw">return</span> <span class="ident">context</span>
+                        .<span class="ident">throw_type_error</span>(<span class="string">&quot;Proxy trap returned unexpected data descriptor&quot;</span>);
                 }
             }
 
@@ -1656,9 +1637,8 @@
             <span class="kw">if</span> <span class="ident">target_desc</span>.<span class="ident">is_accessor_descriptor</span>() <span class="op">&amp;&amp;</span> <span class="ident">target_desc</span>.<span class="ident">expect_get</span>().<span class="ident">is_undefined</span>() {
                 <span class="comment">// i. If trapResult is not undefined, throw a TypeError exception.</span>
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">trap_result</span>.<span class="ident">is_undefined</span>() {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(
-                        <span class="string">&quot;Proxy trap returned unexpected accessor descriptor&quot;</span>,
-                    ));
+                    <span class="kw">return</span> <span class="ident">context</span>
+                        .<span class="ident">throw_type_error</span>(<span class="string">&quot;Proxy trap returned unexpected accessor descriptor&quot;</span>);
                 }
             }
         }
@@ -1724,9 +1704,7 @@
             <span class="kw">if</span> <span class="ident">target_desc</span>.<span class="ident">is_data_descriptor</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">target_desc</span>.<span class="ident">expect_writable</span>() {
                 <span class="comment">// i. If SameValue(V, targetDesc.[[Value]]) is false, throw a TypeError exception.</span>
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">JsValue::same_value</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>, <span class="ident">target_desc</span>.<span class="ident">expect_value</span>()) {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(
-                        <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Proxy trap set unexpected data descriptor&quot;</span>)
-                    );
+                    <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Proxy trap set unexpected data descriptor&quot;</span>);
                 }
             }
 
@@ -1735,9 +1713,8 @@
                 <span class="comment">// i. If targetDesc.[[Set]] is undefined, throw a TypeError exception.</span>
                 <span class="kw">match</span> <span class="ident">target_desc</span>.<span class="ident">set</span>() {
                     <span class="prelude-val">None</span> <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue::Undefined</span>) =&gt; {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(
-                            <span class="string">&quot;Proxy trap set unexpected accessor descriptor&quot;</span>,
-                        ));
+                        <span class="kw">return</span> <span class="ident">context</span>
+                            .<span class="ident">throw_type_error</span>(<span class="string">&quot;Proxy trap set unexpected accessor descriptor&quot;</span>);
                     }
                     <span class="kw">_</span> =&gt; {}
                 }
@@ -1800,7 +1777,7 @@
         <span class="comment">// 11. If targetDesc.[[Configurable]] is false, throw a TypeError exception.</span>
         <span class="prelude-val">Some</span>(<span class="ident">target_desc</span>) =&gt; {
             <span class="kw">if</span> <span class="op">!</span><span class="ident">target_desc</span>.<span class="ident">expect_configurable</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Proxy trap failed to delete property&quot;</span>));
+                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Proxy trap failed to delete property&quot;</span>);
             }
         }
     }
@@ -1808,7 +1785,7 @@
     <span class="comment">// 12. Let extensibleTarget be ? IsExtensible(target).</span>
     <span class="comment">// 13. If extensibleTarget is false, throw a TypeError exception.</span>
     <span class="kw">if</span> <span class="op">!</span><span class="ident">target</span>.<span class="ident">is_extensible</span>(<span class="ident">context</span>)<span class="question-mark">?</span> {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Proxy trap failed to delete property&quot;</span>));
+        <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Proxy trap failed to delete property&quot;</span>);
     }
 
     <span class="comment">// 14. Return true.</span>
@@ -1859,17 +1836,17 @@
         <span class="kw">match</span> <span class="ident">value</span> {
             <span class="ident">JsValue::String</span>(<span class="ident">s</span>) =&gt; {
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">unchecked_result_keys</span>.<span class="ident">insert</span>(<span class="ident">s</span>.<span class="ident">clone</span>().<span class="ident">into</span>()) {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(
+                    <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
                         <span class="string">&quot;Proxy trap result contains duplicate string property keys&quot;</span>,
-                    ));
+                    );
                 }
                 <span class="ident">trap_result</span>.<span class="ident">push</span>(<span class="ident">s</span>.<span class="ident">clone</span>().<span class="ident">into</span>())
             }
             <span class="ident">JsValue::Symbol</span>(<span class="ident">s</span>) =&gt; {
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">unchecked_result_keys</span>.<span class="ident">insert</span>(<span class="ident">s</span>.<span class="ident">clone</span>().<span class="ident">into</span>()) {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(
+                    <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
                         <span class="string">&quot;Proxy trap result contains duplicate symbol property keys&quot;</span>,
-                    ));
+                    );
                 }
                 <span class="ident">trap_result</span>.<span class="ident">push</span>(<span class="ident">s</span>.<span class="ident">clone</span>().<span class="ident">into</span>())
             }
@@ -1919,9 +1896,9 @@
         <span class="comment">// a. If key is not an element of uncheckedResultKeys, throw a TypeError exception.</span>
         <span class="comment">// b. Remove key from uncheckedResultKeys.</span>
         <span class="kw">if</span> <span class="op">!</span><span class="ident">unchecked_result_keys</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>) {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
                 <span class="string">&quot;Proxy trap failed to return all non-configurable property keys&quot;</span>,
-            ));
+            );
         }
     }
 
@@ -1935,15 +1912,14 @@
         <span class="comment">// a. If key is not an element of uncheckedResultKeys, throw a TypeError exception.</span>
         <span class="comment">// b. Remove key from uncheckedResultKeys.</span>
         <span class="kw">if</span> <span class="op">!</span><span class="ident">unchecked_result_keys</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>) {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(
-                <span class="string">&quot;Proxy trap failed to return all configurable property keys&quot;</span>,
-            ));
+            <span class="kw">return</span> <span class="ident">context</span>
+                .<span class="ident">throw_type_error</span>(<span class="string">&quot;Proxy trap failed to return all configurable property keys&quot;</span>);
         }
     }
 
     <span class="comment">// 22. If uncheckedResultKeys is not empty, throw a TypeError exception.</span>
     <span class="kw">if</span> <span class="op">!</span><span class="ident">unchecked_result_keys</span>.<span class="ident">is_empty</span>() {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Proxy trap failed to return all property keys&quot;</span>));
+        <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Proxy trap failed to return all property keys&quot;</span>);
     }
 
     <span class="comment">// 23. Return trapResult.</span>
@@ -2038,9 +2014,7 @@
 
     <span class="comment">// 10. If Type(newObj) is not Object, throw a TypeError exception.</span>
     <span class="kw">if</span> <span class="op">!</span><span class="ident">new_obj</span>.<span class="ident">is_object</span>() {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(
-            <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Proxy trap constructor returned non-object value&quot;</span>)
-        );
+        <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Proxy trap constructor returned non-object value&quot;</span>);
     }
 
     <span class="comment">// 11. Return newObj.</span>

@@ -1767,13 +1767,6 @@
 <span id="1767">1767</span>
 <span id="1768">1768</span>
 <span id="1769">1769</span>
-<span id="1770">1770</span>
-<span id="1771">1771</span>
-<span id="1772">1772</span>
-<span id="1773">1773</span>
-<span id="1774">1774</span>
-<span id="1775">1775</span>
-<span id="1776">1776</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `RegExp` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! `The `RegExp` object is used for matching text with a pattern.</span>
@@ -2108,8 +2101,8 @@
         <span class="comment">// 14. Set obj.[[RegExpMatcher]] to the Abstract Closure that evaluates parseResult by applying the semantics provided in 22.2.2 using patternCharacters as the pattern&#39;s List of SourceCharacter values and F as the flag parameters.</span>
         <span class="kw">let</span> <span class="ident">matcher</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">Regex::with_flags</span>(<span class="kw-2">&amp;</span><span class="ident">p</span>, <span class="ident">f</span>.<span class="ident">as_ref</span>()) {
             <span class="prelude-val">Err</span>(<span class="ident">error</span>) =&gt; {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>
-                    .<span class="ident">construct_syntax_error</span>(<span class="macro">format!</span>(<span class="string">&quot;failed to create matcher: {}&quot;</span>, <span class="ident">error</span>.<span class="ident">text</span>)));
+                <span class="kw">return</span> <span class="ident">context</span>
+                    .<span class="ident">throw_syntax_error</span>(<span class="macro">format!</span>(<span class="string">&quot;failed to create matcher: {}&quot;</span>, <span class="ident">error</span>.<span class="ident">text</span>));
             }
             <span class="prelude-val">Ok</span>(<span class="ident">val</span>) =&gt; <span class="ident">val</span>,
         };
@@ -2555,9 +2548,7 @@
 
             <span class="comment">// b. If Type(result) is neither Object nor Null, throw a TypeError exception.</span>
             <span class="kw">if</span> <span class="op">!</span><span class="ident">result</span>.<span class="ident">is_object</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">result</span>.<span class="ident">is_null</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(
-                    <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;regexp exec returned neither object nor null&quot;</span>)
-                );
+                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;regexp exec returned neither object nor null&quot;</span>);
             }
 
             <span class="comment">// c. Return result.</span>
@@ -2566,7 +2557,7 @@
 
         <span class="comment">// 5. Perform ? RequireInternalSlot(R, [[RegExpMatcher]]).</span>
         <span class="kw">if</span> <span class="op">!</span><span class="ident">this</span>.<span class="ident">is_regexp</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;RegExpExec called with invalid value&quot;</span>));
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;RegExpExec called with invalid value&quot;</span>);
         }
 
         <span class="comment">// 6. Return ? RegExpBuiltinExec(R, S).</span>
@@ -2590,9 +2581,7 @@
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">rx</span>) <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">as_regexp</span>() {
                 <span class="ident">rx</span>.<span class="ident">clone</span>()
             } <span class="kw">else</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(
-                    <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;RegExpBuiltinExec called with invalid value&quot;</span>)
-                );
+                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;RegExpBuiltinExec called with invalid value&quot;</span>);
             }
         };
 
@@ -2646,9 +2635,8 @@
             ) {
                 <span class="prelude-val">Ok</span>(<span class="ident">s</span>) =&gt; <span class="ident">s</span>.<span class="ident">len</span>(),
                 <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(
-                        <span class="string">&quot;Failed to get byte index from utf16 encoded string&quot;</span>,
-                    ))
+                    <span class="kw">return</span> <span class="ident">context</span>
+                        .<span class="ident">throw_type_error</span>(<span class="string">&quot;Failed to get byte index from utf16 encoded string&quot;</span>)
                 }
             };
             <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">matcher</span>.<span class="ident">find_from</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>, <span class="ident">last_byte_index</span>).<span class="ident">next</span>();
@@ -2822,9 +2810,8 @@
         <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">rx</span>) <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
             <span class="ident">rx</span>
         } <span class="kw">else</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(
-                <span class="string">&quot;RegExp.prototype.match method called on incompatible value&quot;</span>,
-            ));
+            <span class="kw">return</span> <span class="ident">context</span>
+                .<span class="ident">throw_type_error</span>(<span class="string">&quot;RegExp.prototype.match method called on incompatible value&quot;</span>);
         };
 
         <span class="comment">// 3. Let S be ? ToString(string).</span>
@@ -3271,9 +3258,9 @@
         <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">rx</span>) <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
             <span class="ident">rx</span>
         } <span class="kw">else</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
                 <span class="string">&quot;RegExp.prototype[Symbol.search] method called on incompatible value&quot;</span>,
-            ));
+            );
         };
 
         <span class="comment">// 3. Let S be ? ToString(string).</span>
@@ -3333,9 +3320,8 @@
         <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">rx</span>) <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
             <span class="ident">rx</span>
         } <span class="kw">else</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(
-                <span class="string">&quot;RegExp.prototype.split method called on incompatible value&quot;</span>,
-            ));
+            <span class="kw">return</span> <span class="ident">context</span>
+                .<span class="ident">throw_type_error</span>(<span class="string">&quot;RegExp.prototype.split method called on incompatible value&quot;</span>);
         };
 
         <span class="comment">// 3. Let S be ? ToString(string).</span>

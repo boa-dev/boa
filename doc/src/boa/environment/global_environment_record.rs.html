@@ -562,10 +562,6 @@
 <span id="562">562</span>
 <span id="563">563</span>
 <span id="564">564</span>
-<span id="565">565</span>
-<span id="566">566</span>
-<span id="567">567</span>
-<span id="568">568</span>
 </pre><pre class="rust"><code><span class="doccomment">//! # Global Environment Records</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! A global Environment Record is used to represent the outer most scope that is shared by all</span>
@@ -868,9 +864,7 @@
         <span class="comment">// 1. Let DclRec be envRec.[[DeclarativeRecord]].</span>
         <span class="comment">// 2. If DclRec.HasBinding(N) is true, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="op">!</span><span class="ident">allow_name_reuse</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">declarative_record</span>.<span class="ident">has_binding</span>(<span class="ident">name</span>, <span class="ident">context</span>)<span class="question-mark">?</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(
-                <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="macro">format!</span>(<span class="string">&quot;Binding already exists for {}&quot;</span>, <span class="ident">name</span>))
-            );
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(<span class="string">&quot;Binding already exists for {}&quot;</span>, <span class="ident">name</span>));
         }
 
         <span class="comment">// 3. Return DclRec.CreateMutableBinding(N, D).</span>
@@ -893,9 +887,7 @@
         <span class="comment">// 1. Let DclRec be envRec.[[DeclarativeRecord]].</span>
         <span class="comment">// 2. If DclRec.HasBinding(N) is true, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">declarative_record</span>.<span class="ident">has_binding</span>(<span class="ident">name</span>, <span class="ident">context</span>)<span class="question-mark">?</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(
-                <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="macro">format!</span>(<span class="string">&quot;Binding already exists for {}&quot;</span>, <span class="ident">name</span>))
-            );
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(<span class="string">&quot;Binding already exists for {}&quot;</span>, <span class="ident">name</span>));
         }
 
         <span class="comment">// 3. Return DclRec.CreateImmutableBinding(N, S).</span>
