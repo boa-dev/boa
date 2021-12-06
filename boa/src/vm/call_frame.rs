@@ -16,6 +16,7 @@ pub struct CallFrame {
     pub(crate) catch: Vec<CatchAddresses>,
     pub(crate) finally_return: FinallyReturn,
     pub(crate) finally_jump: Vec<Option<u32>>,
+    pub(crate) pop_on_return: usize,
     pub(crate) pop_env_on_return: usize,
     pub(crate) param_count: usize,
     pub(crate) arg_count: usize,

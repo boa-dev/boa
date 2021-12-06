@@ -1075,6 +1075,7 @@ impl Context {
             catch: Vec::new(),
             finally_return: FinallyReturn::None,
             finally_jump: Vec::new(),
+            pop_on_return: 0,
             pop_env_on_return: 0,
             param_count: 0,
             arg_count: 0,

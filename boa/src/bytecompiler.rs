@@ -37,6 +37,7 @@ struct JumpControlInfo {
     kind: JumpControlInfoKind,
     breaks: Vec<Label>,
     try_continues: Vec<Label>,
+    for_of_in_loop: bool,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -245,6 +246,23 @@ impl ByteCompiler {
             kind: JumpControlInfoKind::Loop,
             breaks: Vec::new(),
             try_continues: Vec::new(),
+            for_of_in_loop: false,
+        })
+    }
+
+    #[inline]
+    fn push_loop_control_info_for_of_in_loop(
+        &mut self,
+        label: Option<Box<str>>,
+        start_address: u32,
+    ) {
+        self.jump_info.push(JumpControlInfo {
+            label,
+            start_address,
+            kind: JumpControlInfoKind::Loop,
+            breaks: Vec::new(),
+            try_continues: Vec::new(),
+            for_of_in_loop: true,
         })
     }
 
@@ -267,6 +285,7 @@ impl ByteCompiler {
             kind: JumpControlInfoKind::Switch,
             breaks: Vec::new(),
             try_continues: Vec::new(),
+            for_of_in_loop: false,
         })
     }
 
@@ -292,6 +311,7 @@ impl ByteCompiler {
                 kind: JumpControlInfoKind::Try,
                 breaks: Vec::new(),
                 try_continues: Vec::new(),
+                for_of_in_loop: false,
             })
         }
     }
@@ -670,7 +690,6 @@ impl ByteCompiler {
                             PropertyName::Computed(name_node) => {
                                 self.compile_stmt(name_node, true);
                                 self.compile_stmt(node, true);
-                                self.emit_opcode(Opcode::Swap2);
                                 self.emit_opcode(Opcode::DefineOwnPropertyByValue);
                             }
                         },
@@ -686,7 +705,6 @@ impl ByteCompiler {
                                     PropertyName::Computed(name_node) => {
                                         self.compile_stmt(name_node, true);
                                         self.compile_stmt(&func.clone().into(), true);
-                                        self.emit_opcode(Opcode::Swap2);
                                         self.emit_opcode(Opcode::SetPropertyGetterByValue);
                                     }
                                 },
@@ -700,7 +718,6 @@ impl ByteCompiler {
                                     PropertyName::Computed(name_node) => {
                                         self.compile_stmt(name_node, true);
                                         self.compile_stmt(&func.clone().into(), true);
-                                        self.emit_opcode(Opcode::Swap2);
                                         self.emit_opcode(Opcode::SetPropertySetterByValue);
                                     }
                                 },
@@ -714,7 +731,6 @@ impl ByteCompiler {
                                     PropertyName::Computed(name_node) => {
                                         self.compile_stmt(name_node, true);
                                         self.compile_stmt(&func.clone().into(), true);
-                                        self.emit_opcode(Opcode::Swap2);
                                         self.emit_opcode(Opcode::DefineOwnPropertyByValue);
                                     }
                                 },
@@ -730,7 +746,6 @@ impl ByteCompiler {
                                         PropertyName::Computed(name_node) => {
                                             self.compile_stmt(name_node, true);
                                             self.emit_opcode(Opcode::PushUndefined);
-                                            self.emit_opcode(Opcode::Swap2);
                                             self.emit_opcode(Opcode::DefineOwnPropertyByValue);
                                         }
                                     }
@@ -747,7 +762,6 @@ impl ByteCompiler {
                                         PropertyName::Computed(name_node) => {
                                             self.compile_stmt(name_node, true);
                                             self.emit_opcode(Opcode::PushUndefined);
-                                            self.emit_opcode(Opcode::Swap2);
                                             self.emit_opcode(Opcode::DefineOwnPropertyByValue);
                                         }
                                     }
@@ -764,7 +778,6 @@ impl ByteCompiler {
                                         PropertyName::Computed(name_node) => {
                                             self.compile_stmt(name_node, true);
                                             self.emit_opcode(Opcode::PushUndefined);
-                                            self.emit_opcode(Opcode::Swap2);
                                             self.emit_opcode(Opcode::DefineOwnPropertyByValue);
                                         }
                                     }
@@ -821,6 +834,7 @@ impl ByteCompiler {
             }
             Node::ArrayDecl(array) => {
                 self.emit_opcode(Opcode::PushNewArray);
+                self.emit_opcode(Opcode::PopOnReturnAdd);
 
                 for element in array.as_ref() {
                     self.compile_expr(element, true);
@@ -832,6 +846,7 @@ impl ByteCompiler {
                     }
                 }
 
+                self.emit_opcode(Opcode::PopOnReturnSub);
                 if !use_expr {
                     self.emit(Opcode::Pop, &[]);
                 }
@@ -1095,7 +1110,10 @@ impl ByteCompiler {
                 let early_exit = self.jump_with_custom_opcode(Opcode::ForInLoopInitIterator);
 
                 let start_address = self.next_opcode_location();
-                self.push_loop_control_info(for_in_loop.label().map(Into::into), start_address);
+                self.push_loop_control_info_for_of_in_loop(
+                    for_in_loop.label().map(Into::into),
+                    start_address,
+                );
 
                 self.emit_opcode(Opcode::PushDeclarativeEnvironment);
                 let exit = self.jump_with_custom_opcode(Opcode::ForInLoopNext);
@@ -1151,7 +1169,10 @@ impl ByteCompiler {
                 self.emit_opcode(Opcode::InitIterator);
 
                 let start_address = self.next_opcode_location();
-                self.push_loop_control_info(for_of_loop.label().map(Into::into), start_address);
+                self.push_loop_control_info_for_of_in_loop(
+                    for_of_loop.label().map(Into::into),
+                    start_address,
+                );
 
                 self.emit_opcode(Opcode::PushDeclarativeEnvironment);
                 let exit = self.jump_with_custom_opcode(Opcode::ForInLoopNext);
@@ -1243,20 +1264,35 @@ impl ByteCompiler {
                     let label = self.jump();
                     self.jump_info.last_mut().unwrap().try_continues.push(label);
                 } else {
-                    let label = self.jump();
                     let mut items = self
                         .jump_info
-                        .iter_mut()
+                        .iter()
                         .rev()
                         .filter(|info| info.kind == JumpControlInfoKind::Loop);
                     let address = if node.label().is_none() {
-                        items.next()
+                        items.next().expect("continue target").start_address
                     } else {
-                        items.find(|info| info.label.as_deref() == node.label())
-                    }
-                    .expect("continue target")
-                    .start_address;
-                    self.patch_jump_with_target(label, address);
+                        let mut emit_for_of_in_exit = 0;
+                        let mut address_info = None;
+                        for info in items {
+                            if info.label.as_deref() == node.label() {
+                                address_info = Some(info);
+                                break;
+                            }
+                            if info.for_of_in_loop {
+                                emit_for_of_in_exit += 1;
+                            }
+                        }
+                        let address = address_info.expect("continue target").start_address;
+                        for _ in 0..emit_for_of_in_exit {
+                            self.emit_opcode(Opcode::PopEnvironment);
+                            self.emit_opcode(Opcode::PopEnvironment);
+                            self.emit_opcode(Opcode::Pop);
+                            self.emit_opcode(Opcode::Pop);
+                        }
+                        address
+                    };
+                    self.emit(Opcode::Jump, &[address]);
                 }
             }
             Node::Break(node) => {
@@ -1284,7 +1320,7 @@ impl ByteCompiler {
             Node::Block(block) => {
                 self.emit_opcode(Opcode::PushDeclarativeEnvironment);
                 for node in block.items() {
-                    self.compile_stmt(node, false);
+                    self.compile_stmt(node, use_expr);
                 }
                 self.emit_opcode(Opcode::PopEnvironment);
             }
@@ -1364,7 +1400,7 @@ impl ByteCompiler {
                         self.emit_opcode(Opcode::Pop);
                     }
                     for node in catch.block().items() {
-                        self.compile_stmt(node, false);
+                        self.compile_stmt(node, use_expr);
                     }
                     self.emit_opcode(Opcode::PopEnvironment);
                     if let Some(catch_start) = catch_start {
@@ -1443,8 +1479,9 @@ impl ByteCompiler {
             _ => unreachable!(),
         };
 
+        let strict = body.strict() || self.code_block.strict;
         let length = parameters.len() as u32;
-        let mut code = CodeBlock::new(name.unwrap_or("").into(), length, body.strict(), true);
+        let mut code = CodeBlock::new(name.unwrap_or("").into(), length, strict, true);
 
         if let FunctionKind::Arrow = kind {
             code.constructor = false;

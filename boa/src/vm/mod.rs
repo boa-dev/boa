@@ -125,15 +125,6 @@ impl Context {
                 self.vm.push(first);
                 self.vm.push(second);
             }
-            Opcode::Swap2 => {
-                let first = self.vm.pop();
-                let second = self.vm.pop();
-                let third = self.vm.pop();
-
-                self.vm.push(first);
-                self.vm.push(second);
-                self.vm.push(third);
-            }
             Opcode::PushUndefined => self.vm.push(JsValue::undefined()),
             Opcode::PushNull => self.vm.push(JsValue::null()),
             Opcode::PushTrue => self.vm.push(true),
@@ -523,9 +514,9 @@ impl Context {
                 )?;
             }
             Opcode::DefineOwnPropertyByValue => {
-                let object = self.vm.pop();
-                let key = self.vm.pop();
                 let value = self.vm.pop();
+                let key = self.vm.pop();
+                let object = self.vm.pop();
                 let object = if let Some(object) = object.as_object() {
                     object.clone()
                 } else {
@@ -571,9 +562,9 @@ impl Context {
                 )?;
             }
             Opcode::SetPropertyGetterByValue => {
-                let object = self.vm.pop();
-                let key = self.vm.pop();
                 let value = self.vm.pop();
+                let key = self.vm.pop();
+                let object = self.vm.pop();
                 let object = object.to_object(self)?;
                 let name = key.to_property_key(self)?;
                 let set = object
@@ -617,9 +608,9 @@ impl Context {
                 )?;
             }
             Opcode::SetPropertySetterByValue => {
-                let object = self.vm.pop();
-                let key = self.vm.pop();
                 let value = self.vm.pop();
+                let key = self.vm.pop();
+                let object = self.vm.pop();
                 let object = object.to_object(self)?;
                 let name = key.to_property_key(self)?;
                 let get = object
@@ -1101,6 +1092,12 @@ impl Context {
                     }
                 }
             }
+            Opcode::PopOnReturnAdd => {
+                self.vm.frame_mut().pop_on_return += 1;
+            }
+            Opcode::PopOnReturnSub => {
+                self.vm.frame_mut().pop_on_return -= 1;
+            }
         }
 
         Ok(false)
@@ -1190,6 +1187,9 @@ impl Context {
                         if self.vm.frame().pop_env_on_return > 0 {
                             self.pop_environment();
                             self.vm.frame_mut().pop_env_on_return -= 1;
+                        }
+                        for _ in 0..self.vm.frame().pop_on_return {
+                            self.vm.pop();
                         }
                         self.vm.frame_mut().pc = address as usize;
                         self.vm.frame_mut().catch.pop();

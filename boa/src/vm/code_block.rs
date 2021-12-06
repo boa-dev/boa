@@ -208,7 +208,6 @@ impl CodeBlock {
             Opcode::Pop
             | Opcode::Dup
             | Opcode::Swap
-            | Opcode::Swap2
             | Opcode::PushZero
             | Opcode::PushOne
             | Opcode::PushNaN
@@ -279,6 +278,8 @@ impl CodeBlock {
             | Opcode::PushValueToArray
             | Opcode::PushIteratorToArray
             | Opcode::PushNewArray
+            | Opcode::PopOnReturnAdd
+            | Opcode::PopOnReturnSub
             | Opcode::Nop => String::new(),
         }
     }
@@ -592,6 +593,7 @@ impl JsObject {
                     catch: Vec::new(),
                     finally_return: FinallyReturn::None,
                     finally_jump: Vec::new(),
+                    pop_on_return: 0,
                     pop_env_on_return: 0,
                     param_count,
                     arg_count,
@@ -755,6 +757,7 @@ impl JsObject {
                     catch: Vec::new(),
                     finally_return: FinallyReturn::None,
                     finally_jump: Vec::new(),
+                    pop_on_return: 0,
                     pop_env_on_return: 0,
                     param_count,
                     arg_count,

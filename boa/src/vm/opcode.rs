@@ -25,13 +25,6 @@ pub enum Opcode {
     /// Stack: v1, v2 **=>** v2, v1
     Swap,
 
-    /// Swap the top value and the third value of the stack.
-    ///
-    /// Operands:
-    ///
-    /// Stack: v1, v2, v3 **=>** v3, v2, v1
-    Swap2,
-
     /// Push integer `0` on the stack.
     ///
     /// Operands:
@@ -769,6 +762,12 @@ pub enum Opcode {
     /// Stack: `argument_0` .. `argument_n` **=>**
     RestParameterPop,
 
+    /// Add one to the pop on return count.
+    PopOnReturnAdd,
+
+    /// Subtract one from the pop on return count.
+    PopOnReturnSub,
+
     /// No-operation instruction, does nothing.
     ///
     /// Operands:
@@ -794,7 +793,6 @@ impl Opcode {
             Opcode::Pop => "Pop",
             Opcode::Dup => "Dup",
             Opcode::Swap => "Swap",
-            Opcode::Swap2 => "Swap2",
             Opcode::PushZero => "PushZero",
             Opcode::PushOne => "PushOne",
             Opcode::PushInt8 => "PushInt8",
@@ -905,6 +903,8 @@ impl Opcode {
             Opcode::ValueNotNullOrUndefined => "ValueNotNullOrUndefined",
             Opcode::RestParameterInit => "FunctionRestParameter",
             Opcode::RestParameterPop => "RestParameterPop",
+            Opcode::PopOnReturnAdd => "PopOnReturnAdd",
+            Opcode::PopOnReturnSub => "PopOnReturnSub",
             Opcode::Nop => "Nop",
         }
     }
