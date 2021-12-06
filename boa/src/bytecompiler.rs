@@ -60,9 +60,7 @@ pub struct ByteCompiler {
     code_block: CodeBlock,
     literals_map: HashMap<Literal, u32>,
     names_map: HashMap<JsString, u32>,
-    functions_map: HashMap<JsString, u32>,
     jump_info: Vec<JumpControlInfo>,
-    top_level: bool,
 }
 
 impl ByteCompiler {
@@ -75,9 +73,7 @@ impl ByteCompiler {
             code_block: CodeBlock::new(name, 0, strict, false),
             literals_map: HashMap::new(),
             names_map: HashMap::new(),
-            functions_map: HashMap::new(),
             jump_info: Vec::new(),
-            top_level: true,
         }
     }
 
@@ -1492,9 +1488,7 @@ impl ByteCompiler {
             code_block: code,
             literals_map: HashMap::new(),
             names_map: HashMap::new(),
-            functions_map: HashMap::new(),
             jump_info: Vec::new(),
-            top_level: false,
         };
 
         let mut has_rest_parameter = false;

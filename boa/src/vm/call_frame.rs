@@ -2,7 +2,7 @@
 //! This module will provides everything needed to implement the CallFrame
 
 use super::CodeBlock;
-use crate::{environment::lexical_environment::Environment, JsValue};
+use crate::JsValue;
 use gc::Gc;
 
 #[derive(Debug)]
@@ -10,9 +10,7 @@ pub struct CallFrame {
     pub(crate) prev: Option<Box<Self>>,
     pub(crate) code: Gc<CodeBlock>,
     pub(crate) pc: usize,
-    pub(crate) fp: usize,
     pub(crate) this: JsValue,
-    pub(crate) environment: Environment,
     pub(crate) catch: Vec<CatchAddresses>,
     pub(crate) finally_return: FinallyReturn,
     pub(crate) finally_jump: Vec<Option<u32>>,

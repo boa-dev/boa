@@ -1061,8 +1061,6 @@ impl Context {
         compiler.compile_statement_list(&statement_list, true);
         let code_block = compiler.finish();
 
-        let environment = self.get_current_environment().clone();
-        let fp = self.vm.stack.len();
         let global_object = self.global_object().into();
 
         self.vm.push_frame(CallFrame {
@@ -1070,8 +1068,6 @@ impl Context {
             code: Gc::new(code_block),
             this: global_object,
             pc: 0,
-            fp,
-            environment,
             catch: Vec::new(),
             finally_return: FinallyReturn::None,
             finally_jump: Vec::new(),

@@ -103,7 +103,7 @@ impl CodeBlock {
     ///
     /// Does not check if read happens out-of-bounds.
     pub unsafe fn read_unchecked<T: Readable>(&self, offset: usize) -> T {
-        // This has to be an unaligned read because we can't gurantee that
+        // This has to be an unaligned read because we can't guarantee that
         // the types are aligned.
         self.code.as_ptr().add(offset).cast::<T>().read_unaligned()
     }
@@ -363,9 +363,7 @@ impl std::fmt::Display for CodeBlock {
 
 #[derive(Debug)]
 #[allow(missing_copy_implementations)]
-pub struct JsVmFunction {
-    inner: (),
-}
+pub struct JsVmFunction {}
 
 impl JsVmFunction {
     #[allow(clippy::new_ret_no_self)]
@@ -588,8 +586,6 @@ impl JsObject {
                     code,
                     this: this.clone(),
                     pc: 0,
-                    fp: context.vm.stack.len(),
-                    environment: local_env,
                     catch: Vec::new(),
                     finally_return: FinallyReturn::None,
                     finally_jump: Vec::new(),
@@ -752,8 +748,6 @@ impl JsObject {
                     code,
                     this,
                     pc: 0,
-                    fp: context.vm.stack.len(),
-                    environment: local_env,
                     catch: Vec::new(),
                     finally_return: FinallyReturn::None,
                     finally_jump: Vec::new(),
