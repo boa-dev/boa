@@ -91,9 +91,7 @@ impl JsObject {
         let success = self.__set__(key.clone(), value.into(), self.clone().into(), context)?;
         // 5. If success is false and Throw is true, throw a TypeError exception.
         if !success && throw {
-            return Err(
-                context.construct_type_error(format!("cannot set non-writable property: {}", key))
-            );
+            return context.throw_type_error(format!("cannot set non-writable property: {}", key));
         }
         // 6. Return success.
         Ok(success)
@@ -152,7 +150,7 @@ impl JsObject {
         let success = self.create_data_property(key.clone(), value, context)?;
         // 4. If success is false, throw a TypeError exception.
         if !success {
-            return Err(context.construct_type_error(format!("cannot redefine property: {}", key)));
+            return context.throw_type_error(format!("cannot redefine property: {}", key));
         }
         // 5. Return success.
         Ok(success)
@@ -182,7 +180,7 @@ impl JsObject {
         let success = self.__define_own_property__(key.clone(), desc.into(), context)?;
         // 4. If success is false, throw a TypeError exception.
         if !success {
-            return Err(context.construct_type_error(format!("cannot redefine property: {}", key)));
+            return context.throw_type_error(format!("cannot redefine property: {}", key));
         }
         // 5. Return success.
         Ok(success)
@@ -206,7 +204,7 @@ impl JsObject {
         let success = self.__delete__(&key, context)?;
         // 4. If success is false, throw a TypeError exception.
         if !success {
-            return Err(context.construct_type_error(format!("cannot delete property: {}", key)));
+            return context.throw_type_error(format!("cannot delete property: {}", key));
         }
         // 5. Return success.
         Ok(success)
@@ -451,7 +449,7 @@ impl JsObject {
 
         // 4. If Type(C) is not Object, throw a TypeError exception.
         if !c.is_object() {
-            return Err(context.construct_type_error("property 'constructor' is not an object"));
+            return context.throw_type_error("property 'constructor' is not an object");
         }
 
         // 5. Let S be ? Get(C, @@species).
@@ -466,7 +464,7 @@ impl JsObject {
         // 8. Throw a TypeError exception.
         match s.as_object() {
             Some(obj) if obj.is_constructor() => Ok(obj.clone()),
-            _ => Err(context.construct_type_error("property 'constructor' is not a constructor")),
+            _ => context.throw_type_error("property 'constructor' is not a constructor"),
         }
     }
 
@@ -555,8 +553,9 @@ impl JsObject {
             // 5. Return func.
             JsValue::Object(obj) if obj.is_callable() => Ok(Some(obj.clone())),
             // 4. If IsCallable(func) is false, throw a TypeError exception.
-            _ => Err(context
-                .construct_type_error("value returned for property of object is not a function")),
+            _ => {
+                context.throw_type_error("value returned for property of object is not a function")
+            }
         }
     }
 
@@ -667,7 +666,7 @@ impl JsValue {
             let next = obj.get(index, context)?;
             // c. If Type(next) is not an element of elementTypes, throw a TypeError exception.
             if !types.contains(&next.get_type()) {
-                return Err(context.construct_type_error("bad type"));
+                return context.throw_type_error("bad type");
             }
             // d. Append next as the last element of list.
             list.push(next.clone());
@@ -746,8 +745,8 @@ impl JsValue {
             obj
         } else {
             // 5. If Type(P) is not Object, throw a TypeError exception.
-            return Err(context
-                .construct_type_error("function has non-object prototype in instanceof check"));
+            return context
+                .throw_type_error("function has non-object prototype in instanceof check");
         };
 
         // 6. Repeat,

@@ -11,10 +11,7 @@ pub fn evaluate(src: &str) -> Result<String, JsValue> {
         Err(e) => {
             return Err(format!(
                 "Uncaught {}",
-                context
-                    .throw_syntax_error(e.to_string())
-                    .expect_err("interpreter.throw_syntax_error() did not return an error")
-                    .display()
+                context.construct_syntax_error(e.to_string()).display()
             )
             .into());
         }

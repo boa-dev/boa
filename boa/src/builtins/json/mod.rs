@@ -448,7 +448,7 @@ impl Json {
 
         // 10. If Type(value) is BigInt, throw a TypeError exception.
         if value.is_bigint() {
-            return Err(context.construct_type_error("cannot serialize bigint to JSON"));
+            return context.throw_type_error("cannot serialize bigint to JSON");
         }
 
         // 11. If Type(value) is Object and IsCallable(value) is false, then
@@ -531,7 +531,7 @@ impl Json {
         // 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.
         let limiter = RecursionLimiter::new(value);
         if limiter.live {
-            return Err(context.construct_type_error("cyclic object value"));
+            return context.throw_type_error("cyclic object value");
         }
 
         // 2. Append value to state.[[Stack]].
@@ -644,7 +644,7 @@ impl Json {
         // 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.
         let limiter = RecursionLimiter::new(value);
         if limiter.live {
-            return Err(context.construct_type_error("cyclic object value"));
+            return context.throw_type_error("cyclic object value");
         }
 
         // 2. Append value to state.[[Stack]].

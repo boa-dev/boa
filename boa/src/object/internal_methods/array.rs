@@ -62,7 +62,7 @@ pub(crate) fn array_exotic_define_own_property(
             // 5. If SameValueZero(newLen, numberLen) is false, throw a RangeError exception.
             #[allow(clippy::float_cmp)]
             if new_len as f64 != number_len {
-                return Err(context.construct_range_error("bad length for array"));
+                return context.throw_range_error("bad length for array");
             }
 
             // 2. Let newLenDesc be a copy of Desc.

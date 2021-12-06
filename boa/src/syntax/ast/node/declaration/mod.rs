@@ -472,10 +472,10 @@ impl DeclarationPatternObject {
         };
 
         if value.is_null() {
-            return Err(context.construct_type_error("Cannot destructure 'null' value"));
+            return context.throw_type_error("Cannot destructure 'null' value");
         }
         if value.is_undefined() {
-            return Err(context.construct_type_error("Cannot destructure 'undefined' value"));
+            return context.throw_type_error("Cannot destructure 'undefined' value");
         }
 
         // 1. Perform ? RequireObjectCoercible(value).
@@ -685,10 +685,10 @@ impl DeclarationPatternArray {
         };
 
         if value.is_null() {
-            return Err(context.construct_type_error("Cannot destructure 'null' value"));
+            return context.throw_type_error("Cannot destructure 'null' value");
         }
         if value.is_undefined() {
-            return Err(context.construct_type_error("Cannot destructure 'undefined' value"));
+            return context.throw_type_error("Cannot destructure 'undefined' value");
         }
 
         // 1. Let iteratorRecord be ? GetIterator(value).

@@ -225,10 +225,10 @@ impl Context {
                 let lhs = self.vm.pop();
 
                 if !rhs.is_object() {
-                    return Err(self.construct_type_error(format!(
+                    return self.throw_type_error(format!(
                         "right-hand side of 'in' should be an object, got {}",
                         rhs.type_of()
-                    )));
+                    ));
                 }
                 let key = lhs.to_property_key(self)?;
                 let value = self.has_property(&rhs, &key)?;
@@ -634,7 +634,7 @@ impl Context {
             }
             Opcode::Call => {
                 if self.vm.stack_size_limit <= self.vm.stack.len() {
-                    return Err(self.construct_range_error("Maximum call stack size exceeded"));
+                    return self.throw_range_error("Maximum call stack size exceeded");
                 }
                 let argc = self.vm.read::<u32>();
                 let mut args = Vec::with_capacity(argc as usize);
@@ -647,7 +647,7 @@ impl Context {
 
                 let object = match func {
                     JsValue::Object(ref object) if object.is_callable() => object.clone(),
-                    _ => return Err(self.construct_type_error("not a callable function")),
+                    _ => return self.throw_type_error("not a callable function"),
                 };
 
                 let result = object.__call__(&this, &args, self)?;
@@ -656,7 +656,7 @@ impl Context {
             }
             Opcode::CallWithRest => {
                 if self.vm.stack_size_limit <= self.vm.stack.len() {
-                    return Err(self.construct_range_error("Maximum call stack size exceeded"));
+                    return self.throw_range_error("Maximum call stack size exceeded");
                 }
                 let argc = self.vm.read::<u32>();
                 let mut args = Vec::with_capacity(argc as usize);
@@ -680,7 +680,7 @@ impl Context {
 
                 let object = match func {
                     JsValue::Object(ref object) if object.is_callable() => object.clone(),
-                    _ => return Err(self.construct_type_error("not a callable function")),
+                    _ => return self.throw_type_error("not a callable function"),
                 };
 
                 let result = object.__call__(&this, &args, self)?;
@@ -689,7 +689,7 @@ impl Context {
             }
             Opcode::New => {
                 if self.vm.stack_size_limit <= self.vm.stack.len() {
-                    return Err(self.construct_range_error("Maximum call stack size exceeded"));
+                    return self.throw_range_error("Maximum call stack size exceeded");
                 }
                 let argc = self.vm.read::<u32>();
                 let mut args = Vec::with_capacity(argc as usize);
@@ -707,7 +707,7 @@ impl Context {
             }
             Opcode::NewWithRest => {
                 if self.vm.stack_size_limit <= self.vm.stack.len() {
-                    return Err(self.construct_range_error("Maximum call stack size exceeded"));
+                    return self.throw_range_error("Maximum call stack size exceeded");
                 }
                 let argc = self.vm.read::<u32>();
                 let mut args = Vec::with_capacity(argc as usize);
@@ -854,10 +854,10 @@ impl Context {
             Opcode::ValueNotNullOrUndefined => {
                 let value = self.vm.pop();
                 if value.is_null() {
-                    return Err(self.construct_type_error("Cannot destructure 'null' value"));
+                    return self.throw_type_error("Cannot destructure 'null' value");
                 }
                 if value.is_undefined() {
-                    return Err(self.construct_type_error("Cannot destructure 'undefined' value"));
+                    return self.throw_type_error("Cannot destructure 'undefined' value");
                 }
                 self.vm.push(value);
             }

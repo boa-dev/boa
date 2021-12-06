@@ -67,7 +67,7 @@ fn detach_array_buffer(
 
     // 3. If SameValue(arrayBuffer.[[ArrayBufferDetachKey]], key) is false, throw a TypeError exception.
     if !JsValue::same_value(&array_buffer.array_buffer_detach_key, key) {
-        return Err(context.construct_type_error("Cannot detach array buffer with different key"));
+        return context.throw_type_error("Cannot detach array buffer with different key");
     }
 
     // 4. Set arrayBuffer.[[ArrayBufferData]] to null.

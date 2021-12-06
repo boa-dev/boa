@@ -547,7 +547,7 @@ impl TypedArray {
             .as_typed_array()
             .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
         if o.is_detached() {
-            return Err(context.construct_type_error("Buffer of the typed array is detached"));
+            return context.throw_type_error("Buffer of the typed array is detached");
         }
 
         // 3. Let len be O.[[ArrayLength]].
@@ -682,7 +682,7 @@ impl TypedArray {
 
             // 2. Perform ? ValidateTypedArray(O).
             if o.is_detached() {
-                return Err(context.construct_type_error("Buffer of the typed array is detached"));
+                return context.throw_type_error("Buffer of the typed array is detached");
             }
 
             // 3. Let len be O.[[ArrayLength]].
@@ -747,7 +747,7 @@ impl TypedArray {
             // b. Let buffer be O.[[ViewedArrayBuffer]].
             // c. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
             if o.is_detached() {
-                return Err(context.construct_type_error("Buffer of the typed array is detached"));
+                return context.throw_type_error("Buffer of the typed array is detached");
             }
 
             // d. Let typedArrayName be the String value of O.[[TypedArrayName]].
@@ -848,7 +848,7 @@ impl TypedArray {
             .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?
             .is_detached()
         {
-            return Err(context.construct_type_error("Buffer of the typed array is detached"));
+            return context.throw_type_error("Buffer of the typed array is detached");
         }
 
         // 3. Return CreateArrayIterator(O, key+value).
@@ -876,7 +876,7 @@ impl TypedArray {
             .as_typed_array()
             .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
         if o.is_detached() {
-            return Err(context.construct_type_error("Buffer of the typed array is detached"));
+            return context.throw_type_error("Buffer of the typed array is detached");
         }
 
         // 3. Let len be O.[[ArrayLength]].
@@ -935,7 +935,7 @@ impl TypedArray {
             .as_typed_array()
             .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
         if o.is_detached() {
-            return Err(context.construct_type_error("Buffer of the typed array is detached"));
+            return context.throw_type_error("Buffer of the typed array is detached");
         }
 
         // 3. Let len be O.[[ArrayLength]].
@@ -980,7 +980,7 @@ impl TypedArray {
 
         // 14. If IsDetachedBuffer(O.[[ViewedArrayBuffer]]) is true, throw a TypeError exception.
         if o.is_detached() {
-            return Err(context.construct_type_error("Buffer of the typed array is detached"));
+            return context.throw_type_error("Buffer of the typed array is detached");
         }
 
         // 15. Repeat, while k < final,
@@ -1015,7 +1015,7 @@ impl TypedArray {
             .as_typed_array()
             .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
         if o.is_detached() {
-            return Err(context.construct_type_error("Buffer of the typed array is detached"));
+            return context.throw_type_error("Buffer of the typed array is detached");
         }
 
         // 3. Let len be O.[[ArrayLength]].
@@ -1096,7 +1096,7 @@ impl TypedArray {
             .as_typed_array()
             .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
         if o.is_detached() {
-            return Err(context.construct_type_error("Buffer of the typed array is detached"));
+            return context.throw_type_error("Buffer of the typed array is detached");
         }
 
         // 3. Let len be O.[[ArrayLength]].
@@ -1154,7 +1154,7 @@ impl TypedArray {
             .as_typed_array()
             .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
         if o.is_detached() {
-            return Err(context.construct_type_error("Buffer of the typed array is detached"));
+            return context.throw_type_error("Buffer of the typed array is detached");
         }
 
         // 3. Let len be O.[[ArrayLength]].
@@ -1211,7 +1211,7 @@ impl TypedArray {
             .as_typed_array()
             .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
         if o.is_detached() {
-            return Err(context.construct_type_error("Buffer of the typed array is detached"));
+            return context.throw_type_error("Buffer of the typed array is detached");
         }
 
         // 3. Let len be O.[[ArrayLength]].
@@ -1263,7 +1263,7 @@ impl TypedArray {
             .as_typed_array()
             .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
         if o.is_detached() {
-            return Err(context.construct_type_error("Buffer of the typed array is detached"));
+            return context.throw_type_error("Buffer of the typed array is detached");
         }
 
         // 3. Let len be O.[[ArrayLength]].
@@ -1336,7 +1336,7 @@ impl TypedArray {
             .as_typed_array()
             .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
         if o.is_detached() {
-            return Err(context.construct_type_error("Buffer of the typed array is detached"));
+            return context.throw_type_error("Buffer of the typed array is detached");
         }
 
         // 3. Let len be O.[[ArrayLength]].
@@ -1418,7 +1418,7 @@ impl TypedArray {
             .as_typed_array()
             .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
         if o.is_detached() {
-            return Err(context.construct_type_error("Buffer of the typed array is detached"));
+            return context.throw_type_error("Buffer of the typed array is detached");
         }
 
         // 3. Let len be O.[[ArrayLength]].
@@ -1475,7 +1475,7 @@ impl TypedArray {
             .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?
             .is_detached()
         {
-            return Err(context.construct_type_error("Buffer of the typed array is detached"));
+            return context.throw_type_error("Buffer of the typed array is detached");
         }
 
         // 3. Return CreateArrayIterator(O, key).
@@ -1503,7 +1503,7 @@ impl TypedArray {
             .as_typed_array()
             .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
         if o.is_detached() {
-            return Err(context.construct_type_error("Buffer of the typed array is detached"));
+            return context.throw_type_error("Buffer of the typed array is detached");
         }
 
         // 3. Let len be O.[[ArrayLength]].
@@ -1606,7 +1606,7 @@ impl TypedArray {
             .as_typed_array()
             .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
         if o.is_detached() {
-            return Err(context.construct_type_error("Buffer of the typed array is detached"));
+            return context.throw_type_error("Buffer of the typed array is detached");
         }
 
         // 3. Let len be O.[[ArrayLength]].
@@ -1664,7 +1664,7 @@ impl TypedArray {
             .as_typed_array()
             .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
         if o.is_detached() {
-            return Err(context.construct_type_error("Buffer of the typed array is detached"));
+            return context.throw_type_error("Buffer of the typed array is detached");
         }
 
         // 3. Let len be O.[[ArrayLength]].
@@ -1741,7 +1741,7 @@ impl TypedArray {
             .as_typed_array()
             .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
         if o.is_detached() {
-            return Err(context.construct_type_error("Buffer of the typed array is detached"));
+            return context.throw_type_error("Buffer of the typed array is detached");
         }
 
         // 3. Let len be O.[[ArrayLength]].
@@ -1821,7 +1821,7 @@ impl TypedArray {
             .as_typed_array()
             .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
         if o.is_detached() {
-            return Err(context.construct_type_error("Buffer of the typed array is detached"));
+            return context.throw_type_error("Buffer of the typed array is detached");
         }
 
         // 3. Let len be O.[[ArrayLength]].
@@ -1933,7 +1933,7 @@ impl TypedArray {
         // 1. Let targetBuffer be target.[[ViewedArrayBuffer]].
         // 2. If IsDetachedBuffer(targetBuffer) is true, throw a TypeError exception.
         if target_array.is_detached() {
-            return Err(context.construct_type_error("Buffer of the typed array is detached"));
+            return context.throw_type_error("Buffer of the typed array is detached");
         }
         let target_buffer_obj = target_array
             .viewed_array_buffer()
@@ -1945,7 +1945,7 @@ impl TypedArray {
         // 4. Let srcBuffer be source.[[ViewedArrayBuffer]].
         // 5. If IsDetachedBuffer(srcBuffer) is true, throw a TypeError exception.
         if source_array.is_detached() {
-            return Err(context.construct_type_error("Buffer of the typed array is detached"));
+            return context.throw_type_error("Buffer of the typed array is detached");
         }
         let mut src_buffer_obj = source_array
             .viewed_array_buffer()
@@ -1979,23 +1979,23 @@ impl TypedArray {
         let target_offset = match target_offset {
             IntegerOrInfinity::Integer(i) if i >= 0 => i as usize,
             IntegerOrInfinity::PositiveInfinity => {
-                return Err(context.construct_range_error("Target offset cannot be Infinity"))
+                return context.throw_range_error("Target offset cannot be Infinity");
             }
             _ => unreachable!(),
         };
 
         // 16. If srcLength + targetOffset > targetLength, throw a RangeError exception.
         if src_length + target_offset > target_length {
-            return Err(context.construct_range_error(
+            return context.throw_range_error(
                 "Source typed array and target offset longer than target typed array",
-            ));
+            );
         }
 
         // 17. If target.[[ContentType]] ≠ source.[[ContentType]], throw a TypeError exception.
         if target_name.content_type() != src_name.content_type() {
-            return Err(context.construct_type_error(
+            return context.throw_type_error(
                 "Source typed array and target typed array have different content types",
-            ));
+            );
         }
 
         // TODO: Shared Array Buffer
@@ -2142,7 +2142,7 @@ impl TypedArray {
         // 1. Let targetBuffer be target.[[ViewedArrayBuffer]].
         // 2. If IsDetachedBuffer(targetBuffer) is true, throw a TypeError exception.
         if target_array.is_detached() {
-            return Err(context.construct_type_error("Buffer of the typed array is detached"));
+            return context.throw_type_error("Buffer of the typed array is detached");
         }
 
         // 3. Let targetLength be target.[[ArrayLength]].
@@ -2167,7 +2167,7 @@ impl TypedArray {
         let target_offset = match target_offset {
             // 10. If targetOffset is +∞, throw a RangeError exception.
             IntegerOrInfinity::PositiveInfinity => {
-                return Err(context.construct_range_error("Target offset cannot be Infinity"))
+                return context.throw_range_error("Target offset cannot be Infinity")
             }
             IntegerOrInfinity::Integer(i) if i >= 0 => i as usize,
             _ => unreachable!(),
@@ -2175,9 +2175,9 @@ impl TypedArray {
 
         // 11. If srcLength + targetOffset > targetLength, throw a RangeError exception.
         if src_length + target_offset > target_length {
-            return Err(context.construct_range_error(
+            return context.throw_range_error(
                 "Source object and target offset longer than target typed array",
-            ));
+            );
         }
 
         // 12. Let targetByteIndex be targetOffset × targetElementSize + targetByteOffset.
@@ -2213,9 +2213,7 @@ impl TypedArray {
 
             // e. If IsDetachedBuffer(targetBuffer) is true, throw a TypeError exception.
             if target_buffer.is_detached_buffer() {
-                return Err(
-                    context.construct_type_error("Cannot set value on detached array buffer")
-                );
+                return context.throw_type_error("Cannot set value on detached array buffer");
             }
 
             // f. Perform SetValueInBuffer(targetBuffer, targetByteIndex, targetType, value, true, Unordered).
@@ -2255,7 +2253,7 @@ impl TypedArray {
             .as_typed_array()
             .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
         if o.is_detached() {
-            return Err(context.construct_type_error("Buffer of the typed array is detached"));
+            return context.throw_type_error("Buffer of the typed array is detached");
         }
 
         // 3. Let len be O.[[ArrayLength]].
@@ -2304,7 +2302,7 @@ impl TypedArray {
         if count > 0 {
             // a. If IsDetachedBuffer(O.[[ViewedArrayBuffer]]) is true, throw a TypeError exception.
             if o.is_detached() {
-                return Err(context.construct_type_error("Buffer of the typed array is detached"));
+                return context.throw_type_error("Buffer of the typed array is detached");
             }
 
             // b. Let srcName be the String value of O.[[TypedArrayName]].
@@ -2419,7 +2417,7 @@ impl TypedArray {
             .as_typed_array()
             .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
         if o.is_detached() {
-            return Err(context.construct_type_error("Buffer of the typed array is detached"));
+            return context.throw_type_error("Buffer of the typed array is detached");
         }
 
         // 3. Let len be O.[[ArrayLength]].
@@ -2545,8 +2543,8 @@ impl TypedArray {
                     .expect("Must be array buffer")
                     .is_detached_buffer()
                 {
-                    return Err(context
-                        .construct_type_error("Cannot sort typed array with detached buffer"));
+                    return context
+                        .throw_type_error("Cannot sort typed array with detached buffer");
                 }
 
                 // c. If v is NaN, return +0𝔽.
@@ -2770,7 +2768,7 @@ impl TypedArray {
             .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?
             .is_detached()
         {
-            return Err(context.construct_type_error("Buffer of the typed array is detached"));
+            return context.throw_type_error("Buffer of the typed array is detached");
         }
 
         // 3. Return CreateArrayIterator(O, value).
@@ -2848,8 +2846,8 @@ impl TypedArray {
             .content_type()
             != typed_array_name.content_type()
         {
-            return Err(context
-                .construct_type_error("New typed array has different context type than exemplar"));
+            return context
+                .throw_type_error("New typed array has different context type than exemplar");
         }
 
         // 6. Return result.
@@ -2879,7 +2877,7 @@ impl TypedArray {
             .as_typed_array()
             .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
         if o.is_detached() {
-            return Err(context.construct_type_error("Buffer of the typed array is detached"));
+            return context.throw_type_error("Buffer of the typed array is detached");
         }
 
         // 3. If argumentList is a List of a single Number, then
@@ -2887,8 +2885,8 @@ impl TypedArray {
             if let Some(number) = args[0].as_number() {
                 // a. If newTypedArray.[[ArrayLength]] < ℝ(argumentList[0]), throw a TypeError exception.
                 if (o.array_length() as f64) < number {
-                    return Err(context
-                        .construct_type_error("New typed array length is smaller than expected"));
+                    return context
+                        .throw_type_error("New typed array length is smaller than expected");
                 }
             }
         }
@@ -3035,9 +3033,7 @@ impl TypedArray {
         // 1. Let srcData be srcArray.[[ViewedArrayBuffer]].
         // 2. If IsDetachedBuffer(srcData) is true, throw a TypeError exception.
         if src_array.is_detached() {
-            return Err(
-                context.construct_type_error("Cannot initialize typed array from detached buffer")
-            );
+            return context.throw_type_error("Cannot initialize typed array from detached buffer");
         }
         let src_data_obj = src_array
             .viewed_array_buffer()
@@ -3095,15 +3091,14 @@ impl TypedArray {
 
             // b. If IsDetachedBuffer(srcData) is true, throw a TypeError exception.
             if src_data.is_detached_buffer() {
-                return Err(context
-                    .construct_type_error("Cannot initialize typed array from detached buffer"));
+                return context
+                    .throw_type_error("Cannot initialize typed array from detached buffer");
             }
 
             // c. If srcArray.[[ContentType]] ≠ O.[[ContentType]], throw a TypeError exception.
             if src_name.content_type() != constructor_name.content_type() {
-                return Err(context.construct_type_error(
-                    "Cannot initialize typed array from different content type",
-                ));
+                return context
+                    .throw_type_error("Cannot initialize typed array from different content type");
             }
 
             // d. Let srcByteIndex be srcByteOffset.
@@ -3188,7 +3183,7 @@ impl TypedArray {
 
         // 4. If offset modulo elementSize ≠ 0, throw a RangeError exception.
         if offset % constructor_name.element_size() != 0 {
-            return Err(context.construct_range_error("Invalid length for typed array"));
+            return context.throw_range_error("Invalid length for typed array");
         }
 
         let buffer_byte_length = {
@@ -3199,8 +3194,8 @@ impl TypedArray {
 
             // 6. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
             if buffer_array.is_detached_buffer() {
-                return Err(context
-                    .construct_type_error("Cannot construct typed array from detached buffer"));
+                return context
+                    .throw_type_error("Cannot construct typed array from detached buffer");
             }
 
             // 7. Let bufferByteLength be buffer.[[ArrayBufferByteLength]].
@@ -3211,7 +3206,7 @@ impl TypedArray {
         let new_byte_length = if length.is_undefined() {
             // a. If bufferByteLength modulo elementSize ≠ 0, throw a RangeError exception.
             if buffer_byte_length % constructor_name.element_size() != 0 {
-                return Err(context.construct_range_error("Invalid length for typed array"));
+                return context.throw_range_error("Invalid length for typed array");
             }
 
             // b. Let newByteLength be bufferByteLength - offset.
@@ -3219,7 +3214,7 @@ impl TypedArray {
 
             // c. If newByteLength < 0, throw a RangeError exception.
             if new_byte_length < 0 {
-                return Err(context.construct_range_error("Invalid length for typed array"));
+                return context.throw_range_error("Invalid length for typed array");
             }
 
             new_byte_length as usize
@@ -3233,7 +3228,7 @@ impl TypedArray {
 
             // b. If offset + newByteLength > bufferByteLength, throw a RangeError exception.
             if offset + new_byte_length > buffer_byte_length {
-                return Err(context.construct_range_error("Invalid length for typed array"));
+                return context.throw_range_error("Invalid length for typed array");
             }
 
             new_byte_length

@@ -149,7 +149,7 @@ impl JsValue {
 
         // 4. If Type(iterator) is not Object, throw a TypeError exception.
         if !iterator.is_object() {
-            return Err(context.construct_type_error("the iterator is not an object"));
+            return context.throw_type_error("the iterator is not an object");
         }
 
         // 5. Let nextMethod be ? GetV(iterator, "next").

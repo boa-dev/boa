@@ -480,9 +480,7 @@ impl JsObject {
             // b. If IsCallable(getter) is false and getter is not undefined, throw a TypeError exception.
             // todo: extract IsCallable to be callable from Value
             if !getter.is_undefined() && getter.as_object().map_or(true, |o| !o.is_callable()) {
-                return Err(
-                    context.construct_type_error("Property descriptor getter must be callable")
-                );
+                return context.throw_type_error("Property descriptor getter must be callable");
             }
             // c. Set desc.[[Get]] to getter.
             Some(getter)
@@ -498,9 +496,7 @@ impl JsObject {
             // 14.b. If IsCallable(setter) is false and setter is not undefined, throw a TypeError exception.
             // todo: extract IsCallable to be callable from Value
             if !setter.is_undefined() && setter.as_object().map_or(true, |o| !o.is_callable()) {
-                return Err(
-                    context.construct_type_error("Property descriptor setter must be callable")
-                );
+                return context.throw_type_error("Property descriptor setter must be callable");
             }
             // 14.c. Set desc.[[Set]] to setter.
             Some(setter)
@@ -511,10 +507,10 @@ impl JsObject {
         // 15. If desc.[[Get]] is present or desc.[[Set]] is present, then ...
         // a. If desc.[[Value]] is present or desc.[[Writable]] is present, throw a TypeError exception.
         if get.as_ref().or_else(|| set.as_ref()).is_some() && desc.inner().is_data_descriptor() {
-            return Err(context.construct_type_error(
+            return context.throw_type_error(
                 "Invalid property descriptor.\
-            Cannot both specify accessors and a value or writable attribute",
-            ));
+Cannot both specify accessors and a value or writable attribute",
+            );
         }
 
         desc = desc.maybe_get(get).maybe_set(set);
