@@ -398,10 +398,10 @@ impl JsValue {
     pub fn instance_of(&self, target: &JsValue, context: &mut Context) -> JsResult<bool> {
         // 1. If Type(target) is not Object, throw a TypeError exception.
         if !target.is_object() {
-            return Err(context.construct_type_error(format!(
+            return context.throw_type_error(format!(
                 "right-hand side of 'instanceof' should be an object, got {}",
                 target.type_of()
-            )));
+            ));
         }
 
         // 2. Let instOfHandler be ? GetMethod(target, @@hasInstance).
@@ -419,7 +419,7 @@ impl JsValue {
             }
             None => {
                 // 4. If IsCallable(target) is false, throw a TypeError exception.
-                Err(context.construct_type_error("right-hand side of 'instanceof' is not callable"))
+                context.throw_type_error("right-hand side of 'instanceof' is not callable")
             }
         }
     }

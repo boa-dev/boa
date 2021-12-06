@@ -179,7 +179,7 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         if self.env_rec.borrow().get(name).is_none() {
             // a. If S is true, throw a ReferenceError exception.
             if strict {
-                return Err(context.construct_reference_error(format!("{} not found", name)));
+                return context.throw_reference_error(format!("{} not found", name));
             }
 
             // b. Perform envRec.CreateMutableBinding(N, true).
@@ -204,9 +204,7 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
 
         // 3. If the binding for N in envRec has not yet been initialized, throw a ReferenceError exception.
         if binding_value_is_none {
-            return Err(
-                context.construct_reference_error(format!("{} has not been initialized", name))
-            );
+            return context.throw_reference_error(format!("{} has not been initialized", name));
         // 4. Else if the binding for N in envRec is a mutable binding, change its bound value to V.
         } else if binding_mutable {
             let mut env_rec = self.env_rec.borrow_mut();
@@ -216,8 +214,8 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         // a. Assert: This is an attempt to change the value of an immutable binding.
         // b. If S is true, throw a TypeError exception.
         } else if strict {
-            return Err(context
-                .construct_type_error(format!("Cannot mutate an immutable binding {}", name)));
+            return context
+                .throw_type_error(format!("Cannot mutate an immutable binding {}", name));
         }
 
         // 6. Return NormalCompletion(empty).

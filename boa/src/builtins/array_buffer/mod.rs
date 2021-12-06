@@ -363,7 +363,7 @@ impl ArrayBuffer {
         let src_block = if let Some(b) = &self.array_buffer_data {
             b
         } else {
-            return Err(context.construct_syntax_error("Cannot clone detached array buffer"));
+            return context.throw_syntax_error("Cannot clone detached array buffer");
         };
 
         {

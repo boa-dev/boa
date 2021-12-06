@@ -300,9 +300,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
         // 1. Let DclRec be envRec.[[DeclarativeRecord]].
         // 2. If DclRec.HasBinding(N) is true, throw a TypeError exception.
         if !allow_name_reuse && self.declarative_record.has_binding(name, context)? {
-            return Err(
-                context.construct_type_error(format!("Binding already exists for {}", name))
-            );
+            return context.throw_type_error(format!("Binding already exists for {}", name));
         }
 
         // 3. Return DclRec.CreateMutableBinding(N, D).
@@ -325,9 +323,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
         // 1. Let DclRec be envRec.[[DeclarativeRecord]].
         // 2. If DclRec.HasBinding(N) is true, throw a TypeError exception.
         if self.declarative_record.has_binding(name, context)? {
-            return Err(
-                context.construct_type_error(format!("Binding already exists for {}", name))
-            );
+            return context.throw_type_error(format!("Binding already exists for {}", name));
         }
 
         // 3. Return DclRec.CreateImmutableBinding(N, S).

@@ -165,7 +165,7 @@ impl Array {
                 let int_len = len.to_u32(context).unwrap();
                 // ii. If SameValueZero(intLen, len) is false, throw a RangeError exception.
                 if !JsValue::same_value_zero(&int_len.into(), len) {
-                    return Err(context.construct_range_error("invalid array length"));
+                    return context.throw_range_error("invalid array length");
                 }
                 int_len
             };
@@ -210,7 +210,7 @@ impl Array {
     ) -> JsResult<JsObject> {
         // 1. If length > 2^32 - 1, throw a RangeError exception.
         if length > 2usize.pow(32) - 1 {
-            return Err(context.construct_range_error("array exceeded max size"));
+            return context.throw_range_error("array exceeded max size");
         }
         // 7. Return A.
         // 2. If proto is not present, set proto to %Array.prototype%.
@@ -365,7 +365,7 @@ impl Array {
                     .unwrap(),
             )
         } else {
-            Err(context.construct_type_error("Symbol.species must be a constructor"))
+            context.throw_type_error("Symbol.species must be a constructor")
         }
     }
 
@@ -1669,8 +1669,8 @@ impl Array {
                 } else {
                     // 1. If targetIndex >= 2^53 - 1, throw a TypeError exception
                     if target_index >= Number::MAX_SAFE_INTEGER as u64 {
-                        return Err(context
-                            .construct_type_error("Target index exceeded max safe integer value"));
+                        return context
+                            .throw_type_error("Target index exceeded max safe integer value");
                     }
 
                     // 2. Perform ? CreateDataPropertyOrThrow(target, targetIndex, element)

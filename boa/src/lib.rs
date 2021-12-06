@@ -108,10 +108,7 @@ pub(crate) fn forward<T: AsRef<[u8]>>(context: &mut Context, src: T) -> String {
         Err(e) => {
             return format!(
                 "Uncaught {}",
-                context
-                    .throw_syntax_error(e.to_string())
-                    .expect_err("interpreter.throw_syntax_error() did not return an error")
-                    .display()
+                context.construct_syntax_error(e.to_string()).display()
             );
         }
     };
@@ -133,11 +130,7 @@ pub(crate) fn forward_val<T: AsRef<[u8]>>(context: &mut Context, src: T) -> JsRe
     let src_bytes: &[u8] = src.as_ref();
     // Setup executor
     let result = parse(src_bytes, false)
-        .map_err(|e| {
-            context
-                .throw_syntax_error(e.to_string())
-                .expect_err("interpreter.throw_syntax_error() did not return an error")
-        })
+        .map_err(|e| context.construct_syntax_error(e.to_string()))
         .and_then(|expr| expr.run(context));
 
     // The main_timer needs to be dropped before the BoaProfiler is.

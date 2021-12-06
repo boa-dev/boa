@@ -166,7 +166,7 @@ impl JsBigInt {
         let y = if let Some(y) = y.inner.to_biguint() {
             y
         } else {
-            return Err(context.construct_range_error("BigInt negative exponent"));
+            return context.throw_range_error("BigInt negative exponent");
         };
 
         let num_bits = (x.inner.bits() as f64
@@ -175,7 +175,7 @@ impl JsBigInt {
             + 1f64;
 
         if num_bits > 1_000_000_000f64 {
-            return Err(context.construct_range_error("Maximum BigInt size exceeded"));
+            return context.throw_range_error("Maximum BigInt size exceeded");
         }
 
         Ok(Self::new(x.inner.as_ref().clone().pow(y)))
@@ -192,7 +192,7 @@ impl JsBigInt {
 
             Ok(Self::new(inner))
         } else {
-            Err(context.construct_range_error("Maximum BigInt size exceeded"))
+            context.throw_range_error("Maximum BigInt size exceeded")
         }
     }
 
@@ -207,7 +207,7 @@ impl JsBigInt {
 
             Ok(Self::new(inner))
         } else {
-            Err(context.construct_range_error("Maximum BigInt size exceeded"))
+            context.throw_range_error("Maximum BigInt size exceeded")
         }
     }
 

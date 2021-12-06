@@ -157,7 +157,7 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
 
         // 3. If stillExists is false and S is true, throw a ReferenceError exception.
         if !still_exists && strict {
-            return Err(context.construct_reference_error("Binding already exists"));
+            return context.throw_reference_error("Binding already exists");
         }
 
         // 4. Return ? Set(bindingObject, N, V, S).
