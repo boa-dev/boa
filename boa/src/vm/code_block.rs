@@ -16,14 +16,11 @@ use crate::{
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::PropertyDescriptor,
     syntax::ast::node::FormalParameter,
-    vm::Opcode,
+    vm::{call_frame::FinallyReturn, CallFrame, Opcode},
     Context, JsResult, JsString, JsValue,
 };
 use gc::Gc;
-
-use std::{cmp::Ordering, convert::TryInto, fmt::Write, mem::size_of};
-
-use super::{call_frame::FinallyReturn, CallFrame};
+use std::{convert::TryInto, fmt::Write, mem::size_of};
 
 /// This represents whether a value can be read from [`CodeBlock`] code.
 pub unsafe trait Readable {}
@@ -566,13 +563,12 @@ impl JsObject {
                 let arg_count = args.len();
 
                 // Push function arguments to the stack.
-                let args = match code.params.len().cmp(&args.len()) {
-                    Ordering::Greater => {
-                        let mut v = args.to_vec();
-                        v.extend(vec![JsValue::Undefined; code.params.len() - args.len()]);
-                        v
-                    }
-                    Ordering::Less | Ordering::Equal => args.to_vec(),
+                let args = if code.params.len() > args.len() {
+                    let mut v = args.to_vec();
+                    v.extend(vec![JsValue::Undefined; code.params.len() - args.len()]);
+                    v
+                } else {
+                    args.to_vec()
                 };
 
                 for arg in args.iter().rev() {
@@ -581,10 +577,20 @@ impl JsObject {
 
                 let param_count = code.params.len();
 
+                let this = if this.is_null_or_undefined() {
+                    context
+                        .get_global_this_binding()
+                        .expect("global env must have this binding")
+                } else {
+                    this.to_object(context)
+                        .expect("conversion to object cannot fail here")
+                        .into()
+                };
+
                 context.vm.push_frame(CallFrame {
                     prev: None,
                     code,
-                    this: this.clone(),
+                    this,
                     pc: 0,
                     catch: Vec::new(),
                     finally_return: FinallyReturn::None,
@@ -728,13 +734,12 @@ impl JsObject {
                 let arg_count = args.len();
 
                 // Push function arguments to the stack.
-                let args = match code.params.len().cmp(&args.len()) {
-                    Ordering::Greater => {
-                        let mut v = args.to_vec();
-                        v.extend(vec![JsValue::Undefined; code.params.len() - args.len()]);
-                        v
-                    }
-                    Ordering::Less | Ordering::Equal => args.to_vec(),
+                let args = if code.params.len() > args.len() {
+                    let mut v = args.to_vec();
+                    v.extend(vec![JsValue::Undefined; code.params.len() - args.len()]);
+                    v
+                } else {
+                    args.to_vec()
                 };
 
                 for arg in args.iter().rev() {
@@ -742,6 +747,16 @@ impl JsObject {
                 }
 
                 let param_count = code.params.len();
+
+                let this = if this.is_null_or_undefined() {
+                    context
+                        .get_global_this_binding()
+                        .expect("global env must have this binding")
+                } else {
+                    this.to_object(context)
+                        .expect("conversion to object cannot fail here")
+                        .into()
+                };
 
                 context.vm.push_frame(CallFrame {
                     prev: None,

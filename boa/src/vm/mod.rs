@@ -909,7 +909,10 @@ impl Context {
                 let this = &self.vm.frame().this;
 
                 let new_env = FunctionEnvironmentRecord::new(
-                    this.clone().as_object().unwrap().clone(), //TODO: is this ok? this_function object on stack mb?
+                    this.clone()
+                        .as_object()
+                        .expect("this must always be an object")
+                        .clone(),
                     if is_constructor || !is_lexical {
                         Some(this.clone())
                     } else {

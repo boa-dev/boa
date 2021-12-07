@@ -86,17 +86,17 @@ fn detach_array_buffer(
 ///
 /// Accepts a string value as its first argument and executes it as an ECMAScript script.
 fn eval_script(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-    // eprintln!("called $262.evalScript()");
-
     if let Some(source_text) = args.get(0).and_then(|val| val.as_string()) {
-        #[cfg(not(feature = "vm"))]
         match boa::parse(source_text.as_str(), false) {
             // TODO: check strict
             Err(e) => context.throw_type_error(format!("Uncaught Syntax Error: {}", e)),
+            #[cfg(not(feature = "vm"))]
             Ok(statement_list) => statement_list.run(context),
+            // Calling eval here parses the code a second time.
+            // TODO: We can fix this after we have have defined the public api for the vm executer.
+            #[cfg(feature = "vm")]
+            Ok(_) => context.eval(source_text.as_str()),
         }
-        #[cfg(feature = "vm")]
-        context.eval(source_text.as_str())
     } else {
         Ok(JsValue::undefined())
     }
