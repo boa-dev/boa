@@ -169,10 +169,10 @@ impl Context {
             }
             Opcode::PushIteratorToArray => {
                 let next_function = self.vm.pop();
-                let for_in_iterator = self.vm.pop();
+                let iterator = self.vm.pop();
                 let array = self.vm.pop();
 
-                let iterator = IteratorRecord::new(for_in_iterator, next_function);
+                let iterator = IteratorRecord::new(iterator, next_function);
                 loop {
                     let next = iterator.next(self)?;
 
@@ -438,18 +438,18 @@ impl Context {
                 self.vm.push(result)
             }
             Opcode::GetPropertyByValue => {
-                let value = self.vm.pop();
+                let object = self.vm.pop();
                 let key = self.vm.pop();
-                let object = if let Some(object) = value.as_object() {
+                let object = if let Some(object) = object.as_object() {
                     object.clone()
                 } else {
-                    value.to_object(self)?
+                    object.to_object(self)?
                 };
 
                 let key = key.to_property_key(self)?;
-                let result = object.get(key, self)?;
+                let value = object.get(key, self)?;
 
-                self.vm.push(result)
+                self.vm.push(value)
             }
             Opcode::SetPropertyByName => {
                 let index = self.vm.read::<u32>();
@@ -658,8 +658,8 @@ impl Context {
                 }
                 let value = self.vm.pop();
                 let object = value.as_object().unwrap();
-                let rest_obj = self.vm.pop();
-                object.copy_data_properties(&rest_obj, excluded_keys, self)?;
+                let source = self.vm.pop();
+                object.copy_data_properties(&source, excluded_keys, self)?;
                 self.vm.push(value);
             }
             Opcode::Throw => {
@@ -770,12 +770,12 @@ impl Context {
                 if self.vm.stack_size_limit <= self.vm.stack.len() {
                     return self.throw_range_error("Maximum call stack size exceeded");
                 }
-                let argc = self.vm.read::<u32>();
-                let mut args = Vec::with_capacity(argc as usize);
-                for _ in 0..argc {
-                    args.push(self.vm.pop());
+                let argument_count = self.vm.read::<u32>();
+                let mut arguments = Vec::with_capacity(argument_count as usize);
+                for _ in 0..argument_count {
+                    arguments.push(self.vm.pop());
                 }
-                args.reverse();
+                arguments.reverse();
 
                 let func = self.vm.pop();
                 let mut this = self.vm.pop();
@@ -789,7 +789,7 @@ impl Context {
                     this = self.global_object().into();
                 }
 
-                let result = object.__call__(&this, &args, self)?;
+                let result = object.__call__(&this, &arguments, self)?;
 
                 self.vm.push(result);
             }
@@ -797,26 +797,26 @@ impl Context {
                 if self.vm.stack_size_limit <= self.vm.stack.len() {
                     return self.throw_range_error("Maximum call stack size exceeded");
                 }
-                let argc = self.vm.read::<u32>();
-                let rest_arg_value = self.vm.pop();
-                let mut args = Vec::with_capacity(argc as usize);
-                for _ in 0..(argc - 1) {
-                    args.push(self.vm.pop());
+                let argument_count = self.vm.read::<u32>();
+                let rest_argument = self.vm.pop();
+                let mut arguments = Vec::with_capacity(argument_count as usize);
+                for _ in 0..(argument_count - 1) {
+                    arguments.push(self.vm.pop());
                 }
-                args.reverse();
+                arguments.reverse();
                 let func = self.vm.pop();
                 let mut this = self.vm.pop();
 
-                let iterator_record = rest_arg_value.get_iterator(self, None, None)?;
-                let mut rest_args = Vec::new();
+                let iterator_record = rest_argument.get_iterator(self, None, None)?;
+                let mut rest_arguments = Vec::new();
                 loop {
                     let next = iterator_record.next(self)?;
                     if next.done {
                         break;
                     }
-                    rest_args.push(next.value);
+                    rest_arguments.push(next.value);
                 }
-                args.append(&mut rest_args);
+                arguments.append(&mut rest_arguments);
 
                 let object = match func {
                     JsValue::Object(ref object) if object.is_callable() => object.clone(),
@@ -827,7 +827,7 @@ impl Context {
                     this = self.global_object().into();
                 }
 
-                let result = object.__call__(&this, &args, self)?;
+                let result = object.__call__(&this, &arguments, self)?;
 
                 self.vm.push(result);
             }
@@ -835,18 +835,18 @@ impl Context {
                 if self.vm.stack_size_limit <= self.vm.stack.len() {
                     return self.throw_range_error("Maximum call stack size exceeded");
                 }
-                let argc = self.vm.read::<u32>();
-                let mut args = Vec::with_capacity(argc as usize);
-                for _ in 0..argc {
-                    args.push(self.vm.pop());
+                let argument_count = self.vm.read::<u32>();
+                let mut arguments = Vec::with_capacity(argument_count as usize);
+                for _ in 0..argument_count {
+                    arguments.push(self.vm.pop());
                 }
-                args.reverse();
+                arguments.reverse();
                 let func = self.vm.pop();
 
                 let result = func
                     .as_constructor()
                     .ok_or_else(|| self.construct_type_error("not a constructor"))
-                    .and_then(|cons| cons.__construct__(&args, &cons.clone().into(), self))?;
+                    .and_then(|cons| cons.__construct__(&arguments, &cons.clone().into(), self))?;
 
                 self.vm.push(result);
             }
@@ -854,30 +854,30 @@ impl Context {
                 if self.vm.stack_size_limit <= self.vm.stack.len() {
                     return self.throw_range_error("Maximum call stack size exceeded");
                 }
-                let argc = self.vm.read::<u32>();
-                let rest_arg_value = self.vm.pop();
-                let mut args = Vec::with_capacity(argc as usize);
-                for _ in 0..(argc - 1) {
-                    args.push(self.vm.pop());
+                let argument_count = self.vm.read::<u32>();
+                let rest_argument = self.vm.pop();
+                let mut arguments = Vec::with_capacity(argument_count as usize);
+                for _ in 0..(argument_count - 1) {
+                    arguments.push(self.vm.pop());
                 }
-                args.reverse();
+                arguments.reverse();
                 let func = self.vm.pop();
 
-                let iterator_record = rest_arg_value.get_iterator(self, None, None)?;
-                let mut rest_args = Vec::new();
+                let iterator_record = rest_argument.get_iterator(self, None, None)?;
+                let mut rest_arguments = Vec::new();
                 loop {
                     let next = iterator_record.next(self)?;
                     if next.done {
                         break;
                     }
-                    rest_args.push(next.value);
+                    rest_arguments.push(next.value);
                 }
-                args.append(&mut rest_args);
+                arguments.append(&mut rest_arguments);
 
                 let result = func
                     .as_constructor()
                     .ok_or_else(|| self.construct_type_error("not a constructor"))
-                    .and_then(|cons| cons.__construct__(&args, &cons.clone().into(), self))?;
+                    .and_then(|cons| cons.__construct__(&arguments, &cons.clone().into(), self))?;
 
                 self.vm.push(result);
             }
@@ -944,44 +944,42 @@ impl Context {
                 }
 
                 let object = object.to_object(self)?;
-                let for_in_iterator =
-                    ForInIterator::create_for_in_iterator(JsValue::new(object), self);
-                let next_function = for_in_iterator
+                let iterator = ForInIterator::create_for_in_iterator(JsValue::new(object), self);
+                let next_function = iterator
                     .get_property("next")
                     .as_ref()
                     .map(|p| p.expect_value())
                     .cloned()
                     .ok_or_else(|| self.construct_type_error("Could not find property `next`"))?;
 
-                self.vm.push(for_in_iterator);
+                self.vm.push(iterator);
                 self.vm.push(next_function);
             }
             Opcode::InitIterator => {
-                let iterable = self.vm.pop();
-                let iterator = iterable.get_iterator(self, None, None)?;
-
+                let object = self.vm.pop();
+                let iterator = object.get_iterator(self, None, None)?;
                 self.vm.push(iterator.iterator_object());
                 self.vm.push(iterator.next_function());
             }
             Opcode::IteratorNext => {
                 let next_function = self.vm.pop();
-                let for_in_iterator = self.vm.pop();
+                let iterator = self.vm.pop();
 
-                let iterator = IteratorRecord::new(for_in_iterator.clone(), next_function.clone());
-                let iterator_result = iterator.next(self)?;
+                let iterator_record = IteratorRecord::new(iterator.clone(), next_function.clone());
+                let iterator_result = iterator_record.next(self)?;
 
-                self.vm.push(for_in_iterator);
+                self.vm.push(iterator);
                 self.vm.push(next_function);
                 self.vm.push(iterator_result.value);
             }
             Opcode::IteratorNextFull => {
                 let next_function = self.vm.pop();
-                let for_in_iterator = self.vm.pop();
+                let iterator = self.vm.pop();
 
-                let iterator = IteratorRecord::new(for_in_iterator.clone(), next_function.clone());
-                let iterator_result = iterator.next(self)?;
+                let iterator_record = IteratorRecord::new(iterator.clone(), next_function.clone());
+                let iterator_result = iterator_record.next(self)?;
 
-                self.vm.push(for_in_iterator);
+                self.vm.push(iterator);
                 self.vm.push(next_function);
                 self.vm.push(iterator_result.done);
                 self.vm.push(iterator_result.value);
@@ -989,26 +987,24 @@ impl Context {
             Opcode::IteratorClose => {
                 let done = self.vm.pop();
                 let next_function = self.vm.pop();
-                let for_in_iterator = self.vm.pop();
+                let iterator = self.vm.pop();
                 if !done.as_boolean().unwrap() {
-                    let iterator = IteratorRecord::new(for_in_iterator, next_function);
-                    iterator.close(Ok(JsValue::Null), self)?;
+                    let iterator_record = IteratorRecord::new(iterator, next_function);
+                    iterator_record.close(Ok(JsValue::Null), self)?;
                 }
             }
             Opcode::IteratorToArray => {
                 let next_function = self.vm.pop();
-                let for_in_iterator = self.vm.pop();
+                let iterator = self.vm.pop();
 
-                let iterator = IteratorRecord::new(for_in_iterator.clone(), next_function.clone());
+                let iterator_record = IteratorRecord::new(iterator.clone(), next_function.clone());
                 let mut values = Vec::new();
 
                 loop {
-                    let next = iterator.next(self)?;
-
+                    let next = iterator_record.next(self)?;
                     if next.done {
                         break;
                     }
-
                     values.push(next.value);
                 }
 
@@ -1017,7 +1013,7 @@ impl Context {
 
                 Array::add_to_array_object(&array.clone().into(), &values, self)?;
 
-                self.vm.push(for_in_iterator);
+                self.vm.push(iterator);
                 self.vm.push(next_function);
                 self.vm.push(array);
             }
@@ -1025,26 +1021,26 @@ impl Context {
                 let address = self.vm.read::<u32>();
 
                 let next_function = self.vm.pop();
-                let for_in_iterator = self.vm.pop();
+                let iterator = self.vm.pop();
 
-                let iterator = IteratorRecord::new(for_in_iterator.clone(), next_function.clone());
-                let iterator_result = iterator.next(self)?;
+                let iterator_record = IteratorRecord::new(iterator.clone(), next_function.clone());
+                let iterator_result = iterator_record.next(self)?;
                 if iterator_result.done {
                     self.vm.frame_mut().pc = address as usize;
                     self.vm.frame_mut().pop_env_on_return -= 1;
                     self.pop_environment();
-                    self.vm.push(for_in_iterator);
+                    self.vm.push(iterator);
                     self.vm.push(next_function);
                 } else {
-                    self.vm.push(for_in_iterator);
+                    self.vm.push(iterator);
                     self.vm.push(next_function);
                     self.vm.push(iterator_result.value);
                 }
             }
             Opcode::ConcatToString => {
-                let n = self.vm.read::<u32>();
-                let mut strings = Vec::with_capacity(n as usize);
-                for _ in 0..n {
+                let value_count = self.vm.read::<u32>();
+                let mut strings = Vec::with_capacity(value_count as usize);
+                for _ in 0..value_count {
                     strings.push(self.vm.pop().to_string(self)?);
                 }
                 strings.reverse();
