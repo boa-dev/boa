@@ -28,7 +28,7 @@ use crate::{
 use crate::builtins::console::Console;
 
 #[cfg(feature = "vm")]
-use crate::vm::Vm;
+use crate::vm::{FinallyReturn, Vm};
 
 /// Store a builtin constructor (such as `Object`) and its corresponding prototype.
 #[derive(Debug, Clone)]
@@ -1054,12 +1054,13 @@ impl Context {
             Err(e) => return self.throw_syntax_error(e),
         };
 
-        let mut compiler = crate::bytecompiler::ByteCompiler::new(JsString::new("<main>"), false);
+        let mut compiler = crate::bytecompiler::ByteCompiler::new(
+            JsString::new("<main>"),
+            statement_list.strict(),
+        );
         compiler.compile_statement_list(&statement_list, true);
         let code_block = compiler.finish();
 
-        let environment = self.get_current_environment().clone();
-        let fp = self.vm.stack.len();
         let global_object = self.global_object().into();
 
         self.vm.push_frame(CallFrame {
@@ -1067,11 +1068,13 @@ impl Context {
             code: Gc::new(code_block),
             this: global_object,
             pc: 0,
-            fp,
-            environment,
-            catch: None,
+            catch: Vec::new(),
+            finally_return: FinallyReturn::None,
+            finally_jump: Vec::new(),
+            pop_on_return: 0,
             pop_env_on_return: 0,
-            finally_no_jump: false,
+            param_count: 0,
+            arg_count: 0,
         });
         let result = self.run();
 

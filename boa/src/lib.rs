@@ -101,26 +101,20 @@ pub fn parse<T: AsRef<[u8]>>(src: T, strict_mode: bool) -> StdResult<StatementLi
 #[cfg(test)]
 pub(crate) fn forward<T: AsRef<[u8]>>(context: &mut Context, src: T) -> String {
     let src_bytes: &[u8] = src.as_ref();
-
-    // Setup executor
-    let expr = match parse(src_bytes, false) {
-        Ok(res) => res,
-        Err(e) => {
-            return format!(
-                "Uncaught {}",
-                context.construct_syntax_error(e.to_string()).display()
-            );
-        }
-    };
-    expr.run(context).map_or_else(
+    let result = context.eval(src_bytes).map_or_else(
         |e| format!("Uncaught {}", e.display()),
         |v| v.display().to_string(),
-    )
+    );
+
+    #[cfg(feature = "vm")]
+    context.vm.pop_frame();
+
+    result
 }
 
 /// Execute the code using an existing Context.
 /// The str is consumed and the state of the Context is changed
-/// Similar to `forward`, except the current value is returned instad of the string
+/// Similar to `forward`, except the current value is returned instead of the string
 /// If the interpreter fails parsing an error value is returned instead (error object)
 #[allow(clippy::unit_arg, clippy::drop_copy)]
 #[cfg(test)]
@@ -128,10 +122,10 @@ pub(crate) fn forward_val<T: AsRef<[u8]>>(context: &mut Context, src: T) -> JsRe
     let main_timer = BoaProfiler::global().start_event("Main", "Main");
 
     let src_bytes: &[u8] = src.as_ref();
-    // Setup executor
-    let result = parse(src_bytes, false)
-        .map_err(|e| context.construct_syntax_error(e.to_string()))
-        .and_then(|expr| expr.run(context));
+    let result = context.eval(src_bytes);
+
+    #[cfg(feature = "vm")]
+    context.vm.pop_frame();
 
     // The main_timer needs to be dropped before the BoaProfiler is.
     drop(main_timer);

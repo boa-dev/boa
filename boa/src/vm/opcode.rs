@@ -22,21 +22,21 @@ pub enum Opcode {
     ///
     /// Operands:
     ///
-    /// Stack: v1, v2 **=>** v2, v1
+    /// Stack: second, first **=>** first, second
     Swap,
 
     /// Push integer `0` on the stack.
     ///
     /// Operands:
     ///
-    /// Stack: **=>** 0
+    /// Stack: **=>** `0`
     PushZero,
 
     /// Push integer `1` on the stack.
     ///
     /// Operands:
     ///
-    /// Stack: **=>** 1
+    /// Stack: **=>** `1`
     PushOne,
 
     /// Push `i8` value on the stack.
@@ -67,7 +67,7 @@ pub enum Opcode {
     /// Stack: **=>** value
     PushRational,
 
-    /// Push `NaN` teger on the stack.
+    /// Push `NaN` integer on the stack.
     ///
     /// Operands:
     ///
@@ -118,7 +118,7 @@ pub enum Opcode {
 
     /// Push literal value on the stack.
     ///
-    /// Like strings and bigints. The index oprand is used to index into the `literals`
+    /// Like strings and bigints. The index operand is used to index into the `literals`
     /// array to get the value.
     ///
     /// Operands: index: `u32`
@@ -130,22 +130,28 @@ pub enum Opcode {
     ///
     /// Operands:
     ///
-    /// Stack: **=>** object
+    /// Stack: **=>** `{}`
     PushEmptyObject,
 
     /// Push an empty array value on the stack.
     ///
-    /// Stack: **=>** `array`
+    /// Operands:
+    ///
+    /// Stack: **=>** `[]`
     PushNewArray,
 
     /// Push a value to an array.
     ///
-    /// Stack: `array`, `value` **=>** `array`
+    /// Operands:
+    ///
+    /// Stack: array, value **=>** array
     PushValueToArray,
 
     /// Push all iterator values to an array.
     ///
-    /// Stack: `array`, `iterator`, `next_function` **=>** `array`
+    /// Operands:
+    ///
+    /// Stack: array, iterator, next_function **=>** array
     PushIteratorToArray,
 
     /// Binary `+` operator.
@@ -311,7 +317,7 @@ pub enum Opcode {
 
     /// Binary logical `&&` operator.
     ///
-    /// This is a short-circit operator, if the `lhs` value is `false`, then it jumps to `exit` address.
+    /// This is a short-circuit operator, if the `lhs` value is `false`, then it jumps to `exit` address.
     ///
     /// Operands: exit: `u32`
     ///
@@ -320,7 +326,7 @@ pub enum Opcode {
 
     /// Binary logical `||` operator.
     ///
-    /// This is a short-circit operator, if the `lhs` value is `true`, then it jumps to `exit` address.
+    /// This is a short-circuit operator, if the `lhs` value is `true`, then it jumps to `exit` address.
     ///
     /// Operands: exit: `u32`
     ///
@@ -329,7 +335,7 @@ pub enum Opcode {
 
     /// Binary `??` operator.
     ///
-    /// This is a short-circit operator, if the `lhs` value is **not** `null` or `undefined`,
+    /// This is a short-circuit operator, if the `lhs` value is **not** `null` or `undefined`,
     /// then it jumps to `exit` address.
     ///
     /// Operands: exit: `u32`
@@ -386,6 +392,13 @@ pub enum Opcode {
     /// Stack: value **=>** (value - 1)
     Dec,
 
+    /// Declare and initialize a function argument.
+    ///
+    /// Operands: name_index: `u32`
+    ///
+    /// Stack: value **=>**
+    DefInitArg,
+
     /// Declare `var` type variable.
     ///
     /// Operands: name_index: `u32`
@@ -428,6 +441,13 @@ pub enum Opcode {
     /// Stack: **=>** value
     GetName,
 
+    /// Find a binding on the environment chain and push its value. If the binding does not exist push undefined.
+    ///
+    /// Operands: name_index: `u32`
+    ///
+    /// Stack: **=>** value
+    GetNameOrUndefined,
+
     /// Find a binding on the environment chain and assign its value.
     ///
     /// Operands: name_index: `u32`
@@ -462,6 +482,13 @@ pub enum Opcode {
     /// Stack: value, object **=>**
     SetPropertyByName,
 
+    /// Defines a own property of an object by name.
+    ///
+    /// Operands: name_index: `u32`
+    ///
+    /// Stack: value, object **=>**
+    DefineOwnPropertyByName,
+
     /// Sets a property by value of an object.
     ///
     /// Like `object[key] = value`
@@ -470,6 +497,13 @@ pub enum Opcode {
     ///
     /// Stack: value, key, object **=>**
     SetPropertyByValue,
+
+    /// Defines a own property of an object by value.
+    ///
+    /// Operands:
+    ///
+    /// Stack: object, key, value **=>**
+    DefineOwnPropertyByValue,
 
     /// Sets a getter property by name of an object.
     ///
@@ -486,7 +520,7 @@ pub enum Opcode {
     ///
     /// Operands:
     ///
-    /// Stack: value, key, object **=>**
+    /// Stack: object, key, value **=>**
     SetPropertyGetterByValue,
 
     /// Sets a setter property by name of an object.
@@ -504,7 +538,7 @@ pub enum Opcode {
     ///
     /// Operands:
     ///
-    /// Stack: value, key, object **=>**
+    /// Stack: object, key, value **=>**
     SetPropertySetterByValue,
 
     /// Deletes a property by name of an object.
@@ -527,9 +561,9 @@ pub enum Opcode {
 
     /// Copy all properties of one object to another object.
     ///
-    /// Operands: number of excluded keys: `u32`
+    /// Operands: excluded_key_count: `u32`
     ///
-    /// Stack: object, rest_object, excluded_key_0 ... excluded_key_n **=>** object
+    /// Stack: source, value, excluded_key_0 ... excluded_key_n **=>** value
     CopyDataProperties,
 
     /// Unconditional jump to address.
@@ -563,27 +597,64 @@ pub enum Opcode {
     ///
     /// Operands:
     ///
-    /// Stack: `exc` **=>**
+    /// Stack: value **=>**
     Throw,
 
     /// Start of a try block.
     ///
-    /// Operands: address: `u32`
+    /// Operands: next_address: `u32`, finally_address: `u32`
+    ///
+    /// Stack: **=>**
     TryStart,
 
     /// End of a try block.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=>**
     TryEnd,
 
+    /// Start of a catch block.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=>**
+    CatchStart,
+
+    /// End of a catch block.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=>**
+    CatchEnd,
+
+    /// End of a catch block.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=>**
+    CatchEnd2,
+
     /// Start of a finally block.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=>**
     FinallyStart,
 
     /// End of a finally block.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=>**
     FinallyEnd,
 
-    /// Jump if the finally block was entered trough a break statement.
+    /// Set the address for a finally jump.
     ///
-    /// Operands: address: `u32`
-    FinallyJump,
+    /// Operands:
+    ///
+    /// Stack: **=>**
+    FinallySetJump,
 
     /// Pops value converts it to boolean and pushes it back.
     ///
@@ -596,15 +667,15 @@ pub enum Opcode {
     ///
     /// Operands:
     ///
-    /// Stack: **=>** `this`
+    /// Stack: **=>** this
     This,
 
     /// Pop the two values of the stack, strict equal compares the two values,
-    /// if true jumps to address, otherwise push the second poped value.
+    /// if true jumps to address, otherwise push the second pop'ed value.
     ///
     /// Operands: address: `u32`
     ///
-    /// Stack: `value`, `cond` **=>** `cond` (if `cond !== value`).
+    /// Stack: value, cond **=>** cond (if `cond !== value`).
     Case,
 
     /// Pops the top of stack and jump to address.
@@ -614,95 +685,168 @@ pub enum Opcode {
     /// Stack: `value` **=>**
     Default,
 
-    /// Get function from the precompiled inner functions.
+    /// Get function from the pre-compiled inner functions.
     ///
     /// Operands: address: `u32`
     ///
-    /// Stack: **=>** `func`
+    /// Stack: **=>** func
     GetFunction,
 
     /// Call a function.
     ///
-    /// Operands: argc: `u32`
+    /// Operands: argument_count: `u32`
     ///
-    /// Stack: `func`, `this`, `arg1`, `arg2`,...`argn` **=>**
+    /// Stack: func, this, argument_1, ... argument_n **=>** result
     Call,
 
     /// Call a function where the last argument is a rest parameter.
     ///
-    /// Operands: argc: `u32`
+    /// Operands: argument_count: `u32`
     ///
-    /// Stack: `func`, `this`, `arg1`, `arg2`,...`argn` **=>**
+    /// Stack: func, this, argument_1, ... argument_n **=>** result
     CallWithRest,
 
     /// Call construct on a function.
     ///
-    /// Operands: argc: `u32`
+    /// Operands: argument_count: `u32`
     ///
-    /// Stack: `func`, `arg1`, `arg2`,...`argn` **=>**
+    /// Stack: func, argument_1, ... argument_n **=>** result
     New,
 
     /// Call construct on a function where the last argument is a rest parameter.
     ///
-    /// Operands: argc: `u32`
+    /// Operands: argument_count: `u32`
     ///
-    /// Stack: `func`, `arg1`, `arg2`,...`argn` **=>**
+    /// Stack: func, argument_1, ... argument_n **=>** result
     NewWithRest,
 
     /// Return from a function.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=>**
     Return,
 
     /// Push a declarative environment.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=>**
     PushDeclarativeEnvironment,
 
+    /// Push a function environment.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=>**
+    PushFunctionEnvironment,
+
     /// Pop the current environment.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=>**
     PopEnvironment,
 
     /// Initialize the iterator for a for..in loop or jump to after the loop if object is null or undefined.
     ///
     /// Operands: address: `u32`
     ///
-    /// Stack: `object` **=>** `for_in_iterator`, `next_function`
+    /// Stack: object **=>** iterator, next_function
     ForInLoopInitIterator,
 
     /// Initialize an iterator.
     ///
-    /// Stack: `object` **=>** `iterator`, `next_function`
+    /// Operands:
+    ///
+    /// Stack: object **=>** iterator, next_function
     InitIterator,
 
     /// Advance the iterator by one and put the value on the stack.
     ///
-    /// Stack: `iterator`, `next_function` **=>** `for_of_iterator`, `next_function`, `next_value`
+    /// Operands:
+    ///
+    /// Stack: iterator, next_function **=>** iterator, next_function, next_value
     IteratorNext,
+
+    /// Advance the iterator by one and put done and value on the stack.
+    ///
+    /// Operands:
+    ///
+    /// Stack: iterator, next_function **=>** iterator, next_function, next_done, next_value
+    IteratorNextFull,
+
+    /// Close an iterator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: iterator, next_function, done **=>**
+    IteratorClose,
 
     /// Consume the iterator and construct and array with all the values.
     ///
-    /// Stack: `iterator`, `next_function` **=>** `for_of_iterator`, `next_function`, `array`
+    /// Operands:
+    ///
+    /// Stack: iterator, next_function **=>** iterator, next_function, array
     IteratorToArray,
 
     /// Move to the next value in a for..in loop or jump to exit of the loop if done.
     ///
+    /// Note: next_result is only pushed if the iterator is not done.
+    ///
     /// Operands: address: `u32`
     ///
-    /// Stack: `for_in_iterator`, `next_function` **=>** `for_in_iterator`, `next_function`, `next_result` (if not done)
+    /// Stack: iterator, next_function **=>** iterator, next_function, next_result
     ForInLoopNext,
 
     /// Concat multiple stack objects into a string.
     ///
-    /// Operands: number of stack objects: `u32`
+    /// Operands: value_count: `u32`
     ///
-    /// Stack: `value1`,...`valuen` **=>** `string`
+    /// Stack: value_1,...value_n **=>** string
     ConcatToString,
 
     /// Call RequireObjectCoercible on the stack value.
     ///
-    /// Stack: `value` **=>** `value`
+    /// Operands:
+    ///
+    /// Stack: value **=>** value
     RequireObjectCoercible,
 
     /// Require the stack value to be neither null nor undefined.
     ///
-    /// Stack: `value` **=>** `value`
+    /// Operands:
+    ///
+    /// Stack: value **=>** value
     ValueNotNullOrUndefined,
+
+    /// Initialize the rest parameter value of a function from the remaining arguments.
+    ///
+    /// Operands:
+    ///
+    /// Stack: `argument_1` .. `argument_n` **=>** `array`
+    RestParameterInit,
+
+    /// Pop the remaining arguments of a function.
+    ///
+    /// Operands:
+    ///
+    /// Stack: `argument_1` .. `argument_n` **=>**
+    RestParameterPop,
+
+    /// Add one to the pop on return count.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=>**
+    PopOnReturnAdd,
+
+    /// Subtract one from the pop on return count.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=>**
+    PopOnReturnSub,
 
     /// No-operation instruction, does nothing.
     ///
@@ -780,17 +924,21 @@ impl Opcode {
             Opcode::Neg => "Neg",
             Opcode::Inc => "Inc",
             Opcode::Dec => "Dec",
+            Opcode::DefInitArg => "DefInitArg",
             Opcode::DefVar => "DefVar",
             Opcode::DefInitVar => "DefInitVar",
             Opcode::DefLet => "DefLet",
             Opcode::DefInitLet => "DefInitLet",
             Opcode::DefInitConst => "DefInitConst",
             Opcode::GetName => "GetName",
+            Opcode::GetNameOrUndefined => "GetNameOrUndefined",
             Opcode::SetName => "SetName",
             Opcode::GetPropertyByName => "GetPropertyByName",
             Opcode::GetPropertyByValue => "GetPropertyByValue",
             Opcode::SetPropertyByName => "SetPropertyByName",
+            Opcode::DefineOwnPropertyByName => "DefineOwnPropertyByName",
             Opcode::SetPropertyByValue => "SetPropertyByValue",
+            Opcode::DefineOwnPropertyByValue => "DefineOwnPropertyByValue",
             Opcode::SetPropertyGetterByName => "SetPropertyGetterByName",
             Opcode::SetPropertyGetterByValue => "SetPropertyGetterByValue",
             Opcode::SetPropertySetterByName => "SetPropertySetterByName",
@@ -804,9 +952,12 @@ impl Opcode {
             Opcode::Throw => "Throw",
             Opcode::TryStart => "TryStart",
             Opcode::TryEnd => "TryEnd",
+            Opcode::CatchStart => "CatchStart",
+            Opcode::CatchEnd => "CatchEnd",
+            Opcode::CatchEnd2 => "CatchEnd2",
             Opcode::FinallyStart => "FinallyStart",
             Opcode::FinallyEnd => "FinallyEnd",
-            Opcode::FinallyJump => "FinallyJump",
+            Opcode::FinallySetJump => "FinallySetJump",
             Opcode::ToBoolean => "ToBoolean",
             Opcode::This => "This",
             Opcode::Case => "Case",
@@ -818,15 +969,22 @@ impl Opcode {
             Opcode::NewWithRest => "NewWithRest",
             Opcode::Return => "Return",
             Opcode::PushDeclarativeEnvironment => "PushDeclarativeEnvironment",
+            Opcode::PushFunctionEnvironment => "PushFunctionEnvironment",
             Opcode::PopEnvironment => "PopEnvironment",
             Opcode::ForInLoopInitIterator => "ForInLoopInitIterator",
             Opcode::InitIterator => "InitIterator",
             Opcode::IteratorNext => "IteratorNext",
+            Opcode::IteratorNextFull => "IteratorNextFull",
+            Opcode::IteratorClose => "IteratorClose",
             Opcode::IteratorToArray => "IteratorToArray",
             Opcode::ForInLoopNext => "ForInLoopNext",
             Opcode::ConcatToString => "ConcatToString",
             Opcode::RequireObjectCoercible => "RequireObjectCoercible",
             Opcode::ValueNotNullOrUndefined => "ValueNotNullOrUndefined",
+            Opcode::RestParameterInit => "FunctionRestParameter",
+            Opcode::RestParameterPop => "RestParameterPop",
+            Opcode::PopOnReturnAdd => "PopOnReturnAdd",
+            Opcode::PopOnReturnSub => "PopOnReturnSub",
             Opcode::Nop => "Nop",
         }
     }

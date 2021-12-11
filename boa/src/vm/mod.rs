@@ -3,22 +3,25 @@
 //! plus an interpreter to execute those instructions
 
 use crate::{
-    builtins::{iterable::IteratorRecord, Array, ForInIterator},
+    builtins::{iterable::IteratorRecord, Array, ForInIterator, Number},
     environment::{
         declarative_environment_record::DeclarativeEnvironmentRecord,
-        lexical_environment::VariableScope,
+        function_environment_record::{BindingStatus, FunctionEnvironmentRecord},
+        lexical_environment::{Environment, VariableScope},
     },
     property::PropertyDescriptor,
-    vm::code_block::Readable,
+    value::Numeric,
+    vm::{call_frame::CatchAddresses, code_block::Readable},
     BoaProfiler, Context, JsBigInt, JsResult, JsString, JsValue,
 };
-use std::{convert::TryInto, mem::size_of, time::Instant};
+use std::{convert::TryInto, mem::size_of, ops::Neg, time::Instant};
 
 mod call_frame;
 mod code_block;
 mod opcode;
 
 pub use call_frame::CallFrame;
+pub(crate) use call_frame::FinallyReturn;
 pub use code_block::{CodeBlock, JsVmFunction};
 pub use opcode::Opcode;
 
@@ -166,10 +169,10 @@ impl Context {
             }
             Opcode::PushIteratorToArray => {
                 let next_function = self.vm.pop();
-                let for_in_iterator = self.vm.pop();
+                let iterator = self.vm.pop();
                 let array = self.vm.pop();
 
-                let iterator = IteratorRecord::new(for_in_iterator, next_function);
+                let iterator = IteratorRecord::new(iterator, next_function);
                 loop {
                     let next = iterator.next(self)?;
 
@@ -255,14 +258,17 @@ impl Context {
                 self.vm.push(value);
             }
             Opcode::Neg => {
-                let value = self.vm.pop().neg(self)?;
-                self.vm.push(value);
+                let value = self.vm.pop();
+                match value.to_numeric(self)? {
+                    Numeric::Number(number) => self.vm.push(number.neg()),
+                    Numeric::BigInt(bigint) => self.vm.push(JsBigInt::neg(&bigint)),
+                }
             }
             Opcode::Inc => {
                 let value = self.vm.pop();
                 match value.to_numeric(self)? {
-                    crate::value::Numeric::Number(number) => self.vm.push(number + 1f64),
-                    crate::value::Numeric::BigInt(bigint) => {
+                    Numeric::Number(number) => self.vm.push(number + 1f64),
+                    Numeric::BigInt(bigint) => {
                         self.vm.push(JsBigInt::add(&bigint, &JsBigInt::one()))
                     }
                 }
@@ -270,8 +276,8 @@ impl Context {
             Opcode::Dec => {
                 let value = self.vm.pop();
                 match value.to_numeric(self)? {
-                    crate::value::Numeric::Number(number) => self.vm.push(number - 1f64),
-                    crate::value::Numeric::BigInt(bigint) => {
+                    Numeric::Number(number) => self.vm.push(number - 1f64),
+                    Numeric::BigInt(bigint) => {
                         self.vm.push(JsBigInt::sub(&bigint, &JsBigInt::one()))
                     }
                 }
@@ -281,15 +287,21 @@ impl Context {
                 self.vm.push(!value.to_boolean());
             }
             Opcode::BitNot => {
-                let target = self.vm.pop();
-                let num = target.to_number(self)?;
-                let value = if num.is_nan() {
-                    -1
-                } else {
-                    // TODO: this is not spec compliant.
-                    !(num as i32)
-                };
-                self.vm.push(value);
+                let value = self.vm.pop();
+                match value.to_numeric(self)? {
+                    Numeric::Number(number) => self.vm.push(Number::not(number)),
+                    Numeric::BigInt(bigint) => self.vm.push(JsBigInt::not(&bigint)),
+                }
+            }
+            Opcode::DefInitArg => {
+                let index = self.vm.read::<u32>();
+                let name = self.vm.frame().code.variables[index as usize].clone();
+                let value = self.vm.pop();
+                let local_env = self.get_current_environment();
+                local_env
+                    .create_mutable_binding(name.as_ref(), false, true, self)
+                    .expect("Failed to create argument binding");
+                self.initialize_binding(name.as_ref(), value)?;
             }
             Opcode::DefVar => {
                 let index = self.vm.read::<u32>();
@@ -342,18 +354,27 @@ impl Context {
                 let value = self.get_binding_value(&name)?;
                 self.vm.push(value);
             }
+            Opcode::GetNameOrUndefined => {
+                let index = self.vm.read::<u32>();
+                let name = self.vm.frame().code.variables[index as usize].clone();
+
+                let value = if self.has_binding(&name)? {
+                    self.get_binding_value(&name)?
+                } else {
+                    JsValue::Undefined
+                };
+                self.vm.push(value)
+            }
             Opcode::SetName => {
                 let index = self.vm.read::<u32>();
                 let value = self.vm.pop();
                 let name = self.vm.frame().code.variables[index as usize].clone();
 
-                if self.has_binding(name.as_ref())? {
-                    // Binding already exists
-                    self.set_mutable_binding(name.as_ref(), value, self.strict())?;
-                } else {
-                    self.create_mutable_binding(name.as_ref(), true, VariableScope::Function)?;
-                    self.initialize_binding(name.as_ref(), value)?;
-                }
+                self.set_mutable_binding(
+                    name.as_ref(),
+                    value,
+                    self.strict() || self.vm.frame().code.strict,
+                )?;
             }
             Opcode::Jump => {
                 let address = self.vm.read::<u32>();
@@ -370,15 +391,15 @@ impl Context {
                 let value = self.vm.pop();
                 if !value.is_undefined() {
                     self.vm.frame_mut().pc = address as usize;
+                    self.vm.push(value)
                 }
-                self.vm.push(value);
             }
             Opcode::LogicalAnd => {
                 let exit = self.vm.read::<u32>();
                 let lhs = self.vm.pop();
                 if !lhs.to_boolean() {
                     self.vm.frame_mut().pc = exit as usize;
-                    self.vm.push(false);
+                    self.vm.push(lhs);
                 }
             }
             Opcode::LogicalOr => {
@@ -386,7 +407,7 @@ impl Context {
                 let lhs = self.vm.pop();
                 if lhs.to_boolean() {
                     self.vm.frame_mut().pc = exit as usize;
-                    self.vm.push(true);
+                    self.vm.push(lhs);
                 }
             }
             Opcode::Coalesce => {
@@ -417,18 +438,18 @@ impl Context {
                 self.vm.push(result)
             }
             Opcode::GetPropertyByValue => {
-                let value = self.vm.pop();
+                let object = self.vm.pop();
                 let key = self.vm.pop();
-                let object = if let Some(object) = value.as_object() {
+                let object = if let Some(object) = object.as_object() {
                     object.clone()
                 } else {
-                    value.to_object(self)?
+                    object.to_object(self)?
                 };
 
                 let key = key.to_property_key(self)?;
-                let result = object.get(key, self)?;
+                let value = object.get(key, self)?;
 
-                self.vm.push(result)
+                self.vm.push(value)
             }
             Opcode::SetPropertyByName => {
                 let index = self.vm.read::<u32>();
@@ -443,7 +464,36 @@ impl Context {
 
                 let name = self.vm.frame().code.variables[index as usize].clone();
 
-                object.set(name, value, true, self)?;
+                object.set(
+                    name,
+                    value,
+                    self.strict() || self.vm.frame().code.strict,
+                    self,
+                )?;
+            }
+            Opcode::DefineOwnPropertyByName => {
+                let index = self.vm.read::<u32>();
+
+                let object = self.vm.pop();
+                let value = self.vm.pop();
+                let object = if let Some(object) = object.as_object() {
+                    object.clone()
+                } else {
+                    object.to_object(self)?
+                };
+
+                let name = self.vm.frame().code.variables[index as usize].clone();
+
+                object.__define_own_property__(
+                    name.into(),
+                    PropertyDescriptor::builder()
+                        .value(value)
+                        .writable(true)
+                        .enumerable(true)
+                        .configurable(true)
+                        .build(),
+                    self,
+                )?;
             }
             Opcode::SetPropertyByValue => {
                 let object = self.vm.pop();
@@ -456,7 +506,35 @@ impl Context {
                 };
 
                 let key = key.to_property_key(self)?;
-                object.set(key, value, true, self)?;
+                object.set(
+                    key,
+                    value,
+                    self.strict() || self.vm.frame().code.strict,
+                    self,
+                )?;
+            }
+            Opcode::DefineOwnPropertyByValue => {
+                let value = self.vm.pop();
+                let key = self.vm.pop();
+                let object = self.vm.pop();
+                let object = if let Some(object) = object.as_object() {
+                    object.clone()
+                } else {
+                    object.to_object(self)?
+                };
+
+                let key = key.to_property_key(self)?;
+
+                object.__define_own_property__(
+                    key,
+                    PropertyDescriptor::builder()
+                        .value(value)
+                        .writable(true)
+                        .enumerable(true)
+                        .configurable(true)
+                        .build(),
+                    self,
+                )?;
             }
             Opcode::SetPropertyGetterByName => {
                 let index = self.vm.read::<u32>();
@@ -484,9 +562,9 @@ impl Context {
                 )?;
             }
             Opcode::SetPropertyGetterByValue => {
-                let object = self.vm.pop();
-                let key = self.vm.pop();
                 let value = self.vm.pop();
+                let key = self.vm.pop();
+                let object = self.vm.pop();
                 let object = object.to_object(self)?;
                 let name = key.to_property_key(self)?;
                 let set = object
@@ -530,9 +608,9 @@ impl Context {
                 )?;
             }
             Opcode::SetPropertySetterByValue => {
-                let object = self.vm.pop();
-                let key = self.vm.pop();
                 let value = self.vm.pop();
+                let key = self.vm.pop();
+                let object = self.vm.pop();
                 let object = object.to_object(self)?;
                 let name = key.to_property_key(self)?;
                 let get = object
@@ -556,6 +634,9 @@ impl Context {
                 let key = self.vm.frame().code.variables[index as usize].clone();
                 let object = self.vm.pop();
                 let result = object.to_object(self)?.__delete__(&key.into(), self)?;
+                if !result && self.strict() || self.vm.frame().code.strict {
+                    return Err(self.construct_type_error("Cannot delete property"));
+                }
                 self.vm.push(result);
             }
             Opcode::DeletePropertyByValue => {
@@ -564,6 +645,9 @@ impl Context {
                 let result = object
                     .to_object(self)?
                     .__delete__(&key.to_property_key(self)?, self)?;
+                if !result && self.strict() || self.vm.frame().code.strict {
+                    return Err(self.construct_type_error("Cannot delete property"));
+                }
                 self.vm.push(result);
             }
             Opcode::CopyDataProperties => {
@@ -574,8 +658,8 @@ impl Context {
                 }
                 let value = self.vm.pop();
                 let object = value.as_object().unwrap();
-                let rest_obj = self.vm.pop();
-                object.copy_data_properties(&rest_obj, excluded_keys, self)?;
+                let source = self.vm.pop();
+                object.copy_data_properties(&source, excluded_keys, self)?;
                 self.vm.push(value);
             }
             Opcode::Throw => {
@@ -583,27 +667,77 @@ impl Context {
                 return Err(value);
             }
             Opcode::TryStart => {
-                let index = self.vm.read::<u32>();
-                self.vm.frame_mut().catch = Some(index);
-                self.vm.frame_mut().finally_no_jump = false;
+                let next = self.vm.read::<u32>();
+                let finally = self.vm.read::<u32>();
+                let finally = if finally != 0 { Some(finally) } else { None };
+                self.vm
+                    .frame_mut()
+                    .catch
+                    .push(CatchAddresses { next, finally });
+                self.vm.frame_mut().finally_jump.push(None);
+                self.vm.frame_mut().finally_return = FinallyReturn::None;
             }
             Opcode::TryEnd => {
-                self.vm.frame_mut().catch = None;
+                self.vm.frame_mut().catch.pop();
+                self.vm.frame_mut().finally_return = FinallyReturn::None;
+            }
+            Opcode::CatchStart => {
+                let finally = self.vm.read::<u32>();
+                self.vm.frame_mut().catch.push(CatchAddresses {
+                    next: finally,
+                    finally: Some(finally),
+                });
+            }
+            Opcode::CatchEnd => {
+                self.vm.frame_mut().catch.pop();
+                self.vm.frame_mut().finally_return = FinallyReturn::None;
+            }
+            Opcode::CatchEnd2 => {
+                self.vm.frame_mut().finally_return = FinallyReturn::None;
             }
             Opcode::FinallyStart => {
-                self.vm.frame_mut().finally_no_jump = true;
+                *self
+                    .vm
+                    .frame_mut()
+                    .finally_jump
+                    .last_mut()
+                    .expect("finally jump must exist here") = None;
             }
             Opcode::FinallyEnd => {
-                if let Some(value) = self.vm.stack.pop() {
-                    return Err(value);
+                let address = self
+                    .vm
+                    .frame_mut()
+                    .finally_jump
+                    .pop()
+                    .expect("finally jump must exist here");
+                match self.vm.frame_mut().finally_return {
+                    FinallyReturn::None => {
+                        if let Some(address) = address {
+                            self.vm.frame_mut().pc = address as usize;
+                        }
+                    }
+                    FinallyReturn::Ok => {
+                        for _ in 0..self.vm.frame().pop_env_on_return {
+                            self.pop_environment();
+                        }
+                        self.vm.frame_mut().pop_env_on_return = 0;
+                        let _ = self.vm.pop_frame();
+                        return Ok(true);
+                    }
+                    FinallyReturn::Err => {
+                        self.vm.frame_mut().finally_return = FinallyReturn::None;
+                        return Err(self.vm.pop());
+                    }
                 }
             }
-            Opcode::FinallyJump => {
+            Opcode::FinallySetJump => {
                 let address = self.vm.read::<u32>();
-                if !self.vm.frame().finally_no_jump {
-                    self.vm.frame_mut().pc = address as usize;
-                }
-                self.vm.frame_mut().finally_no_jump = false;
+                *self
+                    .vm
+                    .frame_mut()
+                    .finally_jump
+                    .last_mut()
+                    .expect("finally jump must exist here") = Some(address);
             }
             Opcode::This => {
                 let this = self.get_this_binding()?;
@@ -628,7 +762,7 @@ impl Context {
             Opcode::GetFunction => {
                 let index = self.vm.read::<u32>();
                 let code = self.vm.frame().code.functions[index as usize].clone();
-                let environment = self.vm.frame().environment.clone();
+                let environment = self.get_current_environment();
                 let function = JsVmFunction::new(code, environment, self);
                 self.vm.push(function);
             }
@@ -636,21 +770,26 @@ impl Context {
                 if self.vm.stack_size_limit <= self.vm.stack.len() {
                     return self.throw_range_error("Maximum call stack size exceeded");
                 }
-                let argc = self.vm.read::<u32>();
-                let mut args = Vec::with_capacity(argc as usize);
-                for _ in 0..argc {
-                    args.push(self.vm.pop());
+                let argument_count = self.vm.read::<u32>();
+                let mut arguments = Vec::with_capacity(argument_count as usize);
+                for _ in 0..argument_count {
+                    arguments.push(self.vm.pop());
                 }
+                arguments.reverse();
 
                 let func = self.vm.pop();
-                let this = self.vm.pop();
+                let mut this = self.vm.pop();
 
                 let object = match func {
                     JsValue::Object(ref object) if object.is_callable() => object.clone(),
                     _ => return self.throw_type_error("not a callable function"),
                 };
 
-                let result = object.__call__(&this, &args, self)?;
+                if this.is_null_or_undefined() {
+                    this = self.global_object().into();
+                }
+
+                let result = object.__call__(&this, &arguments, self)?;
 
                 self.vm.push(result);
             }
@@ -658,32 +797,37 @@ impl Context {
                 if self.vm.stack_size_limit <= self.vm.stack.len() {
                     return self.throw_range_error("Maximum call stack size exceeded");
                 }
-                let argc = self.vm.read::<u32>();
-                let mut args = Vec::with_capacity(argc as usize);
-                for _ in 0..(argc - 1) {
-                    args.push(self.vm.pop());
+                let argument_count = self.vm.read::<u32>();
+                let rest_argument = self.vm.pop();
+                let mut arguments = Vec::with_capacity(argument_count as usize);
+                for _ in 0..(argument_count - 1) {
+                    arguments.push(self.vm.pop());
                 }
-                let rest_arg_value = self.vm.pop();
+                arguments.reverse();
                 let func = self.vm.pop();
-                let this = self.vm.pop();
+                let mut this = self.vm.pop();
 
-                let iterator_record = rest_arg_value.get_iterator(self, None, None)?;
-                let mut rest_args = Vec::new();
+                let iterator_record = rest_argument.get_iterator(self, None, None)?;
+                let mut rest_arguments = Vec::new();
                 loop {
                     let next = iterator_record.next(self)?;
                     if next.done {
                         break;
                     }
-                    rest_args.push(next.value);
+                    rest_arguments.push(next.value);
                 }
-                args.append(&mut rest_args);
+                arguments.append(&mut rest_arguments);
 
                 let object = match func {
                     JsValue::Object(ref object) if object.is_callable() => object.clone(),
                     _ => return self.throw_type_error("not a callable function"),
                 };
 
-                let result = object.__call__(&this, &args, self)?;
+                if this.is_null_or_undefined() {
+                    this = self.global_object().into();
+                }
+
+                let result = object.__call__(&this, &arguments, self)?;
 
                 self.vm.push(result);
             }
@@ -691,17 +835,18 @@ impl Context {
                 if self.vm.stack_size_limit <= self.vm.stack.len() {
                     return self.throw_range_error("Maximum call stack size exceeded");
                 }
-                let argc = self.vm.read::<u32>();
-                let mut args = Vec::with_capacity(argc as usize);
-                for _ in 0..argc {
-                    args.push(self.vm.pop());
+                let argument_count = self.vm.read::<u32>();
+                let mut arguments = Vec::with_capacity(argument_count as usize);
+                for _ in 0..argument_count {
+                    arguments.push(self.vm.pop());
                 }
+                arguments.reverse();
                 let func = self.vm.pop();
 
                 let result = func
                     .as_constructor()
                     .ok_or_else(|| self.construct_type_error("not a constructor"))
-                    .and_then(|cons| cons.__construct__(&args, &cons.clone().into(), self))?;
+                    .and_then(|cons| cons.__construct__(&arguments, &cons.clone().into(), self))?;
 
                 self.vm.push(result);
             }
@@ -709,44 +854,82 @@ impl Context {
                 if self.vm.stack_size_limit <= self.vm.stack.len() {
                     return self.throw_range_error("Maximum call stack size exceeded");
                 }
-                let argc = self.vm.read::<u32>();
-                let mut args = Vec::with_capacity(argc as usize);
-                for _ in 0..(argc - 1) {
-                    args.push(self.vm.pop());
+                let argument_count = self.vm.read::<u32>();
+                let rest_argument = self.vm.pop();
+                let mut arguments = Vec::with_capacity(argument_count as usize);
+                for _ in 0..(argument_count - 1) {
+                    arguments.push(self.vm.pop());
                 }
-                let rest_arg_value = self.vm.pop();
+                arguments.reverse();
                 let func = self.vm.pop();
 
-                let iterator_record = rest_arg_value.get_iterator(self, None, None)?;
-                let mut rest_args = Vec::new();
+                let iterator_record = rest_argument.get_iterator(self, None, None)?;
+                let mut rest_arguments = Vec::new();
                 loop {
                     let next = iterator_record.next(self)?;
                     if next.done {
                         break;
                     }
-                    rest_args.push(next.value);
+                    rest_arguments.push(next.value);
                 }
-                args.append(&mut rest_args);
+                arguments.append(&mut rest_arguments);
 
                 let result = func
                     .as_constructor()
                     .ok_or_else(|| self.construct_type_error("not a constructor"))
-                    .and_then(|cons| cons.__construct__(&args, &cons.clone().into(), self))?;
+                    .and_then(|cons| cons.__construct__(&arguments, &cons.clone().into(), self))?;
 
                 self.vm.push(result);
             }
             Opcode::Return => {
-                for _ in 0..self.vm.frame().pop_env_on_return {
-                    self.pop_environment();
+                if let Some(finally_address) = self.vm.frame().catch.last().and_then(|c| c.finally)
+                {
+                    let frame = self.vm.frame_mut();
+                    frame.pc = finally_address as usize;
+                    frame.finally_return = FinallyReturn::Ok;
+                    frame.catch.pop();
+                } else {
+                    for _ in 0..self.vm.frame().pop_env_on_return {
+                        self.pop_environment();
+                    }
+                    self.vm.frame_mut().pop_env_on_return = 0;
+                    let _ = self.vm.pop_frame();
+                    return Ok(true);
                 }
-                self.vm.frame_mut().pop_env_on_return = 0;
-                let _ = self.vm.pop_frame();
-                return Ok(true);
             }
             Opcode::PushDeclarativeEnvironment => {
                 let env = self.get_current_environment();
                 self.push_environment(DeclarativeEnvironmentRecord::new(Some(env)));
                 self.vm.frame_mut().pop_env_on_return += 1;
+            }
+            Opcode::PushFunctionEnvironment => {
+                let is_constructor = self.vm.frame().code.constructor;
+                let is_lexical = self.vm.frame().code.this_mode.is_lexical();
+                let current_env = self.get_current_environment();
+                let this = &self.vm.frame().this;
+
+                let new_env = FunctionEnvironmentRecord::new(
+                    this.clone()
+                        .as_object()
+                        .expect("this must always be an object")
+                        .clone(),
+                    if is_constructor || !is_lexical {
+                        Some(this.clone())
+                    } else {
+                        None
+                    },
+                    Some(current_env),
+                    if is_lexical {
+                        BindingStatus::Lexical
+                    } else {
+                        BindingStatus::Uninitialized
+                    },
+                    JsValue::undefined(),
+                    self,
+                )?;
+
+                let new_env: Environment = new_env.into();
+                self.push_environment(new_env);
             }
             Opcode::PopEnvironment => {
                 let _ = self.pop_environment();
@@ -761,50 +944,67 @@ impl Context {
                 }
 
                 let object = object.to_object(self)?;
-                let for_in_iterator =
-                    ForInIterator::create_for_in_iterator(JsValue::new(object), self);
-                let next_function = for_in_iterator
+                let iterator = ForInIterator::create_for_in_iterator(JsValue::new(object), self);
+                let next_function = iterator
                     .get_property("next")
                     .as_ref()
                     .map(|p| p.expect_value())
                     .cloned()
                     .ok_or_else(|| self.construct_type_error("Could not find property `next`"))?;
 
-                self.vm.push(for_in_iterator);
+                self.vm.push(iterator);
                 self.vm.push(next_function);
             }
             Opcode::InitIterator => {
-                let iterable = self.vm.pop();
-                let iterator = iterable.get_iterator(self, None, None)?;
-
+                let object = self.vm.pop();
+                let iterator = object.get_iterator(self, None, None)?;
                 self.vm.push(iterator.iterator_object());
                 self.vm.push(iterator.next_function());
             }
             Opcode::IteratorNext => {
                 let next_function = self.vm.pop();
-                let for_in_iterator = self.vm.pop();
+                let iterator = self.vm.pop();
 
-                let iterator = IteratorRecord::new(for_in_iterator.clone(), next_function.clone());
-                let iterator_result = iterator.next(self)?;
+                let iterator_record = IteratorRecord::new(iterator.clone(), next_function.clone());
+                let iterator_result = iterator_record.next(self)?;
 
-                self.vm.push(for_in_iterator);
+                self.vm.push(iterator);
                 self.vm.push(next_function);
                 self.vm.push(iterator_result.value);
             }
+            Opcode::IteratorNextFull => {
+                let next_function = self.vm.pop();
+                let iterator = self.vm.pop();
+
+                let iterator_record = IteratorRecord::new(iterator.clone(), next_function.clone());
+                let iterator_result = iterator_record.next(self)?;
+
+                self.vm.push(iterator);
+                self.vm.push(next_function);
+                self.vm.push(iterator_result.done);
+                self.vm.push(iterator_result.value);
+            }
+            Opcode::IteratorClose => {
+                let done = self.vm.pop();
+                let next_function = self.vm.pop();
+                let iterator = self.vm.pop();
+                if !done.as_boolean().unwrap() {
+                    let iterator_record = IteratorRecord::new(iterator, next_function);
+                    iterator_record.close(Ok(JsValue::Null), self)?;
+                }
+            }
             Opcode::IteratorToArray => {
                 let next_function = self.vm.pop();
-                let for_in_iterator = self.vm.pop();
+                let iterator = self.vm.pop();
 
-                let iterator = IteratorRecord::new(for_in_iterator.clone(), next_function.clone());
+                let iterator_record = IteratorRecord::new(iterator.clone(), next_function.clone());
                 let mut values = Vec::new();
 
                 loop {
-                    let next = iterator.next(self)?;
-
+                    let next = iterator_record.next(self)?;
                     if next.done {
                         break;
                     }
-
                     values.push(next.value);
                 }
 
@@ -813,7 +1013,7 @@ impl Context {
 
                 Array::add_to_array_object(&array.clone().into(), &values, self)?;
 
-                self.vm.push(for_in_iterator);
+                self.vm.push(iterator);
                 self.vm.push(next_function);
                 self.vm.push(array);
             }
@@ -821,29 +1021,32 @@ impl Context {
                 let address = self.vm.read::<u32>();
 
                 let next_function = self.vm.pop();
-                let for_in_iterator = self.vm.pop();
+                let iterator = self.vm.pop();
 
-                let iterator = IteratorRecord::new(for_in_iterator.clone(), next_function.clone());
-                let iterator_result = iterator.next(self)?;
+                let iterator_record = IteratorRecord::new(iterator.clone(), next_function.clone());
+                let iterator_result = iterator_record.next(self)?;
                 if iterator_result.done {
                     self.vm.frame_mut().pc = address as usize;
                     self.vm.frame_mut().pop_env_on_return -= 1;
                     self.pop_environment();
+                    self.vm.push(iterator);
+                    self.vm.push(next_function);
                 } else {
-                    self.vm.push(for_in_iterator);
+                    self.vm.push(iterator);
                     self.vm.push(next_function);
                     self.vm.push(iterator_result.value);
                 }
             }
             Opcode::ConcatToString => {
-                let n = self.vm.read::<u32>();
-                let mut s = JsString::new("");
-
-                for _ in 0..n {
-                    let obj = self.vm.pop();
-                    s = JsString::concat(s, obj.to_string(self)?);
+                let value_count = self.vm.read::<u32>();
+                let mut strings = Vec::with_capacity(value_count as usize);
+                for _ in 0..value_count {
+                    strings.push(self.vm.pop().to_string(self)?);
                 }
-
+                strings.reverse();
+                let s = JsString::concat_array(
+                    &strings.iter().map(|s| s.as_str()).collect::<Vec<&str>>(),
+                );
                 self.vm.push(s);
             }
             Opcode::RequireObjectCoercible => {
@@ -860,6 +1063,39 @@ impl Context {
                     return self.throw_type_error("Cannot destructure 'undefined' value");
                 }
                 self.vm.push(value);
+            }
+            Opcode::RestParameterInit => {
+                let arg_count = self.vm.frame().arg_count;
+                let param_count = self.vm.frame().param_count;
+                if arg_count >= param_count {
+                    let rest_count = arg_count - param_count + 1;
+                    let mut args = Vec::with_capacity(rest_count);
+                    for _ in 0..rest_count {
+                        args.push(self.vm.pop());
+                    }
+                    let array = Array::new_array(self);
+                    Array::add_to_array_object(&array, &args, self).unwrap();
+                    self.vm.push(array);
+                } else {
+                    self.vm.pop();
+                    let array = Array::new_array(self);
+                    self.vm.push(array);
+                }
+            }
+            Opcode::RestParameterPop => {
+                let arg_count = self.vm.frame().arg_count;
+                let param_count = self.vm.frame().param_count;
+                if arg_count > param_count {
+                    for _ in 0..(arg_count - param_count) {
+                        self.vm.pop();
+                    }
+                }
+            }
+            Opcode::PopOnReturnAdd => {
+                self.vm.frame_mut().pop_on_return += 1;
+            }
+            Opcode::PopOnReturnSub => {
+                self.vm.frame_mut().pop_on_return -= 1;
             }
         }
 
@@ -945,13 +1181,18 @@ impl Context {
                     }
                 }
                 Err(e) => {
-                    if let Some(address) = self.vm.frame().catch {
+                    if let Some(address) = self.vm.frame().catch.last() {
+                        let address = address.next;
                         if self.vm.frame().pop_env_on_return > 0 {
                             self.pop_environment();
                             self.vm.frame_mut().pop_env_on_return -= 1;
                         }
+                        for _ in 0..self.vm.frame().pop_on_return {
+                            self.vm.pop();
+                        }
                         self.vm.frame_mut().pc = address as usize;
-                        self.vm.frame_mut().catch = None;
+                        self.vm.frame_mut().catch.pop();
+                        self.vm.frame_mut().finally_return = FinallyReturn::Err;
                         self.vm.push(e);
                     } else {
                         for _ in 0..self.vm.frame().pop_env_on_return {

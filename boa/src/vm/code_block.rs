@@ -16,14 +16,11 @@ use crate::{
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::PropertyDescriptor,
     syntax::ast::node::FormalParameter,
-    vm::Opcode,
+    vm::{call_frame::FinallyReturn, CallFrame, Opcode},
     Context, JsResult, JsString, JsValue,
 };
 use gc::Gc;
-
 use std::{convert::TryInto, fmt::Write, mem::size_of};
-
-use super::CallFrame;
 
 /// This represents whether a value can be read from [`CodeBlock`] code.
 pub unsafe trait Readable {}
@@ -103,7 +100,7 @@ impl CodeBlock {
     ///
     /// Does not check if read happens out-of-bounds.
     pub unsafe fn read_unchecked<T: Readable>(&self, offset: usize) -> T {
-        // This has to be an unaligned read because we can't gurantee that
+        // This has to be an unaligned read because we can't guarantee that
         // the types are aligned.
         self.code.as_ptr().add(offset).cast::<T>().read_unaligned()
     }
@@ -150,8 +147,8 @@ impl CodeBlock {
             | Opcode::Jump
             | Opcode::JumpIfFalse
             | Opcode::JumpIfNotUndefined
-            | Opcode::FinallyJump
-            | Opcode::TryStart
+            | Opcode::CatchStart
+            | Opcode::FinallySetJump
             | Opcode::Case
             | Opcode::Default
             | Opcode::LogicalAnd
@@ -167,6 +164,13 @@ impl CodeBlock {
                 *pc += size_of::<u32>();
                 result
             }
+            Opcode::TryStart => {
+                let operand1 = self.read::<u32>(*pc);
+                *pc += size_of::<u32>();
+                let operand2 = self.read::<u32>(*pc);
+                *pc += size_of::<u32>();
+                format!("{}, {}", operand1, operand2)
+            }
             Opcode::GetFunction => {
                 let operand = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
@@ -177,15 +181,18 @@ impl CodeBlock {
                     self.functions[operand as usize].length
                 )
             }
-            Opcode::DefVar
+            Opcode::DefInitArg
+            | Opcode::DefVar
             | Opcode::DefInitVar
             | Opcode::DefLet
             | Opcode::DefInitLet
             | Opcode::DefInitConst
             | Opcode::GetName
+            | Opcode::GetNameOrUndefined
             | Opcode::SetName
             | Opcode::GetPropertyByName
             | Opcode::SetPropertyByName
+            | Opcode::DefineOwnPropertyByName
             | Opcode::SetPropertyGetterByName
             | Opcode::SetPropertySetterByName
             | Opcode::DeletePropertyByName
@@ -240,26 +247,36 @@ impl CodeBlock {
             | Opcode::Dec
             | Opcode::GetPropertyByValue
             | Opcode::SetPropertyByValue
+            | Opcode::DefineOwnPropertyByValue
             | Opcode::SetPropertyGetterByValue
             | Opcode::SetPropertySetterByValue
             | Opcode::DeletePropertyByValue
             | Opcode::ToBoolean
             | Opcode::Throw
             | Opcode::TryEnd
+            | Opcode::CatchEnd
+            | Opcode::CatchEnd2
             | Opcode::FinallyStart
             | Opcode::FinallyEnd
             | Opcode::This
             | Opcode::Return
             | Opcode::PushDeclarativeEnvironment
+            | Opcode::PushFunctionEnvironment
             | Opcode::PopEnvironment
             | Opcode::InitIterator
             | Opcode::IteratorNext
+            | Opcode::IteratorNextFull
+            | Opcode::IteratorClose
             | Opcode::IteratorToArray
             | Opcode::RequireObjectCoercible
             | Opcode::ValueNotNullOrUndefined
+            | Opcode::RestParameterInit
+            | Opcode::RestParameterPop
             | Opcode::PushValueToArray
             | Opcode::PushIteratorToArray
             | Opcode::PushNewArray
+            | Opcode::PopOnReturnAdd
+            | Opcode::PopOnReturnSub
             | Opcode::Nop => String::new(),
         }
     }
@@ -343,9 +360,7 @@ impl std::fmt::Display for CodeBlock {
 
 #[derive(Debug)]
 #[allow(missing_copy_implementations)]
-pub struct JsVmFunction {
-    inner: (),
-}
+pub struct JsVmFunction {}
 
 impl JsVmFunction {
     #[allow(clippy::new_ret_no_self)]
@@ -512,8 +527,10 @@ impl JsObject {
                     has_parameter_expressions = has_parameter_expressions || param.init().is_some();
                     arguments_in_parameter_names =
                         arguments_in_parameter_names || param.names().contains(&"arguments");
-                    is_simple_parameter_list =
-                        is_simple_parameter_list && !param.is_rest_param() && param.init().is_none()
+                    is_simple_parameter_list = is_simple_parameter_list
+                        && !param.is_rest_param()
+                        && param.is_identifier()
+                        && param.init().is_none()
                 }
 
                 // An arguments object is added when all of the following conditions are met
@@ -543,37 +560,53 @@ impl JsObject {
                     local_env.initialize_binding("arguments", arguments_obj.into(), context)?;
                 }
 
-                // Add argument bindings to the function environment
-                for (i, param) in code.params.iter().enumerate() {
-                    // Rest Parameters
-                    if param.is_rest_param() {
-                        Function::add_rest_param(param, i, args, context, &local_env);
-                        break;
-                    }
+                let arg_count = args.len();
 
-                    let value = match args.get(i).cloned() {
-                        None => JsValue::undefined(),
-                        Some(value) => value,
-                    };
+                // Push function arguments to the stack.
+                let args = if code.params.len() > args.len() {
+                    let mut v = args.to_vec();
+                    v.extend(vec![JsValue::Undefined; code.params.len() - args.len()]);
+                    v
+                } else {
+                    args.to_vec()
+                };
 
-                    Function::add_arguments_to_environment(param, value, &local_env, context);
+                for arg in args.iter().rev() {
+                    context.vm.push(arg)
                 }
+
+                let param_count = code.params.len();
+
+                let this = if this.is_null_or_undefined() {
+                    context
+                        .get_global_this_binding()
+                        .expect("global env must have this binding")
+                } else {
+                    this.to_object(context)
+                        .expect("conversion to object cannot fail here")
+                        .into()
+                };
 
                 context.vm.push_frame(CallFrame {
                     prev: None,
                     code,
-                    this: this.clone(),
+                    this,
                     pc: 0,
-                    fp: context.vm.stack.len(),
-                    environment: local_env,
-                    catch: None,
+                    catch: Vec::new(),
+                    finally_return: FinallyReturn::None,
+                    finally_jump: Vec::new(),
+                    pop_on_return: 0,
                     pop_env_on_return: 0,
-                    finally_no_jump: false,
+                    param_count,
+                    arg_count,
                 });
 
                 let result = context.run();
 
                 context.pop_environment();
+                if has_parameter_expressions {
+                    context.pop_environment();
+                }
 
                 result
             }
@@ -665,8 +698,10 @@ impl JsObject {
                     has_parameter_expressions = has_parameter_expressions || param.init().is_some();
                     arguments_in_parameter_names =
                         arguments_in_parameter_names || param.names().contains(&"arguments");
-                    is_simple_parameter_list =
-                        is_simple_parameter_list && !param.is_rest_param() && param.init().is_none()
+                    is_simple_parameter_list = is_simple_parameter_list
+                        && !param.is_rest_param()
+                        && param.is_identifier()
+                        && param.init().is_none()
                 }
 
                 // An arguments object is added when all of the following conditions are met
@@ -696,41 +731,61 @@ impl JsObject {
                     local_env.initialize_binding("arguments", arguments_obj.into(), context)?;
                 }
 
-                // Add argument bindings to the function environment
-                for (i, param) in code.params.iter().enumerate() {
-                    // Rest Parameters
-                    if param.is_rest_param() {
-                        Function::add_rest_param(param, i, args, context, &local_env);
-                        break;
-                    }
+                let arg_count = args.len();
 
-                    let value = match args.get(i).cloned() {
-                        None => JsValue::undefined(),
-                        Some(value) => value,
-                    };
+                // Push function arguments to the stack.
+                let args = if code.params.len() > args.len() {
+                    let mut v = args.to_vec();
+                    v.extend(vec![JsValue::Undefined; code.params.len() - args.len()]);
+                    v
+                } else {
+                    args.to_vec()
+                };
 
-                    Function::add_arguments_to_environment(param, value, &local_env, context);
+                for arg in args.iter().rev() {
+                    context.vm.push(arg)
                 }
+
+                let param_count = code.params.len();
+
+                let this = if this.is_null_or_undefined() {
+                    context
+                        .get_global_this_binding()
+                        .expect("global env must have this binding")
+                } else {
+                    this.to_object(context)
+                        .expect("conversion to object cannot fail here")
+                        .into()
+                };
 
                 context.vm.push_frame(CallFrame {
                     prev: None,
                     code,
                     this,
                     pc: 0,
-                    fp: context.vm.stack.len(),
-                    environment: local_env,
-                    catch: None,
+                    catch: Vec::new(),
+                    finally_return: FinallyReturn::None,
+                    finally_jump: Vec::new(),
+                    pop_on_return: 0,
                     pop_env_on_return: 0,
-                    finally_no_jump: false,
+                    param_count,
+                    arg_count,
                 });
 
-                let _result = context.run()?;
+                let result = context.run()?;
 
-                let result = context.get_this_binding();
+                let this = context.get_this_binding();
 
                 context.pop_environment();
+                if has_parameter_expressions {
+                    context.pop_environment();
+                }
 
-                result
+                if result.is_object() {
+                    Ok(result)
+                } else {
+                    this
+                }
             }
         }
     }

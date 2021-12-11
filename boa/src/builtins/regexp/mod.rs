@@ -38,9 +38,6 @@ pub struct RegExp {
     /// Regex matcher.
     matcher: Regex,
 
-    /// Update last_index, set if global or sticky flags are set.
-    use_last_index: bool,
-
     /// Flag 's' - dot matches newline characters.
     dot_all: bool,
 
@@ -340,7 +337,6 @@ impl RegExp {
 
         let regexp = RegExp {
             matcher,
-            use_last_index: global || sticky,
             dot_all,
             global,
             ignore_case,
