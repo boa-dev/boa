@@ -1763,10 +1763,6 @@
 <span id="1763">1763</span>
 <span id="1764">1764</span>
 <span id="1765">1765</span>
-<span id="1766">1766</span>
-<span id="1767">1767</span>
-<span id="1768">1768</span>
-<span id="1769">1769</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `RegExp` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! `The `RegExp` object is used for matching text with a pattern.</span>
@@ -1806,9 +1802,6 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RegExp</span> {
     <span class="doccomment">/// Regex matcher.</span>
     <span class="ident">matcher</span>: <span class="ident">Regex</span>,
-
-    <span class="doccomment">/// Update last_index, set if global or sticky flags are set.</span>
-    <span class="ident">use_last_index</span>: <span class="ident">bool</span>,
 
     <span class="doccomment">/// Flag &#39;s&#39; - dot matches newline characters.</span>
     <span class="ident">dot_all</span>: <span class="ident">bool</span>,
@@ -2109,7 +2102,6 @@
 
         <span class="kw">let</span> <span class="ident">regexp</span> <span class="op">=</span> <span class="ident">RegExp</span> {
             <span class="ident">matcher</span>,
-            <span class="ident">use_last_index</span>: <span class="ident">global</span> <span class="op">|</span><span class="op">|</span> <span class="ident">sticky</span>,
             <span class="ident">dot_all</span>,
             <span class="ident">global</span>,
             <span class="ident">ignore_case</span>,

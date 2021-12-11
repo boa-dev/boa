@@ -306,6 +306,19 @@
 <span id="306">306</span>
 <span id="307">307</span>
 <span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{
         <span class="ident">regexp::regexp_string_iterator::RegExpStringIterator</span>,
@@ -538,30 +551,43 @@
         <span class="ident">completion</span>: <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner_result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">iterator_object</span>.<span class="ident">get_field</span>(<span class="string">&quot;return&quot;</span>, <span class="ident">context</span>);
+        <span class="comment">// 1. Assert: Type(iteratorRecord.[[Iterator]]) is Object.</span>
+        <span class="comment">// 2. Let iterator be iteratorRecord.[[Iterator]].</span>
+        <span class="comment">// 3. Let innerResult be GetMethod(iterator, &quot;return&quot;).</span>
+        <span class="kw">let</span> <span class="ident">inner_result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">iterator_object</span>.<span class="ident">get_method</span>(<span class="string">&quot;return&quot;</span>, <span class="ident">context</span>);
+        <span class="comment">//let mut inner_result = self.iterator_object.get_field(&quot;return&quot;, context);</span>
 
-        <span class="comment">// 5</span>
+        <span class="comment">// 4. If innerResult.[[Type]] is normal, then</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">inner_value</span>) <span class="op">=</span> <span class="ident">inner_result</span> {
-            <span class="comment">// b</span>
-            <span class="kw">if</span> <span class="ident">inner_value</span>.<span class="ident">is_undefined</span>() {
-                <span class="kw">return</span> <span class="ident">completion</span>;
+            <span class="comment">// a. Let return be innerResult.[[Value]].</span>
+            <span class="kw">match</span> <span class="ident">inner_value</span> {
+                <span class="comment">// b. If return is undefined, return Completion(completion).</span>
+                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="ident">completion</span>,
+                <span class="comment">// c. Set innerResult to Call(return, iterator).</span>
+                <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; {
+                    <span class="kw">let</span> <span class="ident">inner_result</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">iterator_object</span>, <span class="kw-2">&amp;</span>[], <span class="ident">context</span>);
+
+                    <span class="comment">// 5. If completion.[[Type]] is throw, return Completion(completion).</span>
+                    <span class="kw">let</span> <span class="ident">completion</span> <span class="op">=</span> <span class="ident">completion</span><span class="question-mark">?</span>;
+
+                    <span class="comment">// 6. If innerResult.[[Type]] is throw, return Completion(innerResult).</span>
+                    <span class="ident">inner_result</span><span class="question-mark">?</span>;
+
+                    <span class="comment">// 7. If Type(innerResult.[[Value]]) is not Object, throw a TypeError exception.</span>
+                    <span class="comment">// 8. Return Completion(completion).</span>
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">completion</span>);
+                }
             }
-            <span class="comment">// c</span>
-            <span class="ident">inner_result</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">inner_value</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">iterator_object</span>, <span class="kw-2">&amp;</span>[]);
         }
 
-        <span class="comment">// 6</span>
+        <span class="comment">// 5. If completion.[[Type]] is throw, return Completion(completion).</span>
         <span class="kw">let</span> <span class="ident">completion</span> <span class="op">=</span> <span class="ident">completion</span><span class="question-mark">?</span>;
 
-        <span class="comment">// 7</span>
-        <span class="kw">let</span> <span class="ident">inner_result</span> <span class="op">=</span> <span class="ident">inner_result</span><span class="question-mark">?</span>;
+        <span class="comment">// 6. If innerResult.[[Type]] is throw, return Completion(innerResult).</span>
+        <span class="ident">inner_result</span><span class="question-mark">?</span>;
 
-        <span class="comment">// 8</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">inner_result</span>.<span class="ident">is_object</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;`return` method of iterator didn&#39;t return an Object&quot;</span>);
-        }
-
-        <span class="comment">// 9</span>
+        <span class="comment">// 7. If Type(innerResult.[[Value]]) is not Object, throw a TypeError exception.</span>
+        <span class="comment">// 8. Return Completion(completion).</span>
         <span class="prelude-val">Ok</span>(<span class="ident">completion</span>)
     }
 }
