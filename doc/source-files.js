@@ -18,7 +18,6 @@ sourcesIndex["crossbeam_channel"] = {"name":"","dirs":[{"name":"flavors","files"
 sourcesIndex["crossbeam_deque"] = {"name":"","files":["deque.rs","lib.rs"]};
 sourcesIndex["crossbeam_epoch"] = {"name":"","dirs":[{"name":"sync","files":["list.rs","mod.rs","queue.rs"]}],"files":["atomic.rs","collector.rs","default.rs","deferred.rs","epoch.rs","guard.rs","internal.rs","lib.rs"]};
 sourcesIndex["crossbeam_utils"] = {"name":"","dirs":[{"name":"atomic","files":["atomic_cell.rs","consume.rs","mod.rs","seq_lock.rs"]},{"name":"sync","files":["mod.rs","parker.rs","sharded_lock.rs","wait_group.rs"]}],"files":["backoff.rs","cache_padded.rs","lib.rs","thread.rs"]};
-sourcesIndex["dtoa"] = {"name":"","files":["diyfp.rs","dtoa.rs","lib.rs"]};
 sourcesIndex["dyn_clone"] = {"name":"","files":["lib.rs","macros.rs"]};
 sourcesIndex["either"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["fast_float"] = {"name":"","files":["binary.rs","common.rs","decimal.rs","float.rs","lib.rs","number.rs","parse.rs","simple.rs","table.rs"]};
