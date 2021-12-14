@@ -108,6 +108,7 @@ impl BuiltIn for String {
         .name(Self::NAME)
         .length(Self::LENGTH)
         .property("length", 0, attribute)
+        .static_method(Self::raw, "raw", 1)
         .static_method(Self::from_char_code, "fromCharCode", 1)
         .method(Self::char_at, "charAt", 1)
         .method(Self::char_code_at, "charCodeAt", 1)
@@ -229,6 +230,78 @@ impl String {
             .cloned()
             .or_else(|| this.as_object().and_then(|obj| obj.borrow().as_string()))
             .ok_or_else(|| context.construct_type_error("'this' is not a string"))
+    }
+
+    /// `String.prototype.raw( template, ...substitutions )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-string.raw
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/raw
+    pub(crate) fn raw(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let substitutions = args.get(1..).unwrap_or_default();
+
+        // 1. Let numberOfSubstitutions be the number of elements in substitutions.
+        let number_of_substitutions = substitutions.len();
+
+        // 2. Let cooked be ? ToObject(template).
+        let cooked = args.get_or_undefined(0).to_object(context)?;
+
+        // 3. Let raw be ? ToObject(? Get(cooked, "raw")).
+        let raw = cooked.get("raw", context)?.to_object(context)?;
+
+        // 4. Let literalSegments be ? LengthOfArrayLike(raw).
+        let literal_segments = raw.length_of_array_like(context)?;
+
+        // 5. If literalSegments ≤ 0, return the empty String.
+        // This is not <= because a `usize` is always positive.
+        if literal_segments == 0 {
+            return Ok(JsString::empty().into());
+        }
+
+        // 6. Let stringElements be a new empty List.
+        let mut string_elements = vec![];
+
+        // 7. Let nextIndex be 0.
+        let mut next_index = 0;
+        // 8. Repeat,
+        loop {
+            // a. Let nextKey be ! ToString(𝔽(nextIndex)).
+            let next_key = next_index;
+
+            // b. Let nextSeg be ? ToString(? Get(raw, nextKey)).
+            let next_seg = raw.get(next_key, context)?.to_string(context)?;
+
+            // c. Append the code unit elements of nextSeg to the end of stringElements.
+            string_elements.extend(next_seg.encode_utf16());
+
+            // d. If nextIndex + 1 = literalSegments, then
+            if next_index + 1 == literal_segments {
+                // i. Return the String value whose code units are the elements in the List stringElements.
+                //    If stringElements has no elements, the empty String is returned.
+                return Ok(StdString::from_utf16_lossy(&string_elements).into());
+            }
+
+            // e. If nextIndex < numberOfSubstitutions, let next be substitutions[nextIndex].
+            let next = if next_index < number_of_substitutions {
+                substitutions.get_or_undefined(next_index).clone()
+
+            // f. Else, let next be the empty String.
+            } else {
+                JsString::empty().into()
+            };
+
+            // g. Let nextSub be ? ToString(next).
+            let next_sub = next.to_string(context)?;
+
+            // h. Append the code unit elements of nextSub to the end of stringElements.
+            string_elements.extend(next_sub.encode_utf16());
+
+            // i. Set nextIndex to nextIndex + 1.
+            next_index += 1;
+        }
     }
 
     /// `String.fromCharCode(...codePoints)`
