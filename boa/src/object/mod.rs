@@ -53,9 +53,17 @@ use self::internal_methods::{
 mod tests;
 
 pub(crate) mod internal_methods;
+mod jsarray;
 mod jsobject;
 mod operations;
 mod property_map;
+
+pub use jsarray::*;
+
+pub(crate) trait JsObjectType:
+    Into<JsValue> + Into<JsObject> + Deref<Target = JsObject>
+{
+}
 
 /// Static `prototype`, usually set on constructors as a key to point to their respective prototype object.
 pub static PROTOTYPE: &str = "prototype";
