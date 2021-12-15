@@ -43,6 +43,7 @@ This is an experimental Javascript lexer, parser and compiler written in Rust. C
 
 pub mod bigint;
 pub mod builtins;
+pub mod bytecompiler;
 pub mod class;
 pub mod context;
 pub mod environment;
@@ -56,10 +57,6 @@ pub mod string;
 pub mod symbol;
 pub mod syntax;
 pub mod value;
-
-#[cfg(feature = "vm")]
-pub mod bytecompiler;
-#[cfg(feature = "vm")]
 pub mod vm;
 
 /// A convenience module that re-exports the most commonly-used Boa APIs
@@ -107,7 +104,6 @@ pub(crate) fn forward<T: AsRef<[u8]>>(context: &mut Context, src: T) -> String {
         |v| v.display().to_string(),
     );
 
-    #[cfg(feature = "vm")]
     context.vm.pop_frame();
 
     result
@@ -125,7 +121,6 @@ pub(crate) fn forward_val<T: AsRef<[u8]>>(context: &mut Context, src: T) -> JsRe
     let src_bytes: &[u8] = src.as_ref();
     let result = context.eval(src_bytes);
 
-    #[cfg(feature = "vm")]
     context.vm.pop_frame();
 
     // The main_timer needs to be dropped before the BoaProfiler is.

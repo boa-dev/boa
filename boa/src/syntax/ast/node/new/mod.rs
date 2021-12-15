@@ -46,7 +46,6 @@ impl New {
     }
 
     /// Returns the inner call
-    #[cfg(feature = "vm")]
     pub(crate) fn call(&self) -> &Call {
         &self.call
     }

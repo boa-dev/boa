@@ -26,8 +26,6 @@ use crate::{
 
 #[cfg(feature = "console")]
 use crate::builtins::console::Console;
-
-#[cfg(feature = "vm")]
 use crate::vm::{FinallyReturn, Vm};
 
 /// Store a builtin constructor (such as `Object`) and its corresponding prototype.
@@ -402,7 +400,6 @@ pub struct Context {
     /// Whether or not strict mode is active.
     strict: StrictType,
 
-    #[cfg(feature = "vm")]
     pub(crate) vm: Vm,
 }
 
@@ -420,7 +417,6 @@ impl Default for Context {
             standard_objects: Default::default(),
             intrinsic_objects: IntrinsicObjects::default(),
             strict: StrictType::Off,
-            #[cfg(feature = "vm")]
             vm: Vm {
                 frame: None,
                 stack: Vec::with_capacity(1024),
@@ -983,46 +979,6 @@ impl Context {
         );
     }
 
-    /// Evaluates the given code.
-    ///
-    /// # Examples
-    /// ```
-    ///# use boa::Context;
-    /// let mut context = Context::new();
-    ///
-    /// let value = context.eval("1 + 3").unwrap();
-    ///
-    /// assert!(value.is_number());
-    /// assert_eq!(value.as_number().unwrap(), 4.0);
-    /// ```
-    #[cfg(not(feature = "vm"))]
-    #[allow(clippy::unit_arg, clippy::drop_copy)]
-    #[inline]
-    pub fn eval<T: AsRef<[u8]>>(&mut self, src: T) -> JsResult<JsValue> {
-        let main_timer = BoaProfiler::global().start_event("Main", "Main");
-        let src_bytes: &[u8] = src.as_ref();
-
-        let parsing_result = Parser::new(src_bytes, false)
-            .parse_all()
-            .map_err(|e| e.to_string());
-
-        let execution_result = match parsing_result {
-            Ok(statement_list) => {
-                if statement_list.strict() {
-                    self.set_strict_mode_global();
-                }
-                statement_list.run(self)
-            }
-            Err(e) => self.throw_syntax_error(e),
-        };
-
-        // The main_timer needs to be dropped before the BoaProfiler is.
-        drop(main_timer);
-        BoaProfiler::global().drop();
-
-        execution_result
-    }
-
     /// Evaluates the given code by compiling down to bytecode, then interpreting the bytecode into a value
     ///
     /// # Examples
@@ -1035,7 +991,6 @@ impl Context {
     /// assert!(value.is_number());
     /// assert_eq!(value.as_number().unwrap(), 4.0);
     /// ```
-    #[cfg(feature = "vm")]
     #[allow(clippy::unit_arg, clippy::drop_copy)]
     pub fn eval<T: AsRef<[u8]>>(&mut self, src: T) -> JsResult<JsValue> {
         use gc::Gc;
@@ -1110,7 +1065,6 @@ impl Context {
     }
 
     /// Set the value of trace on the context
-    #[cfg(feature = "vm")]
     pub fn set_trace(&mut self, trace: bool) {
         self.vm.trace = trace;
     }

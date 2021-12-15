@@ -30,7 +30,6 @@ impl TemplateLit {
         TemplateLit { elements }
     }
 
-    #[cfg(feature = "vm")]
     pub(crate) fn elements(&self) -> &Vec<TemplateElement> {
         &self.elements
     }
@@ -93,22 +92,18 @@ impl TaggedTemplate {
         }
     }
 
-    #[cfg(feature = "vm")]
     pub(crate) fn tag(&self) -> &Node {
         &self.tag
     }
 
-    #[cfg(feature = "vm")]
     pub(crate) fn raws(&self) -> &Vec<Box<str>> {
         &self.raws
     }
 
-    #[cfg(feature = "vm")]
     pub(crate) fn cookeds(&self) -> &Vec<Option<Box<str>>> {
         &self.cookeds
     }
 
-    #[cfg(feature = "vm")]
     pub(crate) fn exprs(&self) -> &Vec<Node> {
         &self.exprs
     }

@@ -443,7 +443,6 @@ impl DeclarationPatternObject {
 
     /// Gets the bindings for the object binding pattern.
     #[inline]
-    #[cfg(feature = "vm")]
     pub(crate) fn bindings(&self) -> &Vec<BindingPatternTypeObject> {
         &self.bindings
     }
@@ -658,7 +657,6 @@ impl DeclarationPatternArray {
 
     /// Gets the bindings for the array binding pattern.
     #[inline]
-    #[cfg(feature = "vm")]
     pub(crate) fn bindings(&self) -> &Vec<BindingPatternTypeArray> {
         &self.bindings
     }

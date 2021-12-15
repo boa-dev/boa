@@ -218,10 +218,7 @@ pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) {
             )
         }
 
-        #[cfg(feature = "vm")]
         println!("#### VM implementation");
-        #[cfg(not(feature = "vm"))]
-        println!("#### Non-VM implementation");
 
         println!("| Test result | main count | PR count | difference |");
         println!("| :---------: | :----------: | :------: | :--------: |");

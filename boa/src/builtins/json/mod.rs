@@ -96,7 +96,6 @@ impl Json {
         // 9. Let unfiltered be completion.[[Value]].
         // 10. Assert: unfiltered is either a String, Number, Boolean, Null, or an Object that is defined by either an ArrayLiteral or an ObjectLiteral.
         let unfiltered = context.eval(script_string.as_bytes())?;
-        #[cfg(feature = "vm")]
         context.vm.pop_frame();
 
         // 11. If IsCallable(reviver) is true, then

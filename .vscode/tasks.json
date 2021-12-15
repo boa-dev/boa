@@ -26,7 +26,7 @@
       "type": "process",
       "label": "Cargo Run (VM)",
       "command": "cargo",
-      "args": ["run", "--features", "vm", "--", "-t", "../tests/js/test.js"],
+      "args": ["run", "--", "-t", "../tests/js/test.js"],
       "group": {
         "kind": "build",
         "isDefault": true
