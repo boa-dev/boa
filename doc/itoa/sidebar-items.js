@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["fmt","Write integer to an `fmt::Write`."],["write","Write integer to an `io::Write`."]],"struct":[["Buffer","A safe API for formatting integers to text."]],"trait":[["Integer","An integer that can be formatted by `itoa::write` and `itoa::fmt`."]]});
+initSidebarItems({"struct":[["Buffer","A correctly sized stack allocation for the formatted integer to be written into."]],"trait":[["Integer","An integer that can be written into an [`itoa::Buffer`][Buffer]."]]});
