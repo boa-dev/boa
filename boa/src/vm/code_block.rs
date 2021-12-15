@@ -23,8 +23,8 @@ use gc::Gc;
 use std::{convert::TryInto, fmt::Write, mem::size_of};
 
 /// This represents whether a value can be read from [`CodeBlock`] code.
+/// # Safety
 pub unsafe trait Readable {}
-
 unsafe impl Readable for u8 {}
 unsafe impl Readable for i8 {}
 unsafe impl Readable for u16 {}
