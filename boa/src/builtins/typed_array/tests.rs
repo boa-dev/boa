@@ -145,6 +145,16 @@ fn byte_offset() {
 }
 
 #[test]
+fn length() {
+    let mut context = Context::new();
+    let init = r#"const buffer = new ArrayBuffer(8);
+        const uint8 = new Uint8Array(buffer, 2);
+        "#;
+    forward(&mut context, init);
+    assert_eq!(forward(&mut context, "uint8.length"), "6");
+}
+
+#[test]
 fn copy_within() {
     let mut context = Context::new();
     let init = r#"
@@ -345,4 +355,45 @@ fn find_index() {
         ),
         "-1"
     );
+}
+
+#[test]
+fn foreach() {
+    let mut context = Context::new();
+    let init = r#"
+        function doubleArrayElements(element, index, array) {
+          array[index] *= 2;
+        }
+        x = new Uint8Array([0, 1, 2, 3]);
+        "#;
+    forward(&mut context, init);
+    forward(&mut context, "x.forEach(doubleArrayElements);");
+    assert_eq!(forward(&mut context, "x.join()"), "\"0,2,4,6\"");
+    forward(&mut context, "x.forEach((element) => { element *= 2; });");
+    assert_eq!(forward(&mut context, "x.join()"), "\"0,2,4,6\"")
+}
+
+#[test]
+fn includes() {
+    let mut context = Context::new();
+    let init = r#"
+        const uint8 = new Uint8Array([10, 20, 30, 40, 50]);
+        "#;
+    forward(&mut context, init);
+    assert_eq!(forward(&mut context, "uint8.includes(20)"), "true");
+    assert_eq!(forward(&mut context, "uint8.includes(20, 3)"), "false");
+}
+
+#[test]
+fn index_of() {
+    let mut context = Context::new();
+    let init = r#"
+        var uint8 = new Uint8Array([2, 5, 9]);
+        "#;
+    forward(&mut context, init);
+    assert_eq!(forward(&mut context, "uint8.indexOf(2);"), "0");
+    assert_eq!(forward(&mut context, "uint8.indexOf(7);"), "-1");
+    assert_eq!(forward(&mut context, "uint8.indexOf(9, 2);"), "2");
+    assert_eq!(forward(&mut context, "uint8.indexOf(2, -1);"), "-1");
+    assert_eq!(forward(&mut context, "uint8.indexOf(2, -3);"), "0");
 }

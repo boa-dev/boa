@@ -1,4 +1,4 @@
-use crate::{forward, Context};
+use crate::{builtins::array_buffer::create_byte_data_block, forward, Context};
 
 #[test]
 fn constructor() {
@@ -36,8 +36,6 @@ fn slice() {
     forward(&mut context, init);
     assert_eq!(forward(&mut context, "sliced[0]"), "42");
 }
-
-use super::*;
 
 #[test]
 fn ut_sunnyy_day_create_byte_data_block() {
