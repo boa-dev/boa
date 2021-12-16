@@ -10,7 +10,7 @@ jobs:
       CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
     steps:
       - name: Git Checkout
-        uses: actions/checkout@v2.3.5
+        uses: actions/checkout@v2.4.0
         with:
           ref: ${{ github.sha }}
       - run: cargo login ${CARGO_REGISTRY_TOKEN}
@@ -20,10 +20,10 @@ jobs:
     needs: publish
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2.3.5
+      - uses: actions/checkout@v2.4.0
         with:
           ref: main
-      - uses: actions/checkout@v2.3.5
+      - uses: actions/checkout@v2.4.0
         with:
           ref: gh-pages
           path: dist
@@ -33,7 +33,7 @@ jobs:
         with:
           cmd: install
       - name: Cache yarn build
-        uses: actions/cache@v2.1.6
+        uses: actions/cache@v2.1.7
         with:
           path: |
             node_modules

@@ -149,7 +149,7 @@ impl JsValue {
 
         // 4. If Type(iterator) is not Object, throw a TypeError exception.
         if !iterator.is_object() {
-            return Err(context.construct_type_error("the iterator is not an object"));
+            return context.throw_type_error("the iterator is not an object");
         }
 
         // 5. Let nextMethod be ? GetV(iterator, "next").
@@ -195,6 +195,16 @@ impl IteratorRecord {
         }
     }
 
+    #[cfg(feature = "vm")]
+    pub(crate) fn iterator_object(&self) -> &JsValue {
+        &self.iterator_object
+    }
+
+    #[cfg(feature = "vm")]
+    pub(crate) fn next_function(&self) -> &JsValue {
+        &self.next_function
+    }
+
     /// Get the next value in the iterator
     ///
     /// More information:
@@ -220,30 +230,43 @@ impl IteratorRecord {
         completion: JsResult<JsValue>,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let mut inner_result = self.iterator_object.get_field("return", context);
+        // 1. Assert: Type(iteratorRecord.[[Iterator]]) is Object.
+        // 2. Let iterator be iteratorRecord.[[Iterator]].
+        // 3. Let innerResult be GetMethod(iterator, "return").
+        let inner_result = self.iterator_object.get_method("return", context);
+        //let mut inner_result = self.iterator_object.get_field("return", context);
 
-        // 5
+        // 4. If innerResult.[[Type]] is normal, then
         if let Ok(inner_value) = inner_result {
-            // b
-            if inner_value.is_undefined() {
-                return completion;
+            // a. Let return be innerResult.[[Value]].
+            match inner_value {
+                // b. If return is undefined, return Completion(completion).
+                None => return completion,
+                // c. Set innerResult to Call(return, iterator).
+                Some(value) => {
+                    let inner_result = value.call(&self.iterator_object, &[], context);
+
+                    // 5. If completion.[[Type]] is throw, return Completion(completion).
+                    let completion = completion?;
+
+                    // 6. If innerResult.[[Type]] is throw, return Completion(innerResult).
+                    inner_result?;
+
+                    // 7. If Type(innerResult.[[Value]]) is not Object, throw a TypeError exception.
+                    // 8. Return Completion(completion).
+                    return Ok(completion);
+                }
             }
-            // c
-            inner_result = context.call(&inner_value, &self.iterator_object, &[]);
         }
 
-        // 6
+        // 5. If completion.[[Type]] is throw, return Completion(completion).
         let completion = completion?;
 
-        // 7
-        let inner_result = inner_result?;
+        // 6. If innerResult.[[Type]] is throw, return Completion(innerResult).
+        inner_result?;
 
-        // 8
-        if !inner_result.is_object() {
-            return context.throw_type_error("`return` method of iterator didn't return an Object");
-        }
-
-        // 9
+        // 7. If Type(innerResult.[[Value]]) is not Object, throw a TypeError exception.
+        // 8. Return Completion(completion).
         Ok(completion)
     }
 }

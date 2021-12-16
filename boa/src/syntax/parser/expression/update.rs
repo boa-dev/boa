@@ -10,7 +10,7 @@ use crate::{
     profiler::BoaProfiler,
     syntax::{
         ast::{node, op::UnaryOp, Node, Punctuator},
-        lexer::TokenKind,
+        lexer::{Error as LexError, TokenKind},
         parser::{
             expression::unary::UnaryExpression, AllowAwait, AllowYield, Cursor, ParseError,
             ParseResult, TokenParser,
@@ -77,14 +77,54 @@ where
         }
 
         let lhs = LeftHandSideExpression::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        let strict = cursor.strict_mode();
         if let Some(tok) = cursor.peek(0)? {
+            let token_start = tok.span().start();
             match tok.kind() {
                 TokenKind::Punctuator(Punctuator::Inc) => {
                     cursor.next()?.expect("Punctuator::Inc token disappeared");
+                    // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
+                    let ok = match &lhs {
+                        Node::Identifier(_) if !strict => true,
+                        Node::Identifier(ident)
+                            if !["eval", "arguments"].contains(&ident.as_ref()) =>
+                        {
+                            true
+                        }
+                        Node::GetConstField(_) => true,
+                        Node::GetField(_) => true,
+                        _ => false,
+                    };
+                    if !ok {
+                        return Err(ParseError::lex(LexError::Syntax(
+                            "Invalid left-hand side in assignment".into(),
+                            token_start,
+                        )));
+                    }
+
                     return Ok(node::UnaryOp::new(UnaryOp::IncrementPost, lhs).into());
                 }
                 TokenKind::Punctuator(Punctuator::Dec) => {
                     cursor.next()?.expect("Punctuator::Dec token disappeared");
+                    // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
+                    let ok = match &lhs {
+                        Node::Identifier(_) if !strict => true,
+                        Node::Identifier(ident)
+                            if !["eval", "arguments"].contains(&ident.as_ref()) =>
+                        {
+                            true
+                        }
+                        Node::GetConstField(_) => true,
+                        Node::GetField(_) => true,
+                        _ => false,
+                    };
+                    if !ok {
+                        return Err(ParseError::lex(LexError::Syntax(
+                            "Invalid left-hand side in assignment".into(),
+                            token_start,
+                        )));
+                    }
+
                     return Ok(node::UnaryOp::new(UnaryOp::DecrementPost, lhs).into());
                 }
                 _ => {}

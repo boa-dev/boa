@@ -6,7 +6,7 @@ use crate::{
     },
     exec::{Executable, InterpreterState},
     gc::{Finalize, Trace},
-    syntax::ast::node::{Declaration, Node},
+    syntax::ast::node::{iteration::IterableLoopInitializer, Declaration, Node},
     BoaProfiler, Context, JsResult, JsValue,
 };
 use std::fmt;
@@ -17,29 +17,28 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct ForInLoop {
-    variable: Box<Node>,
+    init: Box<IterableLoopInitializer>,
     expr: Box<Node>,
     body: Box<Node>,
     label: Option<Box<str>>,
 }
 
 impl ForInLoop {
-    pub fn new<V, I, B>(variable: V, expr: I, body: B) -> Self
+    pub fn new<I, B>(init: IterableLoopInitializer, expr: I, body: B) -> Self
     where
-        V: Into<Node>,
         I: Into<Node>,
         B: Into<Node>,
     {
         Self {
-            variable: Box::new(variable.into()),
+            init: Box::new(init),
             expr: Box::new(expr.into()),
             body: Box::new(body.into()),
             label: None,
         }
     }
 
-    pub fn variable(&self) -> &Node {
-        &self.variable
+    pub fn init(&self) -> &IterableLoopInitializer {
+        &self.init
     }
 
     pub fn expr(&self) -> &Node {
@@ -62,7 +61,7 @@ impl ForInLoop {
         if let Some(ref label) = self.label {
             write!(f, "{}: ", label)?;
         }
-        write!(f, "for ({} in {}) ", self.variable, self.expr)?;
+        write!(f, "for ({} in {}) ", self.init, self.expr)?;
         self.body().display(f, indentation)
     }
 }
@@ -110,8 +109,8 @@ impl Executable for ForInLoop {
             }
             let next_result = iterator_result.value;
 
-            match self.variable() {
-                Node::Identifier(ref name) => {
+            match self.init() {
+                IterableLoopInitializer::Identifier(ref name) => {
                     if context.has_binding(name.as_ref())? {
                         // Binding already exists
                         context.set_mutable_binding(
@@ -128,130 +127,82 @@ impl Executable for ForInLoop {
                         context.initialize_binding(name.as_ref(), next_result)?;
                     }
                 }
-                Node::VarDeclList(ref list) => match list.as_ref() {
-                    [var] => {
-                        if var.init().is_some() {
-                            return context.throw_syntax_error("a declaration in the head of a for-in loop can't have an initializer");
-                        }
-
-                        match &var {
-                            Declaration::Identifier { ident, .. } => {
-                                if context.has_binding(ident.as_ref())? {
-                                    context.set_mutable_binding(
-                                        ident.as_ref(),
-                                        next_result,
-                                        context.strict(),
-                                    )?;
-                                } else {
-                                    context.create_mutable_binding(
-                                        ident.as_ref(),
-                                        false,
-                                        VariableScope::Function,
-                                    )?;
-                                    context.initialize_binding(ident.as_ref(), next_result)?;
-                                }
-                            }
-                            Declaration::Pattern(p) => {
-                                for (ident, value) in p.run(Some(next_result), context)? {
-                                    if context.has_binding(ident.as_ref())? {
-                                        context.set_mutable_binding(
-                                            ident.as_ref(),
-                                            value,
-                                            context.strict(),
-                                        )?;
-                                    } else {
-                                        context.create_mutable_binding(
-                                            ident.as_ref(),
-                                            false,
-                                            VariableScope::Function,
-                                        )?;
-                                        context.initialize_binding(ident.as_ref(), value)?;
-                                    }
-                                }
-                            }
+                IterableLoopInitializer::Var(declaration) => match declaration {
+                    Declaration::Identifier { ident, .. } => {
+                        if context.has_binding(ident.as_ref())? {
+                            context.set_mutable_binding(
+                                ident.as_ref(),
+                                next_result,
+                                context.strict(),
+                            )?;
+                        } else {
+                            context.create_mutable_binding(
+                                ident.as_ref(),
+                                false,
+                                VariableScope::Function,
+                            )?;
+                            context.initialize_binding(ident.as_ref(), next_result)?;
                         }
                     }
-                    _ => {
-                        return context.throw_syntax_error(
-                            "only one variable can be declared in the head of a for-in loop",
-                        )
-                    }
-                },
-                Node::LetDeclList(ref list) => match list.as_ref() {
-                    [var] => {
-                        if var.init().is_some() {
-                            return context.throw_syntax_error("a declaration in the head of a for-in loop can't have an initializer");
-                        }
-
-                        match &var {
-                            Declaration::Identifier { ident, .. } => {
+                    Declaration::Pattern(p) => {
+                        for (ident, value) in p.run(Some(next_result), context)? {
+                            if context.has_binding(ident.as_ref())? {
+                                context.set_mutable_binding(
+                                    ident.as_ref(),
+                                    value,
+                                    context.strict(),
+                                )?;
+                            } else {
                                 context.create_mutable_binding(
                                     ident.as_ref(),
                                     false,
-                                    VariableScope::Block,
+                                    VariableScope::Function,
                                 )?;
-                                context.initialize_binding(ident.as_ref(), next_result)?;
-                            }
-                            Declaration::Pattern(p) => {
-                                for (ident, value) in p.run(Some(next_result), context)? {
-                                    context.create_mutable_binding(
-                                        ident.as_ref(),
-                                        false,
-                                        VariableScope::Block,
-                                    )?;
-                                    context.initialize_binding(ident.as_ref(), value)?;
-                                }
+                                context.initialize_binding(ident.as_ref(), value)?;
                             }
                         }
-                    }
-                    _ => {
-                        return context.throw_syntax_error(
-                            "only one variable can be declared in the head of a for-in loop",
-                        )
                     }
                 },
-                Node::ConstDeclList(ref list) => match list.as_ref() {
-                    [var] => {
-                        if var.init().is_some() {
-                            return context.throw_syntax_error("a declaration in the head of a for-in loop can't have an initializer");
-                        }
-
-                        match &var {
-                            Declaration::Identifier { ident, .. } => {
-                                context.create_immutable_binding(
-                                    ident.as_ref(),
-                                    false,
-                                    VariableScope::Block,
-                                )?;
-                                context.initialize_binding(ident.as_ref(), next_result)?;
-                            }
-                            Declaration::Pattern(p) => {
-                                for (ident, value) in p.run(Some(next_result), context)? {
-                                    context.create_immutable_binding(
-                                        ident.as_ref(),
-                                        false,
-                                        VariableScope::Block,
-                                    )?;
-                                    context.initialize_binding(ident.as_ref(), value)?;
-                                }
-                            }
-                        }
+                IterableLoopInitializer::Let(declaration) => match declaration {
+                    Declaration::Identifier { ident, .. } => {
+                        context.create_mutable_binding(
+                            ident.as_ref(),
+                            false,
+                            VariableScope::Block,
+                        )?;
+                        context.initialize_binding(ident.as_ref(), next_result)?;
                     }
-                    _ => {
-                        return context.throw_syntax_error(
-                            "only one variable can be declared in the head of a for-in loop",
-                        )
+                    Declaration::Pattern(p) => {
+                        for (ident, value) in p.run(Some(next_result), context)? {
+                            context.create_mutable_binding(
+                                ident.as_ref(),
+                                false,
+                                VariableScope::Block,
+                            )?;
+                            context.initialize_binding(ident.as_ref(), value)?;
+                        }
                     }
                 },
-                Node::Assign(_) => {
-                    return context.throw_syntax_error(
-                        "a declaration in the head of a for-in loop can't have an initializer",
-                    );
-                }
-                _ => {
-                    return context
-                        .throw_syntax_error("unknown left hand side in head of for-in loop")
-                }
+                IterableLoopInitializer::Const(declaration) => match declaration {
+                    Declaration::Identifier { ident, .. } => {
+                        context.create_immutable_binding(
+                            ident.as_ref(),
+                            false,
+                            VariableScope::Block,
+                        )?;
+                        context.initialize_binding(ident.as_ref(), next_result)?;
+                    }
+                    Declaration::Pattern(p) => {
+                        for (ident, value) in p.run(Some(next_result), context)? {
+                            context.create_immutable_binding(
+                                ident.as_ref(),
+                                false,
+                                VariableScope::Block,
+                            )?;
+                            context.initialize_binding(ident.as_ref(), value)?;
+                        }
+                    }
+                },
             }
 
             result = self.body().run(context)?;

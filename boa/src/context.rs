@@ -16,11 +16,8 @@ use crate::{
     realm::Realm,
     syntax::{
         ast::{
-            node::{
-                statement_list::RcStatementList, Call, FormalParameter, Identifier, New,
-                StatementList,
-            },
-            Const, Node,
+            node::{statement_list::RcStatementList, FormalParameter, StatementList},
+            Node,
         },
         Parser,
     },
@@ -31,7 +28,7 @@ use crate::{
 use crate::builtins::console::Console;
 
 #[cfg(feature = "vm")]
-use crate::vm::Vm;
+use crate::vm::{FinallyReturn, Vm};
 
 /// Store a builtin constructor (such as `Object`) and its corresponding prototype.
 #[derive(Debug, Clone)]
@@ -548,18 +545,17 @@ impl Context {
     where
         M: Into<Box<str>>,
     {
-        // Runs a `new Error(message)`.
-        New::from(Call::new(
-            Identifier::from("Error"),
-            vec![Const::from(message.into()).into()],
-        ))
-        .run(self)
+        crate::builtins::error::Error::constructor(
+            &self.standard_objects().error_object().constructor().into(),
+            &[message.into().into()],
+            self,
+        )
         .expect("Into<String> used as message")
     }
 
     /// Throws a `Error` with the specified message.
     #[inline]
-    pub fn throw_error<M>(&mut self, message: M) -> JsResult<JsValue>
+    pub fn throw_error<M, R>(&mut self, message: M) -> JsResult<R>
     where
         M: Into<Box<str>>,
     {
@@ -572,18 +568,21 @@ impl Context {
     where
         M: Into<Box<str>>,
     {
-        // Runs a `new RangeError(message)`.
-        New::from(Call::new(
-            Identifier::from("RangeError"),
-            vec![Const::from(message.into()).into()],
-        ))
-        .run(self)
+        crate::builtins::error::RangeError::constructor(
+            &self
+                .standard_objects()
+                .range_error_object()
+                .constructor()
+                .into(),
+            &[message.into().into()],
+            self,
+        )
         .expect("Into<String> used as message")
     }
 
     /// Throws a `RangeError` with the specified message.
     #[inline]
-    pub fn throw_range_error<M>(&mut self, message: M) -> JsResult<JsValue>
+    pub fn throw_range_error<M, R>(&mut self, message: M) -> JsResult<R>
     where
         M: Into<Box<str>>,
     {
@@ -596,18 +595,21 @@ impl Context {
     where
         M: Into<Box<str>>,
     {
-        // Runs a `new TypeError(message)`.
-        New::from(Call::new(
-            Identifier::from("TypeError"),
-            vec![Const::from(message.into()).into()],
-        ))
-        .run(self)
+        crate::builtins::error::TypeError::constructor(
+            &self
+                .standard_objects()
+                .type_error_object()
+                .constructor()
+                .into(),
+            &[message.into().into()],
+            self,
+        )
         .expect("Into<String> used as message")
     }
 
     /// Throws a `TypeError` with the specified message.
     #[inline]
-    pub fn throw_type_error<M>(&mut self, message: M) -> JsResult<JsValue>
+    pub fn throw_type_error<M, R>(&mut self, message: M) -> JsResult<R>
     where
         M: Into<Box<str>>,
     {
@@ -620,17 +622,21 @@ impl Context {
     where
         M: Into<Box<str>>,
     {
-        New::from(Call::new(
-            Identifier::from("ReferenceError"),
-            vec![Const::from(message.into()).into()],
-        ))
-        .run(self)
+        crate::builtins::error::ReferenceError::constructor(
+            &self
+                .standard_objects()
+                .reference_error_object()
+                .constructor()
+                .into(),
+            &[message.into().into()],
+            self,
+        )
         .expect("Into<String> used as message")
     }
 
     /// Throws a `ReferenceError` with the specified message.
     #[inline]
-    pub fn throw_reference_error<M>(&mut self, message: M) -> JsResult<JsValue>
+    pub fn throw_reference_error<M, R>(&mut self, message: M) -> JsResult<R>
     where
         M: Into<Box<str>>,
     {
@@ -643,17 +649,21 @@ impl Context {
     where
         M: Into<Box<str>>,
     {
-        New::from(Call::new(
-            Identifier::from("SyntaxError"),
-            vec![Const::from(message.into()).into()],
-        ))
-        .run(self)
+        crate::builtins::error::SyntaxError::constructor(
+            &self
+                .standard_objects()
+                .syntax_error_object()
+                .constructor()
+                .into(),
+            &[message.into().into()],
+            self,
+        )
         .expect("Into<String> used as message")
     }
 
     /// Throws a `SyntaxError` with the specified message.
     #[inline]
-    pub fn throw_syntax_error<M>(&mut self, message: M) -> JsResult<JsValue>
+    pub fn throw_syntax_error<M, R>(&mut self, message: M) -> JsResult<R>
     where
         M: Into<Box<str>>,
     {
@@ -665,11 +675,15 @@ impl Context {
     where
         M: Into<Box<str>>,
     {
-        New::from(Call::new(
-            Identifier::from("EvalError"),
-            vec![Const::from(message.into()).into()],
-        ))
-        .run(self)
+        crate::builtins::error::EvalError::constructor(
+            &self
+                .standard_objects()
+                .eval_error_object()
+                .constructor()
+                .into(),
+            &[message.into().into()],
+            self,
+        )
         .expect("Into<String> used as message")
     }
 
@@ -678,16 +692,20 @@ impl Context {
     where
         M: Into<Box<str>>,
     {
-        New::from(Call::new(
-            Identifier::from("URIError"),
-            vec![Const::from(message.into()).into()],
-        ))
-        .run(self)
+        crate::builtins::error::UriError::constructor(
+            &self
+                .standard_objects()
+                .uri_error_object()
+                .constructor()
+                .into(),
+            &[message.into().into()],
+            self,
+        )
         .expect("Into<String> used as message")
     }
 
     /// Throws a `EvalError` with the specified message.
-    pub fn throw_eval_error<M>(&mut self, message: M) -> JsResult<JsValue>
+    pub fn throw_eval_error<M, R>(&mut self, message: M) -> JsResult<R>
     where
         M: Into<Box<str>>,
     {
@@ -1036,12 +1054,13 @@ impl Context {
             Err(e) => return self.throw_syntax_error(e),
         };
 
-        let mut compiler = crate::bytecompiler::ByteCompiler::new(JsString::new("<main>"), false);
+        let mut compiler = crate::bytecompiler::ByteCompiler::new(
+            JsString::new("<main>"),
+            statement_list.strict(),
+        );
         compiler.compile_statement_list(&statement_list, true);
         let code_block = compiler.finish();
 
-        let environment = self.get_current_environment().clone();
-        let fp = self.vm.stack.len();
         let global_object = self.global_object().into();
 
         self.vm.push_frame(CallFrame {
@@ -1049,9 +1068,13 @@ impl Context {
             code: Gc::new(code_block),
             this: global_object,
             pc: 0,
-            fp,
-            exit_on_return: true,
-            environment,
+            catch: Vec::new(),
+            finally_return: FinallyReturn::None,
+            finally_jump: Vec::new(),
+            pop_on_return: 0,
+            pop_env_on_return: 0,
+            param_count: 0,
+            arg_count: 0,
         });
         let result = self.run();
 

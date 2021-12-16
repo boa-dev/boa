@@ -96,6 +96,8 @@ impl Json {
         // 9. Let unfiltered be completion.[[Value]].
         // 10. Assert: unfiltered is either a String, Number, Boolean, Null, or an Object that is defined by either an ArrayLiteral or an ObjectLiteral.
         let unfiltered = context.eval(script_string.as_bytes())?;
+        #[cfg(feature = "vm")]
+        context.vm.pop_frame();
 
         // 11. If IsCallable(reviver) is true, then
         if let Some(obj) = args.get_or_undefined(1).as_callable() {
@@ -448,7 +450,7 @@ impl Json {
 
         // 10. If Type(value) is BigInt, throw a TypeError exception.
         if value.is_bigint() {
-            return Err(context.construct_type_error("cannot serialize bigint to JSON"));
+            return context.throw_type_error("cannot serialize bigint to JSON");
         }
 
         // 11. If Type(value) is Object and IsCallable(value) is false, then
@@ -531,7 +533,7 @@ impl Json {
         // 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.
         let limiter = RecursionLimiter::new(value);
         if limiter.live {
-            return Err(context.construct_type_error("cyclic object value"));
+            return context.throw_type_error("cyclic object value");
         }
 
         // 2. Append value to state.[[Stack]].
@@ -644,7 +646,7 @@ impl Json {
         // 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.
         let limiter = RecursionLimiter::new(value);
         if limiter.live {
-            return Err(context.construct_type_error("cyclic object value"));
+            return context.throw_type_error("cyclic object value");
         }
 
         // 2. Append value to state.[[Stack]].
