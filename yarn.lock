@@ -652,10 +652,10 @@ cookie@0.4.0:
   resolved "https://registry.yarnpkg.com/cookie/-/cookie-0.4.0.tgz#beb437e7022b3b6d49019d088665303ebe9c14ba"
   integrity sha512-+Hp8fLp57wnUSt0tY0tHEXh4voZRDnoIrZPqlo3DPiI4y9lwg/jqx+1Om94/W6ZaPDOUbnjOt/99w66zk+l1Xg==
 
-copy-webpack-plugin@^10.1.0:
-  version "10.1.0"
-  resolved "https://registry.yarnpkg.com/copy-webpack-plugin/-/copy-webpack-plugin-10.1.0.tgz#d27cf1cbe1c9b4ac57f1f96312e6f7da00108d23"
-  integrity sha512-dPGo+zoW77wiF5LlwkQcZTY7FsrSm7dmovhLDHsjYyciiJ+ZhLFt2EQbw9LRUHJ586JXN0K1A70Kbudclvt00Q==
+copy-webpack-plugin@^10.2.0:
+  version "10.2.0"
+  resolved "https://registry.yarnpkg.com/copy-webpack-plugin/-/copy-webpack-plugin-10.2.0.tgz#24c2d256953a55400a1ec66be4e0eccd1c4ae958"
+  integrity sha512-my6iXII95c78w14HzYCNya5TlJYa44lOppAge5GSTMM1SyDxNsVGCJvhP4/ld6snm8lzjn3XOonMZD6s1L86Og==
   dependencies:
     fast-glob "^3.2.7"
     glob-parent "^6.0.1"
