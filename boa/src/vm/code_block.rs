@@ -481,7 +481,6 @@ impl JsObject {
             }
         };
 
-        
         match body {
             FunctionBody::Native { function } if construct => {
                 function(&JsValue::undefined(), args, context)
