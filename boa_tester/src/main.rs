@@ -329,6 +329,7 @@ struct SuiteResult {
 
 /// Outcome of a test.
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(dead_code)]
 struct TestResult {
     #[serde(rename = "n")]
     name: Box<str>,
@@ -354,6 +355,7 @@ enum TestOutcomeResult {
 
 /// Represents a test.
 #[derive(Debug, Clone, Default)]
+#[allow(dead_code)]
 struct Test {
     name: Box<str>,
     description: Box<str>,
@@ -493,6 +495,7 @@ enum Phase {
 /// Locale information structure.
 #[derive(Debug, Default, Clone, Deserialize)]
 #[serde(transparent)]
+#[allow(dead_code)]
 struct Locale {
     locale: Box<[Box<str>]>,
 }

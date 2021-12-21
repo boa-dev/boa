@@ -99,6 +99,7 @@ pub fn parse<T: AsRef<[u8]>>(src: T, strict_mode: bool) -> StdResult<StatementLi
 /// Execute the code using an existing Context
 /// The str is consumed and the state of the Context is changed
 #[cfg(test)]
+#[cfg_attr(not(feature = "vm"), allow(clippy::let_and_return))]
 pub(crate) fn forward<T: AsRef<[u8]>>(context: &mut Context, src: T) -> String {
     let src_bytes: &[u8] = src.as_ref();
     let result = context.eval(src_bytes).map_or_else(
