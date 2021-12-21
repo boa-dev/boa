@@ -92,8 +92,6 @@ impl Vm {
 
 impl Context {
     fn execute_instruction(&mut self) -> JsResult<bool> {
-        let _timer = BoaProfiler::global().start_event("execute_instruction", "vm");
-
         macro_rules! bin_op {
             ($op:ident) => {{
                 let rhs = self.vm.pop();
@@ -103,10 +101,13 @@ impl Context {
             }};
         }
 
-        let opcode = self.vm.frame().code.code[self.vm.frame().pc]
+        let opcode: Opcode = self.vm.frame().code.code[self.vm.frame().pc]
             .try_into()
             .unwrap();
         self.vm.frame_mut().pc += 1;
+
+        let _timer = BoaProfiler::global()
+            .start_event(&format!("execute_instruction - {}", &opcode.as_str()), "vm");
 
         match opcode {
             Opcode::Nop => {}
