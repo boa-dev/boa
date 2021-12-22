@@ -315,13 +315,6 @@ impl StandardObjects {
     }
 }
 
-/// Internal representation of the strict mode types.
-#[derive(Debug, Copy, Clone)]
-pub(crate) enum StrictType {
-    Off,
-    Global,
-}
-
 /// Javascript context. It is the primary way to interact with the runtime.
 ///
 /// `Context`s constructed in a thread share the same runtime, therefore it
@@ -384,8 +377,8 @@ pub struct Context {
     /// Cached intrinsic objects
     intrinsic_objects: IntrinsicObjects,
 
-    /// Whether or not strict mode is active.
-    strict: StrictType,
+    /// Whether or not global strict mode is active.
+    strict: bool,
 
     pub(crate) vm: Vm,
 }
@@ -401,7 +394,7 @@ impl Default for Context {
             typed_array_constructor: StandardConstructor::default(),
             standard_objects: Default::default(),
             intrinsic_objects: IntrinsicObjects::default(),
-            strict: StrictType::Off,
+            strict: false,
             vm: Vm {
                 frame: None,
                 stack: Vec::with_capacity(1024),
@@ -451,19 +444,19 @@ impl Context {
     /// Returns if strict mode is currently active.
     #[inline]
     pub fn strict(&self) -> bool {
-        matches!(self.strict, StrictType::Global)
+        self.strict
     }
 
     /// Disable the strict mode.
     #[inline]
     pub fn set_strict_mode_off(&mut self) {
-        self.strict = StrictType::Off;
+        self.strict = false;
     }
 
     /// Enable the global strict mode.
     #[inline]
     pub fn set_strict_mode_global(&mut self) {
-        self.strict = StrictType::Global;
+        self.strict = true;
     }
 
     /// Sets up the default global objects within Global
