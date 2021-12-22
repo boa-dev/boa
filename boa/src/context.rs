@@ -5,14 +5,18 @@ use crate::{
         self, function::NativeFunctionSignature, intrinsics::IntrinsicObjects,
         iterable::IteratorPrototypes, typed_array::TypedArray,
     },
+    bytecompiler::ByteCompiler,
     class::{Class, ClassBuilder},
     object::{FunctionBuilder, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
-    syntax::Parser,
-    vm::{FinallyReturn, Vm},
+    syntax::{ast::node::StatementList, Parser},
+    vm::{CodeBlock, FinallyReturn, Vm},
     BoaProfiler, JsResult, JsString, JsValue,
 };
+
+use crate::vm::CallFrame;
+use gc::Gc;
 
 #[cfg(feature = "console")]
 use crate::builtins::console::Console;
@@ -433,7 +437,6 @@ impl Context {
     pub fn new() -> Self {
         Default::default()
     }
-
     /// A helper function for getting an immutable reference to the `console` object.
     #[cfg(feature = "console")]
     pub(crate) fn console(&self) -> &Console {
@@ -867,10 +870,6 @@ impl Context {
     /// ```
     #[allow(clippy::unit_arg, clippy::drop_copy)]
     pub fn eval<T: AsRef<[u8]>>(&mut self, src: T) -> JsResult<JsValue> {
-        use gc::Gc;
-
-        use crate::vm::CallFrame;
-
         let main_timer = BoaProfiler::global().start_event("Main", "Main");
         let src_bytes: &[u8] = src.as_ref();
 
@@ -883,13 +882,29 @@ impl Context {
             Err(e) => return self.throw_syntax_error(e),
         };
 
-        let mut compiler = crate::bytecompiler::ByteCompiler::new(
-            JsString::new("<main>"),
-            statement_list.strict(),
-        );
-        compiler.compile_statement_list(&statement_list, true);
-        let code_block = compiler.finish();
+        let code_block = Context::compile(statement_list);
+        let result = self.execute(code_block);
 
+        // The main_timer needs to be dropped before the BoaProfiler is.
+        drop(main_timer);
+        BoaProfiler::global().drop();
+
+        result
+    }
+
+    // Compile the AST into a CodeBlock ready to execute by the VM
+    #[inline]
+    pub fn compile(statement_list: StatementList) -> CodeBlock {
+        let _ = BoaProfiler::global().start_event("Compilation", "Main");
+        let mut compiler = ByteCompiler::new(JsString::new("<main>"), statement_list.strict());
+        compiler.compile_statement_list(&statement_list, true);
+        compiler.finish()
+    }
+
+    // Call the VM with the codeblock and return the result
+    #[inline]
+    pub fn execute(&mut self, code_block: CodeBlock) -> JsResult<JsValue> {
+        let _ = BoaProfiler::global().start_event("Execute", "Main");
         let global_object = self.global_object().into();
 
         self.vm.push_frame(CallFrame {
@@ -905,13 +920,8 @@ impl Context {
             param_count: 0,
             arg_count: 0,
         });
-        let result = self.run();
 
-        // The main_timer needs to be dropped before the BoaProfiler is.
-        drop(main_timer);
-        BoaProfiler::global().drop();
-
-        result
+        self.run()
     }
 
     /// Return the cached iterator prototypes.
