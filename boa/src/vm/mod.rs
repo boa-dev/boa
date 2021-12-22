@@ -106,8 +106,8 @@ impl Context {
             .unwrap();
         self.vm.frame_mut().pc += 1;
 
-        let _timer = BoaProfiler::global()
-            .start_event(&format!("INST - {}", &opcode.as_str()), "vm");
+        let _timer =
+            BoaProfiler::global().start_event(&format!("INST - {}", &opcode.as_str()), "vm");
 
         match opcode {
             Opcode::Nop => {}
