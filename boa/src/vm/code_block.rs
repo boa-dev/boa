@@ -40,7 +40,7 @@ unsafe impl Readable for f64 {}
 ///
 /// A CodeBlock is generated for each function compiled by the [ByteCompiler](crate::bytecompiler::ByteCompiler).
 /// It stores the bytecode and the other attributes of the function.
-#[derive(Debug, Trace, Finalize)]
+#[derive(Clone, Debug, Trace, Finalize)]
 pub struct CodeBlock {
     /// Name of this function
     pub(crate) name: JsString,

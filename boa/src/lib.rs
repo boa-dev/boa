@@ -99,14 +99,10 @@ pub fn parse<T: AsRef<[u8]>>(src: T, strict_mode: bool) -> StdResult<StatementLi
 #[cfg_attr(not(feature = "vm"), allow(clippy::let_and_return))]
 pub(crate) fn forward<T: AsRef<[u8]>>(context: &mut Context, src: T) -> String {
     let src_bytes: &[u8] = src.as_ref();
-    let result = context.eval(src_bytes).map_or_else(
+    context.eval(src_bytes).map_or_else(
         |e| format!("Uncaught {}", e.display()),
         |v| v.display().to_string(),
-    );
-
-    context.vm.pop_frame();
-
-    result
+    )
 }
 
 /// Execute the code using an existing Context.
@@ -120,8 +116,6 @@ pub(crate) fn forward_val<T: AsRef<[u8]>>(context: &mut Context, src: T) -> JsRe
 
     let src_bytes: &[u8] = src.as_ref();
     let result = context.eval(src_bytes);
-
-    context.vm.pop_frame();
 
     // The main_timer needs to be dropped before the BoaProfiler is.
     drop(main_timer);

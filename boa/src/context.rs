@@ -11,11 +11,9 @@ use crate::{
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
     syntax::{ast::node::StatementList, Parser},
-    vm::{CodeBlock, FinallyReturn, Vm},
+    vm::{CallFrame, CodeBlock, FinallyReturn, Vm},
     BoaProfiler, JsResult, JsString, JsValue,
 };
-
-use crate::vm::CallFrame;
 use gc::Gc;
 
 #[cfg(feature = "console")]
