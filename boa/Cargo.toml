@@ -57,13 +57,5 @@ name = "boa"
 bench = false
 
 [[bench]]
-name = "parser"
-harness = false
-
-[[bench]]
-name = "exec"
-harness = false
-
-[[bench]]
 name = "full"
 harness = false
