@@ -93,6 +93,7 @@ impl Context {
             .recursive_get_this_binding(self)
     }
 
+    #[cfg(feature = "vm")]
     pub(crate) fn get_global_this_binding(&mut self) -> JsResult<JsValue> {
         let global = self.realm.global_env.clone();
         global.get_this_binding(self)

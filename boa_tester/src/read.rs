@@ -7,6 +7,7 @@ use std::{fs, io, path::Path, str::FromStr};
 
 /// Representation of the YAML metadata in Test262 tests.
 #[derive(Debug, Clone, Deserialize)]
+#[allow(dead_code)]
 pub(super) struct MetaData {
     pub(super) description: Box<str>,
     pub(super) esid: Option<Box<str>>,
