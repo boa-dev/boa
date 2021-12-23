@@ -250,6 +250,7 @@
 <span id="250">250</span>
 <span id="251">251</span>
 <span id="252">252</span>
+<span id="253">253</span>
 </pre><pre class="rust"><code><span class="doccomment">//! # Lexical Environment</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! &lt;https://tc39.es/ecma262/#sec-lexical-environment-operations&gt;</span>
@@ -345,6 +346,7 @@
             .<span class="ident">recursive_get_this_binding</span>(<span class="self">self</span>)
     }
 
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>)]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_global_this_binding</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">global</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">global_env</span>.<span class="ident">clone</span>();
         <span class="ident">global</span>.<span class="ident">get_this_binding</span>(<span class="self">self</span>)

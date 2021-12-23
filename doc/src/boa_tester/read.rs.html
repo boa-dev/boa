@@ -201,6 +201,7 @@
 <span id="201">201</span>
 <span id="202">202</span>
 <span id="203">203</span>
+<span id="204">204</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Module to read the list of test suites from disk.</span>
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Harness</span>, <span class="ident">Locale</span>, <span class="ident">Phase</span>, <span class="ident">Test</span>, <span class="ident">TestSuite</span>, <span class="ident">IGNORED</span>};
@@ -210,6 +211,7 @@
 
 <span class="doccomment">/// Representation of the YAML metadata in Test262 tests.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Deserialize</span>)]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">MetaData</span> {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">description</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">esid</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
