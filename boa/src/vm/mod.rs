@@ -101,10 +101,14 @@ impl Context {
             }};
         }
 
-        let opcode: Opcode = self.vm.frame().code.code[self.vm.frame().pc]
-            .try_into()
-            .unwrap();
-        self.vm.frame_mut().pc += 1;
+        let opcode: Opcode = {
+            let _timer = BoaProfiler::global().start_event("Opcode retrieval", "vm");
+            let opcode = self.vm.frame().code.code[self.vm.frame().pc]
+                .try_into()
+                .expect("could not convert code at PC to opcode");
+            self.vm.frame_mut().pc += 1;
+            opcode
+        };
 
         let _timer =
             BoaProfiler::global().start_event(&format!("INST - {}", &opcode.as_str()), "vm");

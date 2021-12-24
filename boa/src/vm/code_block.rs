@@ -23,8 +23,11 @@ use gc::Gc;
 use std::{convert::TryInto, fmt::Write, mem::size_of};
 
 /// This represents whether a value can be read from [`CodeBlock`] code.
+///
 /// # Safety
-pub unsafe trait Readable {}
+///
+/// TO-DO
+pub(crate) unsafe trait Readable {}
 unsafe impl Readable for u8 {}
 unsafe impl Readable for i8 {}
 unsafe impl Readable for u16 {}
@@ -99,7 +102,10 @@ impl CodeBlock {
     /// # Safety
     ///
     /// Does not check if read happens out-of-bounds.
-    pub unsafe fn read_unchecked<T: Readable>(&self, offset: usize) -> T {
+    pub(crate) unsafe fn read_unchecked<T>(&self, offset: usize) -> T
+    where
+        T: Readable,
+    {
         // This has to be an unaligned read because we can't guarantee that
         // the types are aligned.
         self.code.as_ptr().add(offset).cast::<T>().read_unaligned()
@@ -107,7 +113,10 @@ impl CodeBlock {
 
     /// Read type T from code.
     #[track_caller]
-    pub fn read<T: Readable>(&self, offset: usize) -> T {
+    pub(crate) fn read<T>(&self, offset: usize) -> T
+    where
+        T: Readable,
+    {
         assert!(offset + size_of::<T>() - 1 < self.code.len());
 
         // Safety: We checked that it is not an out-of-bounds read,
