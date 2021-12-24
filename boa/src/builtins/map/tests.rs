@@ -2,7 +2,7 @@ use crate::{forward, Context};
 
 #[test]
 fn construct_empty() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var empty = new Map();
         "#;
@@ -13,7 +13,7 @@ fn construct_empty() {
 
 #[test]
 fn construct_from_array() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         let map = new Map([["1", "one"], ["2", "two"]]);
         "#;
@@ -24,7 +24,7 @@ fn construct_from_array() {
 
 #[test]
 fn clone() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         let original = new Map([["1", "one"], ["2", "two"]]);
         let clone = new Map(original);
@@ -45,7 +45,7 @@ fn clone() {
 
 #[test]
 fn symbol_iterator() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         const map1 = new Map();
         map1.set('0', 'foo');
@@ -81,7 +81,7 @@ fn symbol_iterator() {
 // Should behave the same as symbol_iterator
 #[test]
 fn entries() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         const map1 = new Map();
         map1.set('0', 'foo');
@@ -116,7 +116,7 @@ fn entries() {
 
 #[test]
 fn merge() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         let first = new Map([["1", "one"], ["2", "two"]]);
         let second = new Map([["2", "second two"], ["3", "three"]]);
@@ -135,7 +135,7 @@ fn merge() {
 
 #[test]
 fn get() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         let map = new Map([["1", "one"], ["2", "two"]]);
         "#;
@@ -152,7 +152,7 @@ fn get() {
 
 #[test]
 fn set() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         let map = new Map();
         "#;
@@ -170,7 +170,7 @@ fn set() {
 
 #[test]
 fn clear() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         let map = new Map([["1", "one"], ["2", "two"]]);
         map.clear();
@@ -182,7 +182,7 @@ fn clear() {
 
 #[test]
 fn delete() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         let map = new Map([["1", "one"], ["2", "two"]]);
         "#;
@@ -197,7 +197,7 @@ fn delete() {
 
 #[test]
 fn has() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         let map = new Map([["1", "one"]]);
         "#;
@@ -212,7 +212,7 @@ fn has() {
 
 #[test]
 fn keys() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         const map1 = new Map();
         map1.set('0', 'foo');
@@ -239,7 +239,7 @@ fn keys() {
 
 #[test]
 fn for_each() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         let map = new Map([[1, 5], [2, 10], [3, 15]]);
         let valueSum = 0;
@@ -260,7 +260,7 @@ fn for_each() {
 
 #[test]
 fn values() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         const map1 = new Map();
         map1.set('0', 'foo');
@@ -287,7 +287,7 @@ fn values() {
 
 #[test]
 fn modify_key() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         let obj = new Object();
         let map = new Map([[obj, "one"]]);
@@ -300,7 +300,7 @@ fn modify_key() {
 
 #[test]
 fn order() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         let map = new Map([[1, "one"]]);
         map.set(2, "two");
@@ -326,7 +326,7 @@ fn order() {
 
 #[test]
 fn recursive_display() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         let map = new Map();
         let array = new Array([map]);
@@ -341,7 +341,7 @@ fn recursive_display() {
 
 #[test]
 fn not_a_function() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r"
         try {
             let map = Map()
@@ -357,7 +357,7 @@ fn not_a_function() {
 
 #[test]
 fn for_each_delete() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         let map = new Map([[0, "a"], [1, "b"], [2, "c"]]);
         let result = [];
@@ -382,7 +382,7 @@ fn for_each_delete() {
 
 #[test]
 fn for_of_delete() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         let map = new Map([[0, "a"], [1, "b"], [2, "c"]]);
         let result = [];

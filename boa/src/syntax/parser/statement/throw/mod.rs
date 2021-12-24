@@ -2,6 +2,7 @@
 mod tests;
 
 use crate::syntax::lexer::TokenKind;
+use crate::Interner;
 use crate::{
     syntax::{
         ast::{node::Throw, Keyword, Punctuator},
@@ -46,16 +47,21 @@ where
 {
     type Output = Throw;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ThrowStatement", "Parsing");
-        cursor.expect(Keyword::Throw, "throw statement")?;
+        cursor.expect(Keyword::Throw, "throw statement", interner)?;
 
-        cursor.peek_expect_no_lineterminator(0, "throw statement")?;
+        cursor.peek_expect_no_lineterminator(0, "throw statement", interner)?;
 
-        let expr = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
-        if let Some(tok) = cursor.peek(0)? {
+        let expr =
+            Expression::new(true, self.allow_yield, self.allow_await).parse(cursor, interner)?;
+        if let Some(tok) = cursor.peek(0, interner)? {
             if tok.kind() == &TokenKind::Punctuator(Punctuator::Semicolon) {
-                let _ = cursor.next();
+                let _ = cursor.next(interner).expect("token disappeared");
             }
         }
 

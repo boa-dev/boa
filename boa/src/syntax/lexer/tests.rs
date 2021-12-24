@@ -13,16 +13,16 @@ fn span(start: (u32, u32), end: (u32, u32)) -> Span {
     Span::new(Position::new(start.0, start.1), Position::new(end.0, end.1))
 }
 
-fn expect_tokens<R>(lexer: &mut Lexer<R>, expected: &[TokenKind])
+fn expect_tokens<R>(lexer: &mut Lexer<R>, expected: &[TokenKind], interner: &mut Interner)
 where
     R: Read,
 {
     for expect in expected.iter() {
-        assert_eq!(&lexer.next().unwrap().unwrap().kind(), &expect);
+        assert_eq!(&lexer.next(interner).unwrap().unwrap().kind(), &expect);
     }
 
     assert!(
-        lexer.next().unwrap().is_none(),
+        lexer.next(interner).unwrap().is_none(),
         "Unexpected extra token lexed at end of input"
     );
 }
@@ -31,6 +31,7 @@ where
 fn check_single_line_comment() {
     let s1 = "var \n//This is a comment\ntrue";
     let mut lexer = Lexer::new(s1.as_bytes());
+    let mut interner = Interner::new();
 
     let expected = [
         TokenKind::Keyword(Keyword::Var),
@@ -39,13 +40,14 @@ fn check_single_line_comment() {
         TokenKind::BooleanLiteral(true),
     ];
 
-    expect_tokens(&mut lexer, &expected);
+    expect_tokens(&mut lexer, &expected, &mut interner);
 }
 
 #[test]
 fn check_single_line_comment_with_crlf_ending() {
     let s1 = "var \r\n//This is a comment\r\ntrue";
     let mut lexer = Lexer::new(s1.as_bytes());
+    let mut interner = Interner::new();
 
     let expected = [
         TokenKind::Keyword(Keyword::Var),
@@ -54,44 +56,47 @@ fn check_single_line_comment_with_crlf_ending() {
         TokenKind::BooleanLiteral(true),
     ];
 
-    expect_tokens(&mut lexer, &expected);
+    expect_tokens(&mut lexer, &expected, &mut interner);
 }
 
 #[test]
 fn check_multi_line_comment() {
     let s = "var /* await \n break \n*/ x";
     let mut lexer = Lexer::new(s.as_bytes());
+    let mut interner = Interner::new();
 
+    let sym = interner.get_or_intern_static("x");
     let expected = [
         TokenKind::Keyword(Keyword::Var),
         TokenKind::LineTerminator,
-        TokenKind::identifier("x"),
+        TokenKind::identifier(sym),
     ];
 
-    expect_tokens(&mut lexer, &expected);
+    expect_tokens(&mut lexer, &expected, &mut interner);
 }
 
 #[test]
 fn check_identifier() {
     let s = "x x1 _x $x __ $$ Ѐ ЀЀ x\u{200C}\u{200D} \\u0078 \\u0078\\u0078 \\u{0078}x\\u{0078}";
     let mut lexer = Lexer::new(s.as_bytes());
+    let mut interner = Interner::new();
 
     let expected = [
-        TokenKind::identifier("x"),
-        TokenKind::identifier("x1"),
-        TokenKind::identifier("_x"),
-        TokenKind::identifier("$x"),
-        TokenKind::identifier("__"),
-        TokenKind::identifier("$$"),
-        TokenKind::identifier("Ѐ"),
-        TokenKind::identifier("ЀЀ"),
-        TokenKind::identifier("x\u{200C}\u{200D}"),
-        TokenKind::identifier("x"),
-        TokenKind::identifier("xx"),
-        TokenKind::identifier("xxx"),
+        TokenKind::identifier(interner.get_or_intern_static("x")),
+        TokenKind::identifier(interner.get_or_intern_static("x1")),
+        TokenKind::identifier(interner.get_or_intern_static("_x")),
+        TokenKind::identifier(interner.get_or_intern_static("$x")),
+        TokenKind::identifier(interner.get_or_intern_static("__")),
+        TokenKind::identifier(interner.get_or_intern_static("$$")),
+        TokenKind::identifier(interner.get_or_intern_static("Ѐ")),
+        TokenKind::identifier(interner.get_or_intern_static("ЀЀ")),
+        TokenKind::identifier(interner.get_or_intern_static("x\u{200C}\u{200D}")),
+        TokenKind::identifier(interner.get_or_intern_static("x")),
+        TokenKind::identifier(interner.get_or_intern_static("xx")),
+        TokenKind::identifier(interner.get_or_intern_static("xxx")),
     ];
 
-    expect_tokens(&mut lexer, &expected);
+    expect_tokens(&mut lexer, &expected, &mut interner);
 }
 
 #[test]
@@ -100,8 +105,9 @@ fn check_invalid_identifier_start() {
 
     for s in invalid_identifier_starts.iter() {
         let mut lexer = Lexer::new(s.as_bytes());
+        let mut interner = Interner::new();
         lexer
-            .next()
+            .next(&mut interner)
             .expect_err("Invalid identifier start not rejected as expected");
     }
 }
@@ -109,13 +115,16 @@ fn check_invalid_identifier_start() {
 #[test]
 fn check_invalid_identifier_part() {
     let invalid_identifier_parts = [" ", "\n", ".", "*", "😀", "\u{007F}"];
+    let mut interner = Interner::new();
 
+    let sym = interner.get_or_intern_static("x");
     for part in invalid_identifier_parts.iter() {
         let s = String::from("x") + part;
         let mut lexer = Lexer::new(s.as_bytes());
+        let mut interner = Interner::new();
         assert_eq!(
-            lexer.next().unwrap().unwrap().kind(),
-            &TokenKind::identifier("x")
+            lexer.next(&mut interner).unwrap().unwrap().kind(),
+            &TokenKind::identifier(sym)
         );
     }
 }
@@ -124,26 +133,29 @@ fn check_invalid_identifier_part() {
 fn check_string() {
     let s = "'aaa' \"bbb\"";
     let mut lexer = Lexer::new(s.as_bytes());
+    let mut interner = Interner::new();
 
+    let a_sym = interner.get_or_intern_static("aaa");
+    let b_sym = interner.get_or_intern_static("bbb");
     let expected = [
-        TokenKind::string_literal("aaa"),
-        TokenKind::string_literal("bbb"),
+        TokenKind::string_literal(a_sym),
+        TokenKind::string_literal(b_sym),
     ];
 
-    expect_tokens(&mut lexer, &expected);
+    expect_tokens(&mut lexer, &expected, &mut interner);
 }
 
 #[test]
 fn check_template_literal_simple() {
     let s = "`I'm a template literal`";
     let mut lexer = Lexer::new(s.as_bytes());
+    let mut interner = Interner::new();
+
+    let sym = interner.get_or_intern_static("I'm a template literal");
 
     assert_eq!(
-        lexer.next().unwrap().unwrap().kind(),
-        &TokenKind::template_no_substitution(TemplateString::new(
-            "I'm a template literal",
-            Position::new(1, 1)
-        ))
+        lexer.next(&mut interner).unwrap().unwrap().kind(),
+        &TokenKind::template_no_substitution(TemplateString::new(sym, Position::new(1, 1)))
     );
 }
 
@@ -151,9 +163,10 @@ fn check_template_literal_simple() {
 fn check_template_literal_unterminated() {
     let s = "`I'm a template";
     let mut lexer = Lexer::new(s.as_bytes());
+    let mut interner = Interner::new();
 
     lexer
-        .next()
+        .next(&mut interner)
         .expect_err("Lexer did not handle unterminated literal with error");
 }
 
@@ -164,6 +177,7 @@ fn check_punctuators() {
              + - * % -- << >> >>> & | ^ ! ~ && || ? : \
              = += -= *= &= **= ++ ** <<= >>= >>>= &= |= ^= => ?? ??= &&= ||=";
     let mut lexer = Lexer::new(s.as_bytes());
+    let mut interner = Interner::new();
 
     let expected = [
         TokenKind::Punctuator(Punctuator::OpenBlock),
@@ -221,7 +235,7 @@ fn check_punctuators() {
         TokenKind::Punctuator(Punctuator::AssignBoolOr),
     ];
 
-    expect_tokens(&mut lexer, &expected);
+    expect_tokens(&mut lexer, &expected, &mut interner);
 }
 
 #[test]
@@ -232,6 +246,7 @@ fn check_keywords() {
              new return super switch this throw try typeof var void while with yield";
 
     let mut lexer = Lexer::new(s.as_bytes());
+    let mut interner = Interner::new();
 
     let expected = [
         TokenKind::Keyword(Keyword::Await),
@@ -270,23 +285,26 @@ fn check_keywords() {
         TokenKind::Keyword(Keyword::Yield),
     ];
 
-    expect_tokens(&mut lexer, &expected);
+    expect_tokens(&mut lexer, &expected, &mut interner);
 }
 
 #[test]
 fn check_variable_definition_tokens() {
     let s = "let a = 'hello';";
     let mut lexer = Lexer::new(s.as_bytes());
+    let mut interner = Interner::new();
 
+    let a_sym = interner.get_or_intern_static("a");
+    let hello_sym = interner.get_or_intern_static("hello");
     let expected = [
         TokenKind::Keyword(Keyword::Let),
-        TokenKind::identifier("a"),
+        TokenKind::identifier(a_sym),
         TokenKind::Punctuator(Punctuator::Assign),
-        TokenKind::string_literal("hello"),
+        TokenKind::string_literal(hello_sym),
         TokenKind::Punctuator(Punctuator::Semicolon),
     ];
 
-    expect_tokens(&mut lexer, &expected);
+    expect_tokens(&mut lexer, &expected, &mut interner);
 }
 
 #[test]
@@ -294,37 +312,47 @@ fn check_positions() {
     let s = r#"console.log("hello world"); // Test"#;
     // --------123456789
     let mut lexer = Lexer::new(s.as_bytes());
+    let mut interner = Interner::new();
 
     // The first column is 1 (not zero indexed)
-    assert_eq!(lexer.next().unwrap().unwrap().span(), span((1, 1), (1, 8)));
+    assert_eq!(
+        lexer.next(&mut interner).unwrap().unwrap().span(),
+        span((1, 1), (1, 8))
+    );
 
     // Dot Token starts on column 8
-    assert_eq!(lexer.next().unwrap().unwrap().span(), span((1, 8), (1, 9)));
+    assert_eq!(
+        lexer.next(&mut interner).unwrap().unwrap().span(),
+        span((1, 8), (1, 9))
+    );
 
     // Log Token starts on column 9
-    assert_eq!(lexer.next().unwrap().unwrap().span(), span((1, 9), (1, 12)));
+    assert_eq!(
+        lexer.next(&mut interner).unwrap().unwrap().span(),
+        span((1, 9), (1, 12))
+    );
 
     // Open parenthesis token starts on column 12
     assert_eq!(
-        lexer.next().unwrap().unwrap().span(),
+        lexer.next(&mut interner).unwrap().unwrap().span(),
         span((1, 12), (1, 13))
     );
 
     // String token starts on column 13
     assert_eq!(
-        lexer.next().unwrap().unwrap().span(),
+        lexer.next(&mut interner).unwrap().unwrap().span(),
         span((1, 13), (1, 26))
     );
 
     // Close parenthesis token starts on column 26.
     assert_eq!(
-        lexer.next().unwrap().unwrap().span(),
+        lexer.next(&mut interner).unwrap().unwrap().span(),
         span((1, 26), (1, 27))
     );
 
     // Semi Colon token starts on column 35
     assert_eq!(
-        lexer.next().unwrap().unwrap().span(),
+        lexer.next(&mut interner).unwrap().unwrap().span(),
         span((1, 27), (1, 28))
     );
 }
@@ -334,37 +362,47 @@ fn check_positions_codepoint() {
     let s = r#"console.log("hello world\u{2764}"); // Test"#;
     // --------123456789
     let mut lexer = Lexer::new(s.as_bytes());
+    let mut interner = Interner::new();
 
     // The first column is 1 (not zero indexed)
-    assert_eq!(lexer.next().unwrap().unwrap().span(), span((1, 1), (1, 8)));
+    assert_eq!(
+        lexer.next(&mut interner).unwrap().unwrap().span(),
+        span((1, 1), (1, 8))
+    );
 
     // Dot Token starts on column 8
-    assert_eq!(lexer.next().unwrap().unwrap().span(), span((1, 8), (1, 9)));
+    assert_eq!(
+        lexer.next(&mut interner).unwrap().unwrap().span(),
+        span((1, 8), (1, 9))
+    );
 
     // Log Token starts on column 9
-    assert_eq!(lexer.next().unwrap().unwrap().span(), span((1, 9), (1, 12)));
+    assert_eq!(
+        lexer.next(&mut interner).unwrap().unwrap().span(),
+        span((1, 9), (1, 12))
+    );
 
     // Open parenthesis token starts on column 12
     assert_eq!(
-        lexer.next().unwrap().unwrap().span(),
+        lexer.next(&mut interner).unwrap().unwrap().span(),
         span((1, 12), (1, 13))
     );
 
     // String token starts on column 13
     assert_eq!(
-        lexer.next().unwrap().unwrap().span(),
+        lexer.next(&mut interner).unwrap().unwrap().span(),
         span((1, 13), (1, 34))
     );
 
     // Close parenthesis token starts on column 34
     assert_eq!(
-        lexer.next().unwrap().unwrap().span(),
+        lexer.next(&mut interner).unwrap().unwrap().span(),
         span((1, 34), (1, 35))
     );
 
     // Semi Colon token starts on column 35
     assert_eq!(
-        lexer.next().unwrap().unwrap().span(),
+        lexer.next(&mut interner).unwrap().unwrap().span(),
         span((1, 35), (1, 36))
     );
 }
@@ -374,11 +412,24 @@ fn check_line_numbers() {
     let s = "x\ny\n";
 
     let mut lexer = Lexer::new(s.as_bytes());
+    let mut interner = Interner::new();
 
-    assert_eq!(lexer.next().unwrap().unwrap().span(), span((1, 1), (1, 2)));
-    assert_eq!(lexer.next().unwrap().unwrap().span(), span((1, 2), (2, 1)));
-    assert_eq!(lexer.next().unwrap().unwrap().span(), span((2, 1), (2, 2)));
-    assert_eq!(lexer.next().unwrap().unwrap().span(), span((2, 2), (3, 1)));
+    assert_eq!(
+        lexer.next(&mut interner).unwrap().unwrap().span(),
+        span((1, 1), (1, 2))
+    );
+    assert_eq!(
+        lexer.next(&mut interner).unwrap().unwrap().span(),
+        span((1, 2), (2, 1))
+    );
+    assert_eq!(
+        lexer.next(&mut interner).unwrap().unwrap().span(),
+        span((2, 1), (2, 2))
+    );
+    assert_eq!(
+        lexer.next(&mut interner).unwrap().unwrap().span(),
+        span((2, 2), (3, 1))
+    );
 }
 
 // Increment/Decrement
@@ -386,20 +437,21 @@ fn check_line_numbers() {
 fn check_decrement_advances_lexer_2_places() {
     // Here we want an example of decrementing an integer
     let mut lexer = Lexer::new(&b"let a = b--;"[..]);
+    let mut interner = Interner::new();
 
     for _ in 0..4 {
-        lexer.next().unwrap();
+        lexer.next(&mut interner).unwrap();
     }
 
     assert_eq!(
-        lexer.next().unwrap().unwrap().kind(),
+        lexer.next(&mut interner).unwrap().unwrap().kind(),
         &TokenKind::Punctuator(Punctuator::Dec)
     );
     // Decrementing means adding 2 characters '--', the lexer should consume it as a single token
     // and move the curser forward by 2, meaning the next token should be a semicolon
 
     assert_eq!(
-        lexer.next().unwrap().unwrap().kind(),
+        lexer.next(&mut interner).unwrap().unwrap().kind(),
         &TokenKind::Punctuator(Punctuator::Semicolon)
     );
 }
@@ -407,10 +459,11 @@ fn check_decrement_advances_lexer_2_places() {
 #[test]
 fn single_int() {
     let mut lexer = Lexer::new(&b"52"[..]);
+    let mut interner = Interner::new();
 
     let expected = [TokenKind::numeric_literal(52)];
 
-    expect_tokens(&mut lexer, &expected);
+    expect_tokens(&mut lexer, &expected, &mut interner);
 }
 
 #[test]
@@ -419,6 +472,7 @@ fn numbers() {
         "1 2 0x34 056 7.89 42. 5e3 5e+3 5e-3 0b10 0O123 0999 1.0e1 1.0e-1 1.0E1 1E1 0.0 0.12 -32"
             .as_bytes(),
     );
+    let mut interner = Interner::new();
 
     let expected = [
         TokenKind::numeric_literal(1),
@@ -443,7 +497,7 @@ fn numbers() {
         TokenKind::numeric_literal(32),
     ];
 
-    expect_tokens(&mut lexer, &expected);
+    expect_tokens(&mut lexer, &expected, &mut interner);
 }
 
 #[test]
@@ -451,6 +505,7 @@ fn numbers_with_separators() {
     let mut lexer = Lexer::new(
         "1_0 2_0 0x3_4 056 7.8_9 4_2. 5_0e2 5_0e+2 5_0e-4 0b1_0 1_0.0_0e2 1.0E-0_1 -3_2".as_bytes(),
     );
+    let mut interner = Interner::new();
 
     let expected = [
         TokenKind::numeric_literal(10),
@@ -469,7 +524,7 @@ fn numbers_with_separators() {
         TokenKind::numeric_literal(32),
     ];
 
-    expect_tokens(&mut lexer, &expected);
+    expect_tokens(&mut lexer, &expected, &mut interner);
 }
 
 #[test]
@@ -480,13 +535,15 @@ fn numbers_with_bad_separators() {
 
     for n in numbers.iter() {
         let mut lexer = Lexer::new(n.as_bytes());
-        assert!(lexer.next().is_err());
+        let mut interner = Interner::new();
+        assert!(lexer.next(&mut interner).is_err());
     }
 }
 
 #[test]
 fn big_exp_numbers() {
     let mut lexer = Lexer::new(&b"1.0e25 1.0e36 9.0e50"[..]);
+    let mut interner = Interner::new();
 
     let expected = [
         TokenKind::numeric_literal(10000000000000000000000000.0),
@@ -494,22 +551,24 @@ fn big_exp_numbers() {
         TokenKind::numeric_literal(900000000000000000000000000000000000000000000000000.0),
     ];
 
-    expect_tokens(&mut lexer, &expected);
+    expect_tokens(&mut lexer, &expected, &mut interner);
 }
 
 #[test]
 #[ignore]
 fn big_literal_numbers() {
     let mut lexer = Lexer::new(&b"10000000000000000000000000"[..]);
+    let mut interner = Interner::new();
 
     let expected = [TokenKind::numeric_literal(10000000000000000000000000.0)];
 
-    expect_tokens(&mut lexer, &expected);
+    expect_tokens(&mut lexer, &expected, &mut interner);
 }
 
 #[test]
 fn implicit_octal_edge_case() {
     let mut lexer = Lexer::new(&b"044.5 094.5"[..]);
+    let mut interner = Interner::new();
 
     let expected = [
         TokenKind::numeric_literal(36),
@@ -517,27 +576,31 @@ fn implicit_octal_edge_case() {
         TokenKind::numeric_literal(94.5),
     ];
 
-    expect_tokens(&mut lexer, &expected);
+    expect_tokens(&mut lexer, &expected, &mut interner);
 }
 
 #[test]
 fn hexadecimal_edge_case() {
     let mut lexer = Lexer::new(&b"0xffff.ff 0xffffff"[..]);
+    let mut interner = Interner::new();
 
+    let sym = interner.get_or_intern_static("ff");
     let expected = [
         TokenKind::numeric_literal(0xffff),
         TokenKind::Punctuator(Punctuator::Dot),
-        TokenKind::identifier("ff"),
+        TokenKind::identifier(sym),
         TokenKind::numeric_literal(0x00ff_ffff),
     ];
 
-    expect_tokens(&mut lexer, &expected);
+    expect_tokens(&mut lexer, &expected, &mut interner);
 }
 
 #[test]
 fn single_number_without_semicolon() {
     let mut lexer = Lexer::new(&b"1"[..]);
-    if let Some(x) = lexer.next().unwrap() {
+    let mut interner = Interner::new();
+
+    if let Some(x) = lexer.next(&mut interner).unwrap() {
         assert_eq!(x.kind(), &TokenKind::numeric_literal(Numeric::Integer(1)));
     } else {
         panic!("Failed to lex 1 without semicolon");
@@ -547,47 +610,50 @@ fn single_number_without_semicolon() {
 #[test]
 fn number_followed_by_dot() {
     let mut lexer = Lexer::new(&b"1.."[..]);
+    let mut interner = Interner::new();
 
     let expected = [
         TokenKind::numeric_literal(1),
         TokenKind::Punctuator(Punctuator::Dot),
     ];
 
-    expect_tokens(&mut lexer, &expected);
+    expect_tokens(&mut lexer, &expected, &mut interner);
 }
 
 #[test]
 fn regex_literal() {
     let mut lexer = Lexer::new(&b"/(?:)/"[..]);
+    let mut interner = Interner::new();
 
+    let sym = interner.get_or_intern_static("(?:)");
     let expected = [TokenKind::regular_expression_literal(
-        "(?:)",
+        sym,
         RegExpFlags::default(),
     )];
 
-    expect_tokens(&mut lexer, &expected);
+    expect_tokens(&mut lexer, &expected, &mut interner);
 }
 
 #[test]
 fn regex_literal_flags() {
     let mut lexer = Lexer::new(&br"/\/[^\/]*\/*/gmi"[..]);
+    let mut interner = Interner::new();
 
     let mut flags = RegExpFlags::default();
     flags.insert(RegExpFlags::GLOBAL);
     flags.insert(RegExpFlags::MULTILINE);
     flags.insert(RegExpFlags::IGNORE_CASE);
 
-    let expected = [TokenKind::regular_expression_literal(
-        "\\/[^\\/]*\\/*",
-        flags,
-    )];
+    let sym = interner.get_or_intern_static("\\/[^\\/]*\\/*");
+    let expected = [TokenKind::regular_expression_literal(sym, flags)];
 
-    expect_tokens(&mut lexer, &expected);
+    expect_tokens(&mut lexer, &expected, &mut interner);
 }
 
 #[test]
 fn addition_no_spaces() {
     let mut lexer = Lexer::new(&b"1+1"[..]);
+    let mut interner = Interner::new();
 
     let expected = [
         TokenKind::numeric_literal(1),
@@ -595,12 +661,13 @@ fn addition_no_spaces() {
         TokenKind::numeric_literal(1),
     ];
 
-    expect_tokens(&mut lexer, &expected);
+    expect_tokens(&mut lexer, &expected, &mut interner);
 }
 
 #[test]
 fn addition_no_spaces_left_side() {
     let mut lexer = Lexer::new(&b"1+ 1"[..]);
+    let mut interner = Interner::new();
 
     let expected = [
         TokenKind::numeric_literal(1),
@@ -608,12 +675,13 @@ fn addition_no_spaces_left_side() {
         TokenKind::numeric_literal(1),
     ];
 
-    expect_tokens(&mut lexer, &expected);
+    expect_tokens(&mut lexer, &expected, &mut interner);
 }
 
 #[test]
 fn addition_no_spaces_right_side() {
     let mut lexer = Lexer::new(&b"1 +1"[..]);
+    let mut interner = Interner::new();
 
     let expected = [
         TokenKind::numeric_literal(1),
@@ -621,12 +689,13 @@ fn addition_no_spaces_right_side() {
         TokenKind::numeric_literal(1),
     ];
 
-    expect_tokens(&mut lexer, &expected);
+    expect_tokens(&mut lexer, &expected, &mut interner);
 }
 
 #[test]
 fn addition_no_spaces_e_number_left_side() {
     let mut lexer = Lexer::new(&b"1e2+ 1"[..]);
+    let mut interner = Interner::new();
 
     let expected = [
         TokenKind::numeric_literal(100),
@@ -634,12 +703,13 @@ fn addition_no_spaces_e_number_left_side() {
         TokenKind::numeric_literal(1),
     ];
 
-    expect_tokens(&mut lexer, &expected);
+    expect_tokens(&mut lexer, &expected, &mut interner);
 }
 
 #[test]
 fn addition_no_spaces_e_number_right_side() {
     let mut lexer = Lexer::new(&b"1 +1e3"[..]);
+    let mut interner = Interner::new();
 
     let expected = [
         TokenKind::numeric_literal(1),
@@ -647,12 +717,13 @@ fn addition_no_spaces_e_number_right_side() {
         TokenKind::numeric_literal(1000),
     ];
 
-    expect_tokens(&mut lexer, &expected);
+    expect_tokens(&mut lexer, &expected, &mut interner);
 }
 
 #[test]
 fn addition_no_spaces_e_number() {
     let mut lexer = Lexer::new(&b"1e3+1e11"[..]);
+    let mut interner = Interner::new();
 
     let expected = [
         TokenKind::numeric_literal(1000),
@@ -660,7 +731,7 @@ fn addition_no_spaces_e_number() {
         TokenKind::numeric_literal(100_000_000_000.0),
     ];
 
-    expect_tokens(&mut lexer, &expected);
+    expect_tokens(&mut lexer, &expected, &mut interner);
 }
 
 #[test]
@@ -769,8 +840,10 @@ fn illegal_following_numeric_literal() {
 
     // Decimal Digit
     let mut lexer = Lexer::new(&b"11.6n3"[..]);
+    let mut interner = Interner::new();
+
     let err = lexer
-        .next()
+        .next(&mut interner)
         .expect_err("DecimalDigit following NumericLiteral not rejected as expected");
     if let Error::Syntax(_, pos) = err {
         assert_eq!(pos, Position::new(1, 5))
@@ -780,8 +853,10 @@ fn illegal_following_numeric_literal() {
 
     // Identifier Start
     let mut lexer = Lexer::new(&b"17.4$"[..]);
+    let mut interner = Interner::new();
+
     if let Error::Syntax(_, pos) = lexer
-        .next()
+        .next(&mut interner)
         .expect_err("IdentifierStart '$' following NumericLiteral not rejected as expected")
     {
         assert_eq!(pos, Position::new(1, 5));
@@ -790,8 +865,10 @@ fn illegal_following_numeric_literal() {
     }
 
     let mut lexer = Lexer::new(&b"17.4_"[..]);
+    let mut interner = Interner::new();
+
     if let Error::Syntax(_, pos) = lexer
-        .next()
+        .next(&mut interner)
         .expect_err("IdentifierStart '_' following NumericLiteral not rejected as expected")
     {
         assert_eq!(pos, Position::new(1, 5));
@@ -803,7 +880,9 @@ fn illegal_following_numeric_literal() {
 #[test]
 fn string_codepoint_with_no_braces() {
     let mut lexer = Lexer::new(&br#""test\uD38Dtest""#[..]);
-    assert!(lexer.next().is_ok());
+    let mut interner = Interner::new();
+
+    assert!(lexer.next(&mut interner).is_ok());
 }
 
 #[test]
@@ -812,8 +891,10 @@ fn illegal_code_point_following_numeric_literal() {
     // Checks as per https://tc39.es/ecma262/#sec-literals-numeric-literals that a NumericLiteral cannot
     // be immediately followed by an IdentifierStart where the IdentifierStart
     let mut lexer = Lexer::new(&br#"17.4\u{2764}"#[..]);
+    let mut interner = Interner::new();
+
     assert!(
-        lexer.next().is_err(),
+        lexer.next(&mut interner).is_err(),
         "{}",
         r#"IdentifierStart \u{2764} following NumericLiteral not rejected as expected"#
     );
@@ -824,27 +905,31 @@ fn string_unicode() {
     let s = r#"'中文';"#;
 
     let mut lexer = Lexer::new(s.as_bytes());
+    let mut interner = Interner::new();
 
+    let sym = interner.get_or_intern_static("中文");
     let expected = [
-        TokenKind::StringLiteral("中文".into()),
+        TokenKind::StringLiteral(sym),
         TokenKind::Punctuator(Punctuator::Semicolon),
     ];
 
-    expect_tokens(&mut lexer, &expected);
+    expect_tokens(&mut lexer, &expected, &mut interner);
 }
 
 #[test]
 fn string_unicode_escape_with_braces() {
     let mut lexer = Lexer::new(&br#"'{\u{20ac}\u{a0}\u{a0}}'"#[..]);
+    let mut interner = Interner::new();
 
-    let expected = [TokenKind::StringLiteral("{\u{20ac}\u{a0}\u{a0}}".into())];
+    let sym = interner.get_or_intern_static("{\u{20ac}\u{a0}\u{a0}}");
+    let expected = [TokenKind::StringLiteral(sym)];
 
-    expect_tokens(&mut lexer, &expected);
+    expect_tokens(&mut lexer, &expected, &mut interner);
 
     lexer = Lexer::new(&br#"\u{{a0}"#[..]);
 
     if let Error::Syntax(_, pos) = lexer
-        .next()
+        .next(&mut interner)
         .expect_err("Malformed Unicode character sequence expected")
     {
         assert_eq!(pos, Position::new(1, 1));
@@ -855,7 +940,7 @@ fn string_unicode_escape_with_braces() {
     lexer = Lexer::new(&br#"\u{{a0}}"#[..]);
 
     if let Error::Syntax(_, pos) = lexer
-        .next()
+        .next(&mut interner)
         .expect_err("Malformed Unicode character sequence expected")
     {
         assert_eq!(pos, Position::new(1, 1));
@@ -869,10 +954,12 @@ fn string_unicode_escape_with_braces_2() {
     let s = r#"'\u{20ac}\u{a0}\u{a0}'"#;
 
     let mut lexer = Lexer::new(s.as_bytes());
+    let mut interner = Interner::new();
 
-    let expected = [TokenKind::StringLiteral("\u{20ac}\u{a0}\u{a0}".into())];
+    let sym = interner.get_or_intern_static("\u{20ac}\u{a0}\u{a0}");
+    let expected = [TokenKind::StringLiteral(sym)];
 
-    expect_tokens(&mut lexer, &expected);
+    expect_tokens(&mut lexer, &expected, &mut interner);
 }
 
 #[test]
@@ -880,10 +967,12 @@ fn string_with_single_escape() {
     let s = r#"'\Б'"#;
 
     let mut lexer = Lexer::new(s.as_bytes());
+    let mut interner = Interner::new();
 
-    let expected = [TokenKind::StringLiteral("Б".into())];
+    let sym = interner.get_or_intern_static("Б");
+    let expected = [TokenKind::StringLiteral(sym)];
 
-    expect_tokens(&mut lexer, &expected);
+    expect_tokens(&mut lexer, &expected, &mut interner);
 }
 
 #[test]
@@ -900,18 +989,21 @@ fn string_legacy_octal_escape() {
 
     for (s, expected) in test_cases.iter() {
         let mut lexer = Lexer::new(s.as_bytes());
+        let mut interner = Interner::new();
 
-        let expected_tokens = [TokenKind::StringLiteral((*expected).into())];
+        let sym = interner.get_or_intern(expected);
+        let expected_tokens = [TokenKind::StringLiteral(sym)];
 
-        expect_tokens(&mut lexer, &expected_tokens);
+        expect_tokens(&mut lexer, &expected_tokens, &mut interner);
     }
 
     for (s, _) in test_cases.iter() {
         let mut lexer = Lexer::new(s.as_bytes());
+        let mut interner = Interner::new();
         lexer.set_strict_mode(true);
 
         if let Error::Syntax(_, pos) = lexer
-            .next()
+            .next(&mut interner)
             .expect_err("Octal-escape in strict mode not rejected as expected")
         {
             assert_eq!(pos, Position::new(1, 2));
@@ -927,10 +1019,12 @@ fn string_zero_escape() {
 
     for (s, expected) in test_cases.iter() {
         let mut lexer = Lexer::new(s.as_bytes());
+        let mut interner = Interner::new();
 
-        let expected_tokens = [TokenKind::StringLiteral((*expected).into())];
+        let sym = interner.get_or_intern(expected);
+        let expected_tokens = [TokenKind::StringLiteral(sym)];
 
-        expect_tokens(&mut lexer, &expected_tokens);
+        expect_tokens(&mut lexer, &expected_tokens, &mut interner);
     }
 }
 
@@ -940,18 +1034,21 @@ fn string_non_octal_decimal_escape() {
 
     for (s, expected) in test_cases.iter() {
         let mut lexer = Lexer::new(s.as_bytes());
+        let mut interner = Interner::new();
 
-        let expected_tokens = [TokenKind::StringLiteral((*expected).into())];
+        let sym = interner.get_or_intern(expected);
+        let expected_tokens = [TokenKind::StringLiteral(sym)];
 
-        expect_tokens(&mut lexer, &expected_tokens);
+        expect_tokens(&mut lexer, &expected_tokens, &mut interner);
     }
 
     for (s, _) in test_cases.iter() {
         let mut lexer = Lexer::new(s.as_bytes());
+        let mut interner = Interner::new();
         lexer.set_strict_mode(true);
 
         if let Error::Syntax(_, pos) = lexer
-            .next()
+            .next(&mut interner)
             .expect_err("Non-octal-decimal-escape in strict mode not rejected as expected")
         {
             assert_eq!(pos, Position::new(1, 2));
@@ -966,10 +1063,12 @@ fn string_line_continuation() {
     let s = "'hello \\\nworld'";
 
     let mut lexer = Lexer::new(s.as_bytes());
+    let mut interner = Interner::new();
 
-    let expected_tokens = [TokenKind::StringLiteral("hello world".into())];
+    let sym = interner.get_or_intern_static("hello world");
+    let expected_tokens = [TokenKind::StringLiteral(sym)];
 
-    expect_tokens(&mut lexer, &expected_tokens);
+    expect_tokens(&mut lexer, &expected_tokens, &mut interner);
 }
 
 mod carriage_return {
@@ -977,6 +1076,7 @@ mod carriage_return {
 
     fn expect_tokens_with_lines(lines: usize, src: &str) {
         let mut lexer = Lexer::new(src.as_bytes());
+        let mut interner = Interner::new();
 
         let mut expected = Vec::with_capacity(lines + 2);
         expected.push(TokenKind::Punctuator(Punctuator::Sub));
@@ -985,7 +1085,7 @@ mod carriage_return {
         }
         expected.push(TokenKind::NumericLiteral(Numeric::Integer(3)));
 
-        expect_tokens(&mut lexer, &expected);
+        expect_tokens(&mut lexer, &expected, &mut interner);
     }
 
     #[test]

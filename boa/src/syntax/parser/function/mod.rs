@@ -22,7 +22,7 @@ use crate::{
             AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
         },
     },
-    BoaProfiler,
+    BoaProfiler, Interner,
 };
 use rustc_hash::FxHashSet;
 use std::io::Read;
@@ -68,7 +68,11 @@ where
 {
     type Output = FormalParameterList;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("FormalParameters", "Parsing");
         cursor.set_goal(InputElement::RegExp);
 
@@ -76,7 +80,7 @@ where
         let mut is_simple = true;
         let mut has_duplicates = false;
 
-        let next_token = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
+        let next_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
         if next_token.kind() == &TokenKind::Punctuator(Punctuator::CloseParen) {
             return Ok(FormalParameterList {
                 parameters: params.into_boxed_slice(),
@@ -91,12 +95,14 @@ where
         loop {
             let mut rest_param = false;
 
-            let next_param = match cursor.peek(0)? {
+            let next_param = match cursor.peek(0, interner)? {
                 Some(tok) if tok.kind() == &TokenKind::Punctuator(Punctuator::Spread) => {
                     rest_param = true;
-                    FunctionRestParameter::new(self.allow_yield, self.allow_await).parse(cursor)?
+                    FunctionRestParameter::new(self.allow_yield, self.allow_await)
+                        .parse(cursor, interner)?
                 }
-                _ => FormalParameter::new(self.allow_yield, self.allow_await).parse(cursor)?,
+                _ => FormalParameter::new(self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)?,
             };
 
             if next_param.is_rest_param() && next_param.init().is_some() {
@@ -120,20 +126,25 @@ where
             }
             params.push(next_param);
 
-            if cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind()
+            if cursor
+                .peek(0, interner)?
+                .ok_or(ParseError::AbruptEnd)?
+                .kind()
                 == &TokenKind::Punctuator(Punctuator::CloseParen)
             {
                 break;
             }
 
             if rest_param {
+                let next = cursor.next(interner)?.expect("peeked token disappeared");
                 return Err(ParseError::unexpected(
-                    cursor.next()?.expect("peeked token disappeared"),
+                    next.to_string(interner),
+                    next.span(),
                     "rest parameter must be the last formal parameter",
                 ));
             }
 
-            cursor.expect(Punctuator::Comma, "parameter list")?;
+            cursor.expect(Punctuator::Comma, "parameter list", interner)?;
         }
 
         // Early Error: It is a Syntax Error if IsSimpleParameterList of FormalParameterList is false
@@ -197,25 +208,30 @@ where
 {
     type Output = node::FormalParameter;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("BindingRestElement", "Parsing");
-        cursor.expect(Punctuator::Spread, "rest parameter")?;
+        cursor.expect(Punctuator::Spread, "rest parameter", interner)?;
 
-        if let Some(t) = cursor.peek(0)? {
+        if let Some(t) = cursor.peek(0, interner)? {
             let declaration = match *t.kind() {
                 TokenKind::Punctuator(Punctuator::OpenBlock) => {
                     let param = ObjectBindingPattern::new(true, self.allow_yield, self.allow_await)
-                        .parse(cursor)?;
+                        .parse(cursor, interner)?;
 
                     let init = cursor
-                        .peek(0)?
+                        .peek(0, interner)?
                         .cloned()
                         .filter(|t| {
                             // Check that this is an initializer before attempting parse.
                             *t.kind() == TokenKind::Punctuator(Punctuator::Assign)
                         })
                         .map(|_| {
-                            Initializer::new(true, self.allow_yield, self.allow_await).parse(cursor)
+                            Initializer::new(true, self.allow_yield, self.allow_await)
+                                .parse(cursor, interner)
                         })
                         .transpose()?;
                     Declaration::new_with_object_pattern(param, init)
@@ -224,23 +240,24 @@ where
                 TokenKind::Punctuator(Punctuator::OpenBracket) => {
                     Declaration::new_with_array_pattern(
                         ArrayBindingPattern::new(true, self.allow_yield, self.allow_await)
-                            .parse(cursor)?,
+                            .parse(cursor, interner)?,
                         None,
                     )
                 }
 
                 _ => {
-                    let params =
-                        BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+                    let params = BindingIdentifier::new(self.allow_yield, self.allow_await)
+                        .parse(cursor, interner)?;
                     let init = cursor
-                        .peek(0)?
+                        .peek(0, interner)?
                         .cloned()
                         .filter(|t| {
                             // Check that this is an initializer before attempting parse.
                             *t.kind() == TokenKind::Punctuator(Punctuator::Assign)
                         })
                         .map(|_| {
-                            Initializer::new(true, self.allow_yield, self.allow_await).parse(cursor)
+                            Initializer::new(true, self.allow_yield, self.allow_await)
+                                .parse(cursor, interner)
                         })
                         .transpose()?;
 
@@ -291,24 +308,29 @@ where
 {
     type Output = node::FormalParameter;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("FormalParameter", "Parsing");
 
-        if let Some(t) = cursor.peek(0)? {
+        if let Some(t) = cursor.peek(0, interner)? {
             let declaration = match *t.kind() {
                 TokenKind::Punctuator(Punctuator::OpenBlock) => {
                     let param = ObjectBindingPattern::new(true, self.allow_yield, self.allow_await)
-                        .parse(cursor)?;
+                        .parse(cursor, interner)?;
 
                     let init = cursor
-                        .peek(0)?
+                        .peek(0, interner)?
                         .cloned()
                         .filter(|t| {
                             // Check that this is an initializer before attempting parse.
                             *t.kind() == TokenKind::Punctuator(Punctuator::Assign)
                         })
                         .map(|_| {
-                            Initializer::new(true, self.allow_yield, self.allow_await).parse(cursor)
+                            Initializer::new(true, self.allow_yield, self.allow_await)
+                                .parse(cursor, interner)
                         })
                         .transpose()?;
 
@@ -318,23 +340,24 @@ where
                 TokenKind::Punctuator(Punctuator::OpenBracket) => {
                     Declaration::new_with_array_pattern(
                         ArrayBindingPattern::new(true, self.allow_yield, self.allow_await)
-                            .parse(cursor)?,
+                            .parse(cursor, interner)?,
                         None,
                     )
                 }
 
                 _ => {
-                    let params =
-                        BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+                    let params = BindingIdentifier::new(self.allow_yield, self.allow_await)
+                        .parse(cursor, interner)?;
                     let init = cursor
-                        .peek(0)?
+                        .peek(0, interner)?
                         .cloned()
                         .filter(|t| {
                             // Check that this is an initializer before attempting parse.
                             *t.kind() == TokenKind::Punctuator(Punctuator::Assign)
                         })
                         .map(|_| {
-                            Initializer::new(true, self.allow_yield, self.allow_await).parse(cursor)
+                            Initializer::new(true, self.allow_yield, self.allow_await)
+                                .parse(cursor, interner)
                         })
                         .transpose()?;
 
@@ -394,18 +417,24 @@ where
 {
     type Output = node::StatementList;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("FunctionStatementList", "Parsing");
 
         let global_strict_mode = cursor.strict_mode();
         let mut strict = false;
 
-        if let Some(tk) = cursor.peek(0)? {
+        if let Some(tk) = cursor.peek(0, interner)? {
             match tk.kind() {
                 TokenKind::Punctuator(Punctuator::CloseBlock) => {
                     return Ok(Vec::new().into());
                 }
-                TokenKind::StringLiteral(string) if string.as_ref() == "use strict" => {
+                TokenKind::StringLiteral(string)
+                    if interner.resolve(*string).expect("string disappeared") == "use strict" =>
+                {
                     cursor.set_strict_mode(true);
                     strict = true;
                 }
@@ -420,7 +449,7 @@ where
             true,
             &FUNCTION_BREAK_TOKENS,
         )
-        .parse(cursor);
+        .parse(cursor, interner);
 
         // Reset strict mode back to the global scope.
         cursor.set_strict_mode(global_strict_mode);

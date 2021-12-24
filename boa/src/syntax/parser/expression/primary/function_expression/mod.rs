@@ -20,7 +20,7 @@ use crate::{
             Cursor, ParseError, TokenParser,
         },
     },
-    BoaProfiler,
+    BoaProfiler, Interner,
 };
 
 use std::io::Read;
@@ -42,15 +42,19 @@ where
 {
     type Output = FunctionExpr;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("FunctionExpression", "Parsing");
 
-        let name = if let Some(token) = cursor.peek(0)? {
+        let name = if let Some(token) = cursor.peek(0, interner)? {
             match token.kind() {
                 TokenKind::Identifier(_)
                 | TokenKind::Keyword(Keyword::Yield)
                 | TokenKind::Keyword(Keyword::Await) => {
-                    Some(BindingIdentifier::new(false, false).parse(cursor)?)
+                    Some(BindingIdentifier::new(false, false).parse(cursor, interner)?)
                 }
                 _ => None,
             }
@@ -64,7 +68,7 @@ where
             if cursor.strict_mode() && ["eval", "arguments"].contains(&name.as_ref()) {
                 return Err(ParseError::lex(LexError::Syntax(
                     "Unexpected eval or arguments in strict mode".into(),
-                    match cursor.peek(0)? {
+                    match cursor.peek(0, interner)? {
                         Some(token) => token.span().end(),
                         None => Position::new(1, 1),
                     },
@@ -73,18 +77,18 @@ where
         }
 
         let params_start_position = cursor
-            .expect(Punctuator::OpenParen, "function expression")?
+            .expect(Punctuator::OpenParen, "function expression", interner)?
             .span()
             .end();
 
-        let params = FormalParameters::new(false, false).parse(cursor)?;
+        let params = FormalParameters::new(false, false).parse(cursor, interner)?;
 
-        cursor.expect(Punctuator::CloseParen, "function expression")?;
-        cursor.expect(Punctuator::OpenBlock, "function expression")?;
+        cursor.expect(Punctuator::CloseParen, "function expression", interner)?;
+        cursor.expect(Punctuator::OpenBlock, "function expression", interner)?;
 
-        let body = FunctionBody::new(false, false).parse(cursor)?;
+        let body = FunctionBody::new(false, false).parse(cursor, interner)?;
 
-        cursor.expect(Punctuator::CloseBlock, "function expression")?;
+        cursor.expect(Punctuator::CloseBlock, "function expression", interner)?;
 
         // Early Error: If the source code matching FormalParameters is strict mode code,
         // the Early Error rules for UniqueFormalParameters : FormalParameters are applied.
@@ -114,7 +118,7 @@ where
                     if lexically_declared_names.contains(param_name) {
                         return Err(ParseError::lex(LexError::Syntax(
                             format!("Redeclaration of formal parameter `{}`", param_name).into(),
-                            match cursor.peek(0)? {
+                            match cursor.peek(0, interner)? {
                                 Some(token) => token.span().end(),
                                 None => Position::new(1, 1),
                             },

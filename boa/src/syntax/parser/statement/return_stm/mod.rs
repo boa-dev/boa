@@ -2,6 +2,7 @@
 mod tests;
 
 use crate::syntax::lexer::TokenKind;
+use crate::Interner;
 use crate::{
     syntax::{
         ast::{node::Return, Keyword, Node, Punctuator},
@@ -50,14 +51,18 @@ where
 {
     type Output = Return;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ReturnStatement", "Parsing");
-        cursor.expect(Keyword::Return, "return statement")?;
+        cursor.expect(Keyword::Return, "return statement", interner)?;
 
-        if let SemicolonResult::Found(tok) = cursor.peek_semicolon()? {
+        if let SemicolonResult::Found(tok) = cursor.peek_semicolon(interner)? {
             match tok {
                 Some(tok) if tok.kind() == &TokenKind::Punctuator(Punctuator::Semicolon) => {
-                    let _ = cursor.next();
+                    let _ = cursor.next(interner)?;
                 }
                 _ => {}
             }
@@ -65,9 +70,10 @@ where
             return Ok(Return::new::<Node, Option<_>, Option<_>>(None, None));
         }
 
-        let expr = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+        let expr =
+            Expression::new(true, self.allow_yield, self.allow_await).parse(cursor, interner)?;
 
-        cursor.expect_semicolon("return statement")?;
+        cursor.expect_semicolon("return statement", interner)?;
 
         Ok(Return::new(expr, None))
     }

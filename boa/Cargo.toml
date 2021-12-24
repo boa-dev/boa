@@ -13,13 +13,14 @@ rust-version = "1.57"
 
 [features]
 profiler = ["measureme"]
-deser = []
+deser = ["boa_interner/serde"]
 
 # Enable Boa's WHATWG console object implementation.
 console = []
 
 [dependencies]
 boa_unicode = { path = "../boa_unicode", version = "0.13.0" }
+boa_interner = { path = "../boa_interner", version = "0.13.0" }
 gc = { version = "0.4.1", features = ["derive"] }
 serde = { version = "1.0.132", features = ["derive", "rc"] }
 serde_json = "1.0.75"

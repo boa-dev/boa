@@ -1,0 +1,14 @@
+[package]
+name = "boa_interner"
+version = "0.13.0"
+authors = ["boa-dev"]
+description = "String interner used in Boa."
+repository = "https://github.com/boa-dev/boa"
+license = "Unlicense/MIT"
+exclude = ["../.vscode/*", "../Dockerfile", "../Makefile", "../.editorConfig"]
+edition = "2021"
+rust-version = "1.56"
+
+[dependencies]
+string-interner = "0.14.0"
+serde = { version = "1.0.132", features = ["derive"], optional = true }

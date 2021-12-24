@@ -4,6 +4,7 @@ use crate::{
         lexer::{InputElement, Lexer, Position, Token, TokenKind},
         parser::error::ParseError,
     },
+    Interner,
 };
 use std::io::Read;
 
@@ -78,16 +79,28 @@ where
 
     /// Lexes the next tokens as a regex assuming that the starting '/' has already been consumed.
     #[inline]
-    pub(super) fn lex_regex(&mut self, start: Position) -> Result<Token, ParseError> {
+    pub(super) fn lex_regex(
+        &mut self,
+        start: Position,
+        interner: &mut Interner,
+    ) -> Result<Token, ParseError> {
         let _timer = BoaProfiler::global().start_event("cursor::lex_regex()", "Parsing");
         self.set_goal(InputElement::RegExp);
-        self.lexer.lex_slash_token(start).map_err(|e| e.into())
+        self.lexer
+            .lex_slash_token(start, interner)
+            .map_err(|e| e.into())
     }
 
     /// Lexes the next tokens as template middle or template tail assuming that the starting
     /// '}' has already been consumed.
-    pub(super) fn lex_template(&mut self, start: Position) -> Result<Token, ParseError> {
-        self.lexer.lex_template(start).map_err(ParseError::from)
+    pub(super) fn lex_template(
+        &mut self,
+        start: Position,
+        interner: &mut Interner,
+    ) -> Result<Token, ParseError> {
+        self.lexer
+            .lex_template(start, interner)
+            .map_err(ParseError::from)
     }
 
     #[inline]
@@ -103,7 +116,7 @@ where
     /// Fills the peeking buffer with the next token.
     ///
     /// It will not fill two line terminators one after the other.
-    fn fill(&mut self) -> Result<(), ParseError> {
+    fn fill(&mut self, interner: &mut Interner) -> Result<(), ParseError> {
         debug_assert!(
             self.write_index < PEEK_BUF_SIZE,
             "write index went out of bounds"
@@ -116,7 +129,7 @@ where
                 // We don't want to have multiple contiguous line terminators in the buffer, since
                 // they have no meaning.
                 let next = loop {
-                    let next = self.lexer.next()?;
+                    let next = self.lexer.next(interner)?;
                     if let Some(ref token) = next {
                         if token.kind() != &TokenKind::LineTerminator {
                             break next;
@@ -128,10 +141,10 @@ where
 
                 self.peeked[self.write_index] = next;
             } else {
-                self.peeked[self.write_index] = self.lexer.next()?;
+                self.peeked[self.write_index] = self.lexer.next(interner)?;
             }
         } else {
-            self.peeked[self.write_index] = self.lexer.next()?;
+            self.peeked[self.write_index] = self.lexer.next(interner)?;
         }
         self.write_index = (self.write_index + 1) % PEEK_BUF_SIZE;
 
@@ -157,9 +170,10 @@ where
     pub(super) fn next(
         &mut self,
         skip_line_terminators: bool,
+        interner: &mut Interner,
     ) -> Result<Option<Token>, ParseError> {
         if self.read_index == self.write_index {
-            self.fill()?;
+            self.fill(interner)?;
         }
 
         if let Some(ref token) = self.peeked[self.read_index] {
@@ -168,7 +182,7 @@ where
                 // was a line terminator, we know that the next won't be one.
                 self.read_index = (self.read_index + 1) % PEEK_BUF_SIZE;
                 if self.read_index == self.write_index {
-                    self.fill()?;
+                    self.fill(interner)?;
                 }
             }
             let tok = self.peeked[self.read_index].take();
@@ -202,6 +216,7 @@ where
         &mut self,
         skip_n: usize,
         skip_line_terminators: bool,
+        interner: &mut Interner,
     ) -> Result<Option<&Token>, ParseError> {
         assert!(
             skip_n <= MAX_PEEK_SKIP,
@@ -213,7 +228,7 @@ where
         let mut count = 0;
         let res_token = loop {
             if read_index == self.write_index {
-                self.fill()?;
+                self.fill(interner)?;
             }
 
             if let Some(ref token) = self.peeked[read_index] {
@@ -222,7 +237,7 @@ where
                     // We only store 1 contiguous line terminator, so if the one at `self.read_index`
                     // was a line terminator, we know that the next won't be one.
                     if read_index == self.write_index {
-                        self.fill()?;
+                        self.fill(interner)?;
                     }
                 }
                 if count == skip_n {

@@ -7,6 +7,7 @@ use crate::{
         ast::{Position, Span},
         lexer::{Token, TokenKind},
     },
+    Interner,
 };
 use core::convert::TryFrom;
 use std::io::Read;
@@ -24,7 +25,12 @@ use std::io::Read;
 pub(super) struct SingleLineComment;
 
 impl<R> Tokenizer<R> for SingleLineComment {
-    fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position) -> Result<Token, Error>
+    fn lex(
+        &mut self,
+        cursor: &mut Cursor<R>,
+        start_pos: Position,
+        _interner: &mut Interner,
+    ) -> Result<Token, Error>
     where
         R: Read,
     {
@@ -59,7 +65,12 @@ impl<R> Tokenizer<R> for SingleLineComment {
 pub(super) struct MultiLineComment;
 
 impl<R> Tokenizer<R> for MultiLineComment {
-    fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position) -> Result<Token, Error>
+    fn lex(
+        &mut self,
+        cursor: &mut Cursor<R>,
+        start_pos: Position,
+        _interner: &mut Interner,
+    ) -> Result<Token, Error>
     where
         R: Read,
     {
@@ -103,7 +114,12 @@ impl<R> Tokenizer<R> for MultiLineComment {
 pub(super) struct HashbangComment;
 
 impl<R> Tokenizer<R> for HashbangComment {
-    fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position) -> Result<Token, Error>
+    fn lex(
+        &mut self,
+        cursor: &mut Cursor<R>,
+        start_pos: Position,
+        _interner: &mut Interner,
+    ) -> Result<Token, Error>
     where
         R: Read,
     {

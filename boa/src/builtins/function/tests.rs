@@ -8,7 +8,7 @@ use crate::{
 #[allow(clippy::float_cmp)]
 #[test]
 fn arguments_object() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let init = r#"
         function jason(a, b) {
@@ -31,7 +31,7 @@ fn arguments_object() {
 
 #[test]
 fn self_mutating_function_when_calling() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let func = r#"
         function x() {
 	        x.y = 3;
@@ -50,7 +50,7 @@ fn self_mutating_function_when_calling() {
 
 #[test]
 fn self_mutating_function_when_constructing() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let func = r#"
         function x() {
             x.y = 3;
@@ -69,7 +69,7 @@ fn self_mutating_function_when_constructing() {
 
 #[test]
 fn call_function_prototype() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let func = r#"
         Function.prototype()
         "#;
@@ -79,7 +79,7 @@ fn call_function_prototype() {
 
 #[test]
 fn call_function_prototype_with_arguments() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let func = r#"
         Function.prototype(1, "", new String(""))
         "#;
@@ -89,7 +89,7 @@ fn call_function_prototype_with_arguments() {
 
 #[test]
 fn call_function_prototype_with_new() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let func = r#"
         new Function.prototype()
         "#;
@@ -99,7 +99,7 @@ fn call_function_prototype_with_new() {
 
 #[test]
 fn function_prototype_name() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let func = r#"
         Function.prototype.name
         "#;
@@ -111,7 +111,7 @@ fn function_prototype_name() {
 #[test]
 #[allow(clippy::float_cmp)]
 fn function_prototype_length() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let func = r#"
         Function.prototype.length
         "#;
@@ -122,7 +122,7 @@ fn function_prototype_length() {
 
 #[test]
 fn function_prototype_call() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let func = r#"
         let e = new Error()
         Object.prototype.toString.call(e)
@@ -134,7 +134,7 @@ fn function_prototype_call() {
 
 #[test]
 fn function_prototype_call_throw() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let throw = r#"
         let call = Function.prototype.call;
         call(call)
@@ -147,7 +147,7 @@ fn function_prototype_call_throw() {
 
 #[test]
 fn function_prototype_call_multiple_args() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         function f(a, b) {
             this.a = a;
@@ -171,7 +171,7 @@ fn function_prototype_call_multiple_args() {
 
 #[test]
 fn function_prototype_apply() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         const numbers = [6, 7, 3, 4, 2];
         const max = Math.max.apply(null, numbers);
@@ -194,7 +194,7 @@ fn function_prototype_apply() {
 
 #[test]
 fn function_prototype_apply_on_object() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         function f(a, b) {
             this.a = a;
@@ -220,7 +220,7 @@ fn function_prototype_apply_on_object() {
 
 #[test]
 fn closure_capture_clone() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let string = JsString::from("Hello");
     let object = context.construct_object();

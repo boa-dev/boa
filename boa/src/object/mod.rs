@@ -1387,7 +1387,7 @@ impl<'context> FunctionBuilder<'context> {
 ///
 /// ```
 /// # use boa::{Context, JsValue, object::ObjectInitializer, property::Attribute};
-/// let mut context = Context::new();
+/// let mut context = Context::default();
 /// let object = ObjectInitializer::new(&mut context)
 ///     .property(
 ///         "hello",

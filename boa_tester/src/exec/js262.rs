@@ -29,7 +29,7 @@ pub(super) fn init(context: &mut Context) -> JsObject {
 fn create_realm(_this: &JsValue, _: &[JsValue], _context: &mut Context) -> JsResult<JsValue> {
     // eprintln!("called $262.createRealm()");
 
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     // add the $262 object.
     let js_262 = init(&mut context);
@@ -84,7 +84,7 @@ fn detach_array_buffer(
 /// Accepts a string value as its first argument and executes it as an ECMAScript script.
 fn eval_script(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
     if let Some(source_text) = args.get(0).and_then(|val| val.as_string()) {
-        match boa::parse(source_text.as_str(), false) {
+        match context.parse(source_text.as_str()) {
             // TODO: check strict
             Err(e) => context.throw_type_error(format!("Uncaught Syntax Error: {}", e)),
             // Calling eval here parses the code a second time.

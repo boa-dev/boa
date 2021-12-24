@@ -2,9 +2,12 @@
 mod buffered_lexer;
 
 use super::ParseError;
-use crate::syntax::{
-    ast::Punctuator,
-    lexer::{InputElement, Lexer, Position, Token, TokenKind},
+use crate::{
+    syntax::{
+        ast::Punctuator,
+        lexer::{InputElement, Lexer, Position, Token, TokenKind},
+    },
+    Interner,
 };
 use buffered_lexer::BufferedLexer;
 use std::io::Read;
@@ -42,23 +45,35 @@ where
     }
 
     #[inline]
-    pub(super) fn lex_regex(&mut self, start: Position) -> Result<Token, ParseError> {
-        self.buffered_lexer.lex_regex(start)
+    pub(super) fn lex_regex(
+        &mut self,
+        start: Position,
+        interner: &mut Interner,
+    ) -> Result<Token, ParseError> {
+        self.buffered_lexer.lex_regex(start, interner)
     }
 
     #[inline]
-    pub(super) fn lex_template(&mut self, start: Position) -> Result<Token, ParseError> {
-        self.buffered_lexer.lex_template(start)
+    pub(super) fn lex_template(
+        &mut self,
+        start: Position,
+        interner: &mut Interner,
+    ) -> Result<Token, ParseError> {
+        self.buffered_lexer.lex_template(start, interner)
     }
 
     #[inline]
-    pub(super) fn next(&mut self) -> Result<Option<Token>, ParseError> {
-        self.buffered_lexer.next(true)
+    pub(super) fn next(&mut self, interner: &mut Interner) -> Result<Option<Token>, ParseError> {
+        self.buffered_lexer.next(true, interner)
     }
 
     #[inline]
-    pub(super) fn peek(&mut self, skip_n: usize) -> Result<Option<&Token>, ParseError> {
-        self.buffered_lexer.peek(skip_n, true)
+    pub(super) fn peek(
+        &mut self,
+        skip_n: usize,
+        interner: &mut Interner,
+    ) -> Result<Option<&Token>, ParseError> {
+        self.buffered_lexer.peek(skip_n, true, interner)
     }
 
     #[inline]
@@ -73,17 +88,27 @@ where
 
     /// Returns an error if the next token is not of kind `kind`.
     #[inline]
-    pub(super) fn expect<K>(&mut self, kind: K, context: &'static str) -> Result<Token, ParseError>
+    pub(super) fn expect<K>(
+        &mut self,
+        kind: K,
+        context: &'static str,
+        interner: &mut Interner,
+    ) -> Result<Token, ParseError>
     where
         K: Into<TokenKind>,
     {
-        let next_token = self.next()?.ok_or(ParseError::AbruptEnd)?;
+        let next_token = self.next(interner)?.ok_or(ParseError::AbruptEnd)?;
         let kind = kind.into();
 
         if next_token.kind() == &kind {
             Ok(next_token)
         } else {
-            Err(ParseError::expected(vec![kind], next_token, context))
+            Err(ParseError::expected(
+                [kind.to_string(interner)],
+                next_token.to_string(interner),
+                next_token.span(),
+                context,
+            ))
         }
     }
 
@@ -93,8 +118,11 @@ where
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-automatic-semicolon-insertion
     #[inline]
-    pub(super) fn peek_semicolon(&mut self) -> Result<SemicolonResult<'_>, ParseError> {
-        match self.buffered_lexer.peek(0, false)? {
+    pub(super) fn peek_semicolon(
+        &mut self,
+        interner: &mut Interner,
+    ) -> Result<SemicolonResult<'_>, ParseError> {
+        match self.buffered_lexer.peek(0, false, interner)? {
             Some(tk) => match tk.kind() {
                 TokenKind::Punctuator(Punctuator::Semicolon)
                 | TokenKind::LineTerminator
@@ -113,19 +141,24 @@ where
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-automatic-semicolon-insertion
     #[inline]
-    pub(super) fn expect_semicolon(&mut self, context: &'static str) -> Result<(), ParseError> {
-        match self.peek_semicolon()? {
+    pub(super) fn expect_semicolon(
+        &mut self,
+        context: &'static str,
+        interner: &mut Interner,
+    ) -> Result<(), ParseError> {
+        match self.peek_semicolon(interner)? {
             SemicolonResult::Found(Some(tk)) => match *tk.kind() {
                 TokenKind::Punctuator(Punctuator::Semicolon) | TokenKind::LineTerminator => {
-                    let _ = self.buffered_lexer.next(false)?;
+                    let _ = self.buffered_lexer.next(false, interner)?;
                     Ok(())
                 }
                 _ => Ok(()),
             },
             SemicolonResult::Found(None) => Ok(()),
             SemicolonResult::NotFound(tk) => Err(ParseError::expected(
-                vec![TokenKind::Punctuator(Punctuator::Semicolon)],
-                tk.clone(),
+                [";".to_owned()],
+                tk.to_string(interner),
+                tk.span(),
                 context,
             )),
         }
@@ -141,10 +174,15 @@ where
         &mut self,
         skip_n: usize,
         context: &'static str,
+        interner: &mut Interner,
     ) -> Result<&Token, ParseError> {
-        if let Some(t) = self.buffered_lexer.peek(skip_n, false)? {
+        if let Some(t) = self.buffered_lexer.peek(skip_n, false, interner)? {
             if t.kind() == &TokenKind::LineTerminator {
-                Err(ParseError::unexpected(t.clone(), context))
+                Err(ParseError::unexpected(
+                    t.to_string(interner),
+                    t.span(),
+                    context,
+                ))
             } else {
                 Ok(t)
             }
@@ -159,13 +197,17 @@ where
     ///
     /// No next token also returns None.
     #[inline]
-    pub(super) fn next_if<K>(&mut self, kind: K) -> Result<Option<Token>, ParseError>
+    pub(super) fn next_if<K>(
+        &mut self,
+        kind: K,
+        interner: &mut Interner,
+    ) -> Result<Option<Token>, ParseError>
     where
         K: Into<TokenKind>,
     {
-        Ok(if let Some(token) = self.peek(0)? {
+        Ok(if let Some(token) = self.peek(0, interner)? {
             if token.kind() == &kind.into() {
-                self.next()?
+                self.next(interner)?
             } else {
                 None
             }

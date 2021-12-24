@@ -8,7 +8,7 @@
 //!
 //! [uax44]: http://unicode.org/reports/tr44
 
-pub static PATTERN_SYNTAX: &[char] = &[
+pub(crate) static PATTERN_SYNTAX: &[char] = &[
     '\u{0021}', '\u{0022}', '\u{0023}', '\u{0024}', '\u{0025}', '\u{0026}', '\u{0027}', '\u{0028}',
     '\u{0029}', '\u{002A}', '\u{002B}', '\u{002C}', '\u{002D}', '\u{002E}', '\u{002F}', '\u{003A}',
     '\u{003B}', '\u{003C}', '\u{003D}', '\u{003E}', '\u{003F}', '\u{0040}', '\u{005B}', '\u{005C}',
@@ -356,16 +356,16 @@ pub static PATTERN_SYNTAX: &[char] = &[
     '\u{301E}', '\u{301F}', '\u{3020}', '\u{3030}', '\u{FD3E}', '\u{FD3F}', '\u{FE45}', '\u{FE46}',
 ];
 
-pub static OTHER_ID_CONTINUE: &[char] = &[
+pub(crate) static OTHER_ID_CONTINUE: &[char] = &[
     '\u{00B7}', '\u{0387}', '\u{1369}', '\u{136A}', '\u{136B}', '\u{136C}', '\u{136D}', '\u{136E}',
     '\u{136F}', '\u{1370}', '\u{1371}', '\u{19DA}',
 ];
 
-pub static OTHER_ID_START: &[char] = &[
+pub(crate) static OTHER_ID_START: &[char] = &[
     '\u{1885}', '\u{1886}', '\u{2118}', '\u{212E}', '\u{309B}', '\u{309C}',
 ];
 
-pub static PATTERN_WHITE_SPACE: &[char] = &[
+pub(crate) static PATTERN_WHITE_SPACE: &[char] = &[
     '\u{0009}', '\u{000A}', '\u{000B}', '\u{000C}', '\u{000D}', '\u{0020}', '\u{0085}', '\u{200E}',
     '\u{200F}', '\u{2028}', '\u{2029}',
 ];

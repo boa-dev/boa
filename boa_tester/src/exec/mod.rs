@@ -6,7 +6,7 @@ use super::{
     Harness, Outcome, Phase, SuiteResult, Test, TestFlags, TestOutcomeResult, TestResult,
     TestSuite, IGNORED,
 };
-use boa::{parse, Context, JsValue};
+use boa::{syntax::Parser, Context, Interner, JsValue};
 use colored::Colorize;
 use rayon::prelude::*;
 use std::panic;
@@ -181,7 +181,8 @@ impl Test {
                         self.name
                     );
 
-                    match parse(&self.content.as_ref(), strict) {
+                    let mut interner = Interner::new();
+                    match Parser::new(self.content.as_bytes(), strict).parse_all(&mut interner) {
                         Ok(n) => (false, format!("{:?}", n)),
                         Err(e) => (true, format!("Uncaught {}", e)),
                     }
@@ -194,7 +195,10 @@ impl Test {
                     phase: Phase::Runtime,
                     ref error_type,
                 } => {
-                    if let Err(e) = parse(&self.content.as_ref(), strict) {
+                    let mut interner = Interner::new();
+                    if let Err(e) =
+                        Parser::new(self.content.as_bytes(), strict).parse_all(&mut interner)
+                    {
                         (false, format!("Uncaught {}", e))
                     } else {
                         match self.set_up_env(harness, strict) {
@@ -289,7 +293,7 @@ impl Test {
     /// Sets the environment up to run the test.
     fn set_up_env(&self, harness: &Harness, strict: bool) -> Result<Context, String> {
         // Create new Realm
-        let mut context = Context::new();
+        let mut context = Context::default();
 
         // Register the print() function.
         context

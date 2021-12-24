@@ -10,9 +10,9 @@ use crate::{
     object::{FunctionBuilder, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
-    syntax::{ast::node::StatementList, Parser},
+    syntax::{ast::node::StatementList, parser::ParseError, Parser},
     vm::{CallFrame, CodeBlock, FinallyReturn, Vm},
-    BoaProfiler, JsResult, JsString, JsValue,
+    BoaProfiler, Interner, JsResult, JsString, JsValue,
 };
 use gc::Gc;
 
@@ -337,7 +337,7 @@ impl StandardObjects {
 /// }
 /// "#;
 ///
-/// let mut context = Context::new();
+/// let mut context = Context::default();
 ///
 /// // Populate the script definition to the context.
 /// context.eval(script).unwrap();
@@ -360,6 +360,9 @@ impl StandardObjects {
 pub struct Context {
     /// realm holds both the global object and the environment
     pub(crate) realm: Realm,
+
+    /// String interner in the context.
+    interner: Interner,
 
     /// console object state.
     #[cfg(feature = "console")]
@@ -385,9 +388,9 @@ pub struct Context {
 
 impl Default for Context {
     fn default() -> Self {
-        let realm = Realm::create();
         let mut context = Self {
-            realm,
+            realm: Realm::create(),
+            interner: Interner::new(),
             #[cfg(feature = "console")]
             console: Console::default(),
             iterator_prototypes: IteratorPrototypes::default(),
@@ -425,9 +428,25 @@ impl Default for Context {
 impl Context {
     /// Create a new `Context`.
     #[inline]
-    pub fn new() -> Self {
-        Default::default()
+    pub fn new(interner: Interner) -> Self {
+        Self {
+            interner,
+            ..Self::default()
+        }
     }
+
+    /// Gets the string interner.
+    #[inline]
+    pub fn interner(&self) -> &Interner {
+        &self.interner
+    }
+
+    /// Gets a mutable reference to the string interner.
+    #[inline]
+    pub fn interner_mut(&mut self) -> &mut Interner {
+        &mut self.interner
+    }
+
     /// A helper function for getting an immutable reference to the `console` object.
     #[cfg(feature = "console")]
     pub(crate) fn console(&self) -> &Console {
@@ -468,6 +487,13 @@ impl Context {
             self.standard_objects().object_object().prototype(),
             ObjectData::ordinary(),
         )
+    }
+
+    pub fn parse<S>(&mut self, src: S) -> Result<StatementList, ParseError>
+    where
+        S: AsRef<[u8]>,
+    {
+        Parser::new(src.as_ref(), self.strict).parse_all(&mut self.interner)
     }
 
     /// <https://tc39.es/ecma262/#sec-call>
@@ -799,7 +825,7 @@ impl Context {
     /// ```
     /// use boa::{Context, property::{Attribute, PropertyDescriptor}, object::ObjectInitializer};
     ///
-    /// let mut context = Context::new();
+    /// let mut context = Context::default();
     ///
     /// context.register_global_property(
     ///     "myPrimitiveProperty",
@@ -846,7 +872,7 @@ impl Context {
     /// # Examples
     /// ```
     ///# use boa::Context;
-    /// let mut context = Context::new();
+    /// let mut context = Context::default();
     ///
     /// let value = context.eval("1 + 3").unwrap();
     ///
@@ -854,12 +880,14 @@ impl Context {
     /// assert_eq!(value.as_number().unwrap(), 4.0);
     /// ```
     #[allow(clippy::unit_arg, clippy::drop_copy)]
-    pub fn eval<T: AsRef<[u8]>>(&mut self, src: T) -> JsResult<JsValue> {
+    pub fn eval<S>(&mut self, src: S) -> JsResult<JsValue>
+    where
+        S: AsRef<[u8]>,
+    {
         let main_timer = BoaProfiler::global().start_event("Main", "Main");
-        let src_bytes: &[u8] = src.as_ref();
 
-        let parsing_result = Parser::new(src_bytes, false)
-            .parse_all()
+        let parsing_result = Parser::new(src.as_ref(), false)
+            .parse_all(&mut self.interner)
             .map_err(|e| e.to_string());
 
         let statement_list = match parsing_result {

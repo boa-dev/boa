@@ -11,6 +11,7 @@
 mod tests;
 
 use crate::syntax::lexer::TokenKind;
+use crate::Interner;
 use crate::{
     syntax::{
         ast::{node::Continue, Keyword, Punctuator},
@@ -59,22 +60,27 @@ where
 {
     type Output = Continue;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ContinueStatement", "Parsing");
-        cursor.expect(Keyword::Continue, "continue statement")?;
+        cursor.expect(Keyword::Continue, "continue statement", interner)?;
 
-        let label = if let SemicolonResult::Found(tok) = cursor.peek_semicolon()? {
+        let label = if let SemicolonResult::Found(tok) = cursor.peek_semicolon(interner)? {
             match tok {
                 Some(tok) if tok.kind() == &TokenKind::Punctuator(Punctuator::Semicolon) => {
-                    let _ = cursor.next();
+                    let _ = cursor.next(interner)?;
                 }
                 _ => {}
             }
 
             None
         } else {
-            let label = LabelIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
-            cursor.expect_semicolon("continue statement")?;
+            let label =
+                LabelIdentifier::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
+            cursor.expect_semicolon("continue statement", interner)?;
 
             Some(label)
         };

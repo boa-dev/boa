@@ -11,7 +11,7 @@ use crate::{
             AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser,
         },
     },
-    BoaProfiler,
+    BoaProfiler, Interner,
 };
 use std::io::Read;
 
@@ -54,31 +54,39 @@ where
 {
     type Output = If;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("IfStatement", "Parsing");
 
-        cursor.expect(Keyword::If, "if statement")?;
-        cursor.expect(Punctuator::OpenParen, "if statement")?;
+        cursor.expect(Keyword::If, "if statement", interner)?;
+        cursor.expect(Punctuator::OpenParen, "if statement", interner)?;
 
-        let condition = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+        let condition =
+            Expression::new(true, self.allow_yield, self.allow_await).parse(cursor, interner)?;
 
         let position = cursor
-            .expect(Punctuator::CloseParen, "if statement")?
+            .expect(Punctuator::CloseParen, "if statement", interner)?
             .span()
             .end();
 
         let then_node = if !cursor.strict_mode()
-            && cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind()
+            && cursor
+                .peek(0, interner)?
+                .ok_or(ParseError::AbruptEnd)?
+                .kind()
                 == &TokenKind::Keyword(Keyword::Function)
         {
             // FunctionDeclarations in IfStatement Statement Clauses
             // https://tc39.es/ecma262/#sec-functiondeclarations-in-ifstatement-statement-clauses
             FunctionDeclaration::new(self.allow_yield, self.allow_await, false)
-                .parse(cursor)?
+                .parse(cursor, interner)?
                 .into()
         } else {
             let node = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
-                .parse(cursor)?;
+                .parse(cursor, interner)?;
 
             // Early Error: It is a Syntax Error if IsLabelledFunction(the first Statement) is true.
             if let Node::FunctionDecl(_) = node {
@@ -88,23 +96,30 @@ where
             node
         };
 
-        let else_node = if cursor.next_if(Keyword::Else)?.is_some() {
-            let position = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.span().start();
+        let else_node = if cursor.next_if(Keyword::Else, interner)?.is_some() {
+            let position = cursor
+                .peek(0, interner)?
+                .ok_or(ParseError::AbruptEnd)?
+                .span()
+                .start();
 
             if !cursor.strict_mode()
-                && cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind()
+                && cursor
+                    .peek(0, interner)?
+                    .ok_or(ParseError::AbruptEnd)?
+                    .kind()
                     == &TokenKind::Keyword(Keyword::Function)
             {
                 // FunctionDeclarations in IfStatement Statement Clauses
                 // https://tc39.es/ecma262/#sec-functiondeclarations-in-ifstatement-statement-clauses
                 Some(
                     FunctionDeclaration::new(self.allow_yield, self.allow_await, false)
-                        .parse(cursor)?
+                        .parse(cursor, interner)?
                         .into(),
                 )
             } else {
                 let node = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
-                    .parse(cursor)?;
+                    .parse(cursor, interner)?;
 
                 // Early Error: It is a Syntax Error if IsLabelledFunction(the second Statement) is true.
                 if let Node::FunctionDecl(_) = node {

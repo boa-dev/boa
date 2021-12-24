@@ -11,14 +11,14 @@
 mod tests;
 
 use super::StatementList;
-
-use crate::syntax::lexer::TokenKind;
 use crate::{
     profiler::BoaProfiler,
     syntax::{
         ast::{node, Punctuator},
+        lexer::TokenKind,
         parser::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser},
     },
+    Interner,
 };
 
 use std::io::Read;
@@ -71,12 +71,16 @@ where
 {
     type Output = node::Block;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Block", "Parsing");
-        cursor.expect(Punctuator::OpenBlock, "block")?;
-        if let Some(tk) = cursor.peek(0)? {
+        cursor.expect(Punctuator::OpenBlock, "block", interner)?;
+        if let Some(tk) = cursor.peek(0, interner)? {
             if tk.kind() == &TokenKind::Punctuator(Punctuator::CloseBlock) {
-                cursor.next()?.expect("} token vanished");
+                cursor.next(interner)?.expect("} token vanished");
                 return Ok(node::Block::from(vec![]));
             }
         }
@@ -88,9 +92,9 @@ where
             true,
             &BLOCK_BREAK_TOKENS,
         )
-        .parse(cursor)
+        .parse(cursor, interner)
         .map(node::Block::from)?;
-        cursor.expect(Punctuator::CloseBlock, "block")?;
+        cursor.expect(Punctuator::CloseBlock, "block", interner)?;
 
         Ok(statement_list)
     }

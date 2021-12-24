@@ -16,7 +16,7 @@ use crate::{
         lexer::TokenKind,
         parser::{cursor::SemicolonResult, AllowAwait, AllowIn, Cursor, ParseResult, TokenParser},
     },
-    BoaProfiler,
+    BoaProfiler, Interner,
 };
 
 use std::io::Read;
@@ -57,26 +57,38 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("YieldExpression", "Parsing");
 
-        cursor.expect(TokenKind::Keyword(Keyword::Yield), "yield expression")?;
+        cursor.expect(
+            TokenKind::Keyword(Keyword::Yield),
+            "yield expression",
+            interner,
+        )?;
 
         let mut expr = None;
         let mut delegate = false;
 
-        if let SemicolonResult::Found(_) = cursor.peek_semicolon()? {
+        if let SemicolonResult::Found(_) = cursor.peek_semicolon(interner)? {
             cursor.expect(
                 TokenKind::Punctuator(Punctuator::Semicolon),
                 "token disappeared",
+                interner,
             )?;
-        } else if let Ok(next_token) = cursor.peek_expect_no_lineterminator(0, "yield expression") {
+        } else if let Ok(next_token) =
+            cursor.peek_expect_no_lineterminator(0, "yield expression", interner)
+        {
             if let TokenKind::Punctuator(Punctuator::Mul) = next_token.kind() {
-                cursor.expect(TokenKind::Punctuator(Punctuator::Mul), "token disappeared")?;
+                cursor.expect(
+                    TokenKind::Punctuator(Punctuator::Mul),
+                    "token disappeared",
+                    interner,
+                )?;
                 delegate = true;
             }
             expr = Some(
-                AssignmentExpression::new(self.allow_in, true, self.allow_await).parse(cursor)?,
+                AssignmentExpression::new(self.allow_in, true, self.allow_await)
+                    .parse(cursor, interner)?,
             );
         }
 

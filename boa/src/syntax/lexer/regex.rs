@@ -7,6 +7,7 @@ use crate::{
         ast::Position,
         lexer::{Token, TokenKind},
     },
+    Interner,
 };
 use bitflags::bitflags;
 use std::io::{self, ErrorKind};
@@ -35,7 +36,12 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 pub(super) struct RegexLiteral;
 
 impl<R> Tokenizer<R> for RegexLiteral {
-    fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position) -> Result<Token, Error>
+    fn lex(
+        &mut self,
+        cursor: &mut Cursor<R>,
+        start_pos: Position,
+        interner: &mut Interner,
+    ) -> Result<Token, Error>
     where
         R: Read,
     {
@@ -115,7 +121,7 @@ impl<R> Tokenizer<R> for RegexLiteral {
         if let Ok(body_str) = str::from_utf8(body.as_slice()) {
             Ok(Token::new(
                 TokenKind::regular_expression_literal(
-                    body_str,
+                    interner.get_or_intern(body_str),
                     parse_regex_flags(flags_str, flags_start)?,
                 ),
                 Span::new(start_pos, cursor.pos()),

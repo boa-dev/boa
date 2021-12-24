@@ -16,6 +16,7 @@ use crate::{
             ParseResult, TokenParser,
         },
     },
+    Interner,
 };
 
 use std::io::Read;
@@ -52,37 +53,46 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("UpdateExpression", "Parsing");
 
-        let tok = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
+        let tok = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
         match tok.kind() {
             TokenKind::Punctuator(Punctuator::Inc) => {
-                cursor.next()?.expect("Punctuator::Inc token disappeared");
+                cursor
+                    .next(interner)?
+                    .expect("Punctuator::Inc token disappeared");
                 return Ok(node::UnaryOp::new(
                     UnaryOp::IncrementPre,
-                    UnaryExpression::new(self.allow_yield, self.allow_await).parse(cursor)?,
+                    UnaryExpression::new(self.allow_yield, self.allow_await)
+                        .parse(cursor, interner)?,
                 )
                 .into());
             }
             TokenKind::Punctuator(Punctuator::Dec) => {
-                cursor.next()?.expect("Punctuator::Dec token disappeared");
+                cursor
+                    .next(interner)?
+                    .expect("Punctuator::Dec token disappeared");
                 return Ok(node::UnaryOp::new(
                     UnaryOp::DecrementPre,
-                    UnaryExpression::new(self.allow_yield, self.allow_await).parse(cursor)?,
+                    UnaryExpression::new(self.allow_yield, self.allow_await)
+                        .parse(cursor, interner)?,
                 )
                 .into());
             }
             _ => {}
         }
 
-        let lhs = LeftHandSideExpression::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        let lhs = LeftHandSideExpression::new(self.allow_yield, self.allow_await)
+            .parse(cursor, interner)?;
         let strict = cursor.strict_mode();
-        if let Some(tok) = cursor.peek(0)? {
+        if let Some(tok) = cursor.peek(0, interner)? {
             let token_start = tok.span().start();
             match tok.kind() {
                 TokenKind::Punctuator(Punctuator::Inc) => {
-                    cursor.next()?.expect("Punctuator::Inc token disappeared");
+                    cursor
+                        .next(interner)?
+                        .expect("Punctuator::Inc token disappeared");
                     // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
                     let ok = match &lhs {
                         Node::Identifier(_) if !strict => true,
@@ -105,7 +115,9 @@ where
                     return Ok(node::UnaryOp::new(UnaryOp::IncrementPost, lhs).into());
                 }
                 TokenKind::Punctuator(Punctuator::Dec) => {
-                    cursor.next()?.expect("Punctuator::Dec token disappeared");
+                    cursor
+                        .next(interner)?
+                        .expect("Punctuator::Dec token disappeared");
                     // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
                     let ok = match &lhs {
                         Node::Identifier(_) if !strict => true,

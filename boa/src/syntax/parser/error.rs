@@ -1,7 +1,8 @@
 //! Error and result implementation for the parser.
 
+use crate::syntax::ast::Span;
 use crate::syntax::ast::{position::Position, Node};
-use crate::syntax::lexer::{Error as LexError, Token, TokenKind};
+use crate::syntax::lexer::Error as LexError;
 use std::fmt;
 
 /// Result of a parsing operation.
@@ -28,13 +29,15 @@ impl From<LexError> for ParseError {
 pub enum ParseError {
     /// When it expected a certain kind of token, but got another as part of something
     Expected {
-        expected: Box<[TokenKind]>,
-        found: Token,
+        expected: Box<[String]>,
+        found: Box<str>,
+        span: Span,
         context: &'static str,
     },
     /// When a token is unexpected
     Unexpected {
-        found: Token,
+        found: Box<str>,
+        span: Span,
         message: Option<&'static str>,
     },
     /// When there is an abrupt end to the parsing
@@ -58,31 +61,38 @@ impl ParseError {
     fn context(self, new_context: &'static str) -> Self {
         match self {
             Self::Expected {
-                expected, found, ..
-            } => Self::expected(expected, found, new_context),
+                expected,
+                found,
+                span,
+                ..
+            } => Self::expected(expected, found, span, new_context),
             e => e,
         }
     }
 
     /// Creates an `Expected` parsing error.
-    pub(super) fn expected<E>(expected: E, found: Token, context: &'static str) -> Self
+    pub(super) fn expected<E, F>(expected: E, found: F, span: Span, context: &'static str) -> Self
     where
-        E: Into<Box<[TokenKind]>>,
+        E: Into<Box<[String]>>,
+        F: Into<Box<str>>,
     {
         Self::Expected {
             expected: expected.into(),
-            found,
+            found: found.into(),
+            span,
             context,
         }
     }
 
     /// Creates an `Expected` parsing error.
-    pub(super) fn unexpected<C>(found: Token, message: C) -> Self
+    pub(super) fn unexpected<F, C>(found: F, span: Span, message: C) -> Self
     where
+        F: Into<Box<str>>,
         C: Into<Option<&'static str>>,
     {
         Self::Unexpected {
-            found,
+            found: found.into(),
+            span,
             message: message.into(),
         }
     }
@@ -118,15 +128,13 @@ impl fmt::Display for ParseError {
             Self::Expected {
                 expected,
                 found,
+                span,
                 context,
             } => write!(
                 f,
                 "expected {}, got '{}' in {} at line {}, col {}",
                 if expected.len() == 1 {
-                    format!(
-                        "token '{}'",
-                        expected.first().map(TokenKind::to_string).unwrap()
-                    )
+                    format!("token '{}'", expected.first().unwrap())
                 } else {
                     format!(
                         "one of {}",
@@ -151,10 +159,14 @@ impl fmt::Display for ParseError {
                 },
                 found,
                 context,
-                found.span().start().line_number(),
-                found.span().start().column_number()
+                span.start().line_number(),
+                span.start().column_number()
             ),
-            Self::Unexpected { found, message } => write!(
+            Self::Unexpected {
+                found,
+                span,
+                message,
+            } => write!(
                 f,
                 "unexpected token '{}'{} at line {}, col {}",
                 found,
@@ -163,8 +175,8 @@ impl fmt::Display for ParseError {
                 } else {
                     String::new()
                 },
-                found.span().start().line_number(),
-                found.span().start().column_number()
+                span.start().line_number(),
+                span.start().column_number()
             ),
             Self::AbruptEnd => f.write_str("abrupt end"),
             Self::General { message, position } => write!(

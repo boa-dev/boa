@@ -1,14 +1,18 @@
-use crate::syntax::{
-    ast::{
-        node::{Declaration, DeclarationList, FunctionExpr, Return, StatementList},
-        Const,
+use crate::{
+    syntax::{
+        ast::{
+            node::{Declaration, DeclarationList, FunctionExpr, Return, StatementList},
+            Const,
+        },
+        parser::tests::check_parser,
     },
-    parser::tests::check_parser,
+    Interner,
 };
 
 /// Checks async expression parsing.
 #[test]
 fn check_function_expression() {
+    let mut interner = Interner::new();
     check_parser(
         "const add = function() {
             return 1;
@@ -30,11 +34,13 @@ fn check_function_expression() {
             .into(),
         )
         .into()],
+        &mut interner,
     );
 }
 
 #[test]
 fn check_nested_function_expression() {
+    let mut interner = Interner::new();
     check_parser(
         "const a = function() {
             const b = function() {
@@ -77,5 +83,6 @@ fn check_nested_function_expression() {
             .into(),
         )
         .into()],
+        &mut interner,
     );
 }

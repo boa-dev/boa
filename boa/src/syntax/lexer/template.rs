@@ -8,6 +8,7 @@ use crate::{
         ast::{Position, Span},
         lexer::{Token, TokenKind},
     },
+    Interner, Sym,
 };
 use std::io::{self, ErrorKind, Read};
 
@@ -15,23 +16,18 @@ use std::io::{self, ErrorKind, Read};
 use serde::{Deserialize, Serialize};
 
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct TemplateString {
+    /// The template string of template literal with argument `raw` true.
+    raw: Sym,
     /// The start position of the template string. Used to make lexer error if `to_owned_cooked` failed.
     start_pos: Position,
-    /// The template string of template literal with argument `raw` true.
-    raw: Box<str>,
 }
 
 impl TemplateString {
-    pub fn new<R>(raw: R, start_pos: Position) -> Self
-    where
-        R: Into<Box<str>>,
-    {
-        Self {
-            start_pos,
-            raw: raw.into(),
-        }
+    /// Creates a new `TemplateString` with the given raw template ans start position.
+    pub fn new(raw: Sym, start_pos: Position) -> Self {
+        Self { raw, start_pos }
     }
 
     /// Converts the raw template string into a mutable string slice.
@@ -40,8 +36,8 @@ impl TemplateString {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-templatestrings
-    pub fn as_raw(&self) -> &str {
-        self.raw.as_ref()
+    pub fn as_raw(self) -> Sym {
+        self.raw
     }
 
     /// Creats a new cooked template string. Returns a lexer error if it fails to cook the template string.
@@ -50,8 +46,14 @@ impl TemplateString {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-templatestrings
-    pub fn to_owned_cooked(&self) -> Result<Box<str>, Error> {
-        let mut cursor = Cursor::with_position(self.raw.as_bytes(), self.start_pos);
+    pub fn to_owned_cooked(self, interner: &Interner) -> Result<Box<str>, Error> {
+        let mut cursor = Cursor::with_position(
+            interner
+                .resolve(self.raw)
+                .expect("string disappeared")
+                .as_bytes(),
+            self.start_pos,
+        );
         let mut buf: Vec<u16> = Vec::new();
 
         loop {
@@ -99,7 +101,12 @@ impl TemplateString {
 pub(super) struct TemplateLiteral;
 
 impl<R> Tokenizer<R> for TemplateLiteral {
-    fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position) -> Result<Token, Error>
+    fn lex(
+        &mut self,
+        cursor: &mut Cursor<R>,
+        start_pos: Position,
+        interner: &mut Interner,
+    ) -> Result<Token, Error>
     where
         R: Read,
     {
@@ -117,7 +124,8 @@ impl<R> Tokenizer<R> for TemplateLiteral {
             match ch {
                 0x0060 /* ` */ => {
                     let raw = buf.to_string_lossy();
-                    let template_string = TemplateString::new(raw, start_pos);
+                    let raw_sym = interner.get_or_intern(raw);
+                    let template_string = TemplateString::new(raw_sym, start_pos);
 
                     return Ok(Token::new(
                         TokenKind::template_no_substitution(template_string),
@@ -126,7 +134,8 @@ impl<R> Tokenizer<R> for TemplateLiteral {
                 }
                 0x0024 /* $ */ if cursor.next_is(b'{')? => {
                     let raw = buf.to_string_lossy();
-                    let template_string = TemplateString::new(raw, start_pos);
+                    let raw_sym = interner.get_or_intern(raw);
+                    let template_string = TemplateString::new(raw_sym, start_pos);
 
                     return Ok(Token::new(
                         TokenKind::template_middle(template_string),

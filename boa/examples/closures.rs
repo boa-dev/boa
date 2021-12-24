@@ -10,7 +10,7 @@ use boa::{
 
 fn main() -> Result<(), JsValue> {
     // We create a new `Context` to create a new Javascript executor.
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     // We make some operations in Rust that return a `Copy` value that we want
     // to pass to a Javascript function.

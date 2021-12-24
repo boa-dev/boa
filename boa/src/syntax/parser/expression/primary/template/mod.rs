@@ -18,6 +18,7 @@ use crate::{
         parser::expression::Expression,
         parser::{AllowAwait, AllowYield, ParseError, TokenParser},
     },
+    Interner,
 };
 use std::io::Read;
 
@@ -59,36 +60,48 @@ where
 {
     type Output = TemplateLit;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("TemplateLiteral", "Parsing");
 
         let mut elements = vec![
             TemplateElement::String(self.first.into_boxed_str()),
             TemplateElement::Expr(
-                Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?,
+                Expression::new(true, self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)?,
             ),
         ];
         cursor.expect(
             TokenKind::Punctuator(Punctuator::CloseBlock),
             "template literal",
+            interner,
         )?;
 
         loop {
-            match cursor.lex_template(self.start)?.kind() {
+            match cursor.lex_template(self.start, interner)?.kind() {
                 TokenKind::TemplateMiddle(template_string) => {
-                    let cooked = template_string.to_owned_cooked().map_err(ParseError::lex)?;
+                    let cooked = template_string
+                        .to_owned_cooked(interner)
+                        .map_err(ParseError::lex)?;
 
                     elements.push(TemplateElement::String(cooked));
                     elements.push(TemplateElement::Expr(
-                        Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?,
+                        Expression::new(true, self.allow_yield, self.allow_await)
+                            .parse(cursor, interner)?,
                     ));
                     cursor.expect(
                         TokenKind::Punctuator(Punctuator::CloseBlock),
                         "template literal",
+                        interner,
                     )?;
                 }
                 TokenKind::TemplateNoSubstitution(template_string) => {
-                    let cooked = template_string.to_owned_cooked().map_err(ParseError::lex)?;
+                    let cooked = template_string
+                        .to_owned_cooked(interner)
+                        .map_err(ParseError::lex)?;
 
                     elements.push(TemplateElement::String(cooked));
                     return Ok(TemplateLit::new(elements));

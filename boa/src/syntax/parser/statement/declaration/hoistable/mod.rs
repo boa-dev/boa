@@ -29,7 +29,7 @@ use crate::{
             AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
         },
     },
-    BoaProfiler,
+    BoaProfiler, Interner,
 };
 use std::io::Read;
 
@@ -68,36 +68,36 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("HoistableDeclaration", "Parsing");
-        let tok = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
+        let tok = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
             TokenKind::Keyword(Keyword::Function) => {
-                let next_token = cursor.peek(1)?.ok_or(ParseError::AbruptEnd)?;
+                let next_token = cursor.peek(1, interner)?.ok_or(ParseError::AbruptEnd)?;
                 if let TokenKind::Punctuator(Punctuator::Mul) = next_token.kind() {
                     GeneratorDeclaration::new(self.allow_yield, self.allow_await, self.is_default)
-                        .parse(cursor)
+                        .parse(cursor, interner)
                         .map(Node::from)
                 } else {
                     FunctionDeclaration::new(self.allow_yield, self.allow_await, self.is_default)
-                        .parse(cursor)
+                        .parse(cursor, interner)
                         .map(Node::from)
                 }
             }
             TokenKind::Keyword(Keyword::Async) => {
-                let next_token = cursor.peek(2)?.ok_or(ParseError::AbruptEnd)?;
+                let next_token = cursor.peek(2, interner)?.ok_or(ParseError::AbruptEnd)?;
                 if let TokenKind::Punctuator(Punctuator::Mul) = next_token.kind() {
                     AsyncGeneratorDeclaration::new(
                         self.allow_yield,
                         self.allow_await,
                         self.is_default,
                     )
-                    .parse(cursor)
+                    .parse(cursor, interner)
                     .map(Node::from)
                 } else {
                     AsyncFunctionDeclaration::new(self.allow_yield, self.allow_await, false)
-                        .parse(cursor)
+                        .parse(cursor, interner)
                         .map(Node::from)
                 }
             }
@@ -123,19 +123,23 @@ trait CallableDeclaration {
 fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
     c: &C,
     cursor: &mut Cursor<R>,
+    interner: &mut Interner,
 ) -> Result<(Box<str>, Box<[FormalParameter]>, StatementList), ParseError> {
-    let next_token = cursor.peek(0)?;
+    let next_token = cursor.peek(0, interner)?;
     let name = if let Some(token) = next_token {
         match token.kind() {
             TokenKind::Punctuator(Punctuator::OpenParen) => {
                 if !c.is_default() {
-                    return Err(ParseError::unexpected(token.clone(), c.error_context()));
+                    return Err(ParseError::unexpected(
+                        token.to_string(interner),
+                        token.span(),
+                        c.error_context(),
+                    ));
                 }
                 "default".into()
             }
-            _ => {
-                BindingIdentifier::new(c.name_allow_yield(), c.name_allow_await()).parse(cursor)?
-            }
+            _ => BindingIdentifier::new(c.name_allow_yield(), c.name_allow_await())
+                .parse(cursor, interner)?,
         }
     } else {
         return Err(ParseError::AbruptEnd);
@@ -146,7 +150,7 @@ fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
     if cursor.strict_mode() && ["eval", "arguments"].contains(&name.as_ref()) {
         return Err(ParseError::lex(LexError::Syntax(
             "Unexpected eval or arguments in strict mode".into(),
-            match cursor.peek(0)? {
+            match cursor.peek(0, interner)? {
                 Some(token) => token.span().end(),
                 None => Position::new(1, 1),
             },
@@ -154,19 +158,20 @@ fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
     }
 
     let params_start_position = cursor
-        .expect(Punctuator::OpenParen, c.error_context())?
+        .expect(Punctuator::OpenParen, c.error_context(), interner)?
         .span()
         .end();
 
     let params = FormalParameters::new(c.parameters_allow_yield(), c.parameters_allow_await())
-        .parse(cursor)?;
+        .parse(cursor, interner)?;
 
-    cursor.expect(Punctuator::CloseParen, c.error_context())?;
-    cursor.expect(Punctuator::OpenBlock, c.error_context())?;
+    cursor.expect(Punctuator::CloseParen, c.error_context(), interner)?;
+    cursor.expect(Punctuator::OpenBlock, c.error_context(), interner)?;
 
-    let body = FunctionBody::new(c.body_allow_yield(), c.body_allow_await()).parse(cursor)?;
+    let body =
+        FunctionBody::new(c.body_allow_yield(), c.body_allow_await()).parse(cursor, interner)?;
 
-    cursor.expect(Punctuator::CloseBlock, c.error_context())?;
+    cursor.expect(Punctuator::CloseBlock, c.error_context(), interner)?;
 
     // Early Error: If the source code matching FormalParameters is strict mode code,
     // the Early Error rules for UniqueFormalParameters : FormalParameters are applied.
@@ -196,7 +201,7 @@ fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
                 if lexically_declared_names.contains(param_name) {
                     return Err(ParseError::lex(LexError::Syntax(
                         format!("Redeclaration of formal parameter `{}`", param_name).into(),
-                        match cursor.peek(0)? {
+                        match cursor.peek(0, interner)? {
                             Some(token) => token.span().end(),
                             None => Position::new(1, 1),
                         },

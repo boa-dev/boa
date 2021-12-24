@@ -1,12 +1,15 @@
 #[cfg(test)]
 mod tests;
 
-use crate::syntax::{
-    ast::{node::declaration::generator_decl::GeneratorDecl, Keyword, Punctuator},
-    parser::{
-        statement::declaration::hoistable::{parse_callable_declaration, CallableDeclaration},
-        AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, TokenParser,
+use crate::{
+    syntax::{
+        ast::{node::declaration::generator_decl::GeneratorDecl, Keyword, Punctuator},
+        parser::{
+            statement::declaration::hoistable::{parse_callable_declaration, CallableDeclaration},
+            AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, TokenParser,
+        },
     },
+    Interner,
 };
 use std::io::Read;
 
@@ -74,11 +77,15 @@ where
 {
     type Output = GeneratorDecl;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
-        cursor.expect(Keyword::Function, "generator declaration")?;
-        cursor.expect(Punctuator::Mul, "generator declaration")?;
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> Result<Self::Output, ParseError> {
+        cursor.expect(Keyword::Function, "generator declaration", interner)?;
+        cursor.expect(Punctuator::Mul, "generator declaration", interner)?;
 
-        let result = parse_callable_declaration(&self, cursor)?;
+        let result = parse_callable_declaration(&self, cursor, interner)?;
 
         Ok(GeneratorDecl::new(result.0, result.1, result.2))
     }
