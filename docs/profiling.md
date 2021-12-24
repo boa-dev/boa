@@ -12,8 +12,8 @@ when the feature flag is not enabled, you have an empty dummy implementation tha
 
 ## Prerequesites
 
-- [Crox](https://github.com/rust-lang/measureme/blob/master/crox/Readme.md)
-- [summarize (Optional)](https://github.com/rust-lang/measureme/blob/master/summarize/Readme.md)
+- [Crox](https://github.com/rust-lang/measureme/blob/master/crox/README.md)
+- [summarize (Optional)](https://github.com/rust-lang/measureme/blob/master/summarize/README.md)
 
 ## How To Use
 
@@ -61,4 +61,4 @@ This is the same as above except instead of calling `$ crox my_trace` you call `
 
 - https://blog.rust-lang.org/inside-rust/2020/02/25/intro-rustc-self-profile.html
 - https://github.com/rust-lang/measureme
-- https://github.com/rust-lang/measureme/blob/master/crox/Readme.md
+- https://github.com/rust-lang/measureme/blob/master/crox/README.md
