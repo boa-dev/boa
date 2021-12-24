@@ -47,7 +47,6 @@ pub mod bytecompiler;
 pub mod class;
 pub mod context;
 pub mod environment;
-pub mod exec;
 pub mod gc;
 pub mod object;
 pub mod profiler;
@@ -58,6 +57,9 @@ pub mod symbol;
 pub mod syntax;
 pub mod value;
 pub mod vm;
+
+#[cfg(test)]
+mod tests;
 
 /// A convenience module that re-exports the most commonly-used Boa APIs
 pub mod prelude {
