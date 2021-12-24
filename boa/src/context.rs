@@ -447,16 +447,10 @@ impl Context {
         self.strict
     }
 
-    /// Disable the strict mode.
+    /// Set the global strict mode of the context.
     #[inline]
-    pub fn set_strict_mode_off(&mut self) {
-        self.strict = false;
-    }
-
-    /// Enable the global strict mode.
-    #[inline]
-    pub fn set_strict_mode_global(&mut self) {
-        self.strict = true;
+    pub fn set_strict_mode(&mut self, strict: bool) {
+        self.strict = strict;
     }
 
     /// Sets up the default global objects within Global
