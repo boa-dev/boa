@@ -105,21 +105,12 @@
 <span id="105">105</span>
 <span id="106">106</span>
 <span id="107">107</span>
-<span id="108">108</span>
-<span id="109">109</span>
-<span id="110">110</span>
-<span id="111">111</span>
-<span id="112">112</span>
-<span id="113">113</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">boa</span>::{
     <span class="ident">builtins::JsArgs</span>,
     <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">ObjectInitializer</span>},
     <span class="ident">property::Attribute</span>,
     <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
 };
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>))]</span>
-<span class="kw">use</span> <span class="ident">boa::exec::Executable</span>;
 
 <span class="doccomment">/// Initializes the object in the context.</span>
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsObject</span> {
@@ -203,11 +194,8 @@
         <span class="kw">match</span> <span class="ident">boa::parse</span>(<span class="ident">source_text</span>.<span class="ident">as_str</span>(), <span class="bool-val">false</span>) {
             <span class="comment">// TODO: check strict</span>
             <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(<span class="string">&quot;Uncaught Syntax Error: {}&quot;</span>, <span class="ident">e</span>)),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>))]</span>
-            <span class="prelude-val">Ok</span>(<span class="ident">statement_list</span>) =&gt; <span class="ident">statement_list</span>.<span class="ident">run</span>(<span class="ident">context</span>),
             <span class="comment">// Calling eval here parses the code a second time.</span>
             <span class="comment">// TODO: We can fix this after we have have defined the public api for the vm executer.</span>
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>)]</span>
             <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="ident">context</span>.<span class="ident">eval</span>(<span class="ident">source_text</span>.<span class="ident">as_str</span>()),
         }
     } <span class="kw">else</span> {

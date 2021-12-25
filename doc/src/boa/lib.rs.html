@@ -180,15 +180,6 @@
 <span id="180">180</span>
 <span id="181">181</span>
 <span id="182">182</span>
-<span id="183">183</span>
-<span id="184">184</span>
-<span id="185">185</span>
-<span id="186">186</span>
-<span id="187">187</span>
-<span id="188">188</span>
-<span id="189">189</span>
-<span id="190">190</span>
-<span id="191">191</span>
 </pre><pre class="rust"><code><span class="doccomment">/*!
 This is an experimental Javascript lexer, parser and compiler written in Rust. Currently, it has support for some of the language.
 
@@ -234,10 +225,10 @@ This is an experimental Javascript lexer, parser and compiler written in Rust. C
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">bigint</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">builtins</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">bytecompiler</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">class</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">context</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">environment</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">exec</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">gc</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">object</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">profiler</span>;
@@ -247,11 +238,10 @@ This is an experimental Javascript lexer, parser and compiler written in Rust. C
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">symbol</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">syntax</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">value</span>;
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">bytecompiler</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">vm</span>;
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="kw">mod</span> <span class="ident">tests</span>;
 
 <span class="doccomment">/// A convenience module that re-exports the most commonly-used Boa APIs</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">prelude</span> {
@@ -260,7 +250,7 @@ This is an experimental Javascript lexer, parser and compiler written in Rust. C
 
 <span class="kw">use</span> <span class="ident">std::result::Result</span> <span class="kw">as</span> <span class="ident">StdResult</span>;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">exec::Executable</span>, <span class="ident">profiler::BoaProfiler</span>};
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::profiler::BoaProfiler</span>;
 
 <span class="comment">// Export things to root level</span>
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
@@ -290,18 +280,13 @@ This is an experimental Javascript lexer, parser and compiler written in Rust. C
 <span class="doccomment">/// Execute the code using an existing Context</span>
 <span class="doccomment">/// The str is consumed and the state of the Context is changed</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>), <span class="ident">allow</span>(<span class="ident">clippy::let_and_return</span>))]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::let_and_return</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">forward</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>, <span class="ident">src</span>: <span class="ident">T</span>) -&gt; <span class="ident">String</span> {
     <span class="kw">let</span> <span class="ident">src_bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="ident">src</span>.<span class="ident">as_ref</span>();
-    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">eval</span>(<span class="ident">src_bytes</span>).<span class="ident">map_or_else</span>(
+    <span class="ident">context</span>.<span class="ident">eval</span>(<span class="ident">src_bytes</span>).<span class="ident">map_or_else</span>(
         <span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;Uncaught {}&quot;</span>, <span class="ident">e</span>.<span class="ident">display</span>()),
         <span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">display</span>().<span class="ident">to_string</span>(),
-    );
-
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>)]</span>
-    <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop_frame</span>();
-
-    <span class="ident">result</span>
+    )
 }
 
 <span class="doccomment">/// Execute the code using an existing Context.</span>
@@ -315,9 +300,6 @@ This is an experimental Javascript lexer, parser and compiler written in Rust. C
 
     <span class="kw">let</span> <span class="ident">src_bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="ident">src</span>.<span class="ident">as_ref</span>();
     <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">eval</span>(<span class="ident">src_bytes</span>);
-
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>)]</span>
-    <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop_frame</span>();
 
     <span class="comment">// The main_timer needs to be dropped before the BoaProfiler is.</span>
     <span class="ident">drop</span>(<span class="ident">main_timer</span>);

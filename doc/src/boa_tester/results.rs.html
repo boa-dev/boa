@@ -467,9 +467,6 @@
 <span id="467">467</span>
 <span id="468">468</span>
 <span id="469">469</span>
-<span id="470">470</span>
-<span id="471">471</span>
-<span id="472">472</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">super</span>::SuiteResult</span>;
 <span class="kw">use</span> <span class="ident">git2::Repository</span>;
 <span class="kw">use</span> <span class="ident">hex::ToHex</span>;
@@ -690,10 +687,7 @@
             )
         }
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>)]</span>
         <span class="macro">println!</span>(<span class="string">&quot;#### VM implementation&quot;</span>);
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>))]</span>
-        <span class="macro">println!</span>(<span class="string">&quot;#### Non-VM implementation&quot;</span>);
 
         <span class="macro">println!</span>(<span class="string">&quot;| Test result | main count | PR count | difference |&quot;</span>);
         <span class="macro">println!</span>(<span class="string">&quot;| :---------: | :----------: | :------: | :--------: |&quot;</span>);

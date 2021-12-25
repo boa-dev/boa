@@ -153,65 +153,9 @@
 <span id="153">153</span>
 <span id="154">154</span>
 <span id="155">155</span>
-<span id="156">156</span>
-<span id="157">157</span>
-<span id="158">158</span>
-<span id="159">159</span>
-<span id="160">160</span>
-<span id="161">161</span>
-<span id="162">162</span>
-<span id="163">163</span>
-<span id="164">164</span>
-<span id="165">165</span>
-<span id="166">166</span>
-<span id="167">167</span>
-<span id="168">168</span>
-<span id="169">169</span>
-<span id="170">170</span>
-<span id="171">171</span>
-<span id="172">172</span>
-<span id="173">173</span>
-<span id="174">174</span>
-<span id="175">175</span>
-<span id="176">176</span>
-<span id="177">177</span>
-<span id="178">178</span>
-<span id="179">179</span>
-<span id="180">180</span>
-<span id="181">181</span>
-<span id="182">182</span>
-<span id="183">183</span>
-<span id="184">184</span>
-<span id="185">185</span>
-<span id="186">186</span>
-<span id="187">187</span>
-<span id="188">188</span>
-<span id="189">189</span>
-<span id="190">190</span>
-<span id="191">191</span>
-<span id="192">192</span>
-<span id="193">193</span>
-<span id="194">194</span>
-<span id="195">195</span>
-<span id="196">196</span>
-<span id="197">197</span>
-<span id="198">198</span>
-<span id="199">199</span>
-<span id="200">200</span>
-<span id="201">201</span>
-<span id="202">202</span>
-<span id="203">203</span>
-<span id="204">204</span>
-<span id="205">205</span>
-<span id="206">206</span>
-<span id="207">207</span>
-<span id="208">208</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">environment::declarative_environment_record::DeclarativeEnvironmentRecord</span>,
-    <span class="ident">exec</span>::{<span class="ident">Executable</span>, <span class="ident">InterpreterState</span>},
     <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
     <span class="ident">syntax::ast::node::Node</span>,
-    <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
 };
 <span class="kw">use</span> <span class="ident">std::fmt</span>;
 
@@ -302,56 +246,6 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_label</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">label</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>) {
         <span class="self">self</span>.<span class="ident">label</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">label</span>);
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">Executable</span> <span class="kw">for</span> <span class="ident">ForLoop</span> {
-    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// Create the block environment.</span>
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;ForLoop&quot;</span>, <span class="string">&quot;exec&quot;</span>);
-        {
-            <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">get_current_environment</span>();
-            <span class="ident">context</span>.<span class="ident">push_environment</span>(<span class="ident">DeclarativeEnvironmentRecord::new</span>(<span class="prelude-val">Some</span>(<span class="ident">env</span>)));
-        }
-
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">init</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">init</span>() {
-            <span class="ident">init</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        }
-
-        <span class="kw">while</span> <span class="self">self</span>
-            .<span class="ident">condition</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">cond</span><span class="op">|</span> <span class="ident">cond</span>.<span class="ident">run</span>(<span class="ident">context</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">to_boolean</span>()))
-            .<span class="ident">transpose</span>()<span class="question-mark">?</span>
-            .<span class="ident">unwrap_or</span>(<span class="bool-val">true</span>)
-        {
-            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">body</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-
-            <span class="kw">match</span> <span class="ident">context</span>.<span class="ident">executor</span>().<span class="ident">get_current_state</span>() {
-                <span class="ident">InterpreterState::Break</span>(<span class="ident">label</span>) =&gt; {
-                    <span class="macro">handle_state_with_labels!</span>(<span class="self">self</span>, <span class="ident">label</span>, <span class="ident">context</span>, <span class="kw">break</span>);
-                    <span class="kw">break</span>;
-                }
-                <span class="ident">InterpreterState::Continue</span>(<span class="ident">label</span>) =&gt; {
-                    <span class="macro">handle_state_with_labels!</span>(<span class="self">self</span>, <span class="ident">label</span>, <span class="ident">context</span>, <span class="kw">continue</span>);
-                }
-
-                <span class="ident">InterpreterState::Return</span> =&gt; {
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">result</span>);
-                }
-                <span class="ident">InterpreterState::Executing</span> =&gt; {
-                    <span class="comment">// Continue execution.</span>
-                }
-            }
-
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">final_expr</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">final_expr</span>() {
-                <span class="ident">final_expr</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-            }
-        }
-
-        <span class="comment">// pop the block env</span>
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">pop_environment</span>();
-
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
     }
 }
 

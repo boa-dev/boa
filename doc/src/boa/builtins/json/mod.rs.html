@@ -738,8 +738,6 @@
 <span id="738">738</span>
 <span id="739">739</span>
 <span id="740">740</span>
-<span id="741">741</span>
-<span id="742">742</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `JSON` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `JSON` object contains methods for parsing [JavaScript Object Notation (JSON)][spec]</span>
@@ -838,8 +836,6 @@
         <span class="comment">// 9. Let unfiltered be completion.[[Value]].</span>
         <span class="comment">// 10. Assert: unfiltered is either a String, Number, Boolean, Null, or an Object that is defined by either an ArrayLiteral or an ObjectLiteral.</span>
         <span class="kw">let</span> <span class="ident">unfiltered</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">eval</span>(<span class="ident">script_string</span>.<span class="ident">as_bytes</span>())<span class="question-mark">?</span>;
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>)]</span>
-        <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop_frame</span>();
 
         <span class="comment">// 11. If IsCallable(reviver) is true, then</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>).<span class="ident">as_callable</span>() {
