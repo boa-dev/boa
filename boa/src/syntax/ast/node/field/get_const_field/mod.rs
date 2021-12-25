@@ -1,8 +1,6 @@
 use crate::{
-    exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -58,17 +56,6 @@ impl GetConstField {
     /// Gets the name of the field to retrieve.
     pub fn field(&self) -> &str {
         &self.field
-    }
-}
-
-impl Executable for GetConstField {
-    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
-        let mut obj = self.obj().run(context)?;
-        if !obj.is_object() {
-            obj = JsValue::Object(obj.to_object(context)?);
-        }
-
-        obj.get_field(self.field(), context)
     }
 }
 

@@ -152,9 +152,7 @@ impl Test {
 
                     match self.set_up_env(harness, strict) {
                         Ok(mut context) => {
-                            if strict {
-                                context.set_strict_mode_global();
-                            }
+                            context.set_strict_mode(strict);
                             let res = context.eval(&self.content.as_ref());
 
                             let passed = res.is_ok();
@@ -201,9 +199,7 @@ impl Test {
                     } else {
                         match self.set_up_env(harness, strict) {
                             Ok(mut context) => {
-                                if strict {
-                                    context.set_strict_mode_global();
-                                }
+                                context.set_strict_mode(strict);
                                 match context.eval(&self.content.as_ref()) {
                                     Ok(res) => (false, format!("{}", res.display())),
                                     Err(e) => {

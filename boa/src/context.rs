@@ -2,33 +2,22 @@
 
 use crate::{
     builtins::{
-        self,
-        function::{Function, NativeFunctionSignature, ThisMode},
-        intrinsics::IntrinsicObjects,
-        iterable::IteratorPrototypes,
-        typed_array::TypedArray,
+        self, function::NativeFunctionSignature, intrinsics::IntrinsicObjects,
+        iterable::IteratorPrototypes, typed_array::TypedArray,
     },
+    bytecompiler::ByteCompiler,
     class::{Class, ClassBuilder},
-    exec::Interpreter,
-    object::PROTOTYPE,
     object::{FunctionBuilder, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
-    syntax::{
-        ast::{
-            node::{statement_list::RcStatementList, FormalParameter, StatementList},
-            Node,
-        },
-        Parser,
-    },
-    BoaProfiler, Executable, JsResult, JsString, JsValue,
+    syntax::{ast::node::StatementList, Parser},
+    vm::{CallFrame, CodeBlock, FinallyReturn, Vm},
+    BoaProfiler, JsResult, JsString, JsValue,
 };
+use gc::Gc;
 
 #[cfg(feature = "console")]
 use crate::builtins::console::Console;
-
-#[cfg(feature = "vm")]
-use crate::vm::{FinallyReturn, Vm};
 
 /// Store a builtin constructor (such as `Object`) and its corresponding prototype.
 #[derive(Debug, Clone)]
@@ -326,14 +315,6 @@ impl StandardObjects {
     }
 }
 
-/// Internal representation of the strict mode types.
-#[derive(Debug, Copy, Clone)]
-pub(crate) enum StrictType {
-    Off,
-    Global,
-    Function,
-}
-
 /// Javascript context. It is the primary way to interact with the runtime.
 ///
 /// `Context`s constructed in a thread share the same runtime, therefore it
@@ -380,9 +361,6 @@ pub struct Context {
     /// realm holds both the global object and the environment
     pub(crate) realm: Realm,
 
-    /// The current executor.
-    executor: Interpreter,
-
     /// console object state.
     #[cfg(feature = "console")]
     console: Console,
@@ -399,28 +377,24 @@ pub struct Context {
     /// Cached intrinsic objects
     intrinsic_objects: IntrinsicObjects,
 
-    /// Whether or not strict mode is active.
-    strict: StrictType,
+    /// Whether or not global strict mode is active.
+    strict: bool,
 
-    #[cfg(feature = "vm")]
     pub(crate) vm: Vm,
 }
 
 impl Default for Context {
     fn default() -> Self {
         let realm = Realm::create();
-        let executor = Interpreter::new();
         let mut context = Self {
             realm,
-            executor,
             #[cfg(feature = "console")]
             console: Console::default(),
             iterator_prototypes: IteratorPrototypes::default(),
             typed_array_constructor: StandardConstructor::default(),
             standard_objects: Default::default(),
             intrinsic_objects: IntrinsicObjects::default(),
-            strict: StrictType::Off,
-            #[cfg(feature = "vm")]
+            strict: false,
             vm: Vm {
                 frame: None,
                 stack: Vec::with_capacity(1024),
@@ -454,12 +428,6 @@ impl Context {
     pub fn new() -> Self {
         Default::default()
     }
-
-    #[inline]
-    pub fn executor(&mut self) -> &mut Interpreter {
-        &mut self.executor
-    }
-
     /// A helper function for getting an immutable reference to the `console` object.
     #[cfg(feature = "console")]
     pub(crate) fn console(&self) -> &Console {
@@ -476,31 +444,13 @@ impl Context {
     /// Returns if strict mode is currently active.
     #[inline]
     pub fn strict(&self) -> bool {
-        matches!(self.strict, StrictType::Global | StrictType::Function)
-    }
-
-    /// Returns the strict mode type.
-    #[inline]
-    pub(crate) fn strict_type(&self) -> StrictType {
         self.strict
     }
 
-    /// Set strict type.
+    /// Set the global strict mode of the context.
     #[inline]
-    pub(crate) fn set_strict(&mut self, strict: StrictType) {
+    pub fn set_strict_mode(&mut self, strict: bool) {
         self.strict = strict;
-    }
-
-    /// Disable the strict mode.
-    #[inline]
-    pub fn set_strict_mode_off(&mut self) {
-        self.strict = StrictType::Off;
-    }
-
-    /// Enable the global strict mode.
-    #[inline]
-    pub fn set_strict_mode_global(&mut self) {
-        self.strict = StrictType::Global;
     }
 
     /// Sets up the default global objects within Global
@@ -720,75 +670,6 @@ impl Context {
         Err(self.construct_uri_error(message))
     }
 
-    /// Utility to create a function Value for Function Declarations, Arrow Functions or Function Expressions
-    pub(crate) fn create_function<N, P>(
-        &mut self,
-        name: N,
-        params: P,
-        mut body: StatementList,
-        constructor: bool,
-        this_mode: ThisMode,
-    ) -> JsResult<JsValue>
-    where
-        N: Into<JsString>,
-        P: Into<Box<[FormalParameter]>>,
-    {
-        let name = name.into();
-        let function_prototype = self.standard_objects().function_object().prototype();
-
-        // Every new function has a prototype property pre-made
-        let prototype = self.construct_object();
-
-        // If a function is defined within a strict context, it is strict.
-        if self.strict() {
-            body.set_strict(true);
-        }
-
-        let params = params.into();
-        let params_len = params.len();
-        let func = Function::Ordinary {
-            constructor,
-            this_mode,
-            body: RcStatementList::from(body),
-            params,
-            environment: self.get_current_environment().clone(),
-        };
-
-        let function =
-            JsObject::from_proto_and_data(function_prototype, ObjectData::function(func));
-
-        // Set constructor field to the newly created Value (function object)
-        let constructor = PropertyDescriptor::builder()
-            .value(function.clone())
-            .writable(true)
-            .enumerable(false)
-            .configurable(true);
-        prototype.define_property_or_throw("constructor", constructor, self)?;
-
-        let prototype = PropertyDescriptor::builder()
-            .value(prototype)
-            .writable(true)
-            .enumerable(false)
-            .configurable(false);
-        function.define_property_or_throw(PROTOTYPE, prototype, self)?;
-
-        let length = PropertyDescriptor::builder()
-            .value(params_len)
-            .writable(false)
-            .enumerable(false)
-            .configurable(true);
-        function.define_property_or_throw("length", length, self)?;
-
-        let name = PropertyDescriptor::builder()
-            .value(name)
-            .writable(false)
-            .enumerable(false)
-            .configurable(true);
-        function.define_property_or_throw("name", name, self)?;
-
-        Ok(function.into())
-    }
-
     /// Register a global native function.
     ///
     /// This is more efficient that creating a closure function, since this does not allocate,
@@ -881,29 +762,6 @@ impl Context {
         }
     }
 
-    #[inline]
-    pub(crate) fn set_value(&mut self, node: &Node, value: JsValue) -> JsResult<JsValue> {
-        match node {
-            Node::Identifier(ref name) => {
-                self.set_mutable_binding(name.as_ref(), value.clone(), true)?;
-                Ok(value)
-            }
-            Node::GetConstField(ref get_const_field_node) => Ok(get_const_field_node
-                .obj()
-                .run(self)?
-                .set_field(get_const_field_node.field(), value, false, self)?),
-            Node::GetField(ref get_field) => {
-                let field = get_field.field().run(self)?;
-                let key = field.to_property_key(self)?;
-                Ok(get_field
-                    .obj()
-                    .run(self)?
-                    .set_field(key, value, false, self)?)
-            }
-            _ => self.throw_type_error(format!("invalid assignment to {}", node)),
-        }
-    }
-
     /// Register a global class of type `T`, where `T` implements `Class`.
     ///
     /// # Example
@@ -983,46 +841,6 @@ impl Context {
         );
     }
 
-    /// Evaluates the given code.
-    ///
-    /// # Examples
-    /// ```
-    ///# use boa::Context;
-    /// let mut context = Context::new();
-    ///
-    /// let value = context.eval("1 + 3").unwrap();
-    ///
-    /// assert!(value.is_number());
-    /// assert_eq!(value.as_number().unwrap(), 4.0);
-    /// ```
-    #[cfg(not(feature = "vm"))]
-    #[allow(clippy::unit_arg, clippy::drop_copy)]
-    #[inline]
-    pub fn eval<T: AsRef<[u8]>>(&mut self, src: T) -> JsResult<JsValue> {
-        let main_timer = BoaProfiler::global().start_event("Main", "Main");
-        let src_bytes: &[u8] = src.as_ref();
-
-        let parsing_result = Parser::new(src_bytes, false)
-            .parse_all()
-            .map_err(|e| e.to_string());
-
-        let execution_result = match parsing_result {
-            Ok(statement_list) => {
-                if statement_list.strict() {
-                    self.set_strict_mode_global();
-                }
-                statement_list.run(self)
-            }
-            Err(e) => self.throw_syntax_error(e),
-        };
-
-        // The main_timer needs to be dropped before the BoaProfiler is.
-        drop(main_timer);
-        BoaProfiler::global().drop();
-
-        execution_result
-    }
-
     /// Evaluates the given code by compiling down to bytecode, then interpreting the bytecode into a value
     ///
     /// # Examples
@@ -1035,13 +853,8 @@ impl Context {
     /// assert!(value.is_number());
     /// assert_eq!(value.as_number().unwrap(), 4.0);
     /// ```
-    #[cfg(feature = "vm")]
     #[allow(clippy::unit_arg, clippy::drop_copy)]
     pub fn eval<T: AsRef<[u8]>>(&mut self, src: T) -> JsResult<JsValue> {
-        use gc::Gc;
-
-        use crate::vm::CallFrame;
-
         let main_timer = BoaProfiler::global().start_event("Main", "Main");
         let src_bytes: &[u8] = src.as_ref();
 
@@ -1054,13 +867,29 @@ impl Context {
             Err(e) => return self.throw_syntax_error(e),
         };
 
-        let mut compiler = crate::bytecompiler::ByteCompiler::new(
-            JsString::new("<main>"),
-            statement_list.strict(),
-        );
-        compiler.compile_statement_list(&statement_list, true);
-        let code_block = compiler.finish();
+        let code_block = Context::compile(statement_list);
+        let result = self.execute(code_block);
 
+        // The main_timer needs to be dropped before the BoaProfiler is.
+        drop(main_timer);
+        BoaProfiler::global().drop();
+
+        result
+    }
+
+    // Compile the AST into a CodeBlock ready to execute by the VM
+    #[inline]
+    pub fn compile(statement_list: StatementList) -> CodeBlock {
+        let _ = BoaProfiler::global().start_event("Compilation", "Main");
+        let mut compiler = ByteCompiler::new(JsString::new("<main>"), statement_list.strict());
+        compiler.compile_statement_list(&statement_list, true);
+        compiler.finish()
+    }
+
+    // Call the VM with the codeblock and return the result
+    #[inline]
+    pub fn execute(&mut self, code_block: CodeBlock) -> JsResult<JsValue> {
+        let _ = BoaProfiler::global().start_event("Execute", "Main");
         let global_object = self.global_object().into();
 
         self.vm.push_frame(CallFrame {
@@ -1076,13 +905,8 @@ impl Context {
             param_count: 0,
             arg_count: 0,
         });
-        let result = self.run();
 
-        // The main_timer needs to be dropped before the BoaProfiler is.
-        drop(main_timer);
-        BoaProfiler::global().drop();
-
-        result
+        self.run()
     }
 
     /// Return the cached iterator prototypes.
@@ -1110,7 +934,6 @@ impl Context {
     }
 
     /// Set the value of trace on the context
-    #[cfg(feature = "vm")]
     pub fn set_trace(&mut self, trace: bool) {
         self.vm.trace = trace;
     }

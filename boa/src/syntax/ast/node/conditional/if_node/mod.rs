@@ -1,8 +1,6 @@
 use crate::{
-    exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -75,18 +73,6 @@ impl If {
             }
             None => self.body().display(f, indent),
         }
-    }
-}
-
-impl Executable for If {
-    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
-        Ok(if self.cond().run(context)?.to_boolean() {
-            self.body().run(context)?
-        } else if let Some(else_e) = self.else_node() {
-            else_e.run(context)?
-        } else {
-            JsValue::undefined()
-        })
     }
 }
 

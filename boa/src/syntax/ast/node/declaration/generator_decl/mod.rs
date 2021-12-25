@@ -1,8 +1,6 @@
 use crate::{
-    exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
-    BoaProfiler, Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -71,15 +69,6 @@ impl GeneratorDecl {
             self.body.display(f, indentation + 1)?;
             write!(f, "{}}}", "    ".repeat(indentation))
         }
-    }
-}
-
-impl Executable for GeneratorDecl {
-    fn run(&self, _context: &mut Context) -> JsResult<JsValue> {
-        let _timer = BoaProfiler::global().start_event("GeneratorDecl", "exec");
-        // TODO: Implement GeneratorFunction
-        // https://tc39.es/ecma262/#sec-generatorfunction-objects
-        Ok(JsValue::undefined())
     }
 }
 

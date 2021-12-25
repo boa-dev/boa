@@ -1,9 +1,6 @@
 use crate::{
-    builtins::function::ThisMode,
-    exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
-    Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -94,20 +91,6 @@ impl FunctionExpr {
             self.body.display(f, indentation + 1)?;
             write!(f, "{}}}", "    ".repeat(indentation))
         }
-    }
-}
-
-impl Executable for FunctionExpr {
-    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
-        let val = context.create_function(
-            self.name().unwrap_or(""),
-            self.parameters().to_vec(),
-            self.body().clone(),
-            true,
-            ThisMode::Global,
-        )?;
-
-        Ok(val)
     }
 }
 

@@ -1,10 +1,5 @@
 use super::Node;
-use crate::{
-    exec::Executable,
-    exec::InterpreterState,
-    gc::{Finalize, Trace},
-    Context, JsResult, JsValue,
-};
+use crate::gc::{Finalize, Trace};
 use std::fmt;
 
 #[cfg(feature = "deser")]
@@ -48,16 +43,6 @@ impl Break {
     /// Gets the label of the break statement, if any.
     pub fn label(&self) -> Option<&str> {
         self.label.as_ref().map(Box::as_ref)
-    }
-}
-
-impl Executable for Break {
-    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
-        context
-            .executor()
-            .set_current_state(InterpreterState::Break(self.label().map(Box::from)));
-
-        Ok(JsValue::undefined())
     }
 }
 

@@ -43,10 +43,10 @@ This is an experimental Javascript lexer, parser and compiler written in Rust. C
 
 pub mod bigint;
 pub mod builtins;
+pub mod bytecompiler;
 pub mod class;
 pub mod context;
 pub mod environment;
-pub mod exec;
 pub mod gc;
 pub mod object;
 pub mod profiler;
@@ -56,11 +56,10 @@ pub mod string;
 pub mod symbol;
 pub mod syntax;
 pub mod value;
-
-#[cfg(feature = "vm")]
-pub mod bytecompiler;
-#[cfg(feature = "vm")]
 pub mod vm;
+
+#[cfg(test)]
+mod tests;
 
 /// A convenience module that re-exports the most commonly-used Boa APIs
 pub mod prelude {
@@ -69,7 +68,7 @@ pub mod prelude {
 
 use std::result::Result as StdResult;
 
-pub(crate) use crate::{exec::Executable, profiler::BoaProfiler};
+pub(crate) use crate::profiler::BoaProfiler;
 
 // Export things to root level
 #[doc(inline)]
@@ -99,18 +98,13 @@ pub fn parse<T: AsRef<[u8]>>(src: T, strict_mode: bool) -> StdResult<StatementLi
 /// Execute the code using an existing Context
 /// The str is consumed and the state of the Context is changed
 #[cfg(test)]
-#[cfg_attr(not(feature = "vm"), allow(clippy::let_and_return))]
+#[allow(clippy::let_and_return)]
 pub(crate) fn forward<T: AsRef<[u8]>>(context: &mut Context, src: T) -> String {
     let src_bytes: &[u8] = src.as_ref();
-    let result = context.eval(src_bytes).map_or_else(
+    context.eval(src_bytes).map_or_else(
         |e| format!("Uncaught {}", e.display()),
         |v| v.display().to_string(),
-    );
-
-    #[cfg(feature = "vm")]
-    context.vm.pop_frame();
-
-    result
+    )
 }
 
 /// Execute the code using an existing Context.
@@ -124,9 +118,6 @@ pub(crate) fn forward_val<T: AsRef<[u8]>>(context: &mut Context, src: T) -> JsRe
 
     let src_bytes: &[u8] = src.as_ref();
     let result = context.eval(src_bytes);
-
-    #[cfg(feature = "vm")]
-    context.vm.pop_frame();
 
     // The main_timer needs to be dropped before the BoaProfiler is.
     drop(main_timer);

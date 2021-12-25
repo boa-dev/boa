@@ -1,9 +1,6 @@
 use crate::{
-    exec::Executable,
-    exec::InterpreterState,
     gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, Node},
-    BoaProfiler, Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -55,68 +52,6 @@ impl Call {
     /// Retrieves the arguments passed to the function.
     pub fn args(&self) -> &[Node] {
         &self.args
-    }
-}
-
-impl Executable for Call {
-    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
-        let _timer = BoaProfiler::global().start_event("Call", "exec");
-        let (this, func) = match self.expr() {
-            Node::GetConstField(ref get_const_field) => {
-                let mut obj = get_const_field.obj().run(context)?;
-                if !obj.is_object() {
-                    obj = JsValue::from(obj.to_object(context)?);
-                }
-                (
-                    obj.clone(),
-                    obj.get_field(get_const_field.field(), context)?,
-                )
-            }
-            Node::GetField(ref get_field) => {
-                let mut obj = get_field.obj().run(context)?;
-                if !obj.is_object() {
-                    obj = JsValue::from(obj.to_object(context)?);
-                }
-                let field = get_field.field().run(context)?;
-                (
-                    obj.clone(),
-                    obj.get_field(field.to_property_key(context)?, context)?,
-                )
-            }
-            _ => (
-                // 'this' binding should come from the function's self-contained environment
-                context.global_object().into(),
-                self.expr().run(context)?,
-            ),
-        };
-        let mut v_args = Vec::with_capacity(self.args().len());
-        for arg in self.args() {
-            if let Node::Spread(ref x) = arg {
-                let val = x.run(context)?;
-                let iterator_record = val.get_iterator(context, None, None)?;
-                loop {
-                    let next = iterator_record.next(context)?;
-                    if next.done {
-                        break;
-                    }
-                    let next_value = next.value;
-                    v_args.push(next_value);
-                }
-                break; // after spread we don't accept any new arguments
-            } else {
-                v_args.push(arg.run(context)?);
-            }
-        }
-
-        // execute the function call itself
-        let fnct_result = context.call(&func, &this, &v_args);
-
-        // unset the early return flag
-        context
-            .executor()
-            .set_current_state(InterpreterState::Executing);
-
-        fnct_result
     }
 }
 

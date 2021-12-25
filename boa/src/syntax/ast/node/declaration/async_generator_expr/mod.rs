@@ -1,10 +1,8 @@
 //! Async Generator Expression
 
 use crate::{
-    exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
-    Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -82,13 +80,6 @@ impl AsyncGeneratorExpr {
             self.body.display(f, indentation + 1)?;
             write!(f, "{}}}", "    ".repeat(indentation))
         }
-    }
-}
-
-impl Executable for AsyncGeneratorExpr {
-    fn run(&self, _context: &mut Context) -> JsResult<JsValue> {
-        //TODO: Implement AsyncGeneratorFunction
-        Ok(JsValue::undefined())
     }
 }
 

@@ -15,9 +15,6 @@ rust-version = "1.57"
 profiler = ["measureme"]
 deser = []
 
-# Enable Bytecode generation & execution instead of tree walking
-vm = []
-
 # Enable Boa's WHATWG console object implementation.
 console = []
 
@@ -58,14 +55,6 @@ jemallocator = "0.3.2"
 crate-type = ["cdylib", "lib"]
 name = "boa"
 bench = false
-
-[[bench]]
-name = "parser"
-harness = false
-
-[[bench]]
-name = "exec"
-harness = false
 
 [[bench]]
 name = "full"

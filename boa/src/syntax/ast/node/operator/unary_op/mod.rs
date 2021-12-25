@@ -1,13 +1,9 @@
 use crate::{
-    exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::{node::Node, op},
-    Context, JsBigInt, JsResult, JsValue,
 };
 use std::fmt;
 
-use crate::builtins::Number;
-use crate::value::Numeric;
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
@@ -46,84 +42,6 @@ impl UnaryOp {
     /// Gets the target of this unary operator.
     pub fn target(&self) -> &Node {
         self.target.as_ref()
-    }
-}
-
-impl Executable for UnaryOp {
-    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
-        Ok(match self.op() {
-            op::UnaryOp::Minus => self.target().run(context)?.neg(context)?,
-            op::UnaryOp::Plus => JsValue::new(self.target().run(context)?.to_number(context)?),
-            op::UnaryOp::IncrementPost => {
-                let x = self.target().run(context)?;
-                let ret = x.clone();
-                let result = match x.to_numeric(context)? {
-                    Numeric::Number(n) => (n + 1.0).into(),
-                    Numeric::BigInt(b) => (JsBigInt::add(&b, &JsBigInt::from(1))).into(),
-                };
-                context.set_value(self.target(), result)?;
-                ret
-            }
-            op::UnaryOp::IncrementPre => {
-                let result = self.target().run(context)?.to_number(context)? + 1.0;
-                context.set_value(self.target(), result.into())?
-            }
-            op::UnaryOp::DecrementPost => {
-                let x = self.target().run(context)?;
-                let ret = x.clone();
-                let result = x.to_number(context)? - 1.0;
-                context.set_value(self.target(), result.into())?;
-                ret
-            }
-            op::UnaryOp::DecrementPre => {
-                let result = self.target().run(context)?.to_number(context)? - 1.0;
-                context.set_value(self.target(), result.into())?
-            }
-            op::UnaryOp::Not => self.target().run(context)?.not(context)?.into(),
-            op::UnaryOp::Tilde => {
-                let expr = self.target().run(context)?;
-                let old_v = expr.to_numeric(context)?;
-                match old_v {
-                    Numeric::Number(x) => JsValue::new(Number::not(x)),
-                    Numeric::BigInt(x) => JsValue::new(JsBigInt::not(&x)),
-                }
-            }
-            op::UnaryOp::Void => {
-                self.target().run(context)?;
-                JsValue::undefined()
-            }
-            op::UnaryOp::Delete => match *self.target() {
-                Node::GetConstField(ref get_const_field) => {
-                    let delete_status = get_const_field
-                        .obj()
-                        .run(context)?
-                        .to_object(context)?
-                        .__delete__(&get_const_field.field().into(), context)?;
-
-                    if !delete_status && context.strict() {
-                        return context.throw_type_error("Cannot delete property");
-                    } else {
-                        JsValue::new(delete_status)
-                    }
-                }
-                Node::GetField(ref get_field) => {
-                    let obj = get_field.obj().run(context)?;
-                    let field = &get_field.field().run(context)?;
-                    let delete_status = obj
-                        .to_object(context)?
-                        .__delete__(&field.to_property_key(context)?, context)?;
-                    if !delete_status && context.strict() {
-                        return context.throw_type_error("Cannot delete property");
-                    } else {
-                        JsValue::new(delete_status)
-                    }
-                }
-                // TODO: implement delete on references.
-                Node::Identifier(_) => JsValue::new(false),
-                _ => JsValue::new(true),
-            },
-            op::UnaryOp::TypeOf => JsValue::new(self.target().run(context)?.type_of()),
-        })
     }
 }
 

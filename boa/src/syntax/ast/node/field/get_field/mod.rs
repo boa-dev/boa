@@ -1,8 +1,6 @@
 use crate::{
-    exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -57,18 +55,6 @@ impl GetField {
             obj: Box::new(value.into()),
             field: Box::new(field.into()),
         }
-    }
-}
-
-impl Executable for GetField {
-    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
-        let mut obj = self.obj().run(context)?;
-        if !obj.is_object() {
-            obj = JsValue::Object(obj.to_object(context)?);
-        }
-        let field = self.field().run(context)?;
-
-        obj.get_field(field.to_property_key(context)?, context)
     }
 }
 

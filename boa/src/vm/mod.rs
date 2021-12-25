@@ -92,8 +92,6 @@ impl Vm {
 
 impl Context {
     fn execute_instruction(&mut self) -> JsResult<bool> {
-        let _timer = BoaProfiler::global().start_event("execute_instruction", "vm");
-
         macro_rules! bin_op {
             ($op:ident) => {{
                 let rhs = self.vm.pop();
@@ -103,10 +101,17 @@ impl Context {
             }};
         }
 
-        let opcode = self.vm.frame().code.code[self.vm.frame().pc]
-            .try_into()
-            .unwrap();
-        self.vm.frame_mut().pc += 1;
+        let opcode: Opcode = {
+            let _timer = BoaProfiler::global().start_event("Opcode retrieval", "vm");
+            let opcode = self.vm.frame().code.code[self.vm.frame().pc]
+                .try_into()
+                .expect("could not convert code at PC to opcode");
+            self.vm.frame_mut().pc += 1;
+            opcode
+        };
+
+        let _timer =
+            BoaProfiler::global().start_event(&format!("INST - {}", &opcode.as_str()), "vm");
 
         match opcode {
             Opcode::Nop => {}
@@ -721,7 +726,6 @@ impl Context {
                             self.pop_environment();
                         }
                         self.vm.frame_mut().pop_env_on_return = 0;
-                        let _ = self.vm.pop_frame();
                         return Ok(true);
                     }
                     FinallyReturn::Err => {
@@ -893,7 +897,6 @@ impl Context {
                         self.pop_environment();
                     }
                     self.vm.frame_mut().pop_env_on_return = 0;
-                    let _ = self.vm.pop_frame();
                     return Ok(true);
                 }
             }
@@ -1177,6 +1180,7 @@ impl Context {
                 Ok(should_exit) => {
                     if should_exit {
                         let result = self.vm.pop();
+                        self.vm.pop_frame();
                         return Ok(result);
                     }
                 }
@@ -1230,6 +1234,7 @@ impl Context {
             println!("\n");
         }
 
+        self.vm.pop_frame();
         if self.vm.stack.is_empty() {
             return Ok(JsValue::undefined());
         }

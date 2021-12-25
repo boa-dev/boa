@@ -1,8 +1,6 @@
 use crate::{
-    exec::{Executable, InterpreterState},
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -57,20 +55,6 @@ impl Return {
             expr: expr.into().map(E::into).map(Box::new),
             label: label.into(),
         }
-    }
-}
-
-impl Executable for Return {
-    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
-        let result = match self.expr() {
-            Some(v) => v.run(context),
-            None => Ok(JsValue::undefined()),
-        };
-        // Set flag for return
-        context
-            .executor()
-            .set_current_state(InterpreterState::Return);
-        result
     }
 }
 

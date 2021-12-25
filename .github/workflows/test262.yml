@@ -61,26 +61,6 @@ jobs:
           comment="${comment//$'\r'/'%0D'}"
           echo "::set-output name=comment::$comment"
 
-      - name: Run the test262 test suite for VM
-        run: |
-          cd boa
-          mkdir -p ../results
-          cargo run --release --features vm --bin boa_tester -- run -v -o ../results/test262/vm
-          cd ..
-
-      # Run the results comparison for VM
-      - name: Compare results for VM
-        if: github.event_name == 'pull_request'
-        id: compare-vm
-        shell: bash
-        run: |
-          cd boa
-          comment="$(./target/release/boa_tester compare ../gh-pages/test262/vm/refs/heads/main/latest.json ../results/test262/vm/pull/latest.json -m)"
-          comment="${comment//'%'/'%25'}"
-          comment="${comment//$'\n'/'%0A'}"
-          comment="${comment//$'\r'/'%0D'}"
-          echo "::set-output name=comment::$comment"
-
       - name: Get the PR number
         if: github.event_name == 'pull_request'
         id: pr-number

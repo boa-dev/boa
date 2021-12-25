@@ -1,10 +1,6 @@
 use crate::{
-    builtins::function::ThisMode,
-    environment::lexical_environment::VariableScope,
-    exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
-    BoaProfiler, Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -82,28 +78,6 @@ impl FunctionDecl {
             self.body.display(f, indentation + 1)?;
             write!(f, "{}}}", "    ".repeat(indentation))
         }
-    }
-}
-
-impl Executable for FunctionDecl {
-    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
-        let _timer = BoaProfiler::global().start_event("FunctionDecl", "exec");
-        let val = context.create_function(
-            self.name(),
-            self.parameters().to_vec(),
-            self.body().clone(),
-            true,
-            ThisMode::Global,
-        )?;
-
-        if context.has_binding(self.name())? {
-            context.set_mutable_binding(self.name(), val, context.strict())?;
-        } else {
-            context.create_mutable_binding(self.name(), false, VariableScope::Function)?;
-
-            context.initialize_binding(self.name(), val)?;
-        }
-        Ok(JsValue::undefined())
     }
 }
 

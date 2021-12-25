@@ -1,9 +1,6 @@
 use crate::{
-    environment::declarative_environment_record::DeclarativeEnvironmentRecord,
-    exec::{Executable, InterpreterState},
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    BoaProfiler, Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -94,56 +91,6 @@ impl ForLoop {
 
     pub fn set_label(&mut self, label: Box<str>) {
         self.label = Some(label);
-    }
-}
-
-impl Executable for ForLoop {
-    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
-        // Create the block environment.
-        let _timer = BoaProfiler::global().start_event("ForLoop", "exec");
-        {
-            let env = context.get_current_environment();
-            context.push_environment(DeclarativeEnvironmentRecord::new(Some(env)));
-        }
-
-        if let Some(init) = self.init() {
-            init.run(context)?;
-        }
-
-        while self
-            .condition()
-            .map(|cond| cond.run(context).map(|v| v.to_boolean()))
-            .transpose()?
-            .unwrap_or(true)
-        {
-            let result = self.body().run(context)?;
-
-            match context.executor().get_current_state() {
-                InterpreterState::Break(label) => {
-                    handle_state_with_labels!(self, label, context, break);
-                    break;
-                }
-                InterpreterState::Continue(label) => {
-                    handle_state_with_labels!(self, label, context, continue);
-                }
-
-                InterpreterState::Return => {
-                    return Ok(result);
-                }
-                InterpreterState::Executing => {
-                    // Continue execution.
-                }
-            }
-
-            if let Some(final_expr) = self.final_expr() {
-                final_expr.run(context)?;
-            }
-        }
-
-        // pop the block env
-        let _ = context.pop_environment();
-
-        Ok(JsValue::undefined())
     }
 }
 

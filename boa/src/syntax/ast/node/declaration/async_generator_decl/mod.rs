@@ -1,10 +1,6 @@
 //! Async Generator Declaration
 
-use crate::{
-    exec::Executable,
-    syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
-    BoaProfiler, Context, JsResult, JsValue,
-};
+use crate::syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList};
 use gc::{Finalize, Trace};
 use std::fmt;
 
@@ -70,14 +66,6 @@ impl AsyncGeneratorDecl {
             self.body.display(f, indentation + 1)?;
             write!(f, "{}}}", "    ".repeat(indentation))
         }
-    }
-}
-
-impl Executable for AsyncGeneratorDecl {
-    fn run(&self, _: &mut Context) -> JsResult<JsValue> {
-        let _timer = BoaProfiler::global().start_event("AsyncGeneratorDecl", "exec");
-        //TODO: Implement AsyncGeneratorDecl
-        Ok(JsValue::undefined())
     }
 }
 
