@@ -26,8 +26,13 @@ use std::{convert::TryInto, fmt::Write, mem::size_of};
 ///
 /// # Safety
 ///
-/// TO-DO
+/// This trait is safe to implement as long as the type doesn't implement `Drop`.
+/// At some point, if [negative impls][negative_impls] are stabilized, we might be able to remove
+/// the unsafe bound.
+///
+/// [negative_impls]: https://doc.rust-lang.org/beta/unstable-book/language-features/negative-impls.html
 pub(crate) unsafe trait Readable {}
+
 unsafe impl Readable for u8 {}
 unsafe impl Readable for i8 {}
 unsafe impl Readable for u16 {}
