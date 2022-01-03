@@ -26,4 +26,4 @@ with open('./dev/bench/data.json') as input_f:
     data["entries"]["Boa Benchmarks"] = list(map(clean_bench, filter(new_bench, benches)))
 
     with open('./dev/bench/data_processed.json', 'w') as output_f:
-        json.dump(data, output_f, indent=2)
+        json.dump(data, output_f, indent=2, ensure_ascii=False)
