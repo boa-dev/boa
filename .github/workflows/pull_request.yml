@@ -21,7 +21,7 @@ jobs:
             ~/.cargo/git
             ~/.cargo/registry
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-      - uses: boa-dev/criterion-compare-action@master
+      - uses: boa-dev/criterion-compare-action@action_fixes
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           branchName: ${{ github.base_ref }}
