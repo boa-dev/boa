@@ -1651,12 +1651,12 @@ window.BENCHMARK_DATA = {
         "commit": {
           "author": {
             "email": "RageKnify@gmail.com",
-            "name": "Jo\u00e3o Borges",
+            "name": "Joã Borges",
             "username": "RageKnify"
           },
           "committer": {
             "email": "RageKnify@gmail.com",
-            "name": "Jo\u00e3o Borges",
+            "name": "Joã Borges",
             "username": "RageKnify"
           },
           "distinct": false,
