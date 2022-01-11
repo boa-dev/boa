@@ -559,6 +559,38 @@ impl JsObject {
         }
     }
 
+    /// Abstract operation `IsArray ( argument )`
+    ///
+    /// Check if a value is an array.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isarray
+    pub(crate) fn is_array_abstract(&self, context: &mut Context) -> JsResult<bool> {
+        // Note: The spec specifies this function for JsValue.
+        // It is implemented for JsObject for convenience.
+
+        // 2. If argument is an Array exotic object, return true.
+        if self.is_array() {
+            return Ok(true);
+        }
+
+        // 3. If argument is a Proxy exotic object, then
+        let object = self.borrow();
+        if let Some(proxy) = object.as_proxy() {
+            // a. If argument.[[ProxyHandler]] is null, throw a TypeError exception.
+            // b. Let target be argument.[[ProxyTarget]].
+            let (target, _) = proxy.try_data(context)?;
+
+            // c. Return ? IsArray(target).
+            return target.is_array_abstract(context);
+        }
+
+        // 4. Return false.
+        Ok(false)
+    }
+
     // todo: GetFunctionRealm
 
     // todo: CopyDataProperties

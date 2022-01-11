@@ -55,10 +55,10 @@ impl BuiltIn for Object {
         .length(Self::LENGTH)
         .inherit(None)
         .method(Self::has_own_property, "hasOwnProperty", 1)
-        .method(Self::property_is_enumerable, "propertyIsEnumerable", 0)
+        .method(Self::property_is_enumerable, "propertyIsEnumerable", 1)
         .method(Self::to_string, "toString", 0)
         .method(Self::value_of, "valueOf", 0)
-        .method(Self::is_prototype_of, "isPrototypeOf", 0)
+        .method(Self::is_prototype_of, "isPrototypeOf", 1)
         .static_method(Self::create, "create", 2)
         .static_method(Self::set_prototype_of, "setPrototypeOf", 2)
         .static_method(Self::get_prototype_of, "getPrototypeOf", 1)
@@ -482,20 +482,22 @@ impl Object {
             return Ok("[object Null]".into());
         }
         // 3. Let O be ! ToObject(this value).
-        let o = this.to_object(context)?;
-        // TODO: 4. Let isArray be ? IsArray(O).
-        // TODO: 5. If isArray is true, let builtinTag be "Array".
+        let o = this.to_object(context).expect("toObject cannot fail here");
 
-        // 6. Else if O has a [[ParameterMap]] internal slot, let builtinTag be "Arguments".
-        // 7. Else if O has a [[Call]] internal method, let builtinTag be "Function".
-        // 8. Else if O has an [[ErrorData]] internal slot, let builtinTag be "Error".
-        // 9. Else if O has a [[BooleanData]] internal slot, let builtinTag be "Boolean".
-        // 10. Else if O has a [[NumberData]] internal slot, let builtinTag be "Number".
-        // 11. Else if O has a [[StringData]] internal slot, let builtinTag be "String".
-        // 12. Else if O has a [[DateValue]] internal slot, let builtinTag be "Date".
-        // 13. Else if O has a [[RegExpMatcher]] internal slot, let builtinTag be "RegExp".
-        // 14. Else, let builtinTag be "Object".
-        let builtin_tag = {
+        //  4. Let isArray be ? IsArray(O).
+        //  5. If isArray is true, let builtinTag be "Array".
+        let builtin_tag = if JsValue::from(o.clone()).is_array(context)? {
+            "Array"
+        } else {
+            // 6. Else if O has a [[ParameterMap]] internal slot, let builtinTag be "Arguments".
+            // 7. Else if O has a [[Call]] internal method, let builtinTag be "Function".
+            // 8. Else if O has an [[ErrorData]] internal slot, let builtinTag be "Error".
+            // 9. Else if O has a [[BooleanData]] internal slot, let builtinTag be "Boolean".
+            // 10. Else if O has a [[NumberData]] internal slot, let builtinTag be "Number".
+            // 11. Else if O has a [[StringData]] internal slot, let builtinTag be "String".
+            // 12. Else if O has a [[DateValue]] internal slot, let builtinTag be "Date".
+            // 13. Else if O has a [[RegExpMatcher]] internal slot, let builtinTag be "RegExp".
+            // 14. Else, let builtinTag be "Object".
             let o = o.borrow();
             match o.kind() {
                 ObjectKind::Array => "Array",

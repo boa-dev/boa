@@ -291,10 +291,7 @@ impl Array {
             return Ok(spreadable.to_boolean());
         }
         // 4. Return ? IsArray(O).
-        match this.as_object() {
-            Some(obj) => Ok(obj.is_array()),
-            _ => Ok(false),
-        }
+        this.is_array(context)
     }
 
     /// `get Array [ @@species ]`
@@ -323,7 +320,7 @@ impl Array {
     ) -> JsResult<JsObject> {
         // 1. Let isArray be ? IsArray(originalArray).
         // 2. If isArray is false, return ? ArrayCreate(length).
-        if !original_array.is_array() {
+        if !original_array.is_array_abstract(context)? {
             return Self::array_create(length, None, context);
         }
         // 3. Let C be ? Get(originalArray, "constructor").
@@ -411,13 +408,15 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.isarray
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/isArray
-    pub(crate) fn is_array(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Ok(args
-            .get_or_undefined(0)
-            .as_object()
-            .map(|obj| obj.borrow().is_array())
-            .unwrap_or_default()
-            .into())
+    pub(crate) fn is_array(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Return ? IsArray(arg).
+        args.get_or_undefined(0)
+            .is_array(context)
+            .map(|ok| ok.into())
     }
 
     /// `Array.of(...items)`
