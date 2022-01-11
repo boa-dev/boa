@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;indexmap-1.7.0&#x2F;src&#x2F;macros.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>macros.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../indexmap/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;indexmap-1.8.0&#x2F;src&#x2F;macros.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>macros.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../indexmap/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -118,6 +118,64 @@
 <span id="118">118</span>
 <span id="119">119</span>
 <span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
 </pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_std</span>)]</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="doccomment">/// Create an `IndexMap` from a list of key-value pairs</span>
@@ -235,6 +293,64 @@
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">map_elt</span>:<span class="ident">expr</span>) =&gt; {
         <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
             <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next_back</span>().<span class="ident">map</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">map_elt</span>)
+        }
+
+        <span class="kw">fn</span> <span class="ident">nth_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
+            <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">nth_back</span>(<span class="ident">n</span>).<span class="ident">map</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">map_elt</span>)
+        }
+    };
+}
+
+<span class="comment">// generate `ParallelIterator` methods by just forwarding to the underlying</span>
+<span class="comment">// self.entries and mapping its elements.</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rayon&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustc-rayon&quot;</span>))]</span>
+<span class="macro">macro_rules!</span> <span class="ident">parallel_iterator_methods</span> {
+    <span class="comment">// $map_elt is the mapping function from the underlying iterator&#39;s element</span>
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">map_elt</span>:<span class="ident">expr</span>) =&gt; {
+        <span class="kw">fn</span> <span class="ident">drive_unindexed</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) -&gt; <span class="ident">C::Result</span>
+        <span class="kw">where</span>
+            <span class="ident">C</span>: <span class="ident">UnindexedConsumer</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
+        {
+            <span class="self">self</span>.<span class="ident">entries</span>
+                .<span class="ident">into_par_iter</span>()
+                .<span class="ident">map</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">map_elt</span>)
+                .<span class="ident">drive_unindexed</span>(<span class="ident">consumer</span>)
+        }
+
+        <span class="comment">// NB: This allows indexed collection, e.g. directly into a `Vec`, but the</span>
+        <span class="comment">// underlying iterator must really be indexed.  We should remove this if we</span>
+        <span class="comment">// start having tombstones that must be filtered out.</span>
+        <span class="kw">fn</span> <span class="ident">opt_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">entries</span>.<span class="ident">len</span>())
+        }
+    };
+}
+
+<span class="comment">// generate `IndexedParallelIterator` methods by just forwarding to the underlying</span>
+<span class="comment">// self.entries and mapping its elements.</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rayon&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustc-rayon&quot;</span>))]</span>
+<span class="macro">macro_rules!</span> <span class="ident">indexed_parallel_iterator_methods</span> {
+    <span class="comment">// $map_elt is the mapping function from the underlying iterator&#39;s element</span>
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">map_elt</span>:<span class="ident">expr</span>) =&gt; {
+        <span class="kw">fn</span> <span class="ident">drive</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) -&gt; <span class="ident">C::Result</span>
+        <span class="kw">where</span>
+            <span class="ident">C</span>: <span class="ident">Consumer</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
+        {
+            <span class="self">self</span>.<span class="ident">entries</span>.<span class="ident">into_par_iter</span>().<span class="ident">map</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">map_elt</span>).<span class="ident">drive</span>(<span class="ident">consumer</span>)
+        }
+
+        <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
+            <span class="self">self</span>.<span class="ident">entries</span>.<span class="ident">len</span>()
+        }
+
+        <span class="kw">fn</span> <span class="ident">with_producer</span><span class="op">&lt;</span><span class="ident">CB</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">callback</span>: <span class="ident">CB</span>) -&gt; <span class="ident">CB::Output</span>
+        <span class="kw">where</span>
+            <span class="ident">CB</span>: <span class="ident">ProducerCallback</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
+        {
+            <span class="self">self</span>.<span class="ident">entries</span>
+                .<span class="ident">into_par_iter</span>()
+                .<span class="ident">map</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">map_elt</span>)
+                .<span class="ident">with_producer</span>(<span class="ident">callback</span>)
         }
     };
 }

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;indexmap-1.7.0&#x2F;src&#x2F;set.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>set.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../indexmap/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;indexmap-1.8.0&#x2F;src&#x2F;set.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>set.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../indexmap/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1648,6 +1648,131 @@
 <span id="1648">1648</span>
 <span id="1649">1649</span>
 <span id="1650">1650</span>
+<span id="1651">1651</span>
+<span id="1652">1652</span>
+<span id="1653">1653</span>
+<span id="1654">1654</span>
+<span id="1655">1655</span>
+<span id="1656">1656</span>
+<span id="1657">1657</span>
+<span id="1658">1658</span>
+<span id="1659">1659</span>
+<span id="1660">1660</span>
+<span id="1661">1661</span>
+<span id="1662">1662</span>
+<span id="1663">1663</span>
+<span id="1664">1664</span>
+<span id="1665">1665</span>
+<span id="1666">1666</span>
+<span id="1667">1667</span>
+<span id="1668">1668</span>
+<span id="1669">1669</span>
+<span id="1670">1670</span>
+<span id="1671">1671</span>
+<span id="1672">1672</span>
+<span id="1673">1673</span>
+<span id="1674">1674</span>
+<span id="1675">1675</span>
+<span id="1676">1676</span>
+<span id="1677">1677</span>
+<span id="1678">1678</span>
+<span id="1679">1679</span>
+<span id="1680">1680</span>
+<span id="1681">1681</span>
+<span id="1682">1682</span>
+<span id="1683">1683</span>
+<span id="1684">1684</span>
+<span id="1685">1685</span>
+<span id="1686">1686</span>
+<span id="1687">1687</span>
+<span id="1688">1688</span>
+<span id="1689">1689</span>
+<span id="1690">1690</span>
+<span id="1691">1691</span>
+<span id="1692">1692</span>
+<span id="1693">1693</span>
+<span id="1694">1694</span>
+<span id="1695">1695</span>
+<span id="1696">1696</span>
+<span id="1697">1697</span>
+<span id="1698">1698</span>
+<span id="1699">1699</span>
+<span id="1700">1700</span>
+<span id="1701">1701</span>
+<span id="1702">1702</span>
+<span id="1703">1703</span>
+<span id="1704">1704</span>
+<span id="1705">1705</span>
+<span id="1706">1706</span>
+<span id="1707">1707</span>
+<span id="1708">1708</span>
+<span id="1709">1709</span>
+<span id="1710">1710</span>
+<span id="1711">1711</span>
+<span id="1712">1712</span>
+<span id="1713">1713</span>
+<span id="1714">1714</span>
+<span id="1715">1715</span>
+<span id="1716">1716</span>
+<span id="1717">1717</span>
+<span id="1718">1718</span>
+<span id="1719">1719</span>
+<span id="1720">1720</span>
+<span id="1721">1721</span>
+<span id="1722">1722</span>
+<span id="1723">1723</span>
+<span id="1724">1724</span>
+<span id="1725">1725</span>
+<span id="1726">1726</span>
+<span id="1727">1727</span>
+<span id="1728">1728</span>
+<span id="1729">1729</span>
+<span id="1730">1730</span>
+<span id="1731">1731</span>
+<span id="1732">1732</span>
+<span id="1733">1733</span>
+<span id="1734">1734</span>
+<span id="1735">1735</span>
+<span id="1736">1736</span>
+<span id="1737">1737</span>
+<span id="1738">1738</span>
+<span id="1739">1739</span>
+<span id="1740">1740</span>
+<span id="1741">1741</span>
+<span id="1742">1742</span>
+<span id="1743">1743</span>
+<span id="1744">1744</span>
+<span id="1745">1745</span>
+<span id="1746">1746</span>
+<span id="1747">1747</span>
+<span id="1748">1748</span>
+<span id="1749">1749</span>
+<span id="1750">1750</span>
+<span id="1751">1751</span>
+<span id="1752">1752</span>
+<span id="1753">1753</span>
+<span id="1754">1754</span>
+<span id="1755">1755</span>
+<span id="1756">1756</span>
+<span id="1757">1757</span>
+<span id="1758">1758</span>
+<span id="1759">1759</span>
+<span id="1760">1760</span>
+<span id="1761">1761</span>
+<span id="1762">1762</span>
+<span id="1763">1763</span>
+<span id="1764">1764</span>
+<span id="1765">1765</span>
+<span id="1766">1766</span>
+<span id="1767">1767</span>
+<span id="1768">1768</span>
+<span id="1769">1769</span>
+<span id="1770">1770</span>
+<span id="1771">1771</span>
+<span id="1772">1772</span>
+<span id="1773">1773</span>
+<span id="1774">1774</span>
+<span id="1775">1775</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A hash set implemented using `IndexMap`</span>
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rayon&quot;</span>)]</span>
@@ -1660,7 +1785,7 @@
 <span class="kw">use</span> <span class="ident">core::cmp::Ordering</span>;
 <span class="kw">use</span> <span class="ident">core::fmt</span>;
 <span class="kw">use</span> <span class="ident">core::hash</span>::{<span class="ident">BuildHasher</span>, <span class="ident">Hash</span>};
-<span class="kw">use</span> <span class="ident">core::iter</span>::{<span class="ident">Chain</span>, <span class="ident">FromIterator</span>};
+<span class="kw">use</span> <span class="ident">core::iter</span>::{<span class="ident">Chain</span>, <span class="ident">FromIterator</span>, <span class="ident">FusedIterator</span>};
 <span class="kw">use</span> <span class="ident">core::ops</span>::{<span class="ident">BitAnd</span>, <span class="ident">BitOr</span>, <span class="ident">BitXor</span>, <span class="ident">Index</span>, <span class="ident">RangeBounds</span>, <span class="ident">Sub</span>};
 <span class="kw">use</span> <span class="ident">core::slice</span>;
 
@@ -1711,11 +1836,11 @@
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_std</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IndexSet</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span> <span class="op">=</span> <span class="ident">RandomState</span><span class="op">&gt;</span> {
-    <span class="ident">map</span>: <span class="ident">IndexMap</span><span class="op">&lt;</span><span class="ident">T</span>, (), <span class="ident">S</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">map</span>: <span class="ident">IndexMap</span><span class="op">&lt;</span><span class="ident">T</span>, (), <span class="ident">S</span><span class="op">&gt;</span>,
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">has_std</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IndexSet</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="ident">map</span>: <span class="ident">IndexMap</span><span class="op">&lt;</span><span class="ident">T</span>, (), <span class="ident">S</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">map</span>: <span class="ident">IndexMap</span><span class="op">&lt;</span><span class="ident">T</span>, (), <span class="ident">S</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">IndexSet</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span>
@@ -1805,8 +1930,11 @@
         }
     }
 
-    <span class="doccomment">/// Create a new set with `hash_builder`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_hasher</span>(<span class="ident">hash_builder</span>: <span class="ident">S</span>) -&gt; <span class="self">Self</span> {
+    <span class="doccomment">/// Create a new set with `hash_builder`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This function is `const`, so it</span>
+    <span class="doccomment">/// can be called in `static` contexts.</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">with_hasher</span>(<span class="ident">hash_builder</span>: <span class="ident">S</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">IndexSet</span> {
             <span class="ident">map</span>: <span class="ident">IndexMap::with_hasher</span>(<span class="ident">hash_builder</span>),
         }
@@ -2182,6 +2310,8 @@
 
     <span class="doccomment">/// Remove the last value</span>
     <span class="doccomment">///</span>
+    <span class="doccomment">/// This preserves the order of the remaining elements.</span>
+    <span class="doccomment">///</span>
     <span class="doccomment">/// Computes in **O(1)** time (average).</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">pop</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">x</span>, ())<span class="op">|</span> <span class="ident">x</span>)
@@ -2203,7 +2333,7 @@
 
     <span class="doccomment">/// Sort the set’s values by their default ordering.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// See `sort_by` for details.</span>
+    <span class="doccomment">/// See [`sort_by`](Self::sort_by) for details.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sort</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>)
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">Ord</span>,
@@ -2211,17 +2341,17 @@
         <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">sort_keys</span>()
     }
 
-    <span class="doccomment">/// Sort the set’s values in place using the comparison function `compare`.</span>
+    <span class="doccomment">/// Sort the set’s values in place using the comparison function `cmp`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Computes in **O(n log n)** time and **O(n)** space. The sort is stable.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sort_by</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">compare</span>: <span class="ident">F</span>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sort_by</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">cmp</span>: <span class="ident">F</span>)
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">Ordering</span>,
     {
-        <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">sort_by</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">a</span>, <span class="kw">_</span>, <span class="ident">b</span>, <span class="kw">_</span><span class="op">|</span> <span class="ident">compare</span>(<span class="ident">a</span>, <span class="ident">b</span>));
+        <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">sort_by</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">a</span>, <span class="kw">_</span>, <span class="ident">b</span>, <span class="kw">_</span><span class="op">|</span> <span class="ident">cmp</span>(<span class="ident">a</span>, <span class="ident">b</span>));
     }
 
-    <span class="doccomment">/// Sort the values of the set and return a by value iterator of</span>
+    <span class="doccomment">/// Sort the values of the set and return a by-value iterator of</span>
     <span class="doccomment">/// the values with the result.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The sort is stable.</span>
@@ -2230,7 +2360,41 @@
         <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">Ordering</span>,
     {
         <span class="ident">IntoIter</span> {
-            <span class="ident">iter</span>: <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">sorted_by</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">a</span>, <span class="kw-2">&amp;</span>(), <span class="ident">b</span>, <span class="kw-2">&amp;</span>()<span class="op">|</span> <span class="ident">cmp</span>(<span class="ident">a</span>, <span class="ident">b</span>)).<span class="ident">iter</span>,
+            <span class="ident">iter</span>: <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">sorted_by</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">a</span>, <span class="kw">_</span>, <span class="ident">b</span>, <span class="kw">_</span><span class="op">|</span> <span class="ident">cmp</span>(<span class="ident">a</span>, <span class="ident">b</span>)).<span class="ident">iter</span>,
+        }
+    }
+
+    <span class="doccomment">/// Sort the set&#39;s values by their default ordering.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// See [`sort_unstable_by`](Self::sort_unstable_by) for details.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sort_unstable</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>)
+    <span class="kw">where</span>
+        <span class="ident">T</span>: <span class="ident">Ord</span>,
+    {
+        <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">sort_unstable_keys</span>()
+    }
+
+    <span class="doccomment">/// Sort the set&#39;s values in place using the comparison funtion `cmp`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Computes in **O(n log n)** time. The sort is unstable.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sort_unstable_by</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">cmp</span>: <span class="ident">F</span>)
+    <span class="kw">where</span>
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">Ordering</span>,
+    {
+        <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">sort_unstable_by</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">a</span>, <span class="kw">_</span>, <span class="ident">b</span>, <span class="kw">_</span><span class="op">|</span> <span class="ident">cmp</span>(<span class="ident">a</span>, <span class="ident">b</span>))
+    }
+
+    <span class="doccomment">/// Sort the values of the set and return a by-value iterator of</span>
+    <span class="doccomment">/// the values with the result.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sorted_unstable_by</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">cmp</span>: <span class="ident">F</span>) -&gt; <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">Ordering</span>,
+    {
+        <span class="ident">IntoIter</span> {
+            <span class="ident">iter</span>: <span class="self">self</span>
+                .<span class="ident">map</span>
+                .<span class="ident">sorted_unstable_by</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">a</span>, <span class="kw">_</span>, <span class="ident">b</span>, <span class="kw">_</span><span class="op">|</span> <span class="ident">cmp</span>(<span class="ident">a</span>, <span class="ident">b</span>))
+                .<span class="ident">iter</span>,
         }
     }
 
@@ -2358,9 +2522,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">DoubleEndedIterator</span> <span class="kw">for</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next_back</span>().<span class="ident">map</span>(<span class="ident">Bucket::key</span>)
-    }
+    <span class="macro">double_ended_iterator_methods!</span>(<span class="ident">Bucket::key</span>);
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">ExactSizeIterator</span> <span class="kw">for</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
@@ -2368,6 +2530,8 @@
         <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">len</span>()
     }
 }
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">FusedIterator</span> <span class="kw">for</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">fmt::Debug</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
@@ -2394,9 +2558,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">DoubleEndedIterator</span> <span class="kw">for</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next_back</span>().<span class="ident">map</span>(<span class="ident">Bucket::key_ref</span>)
-    }
+    <span class="macro">double_ended_iterator_methods!</span>(<span class="ident">Bucket::key_ref</span>);
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">ExactSizeIterator</span> <span class="kw">for</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
@@ -2404,6 +2566,8 @@
         <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">len</span>()
     }
 }
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">FusedIterator</span> <span class="kw">for</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {}
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
@@ -2440,6 +2604,21 @@
     <span class="macro">double_ended_iterator_methods!</span>(<span class="ident">Bucket::key</span>);
 }
 
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">ExactSizeIterator</span> <span class="kw">for</span> <span class="ident">Drain</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
+        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">len</span>()
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">FusedIterator</span> <span class="kw">for</span> <span class="ident">Drain</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">fmt::Debug</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Drain</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
+        <span class="kw">let</span> <span class="ident">iter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">as_slice</span>().<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">Bucket::key_ref</span>);
+        <span class="ident">f</span>.<span class="ident">debug_list</span>().<span class="ident">entries</span>(<span class="ident">iter</span>).<span class="ident">finish</span>()
+    }
+}
+
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">IntoIterator</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">IndexSet</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span>;
     <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span>;
@@ -2470,6 +2649,25 @@
         <span class="ident">IndexSet</span> {
             <span class="ident">map</span>: <span class="ident">IndexMap::from_iter</span>(<span class="ident">iter</span>),
         }
+    }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">has_std</span>, <span class="ident">rustc_1_51</span>))]</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="kw">const</span> <span class="ident">N</span>: <span class="ident">usize</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span>[<span class="ident">T</span>; <span class="ident">N</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">IndexSet</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">RandomState</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">T</span>: <span class="ident">Eq</span> <span class="op">+</span> <span class="ident">Hash</span>,
+{
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use indexmap::IndexSet;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let set1 = IndexSet::from([1, 2, 3, 4]);</span>
+    <span class="doccomment">/// let set2: IndexSet&lt;_&gt; = [1, 2, 3, 4].into();</span>
+    <span class="doccomment">/// assert_eq!(set1, set2);</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">arr</span>: [<span class="ident">T</span>; <span class="ident">N</span>]) -&gt; <span class="self">Self</span> {
+        <span class="ident">std::array::IntoIter::new</span>(<span class="ident">arr</span>).<span class="ident">collect</span>()
     }
 }
 
@@ -2607,6 +2805,13 @@
     }
 }
 
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">FusedIterator</span> <span class="kw">for</span> <span class="ident">Difference</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">T</span>: <span class="ident">Eq</span> <span class="op">+</span> <span class="ident">Hash</span>,
+    <span class="ident">S</span>: <span class="ident">BuildHasher</span>,
+{
+}
+
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Difference</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">Difference</span> {
@@ -2674,6 +2879,13 @@
     }
 }
 
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">FusedIterator</span> <span class="kw">for</span> <span class="ident">Intersection</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">T</span>: <span class="ident">Eq</span> <span class="op">+</span> <span class="ident">Hash</span>,
+    <span class="ident">S</span>: <span class="ident">BuildHasher</span>,
+{
+}
+
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Intersection</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">Intersection</span> {
@@ -2737,6 +2949,21 @@
     <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next_back</span>()
     }
+
+    <span class="kw">fn</span> <span class="ident">rfold</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">init</span>: <span class="ident">B</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">B</span>
+    <span class="kw">where</span>
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">B</span>, <span class="ident"><span class="self">Self</span>::Item</span>) -&gt; <span class="ident">B</span>,
+    {
+        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">rfold</span>(<span class="ident">init</span>, <span class="ident">f</span>)
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S1</span>, <span class="ident">S2</span><span class="op">&gt;</span> <span class="ident">FusedIterator</span> <span class="kw">for</span> <span class="ident">SymmetricDifference</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span>, <span class="ident">S1</span>, <span class="ident">S2</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">T</span>: <span class="ident">Eq</span> <span class="op">+</span> <span class="ident">Hash</span>,
+    <span class="ident">S1</span>: <span class="ident">BuildHasher</span>,
+    <span class="ident">S2</span>: <span class="ident">BuildHasher</span>,
+{
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S1</span>, <span class="ident">S2</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">SymmetricDifference</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span>, <span class="ident">S1</span>, <span class="ident">S2</span><span class="op">&gt;</span> {
@@ -2800,6 +3027,20 @@
     <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next_back</span>()
     }
+
+    <span class="kw">fn</span> <span class="ident">rfold</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">init</span>: <span class="ident">B</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">B</span>
+    <span class="kw">where</span>
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">B</span>, <span class="ident"><span class="self">Self</span>::Item</span>) -&gt; <span class="ident">B</span>,
+    {
+        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">rfold</span>(<span class="ident">init</span>, <span class="ident">f</span>)
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">FusedIterator</span> <span class="kw">for</span> <span class="ident">Union</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">T</span>: <span class="ident">Eq</span> <span class="op">+</span> <span class="ident">Hash</span>,
+    <span class="ident">S</span>: <span class="ident">BuildHasher</span>,
+{
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Union</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
@@ -3296,6 +3537,15 @@
         <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="ident">set_d</span> <span class="op">^</span> <span class="kw-2">&amp;</span><span class="ident">set_c</span>, <span class="kw-2">&amp;</span><span class="ident">set_a</span> <span class="op">|</span> <span class="kw-2">&amp;</span>(<span class="kw-2">&amp;</span><span class="ident">set_d</span> <span class="op">-</span> <span class="kw-2">&amp;</span><span class="ident">set_b</span>));
         <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="ident">set_c</span> <span class="op">-</span> <span class="kw-2">&amp;</span><span class="ident">set_d</span>, <span class="ident">set_a</span>);
         <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="ident">set_d</span> <span class="op">-</span> <span class="kw-2">&amp;</span><span class="ident">set_c</span>, <span class="kw-2">&amp;</span><span class="ident">set_d</span> <span class="op">-</span> <span class="kw-2">&amp;</span><span class="ident">set_b</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">has_std</span>, <span class="ident">rustc_1_51</span>))]</span>
+    <span class="kw">fn</span> <span class="ident">from_array</span>() {
+        <span class="kw">let</span> <span class="ident">set1</span> <span class="op">=</span> <span class="ident">IndexSet::from</span>([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>]);
+        <span class="kw">let</span> <span class="ident">set2</span>: <span class="ident">IndexSet</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>].<span class="ident">into</span>();
+
+        <span class="macro">assert_eq!</span>(<span class="ident">set1</span>, <span class="ident">set2</span>);
     }
 }
 </code></pre></div>

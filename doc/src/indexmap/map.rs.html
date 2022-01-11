@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;indexmap-1.7.0&#x2F;src&#x2F;map.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>map.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../indexmap/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;indexmap-1.8.0&#x2F;src&#x2F;map.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>map.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../indexmap/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1708,6 +1708,214 @@
 <span id="1708">1708</span>
 <span id="1709">1709</span>
 <span id="1710">1710</span>
+<span id="1711">1711</span>
+<span id="1712">1712</span>
+<span id="1713">1713</span>
+<span id="1714">1714</span>
+<span id="1715">1715</span>
+<span id="1716">1716</span>
+<span id="1717">1717</span>
+<span id="1718">1718</span>
+<span id="1719">1719</span>
+<span id="1720">1720</span>
+<span id="1721">1721</span>
+<span id="1722">1722</span>
+<span id="1723">1723</span>
+<span id="1724">1724</span>
+<span id="1725">1725</span>
+<span id="1726">1726</span>
+<span id="1727">1727</span>
+<span id="1728">1728</span>
+<span id="1729">1729</span>
+<span id="1730">1730</span>
+<span id="1731">1731</span>
+<span id="1732">1732</span>
+<span id="1733">1733</span>
+<span id="1734">1734</span>
+<span id="1735">1735</span>
+<span id="1736">1736</span>
+<span id="1737">1737</span>
+<span id="1738">1738</span>
+<span id="1739">1739</span>
+<span id="1740">1740</span>
+<span id="1741">1741</span>
+<span id="1742">1742</span>
+<span id="1743">1743</span>
+<span id="1744">1744</span>
+<span id="1745">1745</span>
+<span id="1746">1746</span>
+<span id="1747">1747</span>
+<span id="1748">1748</span>
+<span id="1749">1749</span>
+<span id="1750">1750</span>
+<span id="1751">1751</span>
+<span id="1752">1752</span>
+<span id="1753">1753</span>
+<span id="1754">1754</span>
+<span id="1755">1755</span>
+<span id="1756">1756</span>
+<span id="1757">1757</span>
+<span id="1758">1758</span>
+<span id="1759">1759</span>
+<span id="1760">1760</span>
+<span id="1761">1761</span>
+<span id="1762">1762</span>
+<span id="1763">1763</span>
+<span id="1764">1764</span>
+<span id="1765">1765</span>
+<span id="1766">1766</span>
+<span id="1767">1767</span>
+<span id="1768">1768</span>
+<span id="1769">1769</span>
+<span id="1770">1770</span>
+<span id="1771">1771</span>
+<span id="1772">1772</span>
+<span id="1773">1773</span>
+<span id="1774">1774</span>
+<span id="1775">1775</span>
+<span id="1776">1776</span>
+<span id="1777">1777</span>
+<span id="1778">1778</span>
+<span id="1779">1779</span>
+<span id="1780">1780</span>
+<span id="1781">1781</span>
+<span id="1782">1782</span>
+<span id="1783">1783</span>
+<span id="1784">1784</span>
+<span id="1785">1785</span>
+<span id="1786">1786</span>
+<span id="1787">1787</span>
+<span id="1788">1788</span>
+<span id="1789">1789</span>
+<span id="1790">1790</span>
+<span id="1791">1791</span>
+<span id="1792">1792</span>
+<span id="1793">1793</span>
+<span id="1794">1794</span>
+<span id="1795">1795</span>
+<span id="1796">1796</span>
+<span id="1797">1797</span>
+<span id="1798">1798</span>
+<span id="1799">1799</span>
+<span id="1800">1800</span>
+<span id="1801">1801</span>
+<span id="1802">1802</span>
+<span id="1803">1803</span>
+<span id="1804">1804</span>
+<span id="1805">1805</span>
+<span id="1806">1806</span>
+<span id="1807">1807</span>
+<span id="1808">1808</span>
+<span id="1809">1809</span>
+<span id="1810">1810</span>
+<span id="1811">1811</span>
+<span id="1812">1812</span>
+<span id="1813">1813</span>
+<span id="1814">1814</span>
+<span id="1815">1815</span>
+<span id="1816">1816</span>
+<span id="1817">1817</span>
+<span id="1818">1818</span>
+<span id="1819">1819</span>
+<span id="1820">1820</span>
+<span id="1821">1821</span>
+<span id="1822">1822</span>
+<span id="1823">1823</span>
+<span id="1824">1824</span>
+<span id="1825">1825</span>
+<span id="1826">1826</span>
+<span id="1827">1827</span>
+<span id="1828">1828</span>
+<span id="1829">1829</span>
+<span id="1830">1830</span>
+<span id="1831">1831</span>
+<span id="1832">1832</span>
+<span id="1833">1833</span>
+<span id="1834">1834</span>
+<span id="1835">1835</span>
+<span id="1836">1836</span>
+<span id="1837">1837</span>
+<span id="1838">1838</span>
+<span id="1839">1839</span>
+<span id="1840">1840</span>
+<span id="1841">1841</span>
+<span id="1842">1842</span>
+<span id="1843">1843</span>
+<span id="1844">1844</span>
+<span id="1845">1845</span>
+<span id="1846">1846</span>
+<span id="1847">1847</span>
+<span id="1848">1848</span>
+<span id="1849">1849</span>
+<span id="1850">1850</span>
+<span id="1851">1851</span>
+<span id="1852">1852</span>
+<span id="1853">1853</span>
+<span id="1854">1854</span>
+<span id="1855">1855</span>
+<span id="1856">1856</span>
+<span id="1857">1857</span>
+<span id="1858">1858</span>
+<span id="1859">1859</span>
+<span id="1860">1860</span>
+<span id="1861">1861</span>
+<span id="1862">1862</span>
+<span id="1863">1863</span>
+<span id="1864">1864</span>
+<span id="1865">1865</span>
+<span id="1866">1866</span>
+<span id="1867">1867</span>
+<span id="1868">1868</span>
+<span id="1869">1869</span>
+<span id="1870">1870</span>
+<span id="1871">1871</span>
+<span id="1872">1872</span>
+<span id="1873">1873</span>
+<span id="1874">1874</span>
+<span id="1875">1875</span>
+<span id="1876">1876</span>
+<span id="1877">1877</span>
+<span id="1878">1878</span>
+<span id="1879">1879</span>
+<span id="1880">1880</span>
+<span id="1881">1881</span>
+<span id="1882">1882</span>
+<span id="1883">1883</span>
+<span id="1884">1884</span>
+<span id="1885">1885</span>
+<span id="1886">1886</span>
+<span id="1887">1887</span>
+<span id="1888">1888</span>
+<span id="1889">1889</span>
+<span id="1890">1890</span>
+<span id="1891">1891</span>
+<span id="1892">1892</span>
+<span id="1893">1893</span>
+<span id="1894">1894</span>
+<span id="1895">1895</span>
+<span id="1896">1896</span>
+<span id="1897">1897</span>
+<span id="1898">1898</span>
+<span id="1899">1899</span>
+<span id="1900">1900</span>
+<span id="1901">1901</span>
+<span id="1902">1902</span>
+<span id="1903">1903</span>
+<span id="1904">1904</span>
+<span id="1905">1905</span>
+<span id="1906">1906</span>
+<span id="1907">1907</span>
+<span id="1908">1908</span>
+<span id="1909">1909</span>
+<span id="1910">1910</span>
+<span id="1911">1911</span>
+<span id="1912">1912</span>
+<span id="1913">1913</span>
+<span id="1914">1914</span>
+<span id="1915">1915</span>
+<span id="1916">1916</span>
+<span id="1917">1917</span>
+<span id="1918">1918</span>
 </pre><pre class="rust"><code><span class="doccomment">//! `IndexMap` is a hash table where the iteration order of the key-value</span>
 <span class="doccomment">//! pairs is independent of the hash values of the keys.</span>
 
@@ -1722,7 +1930,7 @@
 <span class="kw">use</span> <span class="ident">::core::cmp::Ordering</span>;
 <span class="kw">use</span> <span class="ident">::core::fmt</span>;
 <span class="kw">use</span> <span class="ident">::core::hash</span>::{<span class="ident">BuildHasher</span>, <span class="ident">Hash</span>, <span class="ident">Hasher</span>};
-<span class="kw">use</span> <span class="ident">::core::iter::FromIterator</span>;
+<span class="kw">use</span> <span class="ident">::core::iter</span>::{<span class="ident">FromIterator</span>, <span class="ident">FusedIterator</span>};
 <span class="kw">use</span> <span class="ident">::core::ops</span>::{<span class="ident">Index</span>, <span class="ident">IndexMut</span>, <span class="ident">RangeBounds</span>};
 <span class="kw">use</span> <span class="ident">::core::slice</span>::{<span class="ident">Iter</span> <span class="kw">as</span> <span class="ident">SliceIter</span>, <span class="ident">IterMut</span> <span class="kw">as</span> <span class="ident">SliceIterMut</span>};
 
@@ -1779,12 +1987,12 @@
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_std</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IndexMap</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span>, <span class="ident">S</span> <span class="op">=</span> <span class="ident">RandomState</span><span class="op">&gt;</span> {
-    <span class="ident">core</span>: <span class="ident">IndexMapCore</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">core</span>: <span class="ident">IndexMapCore</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>,
     <span class="ident">hash_builder</span>: <span class="ident">S</span>,
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">has_std</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IndexMap</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="ident">core</span>: <span class="ident">IndexMapCore</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">core</span>: <span class="ident">IndexMapCore</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>,
     <span class="ident">hash_builder</span>: <span class="ident">S</span>,
 }
 
@@ -1876,10 +2084,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_capacity_and_hasher</span>(<span class="ident">n</span>: <span class="ident">usize</span>, <span class="ident">hash_builder</span>: <span class="ident">S</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="ident">n</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="ident">IndexMap</span> {
-                <span class="ident">core</span>: <span class="ident">IndexMapCore::new</span>(),
-                <span class="ident">hash_builder</span>,
-            }
+            <span class="ident"><span class="self">Self</span>::with_hasher</span>(<span class="ident">hash_builder</span>)
         } <span class="kw">else</span> {
             <span class="ident">IndexMap</span> {
                 <span class="ident">core</span>: <span class="ident">IndexMapCore::with_capacity</span>(<span class="ident">n</span>),
@@ -1888,9 +2093,15 @@
         }
     }
 
-    <span class="doccomment">/// Create a new map with `hash_builder`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_hasher</span>(<span class="ident">hash_builder</span>: <span class="ident">S</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::with_capacity_and_hasher</span>(<span class="number">0</span>, <span class="ident">hash_builder</span>)
+    <span class="doccomment">/// Create a new map with `hash_builder`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This function is `const`, so it</span>
+    <span class="doccomment">/// can be called in `static` contexts.</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">with_hasher</span>(<span class="ident">hash_builder</span>: <span class="ident">S</span>) -&gt; <span class="self">Self</span> {
+        <span class="ident">IndexMap</span> {
+            <span class="ident">core</span>: <span class="ident">IndexMapCore::new</span>(),
+            <span class="ident">hash_builder</span>,
+        }
     }
 
     <span class="doccomment">/// Computes in **O(1)** time.</span>
@@ -1940,6 +2151,13 @@
         }
     }
 
+    <span class="doccomment">/// Return an owning iterator over the keys of the map, in their order</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_keys</span>(<span class="self">self</span>) -&gt; <span class="ident">IntoKeys</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
+        <span class="ident">IntoKeys</span> {
+            <span class="ident">iter</span>: <span class="self">self</span>.<span class="ident">into_entries</span>().<span class="ident">into_iter</span>(),
+        }
+    }
+
     <span class="doccomment">/// Return an iterator over the values of the map, in their order</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">values</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Values</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
         <span class="ident">Values</span> {
@@ -1952,6 +2170,13 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">values_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">ValuesMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
         <span class="ident">ValuesMut</span> {
             <span class="ident">iter</span>: <span class="self">self</span>.<span class="ident">as_entries_mut</span>().<span class="ident">iter_mut</span>(),
+        }
+    }
+
+    <span class="doccomment">/// Return an owning iterator over the values of the map, in their order</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_values</span>(<span class="self">self</span>) -&gt; <span class="ident">IntoValues</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
+        <span class="ident">IntoValues</span> {
+            <span class="ident">iter</span>: <span class="self">self</span>.<span class="ident">into_entries</span>().<span class="ident">into_iter</span>(),
         }
     }
 
@@ -2332,6 +2557,8 @@
 
     <span class="doccomment">/// Remove the last key-value pair</span>
     <span class="doccomment">///</span>
+    <span class="doccomment">/// This preserves the order of the remaining elements.</span>
+    <span class="doccomment">///</span>
     <span class="doccomment">/// Computes in **O(1)** time (average).</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">K</span>, <span class="ident">V</span>)<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">core</span>.<span class="ident">pop</span>()
@@ -2360,18 +2587,18 @@
 
     <span class="doccomment">/// Sort the map’s key-value pairs by the default ordering of the keys.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// See `sort_by` for details.</span>
+    <span class="doccomment">/// See [`sort_by`](Self::sort_by) for details.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sort_keys</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>)
     <span class="kw">where</span>
         <span class="ident">K</span>: <span class="ident">Ord</span>,
     {
-        <span class="self">self</span>.<span class="ident">with_entries</span>(<span class="op">|</span><span class="ident">entries</span><span class="op">|</span> {
-            <span class="ident">entries</span>.<span class="ident">sort_by</span>(<span class="op">|</span><span class="ident">a</span>, <span class="ident">b</span><span class="op">|</span> <span class="ident">Ord::cmp</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="ident">key</span>, <span class="kw-2">&amp;</span><span class="ident">b</span>.<span class="ident">key</span>));
+        <span class="self">self</span>.<span class="ident">with_entries</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">entries</span><span class="op">|</span> {
+            <span class="ident">entries</span>.<span class="ident">sort_by</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">a</span>, <span class="ident">b</span><span class="op">|</span> <span class="ident">K::cmp</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="ident">key</span>, <span class="kw-2">&amp;</span><span class="ident">b</span>.<span class="ident">key</span>));
         });
     }
 
     <span class="doccomment">/// Sort the map’s key-value pairs in place using the comparison</span>
-    <span class="doccomment">/// function `compare`.</span>
+    <span class="doccomment">/// function `cmp`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The comparison function receives two key and value pairs to compare (you</span>
     <span class="doccomment">/// can sort by keys or values or their combination as needed).</span>
@@ -2387,7 +2614,7 @@
         });
     }
 
-    <span class="doccomment">/// Sort the key-value pairs of the map and return a by value iterator of</span>
+    <span class="doccomment">/// Sort the key-value pairs of the map and return a by-value iterator of</span>
     <span class="doccomment">/// the key-value pairs with the result.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The sort is stable.</span>
@@ -2397,6 +2624,52 @@
     {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">entries</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">into_entries</span>();
         <span class="ident">entries</span>.<span class="ident">sort_by</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">a</span>, <span class="ident">b</span><span class="op">|</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="ident">key</span>, <span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="ident">value</span>, <span class="kw-2">&amp;</span><span class="ident">b</span>.<span class="ident">key</span>, <span class="kw-2">&amp;</span><span class="ident">b</span>.<span class="ident">value</span>));
+        <span class="ident">IntoIter</span> {
+            <span class="ident">iter</span>: <span class="ident">entries</span>.<span class="ident">into_iter</span>(),
+        }
+    }
+
+    <span class="doccomment">/// Sort the map&#39;s key-value pairs by the default ordering of the keys, but</span>
+    <span class="doccomment">/// may not preserve the order of equal elements.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// See [`sort_unstable_by`](Self::sort_unstable_by) for details.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sort_unstable_keys</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>)
+    <span class="kw">where</span>
+        <span class="ident">K</span>: <span class="ident">Ord</span>,
+    {
+        <span class="self">self</span>.<span class="ident">with_entries</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">entries</span><span class="op">|</span> {
+            <span class="ident">entries</span>.<span class="ident">sort_unstable_by</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">a</span>, <span class="ident">b</span><span class="op">|</span> <span class="ident">K::cmp</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="ident">key</span>, <span class="kw-2">&amp;</span><span class="ident">b</span>.<span class="ident">key</span>));
+        });
+    }
+
+    <span class="doccomment">/// Sort the map&#39;s key-value pairs in place using the comparison function `cmp`, but</span>
+    <span class="doccomment">/// may not preserve the order of equal elements.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The comparison function receives two key and value pairs to compare (you</span>
+    <span class="doccomment">/// can sort by keys or values or their combination as needed).</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Computes in **O(n log n + c)** time where *n* is</span>
+    <span class="doccomment">/// the length of the map and *c* is the capacity. The sort is unstable.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sort_unstable_by</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">cmp</span>: <span class="ident">F</span>)
+    <span class="kw">where</span>
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">K</span>, <span class="kw-2">&amp;</span><span class="ident">V</span>, <span class="kw-2">&amp;</span><span class="ident">K</span>, <span class="kw-2">&amp;</span><span class="ident">V</span>) -&gt; <span class="ident">Ordering</span>,
+    {
+        <span class="self">self</span>.<span class="ident">with_entries</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">entries</span><span class="op">|</span> {
+            <span class="ident">entries</span>.<span class="ident">sort_unstable_by</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">a</span>, <span class="ident">b</span><span class="op">|</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="ident">key</span>, <span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="ident">value</span>, <span class="kw-2">&amp;</span><span class="ident">b</span>.<span class="ident">key</span>, <span class="kw-2">&amp;</span><span class="ident">b</span>.<span class="ident">value</span>));
+        });
+    }
+
+    <span class="doccomment">/// Sort the key-value pairs of the map and return a by-value iterator of</span>
+    <span class="doccomment">/// the key-value pairs with the result.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The sort is unstable.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sorted_unstable_by</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">cmp</span>: <span class="ident">F</span>) -&gt; <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">K</span>, <span class="kw-2">&amp;</span><span class="ident">V</span>, <span class="kw-2">&amp;</span><span class="ident">K</span>, <span class="kw-2">&amp;</span><span class="ident">V</span>) -&gt; <span class="ident">Ordering</span>,
+    {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">entries</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">into_entries</span>();
+        <span class="ident">entries</span>.<span class="ident">sort_unstable_by</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">a</span>, <span class="ident">b</span><span class="op">|</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="ident">key</span>, <span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="ident">value</span>, <span class="kw-2">&amp;</span><span class="ident">b</span>.<span class="ident">key</span>, <span class="kw-2">&amp;</span><span class="ident">b</span>.<span class="ident">value</span>));
         <span class="ident">IntoIter</span> {
             <span class="ident">iter</span>: <span class="ident">entries</span>.<span class="ident">into_iter</span>(),
         }
@@ -2509,9 +2782,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">DoubleEndedIterator</span> <span class="kw">for</span> <span class="ident">Keys</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next_back</span>().<span class="ident">map</span>(<span class="ident">Bucket::key_ref</span>)
-    }
+    <span class="macro">double_ended_iterator_methods!</span>(<span class="ident">Bucket::key_ref</span>);
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">ExactSizeIterator</span> <span class="kw">for</span> <span class="ident">Keys</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
@@ -2519,6 +2790,8 @@
         <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">len</span>()
     }
 }
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">FusedIterator</span> <span class="kw">for</span> <span class="ident">Keys</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {}
 
 <span class="comment">// FIXME(#26925) Remove in favor of `#[derive(Clone)]`</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Keys</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
@@ -2532,6 +2805,42 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>: <span class="ident">fmt::Debug</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Keys</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">debug_list</span>().<span class="ident">entries</span>(<span class="self">self</span>.<span class="ident">clone</span>()).<span class="ident">finish</span>()
+    }
+}
+
+<span class="doccomment">/// An owning iterator over the keys of a `IndexMap`.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This `struct` is created by the [`into_keys`] method on [`IndexMap`].</span>
+<span class="doccomment">/// See its documentation for more.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [`IndexMap`]: struct.IndexMap.html</span>
+<span class="doccomment">/// [`into_keys`]: struct.IndexMap.html#method.into_keys</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IntoKeys</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
+    <span class="ident">iter</span>: <span class="ident">vec::IntoIter</span><span class="op">&lt;</span><span class="ident">Bucket</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">IntoKeys</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
+    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">K</span>;
+
+    <span class="macro">iterator_methods!</span>(<span class="ident">Bucket::key</span>);
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">DoubleEndedIterator</span> <span class="kw">for</span> <span class="ident">IntoKeys</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
+    <span class="macro">double_ended_iterator_methods!</span>(<span class="ident">Bucket::key</span>);
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">ExactSizeIterator</span> <span class="kw">for</span> <span class="ident">IntoKeys</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
+        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">len</span>()
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">FusedIterator</span> <span class="kw">for</span> <span class="ident">IntoKeys</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>: <span class="ident">fmt::Debug</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">IntoKeys</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
+        <span class="kw">let</span> <span class="ident">iter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">as_slice</span>().<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">Bucket::key_ref</span>);
+        <span class="ident">f</span>.<span class="ident">debug_list</span>().<span class="ident">entries</span>(<span class="ident">iter</span>).<span class="ident">finish</span>()
     }
 }
 
@@ -2553,9 +2862,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">DoubleEndedIterator</span> <span class="kw">for</span> <span class="ident">Values</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next_back</span>().<span class="ident">map</span>(<span class="ident">Bucket::value_ref</span>)
-    }
+    <span class="macro">double_ended_iterator_methods!</span>(<span class="ident">Bucket::value_ref</span>);
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">ExactSizeIterator</span> <span class="kw">for</span> <span class="ident">Values</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
@@ -2563,6 +2870,8 @@
         <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">len</span>()
     }
 }
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">FusedIterator</span> <span class="kw">for</span> <span class="ident">Values</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {}
 
 <span class="comment">// FIXME(#26925) Remove in favor of `#[derive(Clone)]`</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Values</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
@@ -2597,14 +2906,52 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">DoubleEndedIterator</span> <span class="kw">for</span> <span class="ident">ValuesMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next_back</span>().<span class="ident">map</span>(<span class="ident">Bucket::value_mut</span>)
-    }
+    <span class="macro">double_ended_iterator_methods!</span>(<span class="ident">Bucket::value_mut</span>);
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">ExactSizeIterator</span> <span class="kw">for</span> <span class="ident">ValuesMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">len</span>()
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">FusedIterator</span> <span class="kw">for</span> <span class="ident">ValuesMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {}
+
+<span class="comment">// TODO: `impl Debug for ValuesMut` once we have MSRV 1.53 for `slice::IterMut::as_slice`</span>
+
+<span class="doccomment">/// An owning iterator over the values of a `IndexMap`.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This `struct` is created by the [`into_values`] method on [`IndexMap`].</span>
+<span class="doccomment">/// See its documentation for more.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [`IndexMap`]: struct.IndexMap.html</span>
+<span class="doccomment">/// [`into_values`]: struct.IndexMap.html#method.into_values</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IntoValues</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
+    <span class="ident">iter</span>: <span class="ident">vec::IntoIter</span><span class="op">&lt;</span><span class="ident">Bucket</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">IntoValues</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
+    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">V</span>;
+
+    <span class="macro">iterator_methods!</span>(<span class="ident">Bucket::value</span>);
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">DoubleEndedIterator</span> <span class="kw">for</span> <span class="ident">IntoValues</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
+    <span class="macro">double_ended_iterator_methods!</span>(<span class="ident">Bucket::value</span>);
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">ExactSizeIterator</span> <span class="kw">for</span> <span class="ident">IntoValues</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
+        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">len</span>()
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">FusedIterator</span> <span class="kw">for</span> <span class="ident">IntoValues</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span>: <span class="ident">fmt::Debug</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">IntoValues</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
+        <span class="kw">let</span> <span class="ident">iter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">as_slice</span>().<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">Bucket::value_ref</span>);
+        <span class="ident">f</span>.<span class="ident">debug_list</span>().<span class="ident">entries</span>(<span class="ident">iter</span>).<span class="ident">finish</span>()
     }
 }
 
@@ -2626,9 +2973,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">DoubleEndedIterator</span> <span class="kw">for</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next_back</span>().<span class="ident">map</span>(<span class="ident">Bucket::refs</span>)
-    }
+    <span class="macro">double_ended_iterator_methods!</span>(<span class="ident">Bucket::refs</span>);
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">ExactSizeIterator</span> <span class="kw">for</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
@@ -2636,6 +2981,8 @@
         <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">len</span>()
     }
 }
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">FusedIterator</span> <span class="kw">for</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {}
 
 <span class="comment">// FIXME(#26925) Remove in favor of `#[derive(Clone)]`</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
@@ -2670,9 +3017,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">DoubleEndedIterator</span> <span class="kw">for</span> <span class="ident">IterMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next_back</span>().<span class="ident">map</span>(<span class="ident">Bucket::ref_mut</span>)
-    }
+    <span class="macro">double_ended_iterator_methods!</span>(<span class="ident">Bucket::ref_mut</span>);
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">ExactSizeIterator</span> <span class="kw">for</span> <span class="ident">IterMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
@@ -2680,6 +3025,10 @@
         <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">len</span>()
     }
 }
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">FusedIterator</span> <span class="kw">for</span> <span class="ident">IterMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {}
+
+<span class="comment">// TODO: `impl Debug for IterMut` once we have MSRV 1.53 for `slice::IterMut::as_slice`</span>
 
 <span class="doccomment">/// An owning iterator over the entries of a `IndexMap`.</span>
 <span class="doccomment">///</span>
@@ -2699,9 +3048,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">DoubleEndedIterator</span> <span class="kw">for</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next_back</span>().<span class="ident">map</span>(<span class="ident">Bucket::key_value</span>)
-    }
+    <span class="macro">double_ended_iterator_methods!</span>(<span class="ident">Bucket::key_value</span>);
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">ExactSizeIterator</span> <span class="kw">for</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
@@ -2709,6 +3056,8 @@
         <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">len</span>()
     }
 }
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">FusedIterator</span> <span class="kw">for</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {}
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>: <span class="ident">fmt::Debug</span>, <span class="ident">V</span>: <span class="ident">fmt::Debug</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
@@ -2736,6 +3085,21 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">DoubleEndedIterator</span> <span class="kw">for</span> <span class="ident">Drain</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
     <span class="macro">double_ended_iterator_methods!</span>(<span class="ident">Bucket::key_value</span>);
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">ExactSizeIterator</span> <span class="kw">for</span> <span class="ident">Drain</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
+        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">len</span>()
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">FusedIterator</span> <span class="kw">for</span> <span class="ident">Drain</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>: <span class="ident">fmt::Debug</span>, <span class="ident">V</span>: <span class="ident">fmt::Debug</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Drain</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
+        <span class="kw">let</span> <span class="ident">iter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">as_slice</span>().<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">Bucket::refs</span>);
+        <span class="ident">f</span>.<span class="ident">debug_list</span>().<span class="ident">entries</span>(<span class="ident">iter</span>).<span class="ident">finish</span>()
+    }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K</span>, <span class="ident">V</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">IntoIterator</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">IndexMap</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span>, <span class="ident">S</span><span class="op">&gt;</span> {
@@ -2942,6 +3306,25 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::with_capacity_and_hasher</span>(<span class="ident">low</span>, <span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="ident">::default</span>());
         <span class="ident">map</span>.<span class="ident">extend</span>(<span class="ident">iter</span>);
         <span class="ident">map</span>
+    }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">has_std</span>, <span class="ident">rustc_1_51</span>))]</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span>, <span class="kw">const</span> <span class="ident">N</span>: <span class="ident">usize</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span>[(<span class="ident">K</span>, <span class="ident">V</span>); <span class="ident">N</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">IndexMap</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span>, <span class="ident">RandomState</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">K</span>: <span class="ident">Hash</span> <span class="op">+</span> <span class="ident">Eq</span>,
+{
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use indexmap::IndexMap;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let map1 = IndexMap::from([(1, 2), (3, 4)]);</span>
+    <span class="doccomment">/// let map2: IndexMap&lt;_, _&gt; = [(1, 2), (3, 4)].into();</span>
+    <span class="doccomment">/// assert_eq!(map1, map2);</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">arr</span>: [(<span class="ident">K</span>, <span class="ident">V</span>); <span class="ident">N</span>]) -&gt; <span class="self">Self</span> {
+        <span class="ident">std::array::IntoIter::new</span>(<span class="ident">arr</span>).<span class="ident">collect</span>()
     }
 }
 
@@ -3394,6 +3777,17 @@
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">into_keys</span>() {
+        <span class="kw">let</span> <span class="ident">vec</span> <span class="op">=</span> <span class="macro">vec!</span>[(<span class="number">1</span>, <span class="string">&#39;a&#39;</span>), (<span class="number">2</span>, <span class="string">&#39;b&#39;</span>), (<span class="number">3</span>, <span class="string">&#39;c&#39;</span>)];
+        <span class="kw">let</span> <span class="ident">map</span>: <span class="ident">IndexMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">vec</span>.<span class="ident">into_iter</span>().<span class="ident">collect</span>();
+        <span class="kw">let</span> <span class="ident">keys</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">map</span>.<span class="ident">into_keys</span>().<span class="ident">collect</span>();
+        <span class="macro">assert_eq!</span>(<span class="ident">keys</span>.<span class="ident">len</span>(), <span class="number">3</span>);
+        <span class="macro">assert!</span>(<span class="ident">keys</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">1</span>));
+        <span class="macro">assert!</span>(<span class="ident">keys</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">2</span>));
+        <span class="macro">assert!</span>(<span class="ident">keys</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">3</span>));
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">values</span>() {
         <span class="kw">let</span> <span class="ident">vec</span> <span class="op">=</span> <span class="macro">vec!</span>[(<span class="number">1</span>, <span class="string">&#39;a&#39;</span>), (<span class="number">2</span>, <span class="string">&#39;b&#39;</span>), (<span class="number">3</span>, <span class="string">&#39;c&#39;</span>)];
         <span class="kw">let</span> <span class="ident">map</span>: <span class="ident">IndexMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">vec</span>.<span class="ident">into_iter</span>().<span class="ident">collect</span>();
@@ -3416,6 +3810,28 @@
         <span class="macro">assert!</span>(<span class="ident">values</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">2</span>));
         <span class="macro">assert!</span>(<span class="ident">values</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">4</span>));
         <span class="macro">assert!</span>(<span class="ident">values</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">6</span>));
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">into_values</span>() {
+        <span class="kw">let</span> <span class="ident">vec</span> <span class="op">=</span> <span class="macro">vec!</span>[(<span class="number">1</span>, <span class="string">&#39;a&#39;</span>), (<span class="number">2</span>, <span class="string">&#39;b&#39;</span>), (<span class="number">3</span>, <span class="string">&#39;c&#39;</span>)];
+        <span class="kw">let</span> <span class="ident">map</span>: <span class="ident">IndexMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">vec</span>.<span class="ident">into_iter</span>().<span class="ident">collect</span>();
+        <span class="kw">let</span> <span class="ident">values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">map</span>.<span class="ident">into_values</span>().<span class="ident">collect</span>();
+        <span class="macro">assert_eq!</span>(<span class="ident">values</span>.<span class="ident">len</span>(), <span class="number">3</span>);
+        <span class="macro">assert!</span>(<span class="ident">values</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="string">&#39;a&#39;</span>));
+        <span class="macro">assert!</span>(<span class="ident">values</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="string">&#39;b&#39;</span>));
+        <span class="macro">assert!</span>(<span class="ident">values</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="string">&#39;c&#39;</span>));
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">has_std</span>, <span class="ident">rustc_1_51</span>))]</span>
+    <span class="kw">fn</span> <span class="ident">from_array</span>() {
+        <span class="kw">let</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">IndexMap::from</span>([(<span class="number">1</span>, <span class="number">2</span>), (<span class="number">3</span>, <span class="number">4</span>)]);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected</span> <span class="op">=</span> <span class="ident">IndexMap::new</span>();
+        <span class="ident">expected</span>.<span class="ident">insert</span>(<span class="number">1</span>, <span class="number">2</span>);
+        <span class="ident">expected</span>.<span class="ident">insert</span>(<span class="number">3</span>, <span class="number">4</span>);
+
+        <span class="macro">assert_eq!</span>(<span class="ident">map</span>, <span class="ident">expected</span>)
     }
 }
 </code></pre></div>
