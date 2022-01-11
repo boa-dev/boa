@@ -35,6 +35,7 @@ impl JsObject {
     #[inline]
     #[track_caller]
     pub(crate) fn __get_prototype_of__(&self, context: &mut Context) -> JsResult<JsPrototype> {
+        let _timer = BoaProfiler::global().start_event("Object::__get_prototype_of__", "object");
         let func = self.borrow().data.internal_methods.__get_prototype_of__;
         func(self, context)
     }
@@ -53,6 +54,7 @@ impl JsObject {
         val: JsPrototype,
         context: &mut Context,
     ) -> JsResult<bool> {
+        let _timer = BoaProfiler::global().start_event("Object::__set_prototype_of__", "object");
         let func = self.borrow().data.internal_methods.__set_prototype_of__;
         func(self, val, context)
     }
@@ -67,6 +69,7 @@ impl JsObject {
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-isextensible
     #[inline]
     pub(crate) fn __is_extensible__(&self, context: &mut Context) -> JsResult<bool> {
+        let _timer = BoaProfiler::global().start_event("Object::__is_extensible__", "object");
         let func = self.borrow().data.internal_methods.__is_extensible__;
         func(self, context)
     }
@@ -81,6 +84,7 @@ impl JsObject {
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-preventextensions
     #[inline]
     pub(crate) fn __prevent_extensions__(&self, context: &mut Context) -> JsResult<bool> {
+        let _timer = BoaProfiler::global().start_event("Object::__prevent_extensions__", "object");
         let func = self.borrow().data.internal_methods.__prevent_extensions__;
         func(self, context)
     }
@@ -99,7 +103,7 @@ impl JsObject {
         key: &PropertyKey,
         context: &mut Context,
     ) -> JsResult<Option<PropertyDescriptor>> {
-        let _timer = BoaProfiler::global().start_event("Object::get_own_property", "object");
+        let _timer = BoaProfiler::global().start_event("Object::__get_own_property__", "object");
         let func = self.borrow().data.internal_methods.__get_own_property__;
         func(self, key, context)
     }
@@ -119,6 +123,7 @@ impl JsObject {
         desc: PropertyDescriptor,
         context: &mut Context,
     ) -> JsResult<bool> {
+        let _timer = BoaProfiler::global().start_event("Object::__define_own_property__", "object");
         let func = self.borrow().data.internal_methods.__define_own_property__;
         func(self, key, desc, context)
     }
@@ -137,6 +142,7 @@ impl JsObject {
         key: &PropertyKey,
         context: &mut Context,
     ) -> JsResult<bool> {
+        let _timer = BoaProfiler::global().start_event("Object::__has_property__", "object");
         let func = self.borrow().data.internal_methods.__has_property__;
         func(self, key, context)
     }
@@ -156,6 +162,7 @@ impl JsObject {
         receiver: JsValue,
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        let _timer = BoaProfiler::global().start_event("Object::__get__", "object");
         let func = self.borrow().data.internal_methods.__get__;
         func(self, key, receiver, context)
     }
@@ -176,7 +183,7 @@ impl JsObject {
         receiver: JsValue,
         context: &mut Context,
     ) -> JsResult<bool> {
-        let _timer = BoaProfiler::global().start_event("Object::set", "object");
+        let _timer = BoaProfiler::global().start_event("Object::__set__", "object");
         let func = self.borrow().data.internal_methods.__set__;
         func(self, key, value, receiver, context)
     }
@@ -191,6 +198,7 @@ impl JsObject {
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-delete-p
     #[inline]
     pub(crate) fn __delete__(&self, key: &PropertyKey, context: &mut Context) -> JsResult<bool> {
+        let _timer = BoaProfiler::global().start_event("Object::__delete__", "object");
         let func = self.borrow().data.internal_methods.__delete__;
         func(self, key, context)
     }
@@ -209,6 +217,7 @@ impl JsObject {
         &self,
         context: &mut Context,
     ) -> JsResult<Vec<PropertyKey>> {
+        let _timer = BoaProfiler::global().start_event("Object::__own_property_keys__", "object");
         let func = self.borrow().data.internal_methods.__own_property_keys__;
         func(self, context)
     }
@@ -229,6 +238,7 @@ impl JsObject {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        let _timer = BoaProfiler::global().start_event("Object::__call__", "object");
         let func = self.borrow().data.internal_methods.__call__;
         func.expect("called `[[Call]]` for object without a `[[Call]]` internal method")(
             self, this, args, context,
@@ -251,6 +261,7 @@ impl JsObject {
         new_target: &JsValue,
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        let _timer = BoaProfiler::global().start_event("Object::__construct__", "object");
         let func = self.borrow().data.internal_methods.__construct__;
         func.expect("called `[[Construct]]` for object without a `[[Construct]]` internal method")(
             self, args, new_target, context,
@@ -326,6 +337,8 @@ pub(crate) fn ordinary_get_prototype_of(
     obj: &JsObject,
     _context: &mut Context,
 ) -> JsResult<JsPrototype> {
+    let _timer = BoaProfiler::global().start_event("Object::ordinary_get_prototype_of", "object");
+
     // 1. Return O.[[Prototype]].
     Ok(obj.prototype().as_ref().cloned())
 }
@@ -433,6 +446,7 @@ pub(crate) fn ordinary_get_own_property(
     key: &PropertyKey,
     _context: &mut Context,
 ) -> JsResult<Option<PropertyDescriptor>> {
+    let _timer = BoaProfiler::global().start_event("Object::ordinary_get_own_property", "object");
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. If O does not have an own property with key P, return undefined.
     // 3. Let D be a newly created Property Descriptor with no fields.
@@ -463,6 +477,8 @@ pub(crate) fn ordinary_define_own_property(
     desc: PropertyDescriptor,
     context: &mut Context,
 ) -> JsResult<bool> {
+    let _timer =
+        BoaProfiler::global().start_event("Object::ordinary_define_own_property", "object");
     // 1. Let current be ? O.[[GetOwnProperty]](P).
     let current = obj.__get_own_property__(&key, context)?;
 
@@ -490,6 +506,7 @@ pub(crate) fn ordinary_has_property(
     key: &PropertyKey,
     context: &mut Context,
 ) -> JsResult<bool> {
+    let _timer = BoaProfiler::global().start_event("Object::ordinary_has_property", "object");
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let hasOwn be ? O.[[GetOwnProperty]](P).
     // 3. If hasOwn is not undefined, return true.
@@ -521,6 +538,7 @@ pub(crate) fn ordinary_get(
     receiver: JsValue,
     context: &mut Context,
 ) -> JsResult<JsValue> {
+    let _timer = BoaProfiler::global().start_event("Object::ordinary_get", "object");
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let desc be ? O.[[GetOwnProperty]](P).
     match obj.__get_own_property__(key, context)? {
@@ -567,6 +585,8 @@ pub(crate) fn ordinary_set(
     receiver: JsValue,
     context: &mut Context,
 ) -> JsResult<bool> {
+    let _timer = BoaProfiler::global().start_event("Object::ordinary_set", "object");
+
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let ownDesc be ? O.[[GetOwnProperty]](P).
     // 3. Return OrdinarySetWithOwnDescriptor(O, P, V, Receiver, ownDesc).
@@ -668,6 +688,7 @@ pub(crate) fn ordinary_delete(
     key: &PropertyKey,
     context: &mut Context,
 ) -> JsResult<bool> {
+    let _timer = BoaProfiler::global().start_event("Object::ordinary_delete", "object");
     // 1. Assert: IsPropertyKey(P) is true.
     Ok(
         // 2. Let desc be ? O.[[GetOwnProperty]](P).
@@ -698,6 +719,7 @@ pub(crate) fn ordinary_own_property_keys(
     obj: &JsObject,
     _context: &mut Context,
 ) -> JsResult<Vec<PropertyKey>> {
+    let _timer = BoaProfiler::global().start_event("Object::ordinary_own_property_keys", "object");
     // 1. Let keys be a new empty List.
     let mut keys = Vec::new();
 
@@ -752,6 +774,9 @@ pub(crate) fn is_compatible_property_descriptor(
     desc: PropertyDescriptor,
     current: Option<PropertyDescriptor>,
 ) -> bool {
+    let _timer =
+        BoaProfiler::global().start_event("Object::is_compatible_property_descriptor", "object");
+
     // 1. Return ValidateAndApplyPropertyDescriptor(undefined, undefined, Extensible, Desc, Current).
     validate_and_apply_property_descriptor(None, extensible, desc, current)
 }
@@ -769,6 +794,8 @@ pub(crate) fn validate_and_apply_property_descriptor(
     desc: PropertyDescriptor,
     current: Option<PropertyDescriptor>,
 ) -> bool {
+    let _timer = BoaProfiler::global()
+        .start_event("Object::validate_and_apply_property_descriptor", "object");
     // 1. Assert: If O is not undefined, then IsPropertyKey(P) is true.
 
     let mut current = if let Some(own) = current {
@@ -925,6 +952,8 @@ pub(crate) fn get_prototype_from_constructor<F>(
 where
     F: FnOnce(&StandardObjects) -> &StandardConstructor,
 {
+    let _timer =
+        BoaProfiler::global().start_event("Object::get_prototype_from_constructor", "object");
     // 1. Assert: intrinsicDefaultProto is this specification's name of an intrinsic
     // object.
     // The corresponding object must be an intrinsic that is intended to be used
