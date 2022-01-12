@@ -60,7 +60,7 @@ enum Access<'a> {
 pub struct ByteCompiler<'b> {
     code_block: CodeBlock,
     literals_map: FxHashMap<Literal, u32>,
-    names_map: FxHashMap<JsString, u32>,
+    names_map: FxHashMap<Sym, u32>,
     jump_info: Vec<JumpControlInfo>,
     interner: &'b Interner,
 }
@@ -98,14 +98,13 @@ impl<'b> ByteCompiler<'b> {
     }
 
     #[inline]
-    fn get_or_insert_name(&mut self, name: &str) -> u32 {
-        if let Some(index) = self.names_map.get(name) {
+    fn get_or_insert_name(&mut self, name: Sym) -> u32 {
+        if let Some(index) = self.names_map.get(&name) {
             return *index;
         }
 
-        let name = JsString::new(name);
         let index = self.code_block.variables.len() as u32;
-        self.code_block.variables.push(name.clone());
+        self.code_block.variables.push(name);
         self.names_map.insert(name, index);
         index
     }
@@ -353,7 +352,7 @@ impl<'b> ByteCompiler<'b> {
     fn compile_access<'a>(&mut self, node: &'a Node) -> Access<'a> {
         match node {
             Node::Identifier(name) => {
-                let index = self.get_or_insert_name(self.interner.resolve_expect(name.sym()));
+                let index = self.get_or_insert_name(name.sym());
                 Access::Variable { index }
             }
             Node::GetConstField(node) => Access::ByName { node },
@@ -370,7 +369,7 @@ impl<'b> ByteCompiler<'b> {
                 self.emit(Opcode::GetName, &[name]);
             }
             Access::ByName { node } => {
-                let index = self.get_or_insert_name(self.interner.resolve_expect(node.field()));
+                let index = self.get_or_insert_name(node.field());
                 self.compile_expr(node.obj(), true);
                 self.emit(Opcode::GetPropertyByName, &[index]);
             }
@@ -405,7 +404,7 @@ impl<'b> ByteCompiler<'b> {
             }
             Access::ByName { node } => {
                 self.compile_expr(node.obj(), true);
-                let index = self.get_or_insert_name(self.interner.resolve_expect(node.field()));
+                let index = self.get_or_insert_name(node.field());
                 self.emit(Opcode::SetPropertyByName, &[index]);
             }
             Access::ByValue { node } => {
@@ -488,9 +487,7 @@ impl<'b> ByteCompiler<'b> {
                     }
                     UnaryOp::Delete => match unary.target() {
                         Node::GetConstField(ref get_const_field) => {
-                            let index = self.get_or_insert_name(
-                                self.interner.resolve_expect(get_const_field.field()),
-                            );
+                            let index = self.get_or_insert_name(get_const_field.field());
                             self.compile_expr(get_const_field.obj(), true);
                             self.emit(Opcode::DeletePropertyByName, &[index]);
                             None
@@ -518,9 +515,7 @@ impl<'b> ByteCompiler<'b> {
                     UnaryOp::TypeOf => {
                         match &unary.target() {
                             Node::Identifier(identifier) => {
-                                let index = self.get_or_insert_name(
-                                    self.interner.resolve_expect(identifier.sym()),
-                                );
+                                let index = self.get_or_insert_name(identifier.sym());
                                 self.emit(Opcode::GetNameOrUndefined, &[index]);
                             }
                             expr => self.compile_expr(expr, true),
@@ -677,16 +672,15 @@ impl<'b> ByteCompiler<'b> {
                 for property in object.properties() {
                     self.emit_opcode(Opcode::Dup);
                     match property {
-                        PropertyDefinition::IdentifierReference(identifier_reference) => {
-                            let index = self.get_or_insert_name(identifier_reference);
+                        PropertyDefinition::IdentifierReference(ident) => {
+                            let index = self.get_or_insert_name(*ident);
                             self.emit(Opcode::DefineOwnPropertyByName, &[index]);
                         }
                         PropertyDefinition::Property(name, node) => match name {
                             PropertyName::Literal(name) => {
                                 self.compile_stmt(node, true);
                                 self.emit_opcode(Opcode::Swap);
-                                let name = self.interner.resolve_expect(*name);
-                                let index = self.get_or_insert_name(name);
+                                let index = self.get_or_insert_name(*name);
                                 self.emit(Opcode::DefineOwnPropertyByName, &[index]);
                             }
                             PropertyName::Computed(name_node) => {
@@ -701,8 +695,7 @@ impl<'b> ByteCompiler<'b> {
                                     PropertyName::Literal(name) => {
                                         self.compile_stmt(&func.clone().into(), true);
                                         self.emit_opcode(Opcode::Swap);
-                                        let name = self.interner.resolve_expect(*name);
-                                        let index = self.get_or_insert_name(name);
+                                        let index = self.get_or_insert_name(*name);
                                         self.emit(Opcode::SetPropertyGetterByName, &[index]);
                                     }
                                     PropertyName::Computed(name_node) => {
@@ -715,8 +708,7 @@ impl<'b> ByteCompiler<'b> {
                                     PropertyName::Literal(name) => {
                                         self.compile_stmt(&func.clone().into(), true);
                                         self.emit_opcode(Opcode::Swap);
-                                        let name = self.interner.resolve_expect(*name);
-                                        let index = self.get_or_insert_name(name);
+                                        let index = self.get_or_insert_name(*name);
                                         self.emit(Opcode::SetPropertySetterByName, &[index]);
                                     }
                                     PropertyName::Computed(name_node) => {
@@ -729,8 +721,7 @@ impl<'b> ByteCompiler<'b> {
                                     PropertyName::Literal(name) => {
                                         self.compile_stmt(&func.clone().into(), true);
                                         self.emit_opcode(Opcode::Swap);
-                                        let name = self.interner.resolve_expect(*name);
-                                        let index = self.get_or_insert_name(name);
+                                        let index = self.get_or_insert_name(*name);
                                         self.emit(Opcode::DefineOwnPropertyByName, &[index]);
                                     }
                                     PropertyName::Computed(name_node) => {
@@ -745,8 +736,7 @@ impl<'b> ByteCompiler<'b> {
                                         PropertyName::Literal(name) => {
                                             self.emit_opcode(Opcode::PushUndefined);
                                             self.emit_opcode(Opcode::Swap);
-                                            let name = self.interner.resolve_expect(*name);
-                                            let index = self.get_or_insert_name(name);
+                                            let index = self.get_or_insert_name(*name);
                                             self.emit(Opcode::DefineOwnPropertyByName, &[index]);
                                         }
                                         PropertyName::Computed(name_node) => {
@@ -762,8 +752,7 @@ impl<'b> ByteCompiler<'b> {
                                         PropertyName::Literal(name) => {
                                             self.emit_opcode(Opcode::PushUndefined);
                                             self.emit_opcode(Opcode::Swap);
-                                            let name = self.interner.resolve_expect(*name);
-                                            let index = self.get_or_insert_name(name);
+                                            let index = self.get_or_insert_name(*name);
                                             self.emit(Opcode::DefineOwnPropertyByName, &[index])
                                         }
                                         PropertyName::Computed(name_node) => {
@@ -779,8 +768,7 @@ impl<'b> ByteCompiler<'b> {
                                         PropertyName::Literal(name) => {
                                             self.emit_opcode(Opcode::PushUndefined);
                                             self.emit_opcode(Opcode::Swap);
-                                            let name = self.interner.resolve_expect(*name);
-                                            let index = self.get_or_insert_name(name);
+                                            let index = self.get_or_insert_name(*name);
                                             self.emit(Opcode::DefineOwnPropertyByName, &[index])
                                         }
                                         PropertyName::Computed(name_node) => {
@@ -806,7 +794,7 @@ impl<'b> ByteCompiler<'b> {
                 }
             }
             Node::Identifier(name) => {
-                let index = self.get_or_insert_name(self.interner.resolve_expect(name.sym()));
+                let index = self.get_or_insert_name(name.sym());
                 let access = Access::Variable { index };
                 self.access_get(access, use_expr);
             }
@@ -913,8 +901,7 @@ impl<'b> ByteCompiler<'b> {
                     Node::GetConstField(field) => {
                         self.compile_expr(field.obj(), true);
                         self.emit(Opcode::Dup, &[]);
-                        let index =
-                            self.get_or_insert_name(self.interner.resolve_expect(field.field()));
+                        let index = self.get_or_insert_name(field.field());
                         self.emit(Opcode::GetPropertyByName, &[index]);
                     }
                     Node::GetField(field) => {
@@ -953,7 +940,7 @@ impl<'b> ByteCompiler<'b> {
                 }
 
                 self.emit_opcode(Opcode::Swap);
-                let index = self.get_or_insert_name("raw");
+                let index = self.get_or_insert_name(Sym::RAW);
                 self.emit(Opcode::SetPropertyByName, &[index]);
 
                 for expr in template.exprs() {
@@ -973,8 +960,8 @@ impl<'b> ByteCompiler<'b> {
                 for decl in list.as_ref() {
                     match decl {
                         Declaration::Identifier { ident, .. } => {
-                            let ident = self.interner.resolve_expect(ident.sym());
-                            if ident == "arguments" {
+                            let ident = ident.sym();
+                            if ident == Sym::ARGUMENTS {
                                 self.code_block.lexical_name_argument = true;
                             }
 
@@ -1011,8 +998,7 @@ impl<'b> ByteCompiler<'b> {
                                 self.code_block.lexical_name_argument = true;
                             }
 
-                            let index =
-                                self.get_or_insert_name(self.interner.resolve_expect(ident.sym()));
+                            let index = self.get_or_insert_name(ident.sym());
 
                             if let Some(expr) = decl.init() {
                                 self.compile_expr(expr, true);
@@ -1045,8 +1031,7 @@ impl<'b> ByteCompiler<'b> {
                                 self.code_block.lexical_name_argument = true;
                             }
 
-                            let index =
-                                self.get_or_insert_name(self.interner.resolve_expect(ident.sym()));
+                            let index = self.get_or_insert_name(ident.sym());
                             let init = decl
                                 .init()
                                 .expect("const declaration must have initializer");
@@ -1133,14 +1118,12 @@ impl<'b> ByteCompiler<'b> {
 
                 match for_in_loop.init() {
                     IterableLoopInitializer::Identifier(ref ident) => {
-                        let ident = self.interner.resolve_expect(ident.sym());
-                        let index = self.get_or_insert_name(ident);
+                        let index = self.get_or_insert_name(ident.sym());
                         self.emit(Opcode::SetName, &[index]);
                     }
                     IterableLoopInitializer::Var(declaration) => match declaration {
                         Declaration::Identifier { ident, .. } => {
-                            let ident = self.interner.resolve_expect(ident.sym());
-                            let index = self.get_or_insert_name(ident);
+                            let index = self.get_or_insert_name(ident.sym());
                             self.emit(Opcode::DefInitVar, &[index]);
                         }
                         Declaration::Pattern(pattern) => {
@@ -1149,8 +1132,7 @@ impl<'b> ByteCompiler<'b> {
                     },
                     IterableLoopInitializer::Let(declaration) => match declaration {
                         Declaration::Identifier { ident, .. } => {
-                            let ident = self.interner.resolve_expect(ident.sym());
-                            let index = self.get_or_insert_name(ident);
+                            let index = self.get_or_insert_name(ident.sym());
                             self.emit(Opcode::DefInitLet, &[index]);
                         }
                         Declaration::Pattern(pattern) => {
@@ -1159,8 +1141,7 @@ impl<'b> ByteCompiler<'b> {
                     },
                     IterableLoopInitializer::Const(declaration) => match declaration {
                         Declaration::Identifier { ident, .. } => {
-                            let ident = self.interner.resolve_expect(ident.sym());
-                            let index = self.get_or_insert_name(ident);
+                            let index = self.get_or_insert_name(ident.sym());
                             self.emit(Opcode::DefInitConst, &[index]);
                         }
                         Declaration::Pattern(pattern) => {
@@ -1193,14 +1174,12 @@ impl<'b> ByteCompiler<'b> {
 
                 match for_of_loop.init() {
                     IterableLoopInitializer::Identifier(ref ident) => {
-                        let ident = self.interner.resolve_expect(ident.sym());
-                        let index = self.get_or_insert_name(ident);
+                        let index = self.get_or_insert_name(ident.sym());
                         self.emit(Opcode::SetName, &[index]);
                     }
                     IterableLoopInitializer::Var(declaration) => match declaration {
                         Declaration::Identifier { ident, .. } => {
-                            let ident = self.interner.resolve_expect(ident.sym());
-                            let index = self.get_or_insert_name(ident);
+                            let index = self.get_or_insert_name(ident.sym());
                             self.emit(Opcode::DefInitVar, &[index]);
                         }
                         Declaration::Pattern(pattern) => {
@@ -1209,8 +1188,7 @@ impl<'b> ByteCompiler<'b> {
                     },
                     IterableLoopInitializer::Let(declaration) => match declaration {
                         Declaration::Identifier { ident, .. } => {
-                            let ident = self.interner.resolve_expect(ident.sym());
-                            let index = self.get_or_insert_name(ident);
+                            let index = self.get_or_insert_name(ident.sym());
                             self.emit(Opcode::DefInitLet, &[index]);
                         }
                         Declaration::Pattern(pattern) => {
@@ -1219,8 +1197,7 @@ impl<'b> ByteCompiler<'b> {
                     },
                     IterableLoopInitializer::Const(declaration) => match declaration {
                         Declaration::Identifier { ident, .. } => {
-                            let ident = self.interner.resolve_expect(ident.sym());
-                            let index = self.get_or_insert_name(ident);
+                            let index = self.get_or_insert_name(ident.sym());
                             self.emit(Opcode::DefInitConst, &[index]);
                         }
                         Declaration::Pattern(pattern) => {
@@ -1407,8 +1384,7 @@ impl<'b> ByteCompiler<'b> {
                     if let Some(decl) = catch.parameter() {
                         match decl {
                             Declaration::Identifier { ident, .. } => {
-                                let ident = self.interner.resolve_expect(ident.sym());
-                                let index = self.get_or_insert_name(ident);
+                                let index = self.get_or_insert_name(ident.sym());
                                 self.emit(Opcode::DefInitLet, &[index]);
                             }
                             Declaration::Pattern(pattern) => {
@@ -1527,8 +1503,7 @@ impl<'b> ByteCompiler<'b> {
 
             match parameter.declaration() {
                 Declaration::Identifier { ident, .. } => {
-                    let ident = self.interner.resolve_expect(ident.sym());
-                    let index = compiler.get_or_insert_name(ident);
+                    let index = compiler.get_or_insert_name(ident.sym());
                     if let Some(init) = parameter.declaration().init() {
                         let skip = compiler.jump_with_custom_opcode(Opcode::JumpIfNotUndefined);
                         compiler.compile_expr(init, true);
@@ -1569,7 +1544,7 @@ impl<'b> ByteCompiler<'b> {
 
         match kind {
             FunctionKind::Declaration => {
-                let index = self.get_or_insert_name(self.interner.resolve_expect(name.unwrap()));
+                let index = self.get_or_insert_name(name.unwrap());
                 self.emit(Opcode::DefInitVar, &[index]);
             }
             FunctionKind::Expression | FunctionKind::Arrow => {
@@ -1597,7 +1572,7 @@ impl<'b> ByteCompiler<'b> {
             Node::GetConstField(field) => {
                 self.compile_expr(field.obj(), true);
                 self.emit(Opcode::Dup, &[]);
-                let index = self.get_or_insert_name(self.interner.resolve_expect(field.field()));
+                let index = self.get_or_insert_name(field.field());
                 self.emit(Opcode::GetPropertyByName, &[index]);
             }
             Node::GetField(field) => {
@@ -1671,8 +1646,7 @@ impl<'b> ByteCompiler<'b> {
                             default_init,
                         } => {
                             self.emit_opcode(Opcode::Dup);
-                            let index = self
-                                .get_or_insert_name(self.interner.resolve_expect(*property_name));
+                            let index = self.get_or_insert_name(*property_name);
                             self.emit(Opcode::GetPropertyByName, &[index]);
 
                             if let Some(init) = default_init {
@@ -1680,9 +1654,7 @@ impl<'b> ByteCompiler<'b> {
                                 self.compile_expr(init, true);
                                 self.patch_jump(skip);
                             }
-
-                            let ident = self.interner.resolve_expect(*ident);
-                            let index = self.get_or_insert_name(ident);
+                            let index = self.get_or_insert_name(*ident);
                             self.emit(def, &[index]);
                         }
                         //  BindingRestProperty : ... BindingIdentifier
@@ -1700,9 +1672,7 @@ impl<'b> ByteCompiler<'b> {
                             }
 
                             self.emit(Opcode::CopyDataProperties, &[excluded_keys.len() as u32]);
-
-                            let ident = self.interner.resolve_expect(*ident);
-                            let index = self.get_or_insert_name(ident);
+                            let index = self.get_or_insert_name(*ident);
                             self.emit(def, &[index]);
                         }
                         BindingPattern {
@@ -1711,8 +1681,7 @@ impl<'b> ByteCompiler<'b> {
                             default_init,
                         } => {
                             self.emit_opcode(Opcode::Dup);
-                            let ident = self.interner.resolve_expect(*ident);
-                            let index = self.get_or_insert_name(ident);
+                            let index = self.get_or_insert_name(*ident);
                             self.emit(Opcode::GetPropertyByName, &[index]);
 
                             if let Some(init) = default_init {
@@ -1769,9 +1738,7 @@ impl<'b> ByteCompiler<'b> {
                                 self.compile_expr(init, true);
                                 self.patch_jump(skip);
                             }
-
-                            let ident = self.interner.resolve_expect(*ident);
-                            let index = self.get_or_insert_name(ident);
+                            let index = self.get_or_insert_name(*ident);
                             self.emit(def, &[index]);
                         }
                         // BindingElement : BindingPattern Initializer[opt]
@@ -1782,9 +1749,7 @@ impl<'b> ByteCompiler<'b> {
                         // BindingRestElement : ... BindingIdentifier
                         SingleNameRest { ident } => {
                             self.emit_opcode(Opcode::IteratorToArray);
-
-                            let ident = self.interner.resolve_expect(*ident);
-                            let index = self.get_or_insert_name(ident);
+                            let index = self.get_or_insert_name(*ident);
                             self.emit(def, &[index]);
                             self.emit_opcode(Opcode::PushTrue);
                         }

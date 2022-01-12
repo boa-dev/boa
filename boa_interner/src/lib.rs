@@ -259,6 +259,9 @@ impl Sym {
     /// Symbol for the `"<main>"` string.
     pub const MAIN: Self = unsafe { Self::from_raw(NonZeroUsize::new_unchecked(11)) };
 
+    /// Symbol for the `"raw"` string.
+    pub const RAW: Self = unsafe { Self::from_raw(NonZeroUsize::new_unchecked(12)) };
+
     /// Creates a `Sym` from a raw `NonZeroUsize`.
     const fn from_raw(value: NonZeroUsize) -> Self {
         Self { value }
@@ -309,7 +312,7 @@ impl Interner {
     /// List of commonly used static strings.
     ///
     /// Make sure that any string added as a `Sym` constant is also added here.
-    const STATIC_STRINGS: [&'static str; 11] = [
+    const STATIC_STRINGS: [&'static str; 12] = [
         "",
         "arguments",
         "await",
@@ -321,5 +324,6 @@ impl Interner {
         "get",
         "set",
         "<main>",
+        "raw",
     ];
 }

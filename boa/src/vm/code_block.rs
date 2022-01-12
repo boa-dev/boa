@@ -17,7 +17,7 @@ use crate::{
     property::PropertyDescriptor,
     syntax::ast::node::FormalParameter,
     vm::{call_frame::FinallyReturn, CallFrame, Opcode},
-    Context, JsResult, JsString, JsValue,
+    Context, JsResult, JsValue,
 };
 use boa_interner::{Interner, Sym, ToInternedString};
 use std::{convert::TryInto, mem::size_of};
@@ -75,7 +75,7 @@ pub struct CodeBlock {
     pub(crate) literals: Vec<JsValue>,
 
     /// Variables names
-    pub(crate) variables: Vec<JsString>,
+    pub(crate) variables: Vec<Sym>,
 
     /// Functions inside this function
     pub(crate) functions: Vec<Gc<CodeBlock>>,
@@ -344,7 +344,11 @@ impl ToInternedString for CodeBlock {
         f.push_str("\nNames:\n");
         if !self.variables.is_empty() {
             for (i, value) in self.variables.iter().enumerate() {
-                f.push_str(&format!("    {:04}: {}\n", i, value));
+                f.push_str(&format!(
+                    "    {:04}: {}\n",
+                    i,
+                    interner.resolve(*value).expect("string disappeared")
+                ));
             }
         } else {
             f.push_str("    <empty>");

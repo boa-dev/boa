@@ -448,7 +448,7 @@ pub enum PropertyDefinition {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-IdentifierReference
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Property_definitions
-    IdentifierReference(Box<str>),
+    IdentifierReference(Sym),
 
     /// Binds a property name to a JavaScript value.
     ///
@@ -486,11 +486,8 @@ pub enum PropertyDefinition {
 
 impl PropertyDefinition {
     /// Creates an `IdentifierReference` property definition.
-    pub fn identifier_reference<I>(ident: I) -> Self
-    where
-        I: Into<Box<str>>,
-    {
-        Self::IdentifierReference(ident.into())
+    pub fn identifier_reference(ident: Sym) -> Self {
+        Self::IdentifierReference(ident)
     }
 
     /// Creates a `Property` definition.
