@@ -2724,7 +2724,6 @@
 <span id="2723">2723</span>
 <span id="2724">2724</span>
 <span id="2725">2725</span>
-<span id="2726">2726</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Array` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The JavaScript `Array` class is a global object that is used in the construction of arrays; which are high-level, list-like objects.</span>
@@ -3018,10 +3017,7 @@
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">spreadable</span>.<span class="ident">to_boolean</span>());
         }
         <span class="comment">// 4. Return ? IsArray(O).</span>
-        <span class="kw">match</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">obj</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">obj</span>.<span class="ident">is_array</span>()),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
-        }
+        <span class="ident">this</span>.<span class="ident">is_array</span>(<span class="ident">context</span>)
     }
 
     <span class="doccomment">/// `get Array [ @@species ]`</span>
@@ -3050,7 +3046,7 @@
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let isArray be ? IsArray(originalArray).</span>
         <span class="comment">// 2. If isArray is false, return ? ArrayCreate(length).</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">original_array</span>.<span class="ident">is_array</span>() {
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">original_array</span>.<span class="ident">is_array_abstract</span>(<span class="ident">context</span>)<span class="question-mark">?</span> {
             <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::array_create</span>(<span class="ident">length</span>, <span class="prelude-val">None</span>, <span class="ident">context</span>);
         }
         <span class="comment">// 3. Let C be ? Get(originalArray, &quot;constructor&quot;).</span>
@@ -3138,13 +3134,15 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.isarray</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/isArray</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_array</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
-            .<span class="ident">get_or_undefined</span>(<span class="number">0</span>)
-            .<span class="ident">as_object</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">is_array</span>())
-            .<span class="ident">unwrap_or_default</span>()
-            .<span class="ident">into</span>())
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_array</span>(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+        <span class="comment">// 1. Return ? IsArray(arg).</span>
+        <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>)
+            .<span class="ident">is_array</span>(<span class="ident">context</span>)
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">ok</span><span class="op">|</span> <span class="ident">ok</span>.<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// `Array.of(...items)`</span>

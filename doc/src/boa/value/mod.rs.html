@@ -2186,24 +2186,24 @@
         .<span class="ident">into</span>()
     }
 
-    <span class="doccomment">/// Check if it is an array.</span>
+    <span class="doccomment">/// Abstract operation `IsArray ( argument )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Check if a value is an array.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-isarray</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_array</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_array</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+        <span class="comment">// Note: The spec specifies this function for JsValue.</span>
+        <span class="comment">// The main part of the function is implemented for JsObject.</span>
+
         <span class="comment">// 1. If Type(argument) is not Object, return false.</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">as_object</span>() {
-            <span class="comment">// 2. If argument is an Array exotic object, return true.</span>
-            <span class="comment">//     a. If argument.[[ProxyHandler]] is null, throw a TypeError exception.</span>
-            <span class="comment">// 3. If argument is a Proxy exotic object, then</span>
-            <span class="comment">//     b. Let target be argument.[[ProxyTarget]].</span>
-            <span class="comment">//     c. Return ? IsArray(target).</span>
-            <span class="comment">// TODO: handle ProxyObjects</span>
-            <span class="prelude-val">Ok</span>(<span class="ident">object</span>.<span class="ident">is_array</span>())
-        } <span class="kw">else</span> {
-            <span class="comment">// 4. Return false.</span>
+            <span class="ident">object</span>.<span class="ident">is_array_abstract</span>(<span class="ident">context</span>)
+        }
+        <span class="comment">// 4. Return false.</span>
+        <span class="kw">else</span> {
             <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>)
         }
     }

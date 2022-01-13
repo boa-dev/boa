@@ -1042,6 +1042,8 @@
 <span id="1041">1041</span>
 <span id="1042">1042</span>
 <span id="1043">1043</span>
+<span id="1044">1044</span>
+<span id="1045">1045</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Object` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `Object` class represents one of JavaScript&#39;s data types.</span>
@@ -1099,10 +1101,10 @@
         .<span class="ident">length</span>(<span class="ident"><span class="self">Self</span>::LENGTH</span>)
         .<span class="ident">inherit</span>(<span class="prelude-val">None</span>)
         .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::has_own_property</span>, <span class="string">&quot;hasOwnProperty&quot;</span>, <span class="number">1</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::property_is_enumerable</span>, <span class="string">&quot;propertyIsEnumerable&quot;</span>, <span class="number">0</span>)
+        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::property_is_enumerable</span>, <span class="string">&quot;propertyIsEnumerable&quot;</span>, <span class="number">1</span>)
         .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::to_string</span>, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
         .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::value_of</span>, <span class="string">&quot;valueOf&quot;</span>, <span class="number">0</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::is_prototype_of</span>, <span class="string">&quot;isPrototypeOf&quot;</span>, <span class="number">0</span>)
+        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::is_prototype_of</span>, <span class="string">&quot;isPrototypeOf&quot;</span>, <span class="number">1</span>)
         .<span class="ident">static_method</span>(<span class="ident"><span class="self">Self</span>::create</span>, <span class="string">&quot;create&quot;</span>, <span class="number">2</span>)
         .<span class="ident">static_method</span>(<span class="ident"><span class="self">Self</span>::set_prototype_of</span>, <span class="string">&quot;setPrototypeOf&quot;</span>, <span class="number">2</span>)
         .<span class="ident">static_method</span>(<span class="ident"><span class="self">Self</span>::get_prototype_of</span>, <span class="string">&quot;getPrototypeOf&quot;</span>, <span class="number">1</span>)
@@ -1526,20 +1528,22 @@
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="string">&quot;[object Null]&quot;</span>.<span class="ident">into</span>());
         }
         <span class="comment">// 3. Let O be ! ToObject(this value).</span>
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="comment">// TODO: 4. Let isArray be ? IsArray(O).</span>
-        <span class="comment">// TODO: 5. If isArray is true, let builtinTag be &quot;Array&quot;.</span>
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>).<span class="ident">expect</span>(<span class="string">&quot;toObject cannot fail here&quot;</span>);
 
-        <span class="comment">// 6. Else if O has a [[ParameterMap]] internal slot, let builtinTag be &quot;Arguments&quot;.</span>
-        <span class="comment">// 7. Else if O has a [[Call]] internal method, let builtinTag be &quot;Function&quot;.</span>
-        <span class="comment">// 8. Else if O has an [[ErrorData]] internal slot, let builtinTag be &quot;Error&quot;.</span>
-        <span class="comment">// 9. Else if O has a [[BooleanData]] internal slot, let builtinTag be &quot;Boolean&quot;.</span>
-        <span class="comment">// 10. Else if O has a [[NumberData]] internal slot, let builtinTag be &quot;Number&quot;.</span>
-        <span class="comment">// 11. Else if O has a [[StringData]] internal slot, let builtinTag be &quot;String&quot;.</span>
-        <span class="comment">// 12. Else if O has a [[DateValue]] internal slot, let builtinTag be &quot;Date&quot;.</span>
-        <span class="comment">// 13. Else if O has a [[RegExpMatcher]] internal slot, let builtinTag be &quot;RegExp&quot;.</span>
-        <span class="comment">// 14. Else, let builtinTag be &quot;Object&quot;.</span>
-        <span class="kw">let</span> <span class="ident">builtin_tag</span> <span class="op">=</span> {
+        <span class="comment">//  4. Let isArray be ? IsArray(O).</span>
+        <span class="comment">//  5. If isArray is true, let builtinTag be &quot;Array&quot;.</span>
+        <span class="kw">let</span> <span class="ident">builtin_tag</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">JsValue::from</span>(<span class="ident">o</span>.<span class="ident">clone</span>()).<span class="ident">is_array</span>(<span class="ident">context</span>)<span class="question-mark">?</span> {
+            <span class="string">&quot;Array&quot;</span>
+        } <span class="kw">else</span> {
+            <span class="comment">// 6. Else if O has a [[ParameterMap]] internal slot, let builtinTag be &quot;Arguments&quot;.</span>
+            <span class="comment">// 7. Else if O has a [[Call]] internal method, let builtinTag be &quot;Function&quot;.</span>
+            <span class="comment">// 8. Else if O has an [[ErrorData]] internal slot, let builtinTag be &quot;Error&quot;.</span>
+            <span class="comment">// 9. Else if O has a [[BooleanData]] internal slot, let builtinTag be &quot;Boolean&quot;.</span>
+            <span class="comment">// 10. Else if O has a [[NumberData]] internal slot, let builtinTag be &quot;Number&quot;.</span>
+            <span class="comment">// 11. Else if O has a [[StringData]] internal slot, let builtinTag be &quot;String&quot;.</span>
+            <span class="comment">// 12. Else if O has a [[DateValue]] internal slot, let builtinTag be &quot;Date&quot;.</span>
+            <span class="comment">// 13. Else if O has a [[RegExpMatcher]] internal slot, let builtinTag be &quot;RegExp&quot;.</span>
+            <span class="comment">// 14. Else, let builtinTag be &quot;Object&quot;.</span>
             <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">borrow</span>();
             <span class="kw">match</span> <span class="ident">o</span>.<span class="ident">kind</span>() {
                 <span class="ident">ObjectKind::Array</span> =&gt; <span class="string">&quot;Array&quot;</span>,

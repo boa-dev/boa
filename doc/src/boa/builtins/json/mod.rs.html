@@ -876,7 +876,7 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">val</span>.<span class="ident">as_object</span>() {
             <span class="comment">// a. Let isArray be ? IsArray(val).</span>
             <span class="comment">// b. If isArray is true, then</span>
-            <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_array</span>() {
+            <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_array_abstract</span>(<span class="ident">context</span>)<span class="question-mark">?</span> {
                 <span class="comment">// i. Let I be 0.</span>
                 <span class="comment">// ii. Let len be ? LengthOfArrayLike(val).</span>
                 <span class="comment">// iii. Repeat, while I &lt; len,</span>
@@ -978,7 +978,7 @@
             } <span class="kw">else</span> {
                 <span class="comment">// i. Let isArray be ? IsArray(replacer).</span>
                 <span class="comment">// ii. If isArray is true, then</span>
-                <span class="kw">if</span> <span class="ident">replacer_obj</span>.<span class="ident">is_array</span>() {
+                <span class="kw">if</span> <span class="ident">replacer_obj</span>.<span class="ident">is_array_abstract</span>(<span class="ident">context</span>)<span class="question-mark">?</span> {
                     <span class="comment">// 1. Set PropertyList to a new empty List.</span>
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">property_set</span> <span class="op">=</span> <span class="ident">indexmap::IndexSet::new</span>();
 
@@ -1198,7 +1198,7 @@
                 <span class="comment">// a. Let isArray be ? IsArray(value).</span>
                 <span class="comment">// b. If isArray is true, return ? SerializeJSONArray(state, value).</span>
                 <span class="comment">// c. Return ? SerializeJSONObject(state, value).</span>
-                <span class="kw">return</span> <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_array</span>() {
+                <span class="kw">return</span> <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_array_abstract</span>(<span class="ident">context</span>)<span class="question-mark">?</span> {
                     <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident"><span class="self">Self</span>::serialize_json_array</span>(<span class="ident">state</span>, <span class="ident">obj</span>, <span class="ident">context</span>)<span class="question-mark">?</span>))
                 } <span class="kw">else</span> {
                     <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident"><span class="self">Self</span>::serialize_json_object</span>(<span class="ident">state</span>, <span class="ident">obj</span>, <span class="ident">context</span>)<span class="question-mark">?</span>))

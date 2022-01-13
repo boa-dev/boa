@@ -766,6 +766,38 @@
 <span id="765">765</span>
 <span id="766">766</span>
 <span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
+<span id="782">782</span>
+<span id="783">783</span>
+<span id="784">784</span>
+<span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::Array</span>,
     <span class="ident">context</span>::{<span class="ident">StandardConstructor</span>, <span class="ident">StandardObjects</span>},
@@ -1325,6 +1357,38 @@
                 <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;value returned for property of object is not a function&quot;</span>)
             }
         }
+    }
+
+    <span class="doccomment">/// Abstract operation `IsArray ( argument )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Check if a value is an array.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-isarray</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_array_abstract</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+        <span class="comment">// Note: The spec specifies this function for JsValue.</span>
+        <span class="comment">// It is implemented for JsObject for convenience.</span>
+
+        <span class="comment">// 2. If argument is an Array exotic object, return true.</span>
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_array</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>);
+        }
+
+        <span class="comment">// 3. If argument is a Proxy exotic object, then</span>
+        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">borrow</span>();
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">proxy</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">as_proxy</span>() {
+            <span class="comment">// a. If argument.[[ProxyHandler]] is null, throw a TypeError exception.</span>
+            <span class="comment">// b. Let target be argument.[[ProxyTarget]].</span>
+            <span class="kw">let</span> (<span class="ident">target</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">proxy</span>.<span class="ident">try_data</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+
+            <span class="comment">// c. Return ? IsArray(target).</span>
+            <span class="kw">return</span> <span class="ident">target</span>.<span class="ident">is_array_abstract</span>(<span class="ident">context</span>);
+        }
+
+        <span class="comment">// 4. Return false.</span>
+        <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>)
     }
 
     <span class="comment">// todo: GetFunctionRealm</span>
