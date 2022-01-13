@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;openssl-sys-0.9.72&#x2F;src&#x2F;crypto.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>crypto.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../openssl_sys/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;openssl-sys-0.9.72&#x2F;src&#x2F;crypto.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>crypto.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../openssl_sys/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -177,10 +178,10 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">OPENSSL_malloc</span>(<span class="ident">num</span>: <span class="ident">usize</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span> {
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">OPENSSL_malloc</span>(<span class="ident">num</span>: <span class="ident">usize</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">c_void</span> {
     <span class="ident">CRYPTO_malloc</span>(
         <span class="ident">num</span>,
-        <span class="macro">concat!</span>(<span class="macro">file!</span>(), <span class="string">&quot;\0&quot;</span>).<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>,
+        <span class="macro">concat!</span>(<span class="macro">file!</span>(), <span class="string">&quot;\0&quot;</span>).<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>,
         <span class="macro">line!</span>() <span class="kw">as</span> <span class="kw">_</span>,
     )
 }
@@ -188,10 +189,10 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">ossl110</span>))]</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">OPENSSL_malloc</span>(<span class="ident">num</span>: <span class="ident">c_int</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span> {
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">OPENSSL_malloc</span>(<span class="ident">num</span>: <span class="ident">c_int</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">c_void</span> {
     <span class="ident">CRYPTO_malloc</span>(
         <span class="ident">num</span>,
-        <span class="macro">concat!</span>(<span class="macro">file!</span>(), <span class="string">&quot;\0&quot;</span>).<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>,
+        <span class="macro">concat!</span>(<span class="macro">file!</span>(), <span class="string">&quot;\0&quot;</span>).<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>,
         <span class="macro">line!</span>() <span class="kw">as</span> <span class="kw">_</span>,
     )
 }
@@ -199,17 +200,17 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">OPENSSL_free</span>(<span class="ident">addr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>) {
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">OPENSSL_free</span>(<span class="ident">addr</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>) {
     <span class="ident">CRYPTO_free</span>(
         <span class="ident">addr</span>,
-        <span class="macro">concat!</span>(<span class="macro">file!</span>(), <span class="string">&quot;\0&quot;</span>).<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>,
+        <span class="macro">concat!</span>(<span class="macro">file!</span>(), <span class="string">&quot;\0&quot;</span>).<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>,
         <span class="macro">line!</span>() <span class="kw">as</span> <span class="kw">_</span>,
     )
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">ossl110</span>))]</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">OPENSSL_free</span>(<span class="ident">addr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>) {
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">OPENSSL_free</span>(<span class="ident">addr</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>) {
     <span class="ident">CRYPTO_free</span>(<span class="ident">addr</span>)
 }
 
@@ -237,7 +238,7 @@
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl271</span>))]</span> {
         <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
             <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OpenSSL_version_num</span>() -&gt; <span class="ident">c_ulong</span>;
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OpenSSL_version</span>(<span class="ident">key</span>: <span class="ident">c_int</span>) -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OpenSSL_version</span>(<span class="ident">key</span>: <span class="ident">c_int</span>) -&gt; <span class="kw-2">*const</span> <span class="ident">c_char</span>;
         }
         <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">OPENSSL_VERSION</span>: <span class="ident">c_int</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">OPENSSL_CFLAGS</span>: <span class="ident">c_int</span> <span class="op">=</span> <span class="number">1</span>;
@@ -247,7 +248,7 @@
     } <span class="kw">else</span> {
         <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
             <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SSLeay</span>() -&gt; <span class="ident">c_ulong</span>;
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SSLeay_version</span>(<span class="ident">key</span>: <span class="ident">c_int</span>) -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SSLeay_version</span>(<span class="ident">key</span>: <span class="ident">c_int</span>) -&gt; <span class="kw-2">*const</span> <span class="ident">c_char</span>;
         }
         <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSLEAY_VERSION</span>: <span class="ident">c_int</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSLEAY_CFLAGS</span>: <span class="ident">c_int</span> <span class="op">=</span> <span class="number">2</span>;
@@ -259,35 +260,35 @@
 
 <span class="comment">// FIXME should be options</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">CRYPTO_EX_new</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(
-    <span class="ident">parent</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-    <span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-    <span class="ident">ad</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">CRYPTO_EX_DATA</span>,
+    <span class="ident">parent</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
+    <span class="ident">ptr</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
+    <span class="ident">ad</span>: <span class="kw-2">*const</span> <span class="ident">CRYPTO_EX_DATA</span>,
     <span class="ident">idx</span>: <span class="ident">c_int</span>,
     <span class="ident">argl</span>: <span class="ident">c_long</span>,
-    <span class="ident">argp</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_void</span>,
+    <span class="ident">argp</span>: <span class="kw-2">*const</span> <span class="ident">c_void</span>,
 ) -&gt; <span class="ident">c_int</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">CRYPTO_EX_dup</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(
-    <span class="ident">to</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">CRYPTO_EX_DATA</span>,
-    <span class="ident">from</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">CRYPTO_EX_DATA</span>,
-    <span class="ident">from_d</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
+    <span class="ident">to</span>: <span class="kw-2">*mut</span> <span class="ident">CRYPTO_EX_DATA</span>,
+    <span class="ident">from</span>: <span class="kw-2">*mut</span> <span class="ident">CRYPTO_EX_DATA</span>,
+    <span class="ident">from_d</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
     <span class="ident">idx</span>: <span class="ident">c_int</span>,
     <span class="ident">argl</span>: <span class="ident">c_long</span>,
-    <span class="ident">argp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
+    <span class="ident">argp</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
 ) -&gt; <span class="ident">c_int</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">CRYPTO_EX_free</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(
-    <span class="ident">parent</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-    <span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-    <span class="ident">ad</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">CRYPTO_EX_DATA</span>,
+    <span class="ident">parent</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
+    <span class="ident">ptr</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
+    <span class="ident">ad</span>: <span class="kw-2">*mut</span> <span class="ident">CRYPTO_EX_DATA</span>,
     <span class="ident">idx</span>: <span class="ident">c_int</span>,
     <span class="ident">argl</span>: <span class="ident">c_long</span>,
-    <span class="ident">argp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
+    <span class="ident">argp</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
 );
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">CRYPTO_get_ex_new_index</span>(
         <span class="ident">class_index</span>: <span class="ident">c_int</span>,
         <span class="ident">argl</span>: <span class="ident">c_long</span>,
-        <span class="ident">argp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
+        <span class="ident">argp</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
         <span class="ident">new_func</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CRYPTO_EX_new</span><span class="op">&gt;</span>,
         <span class="ident">dup_func</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CRYPTO_EX_dup</span><span class="op">&gt;</span>,
         <span class="ident">free_func</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CRYPTO_EX_free</span><span class="op">&gt;</span>,
@@ -301,7 +302,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">CRYPTO_num_locks</span>() -&gt; <span class="ident">c_int</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">ossl110</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">CRYPTO_set_locking_callback</span>(
-        <span class="ident">func</span>: <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="ident">mode</span>: <span class="ident">c_int</span>, <span class="ident">n</span>: <span class="ident">c_int</span>, <span class="ident">file</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>, <span class="ident">line</span>: <span class="ident">c_int</span>),
+        <span class="ident">func</span>: <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="ident">mode</span>: <span class="ident">c_int</span>, <span class="ident">n</span>: <span class="ident">c_int</span>, <span class="ident">file</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>, <span class="ident">line</span>: <span class="ident">c_int</span>),
     );
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">ossl110</span>))]</span>
@@ -309,10 +310,10 @@
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">ossl110</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">CRYPTO_add_lock</span>(
-        <span class="ident">pointer</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_int</span>,
+        <span class="ident">pointer</span>: <span class="kw-2">*mut</span> <span class="ident">c_int</span>,
         <span class="ident">amount</span>: <span class="ident">c_int</span>,
         <span class="ident">type_</span>: <span class="ident">c_int</span>,
-        <span class="ident">file</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
+        <span class="ident">file</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>,
         <span class="ident">line</span>: <span class="ident">c_int</span>,
     ) -&gt; <span class="ident">c_int</span>;
 }
@@ -320,13 +321,13 @@
 <span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span> {
         <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">CRYPTO_malloc</span>(<span class="ident">num</span>: <span class="ident">size_t</span>, <span class="ident">file</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>, <span class="ident">line</span>: <span class="ident">c_int</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>;
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">CRYPTO_free</span>(<span class="ident">buf</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>, <span class="ident">file</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>, <span class="ident">line</span>: <span class="ident">c_int</span>);
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">CRYPTO_malloc</span>(<span class="ident">num</span>: <span class="ident">size_t</span>, <span class="ident">file</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>, <span class="ident">line</span>: <span class="ident">c_int</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">c_void</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">CRYPTO_free</span>(<span class="ident">buf</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>, <span class="ident">file</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>, <span class="ident">line</span>: <span class="ident">c_int</span>);
         }
     } <span class="kw">else</span> {
         <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">CRYPTO_malloc</span>(<span class="ident">num</span>: <span class="ident">c_int</span>, <span class="ident">file</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>, <span class="ident">line</span>: <span class="ident">c_int</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>;
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">CRYPTO_free</span>(<span class="ident">buf</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>);
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">CRYPTO_malloc</span>(<span class="ident">num</span>: <span class="ident">c_int</span>, <span class="ident">file</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>, <span class="ident">line</span>: <span class="ident">c_int</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">c_void</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">CRYPTO_free</span>(<span class="ident">buf</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>);
         }
     }
 }
@@ -337,14 +338,13 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">ossl101</span>, <span class="ident">not</span>(<span class="ident">ossl300</span>)))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">FIPS_mode_set</span>(<span class="ident">onoff</span>: <span class="ident">c_int</span>) -&gt; <span class="ident">c_int</span>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">CRYPTO_memcmp</span>(<span class="ident">a</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_void</span>, <span class="ident">b</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_void</span>, <span class="ident">len</span>: <span class="ident">size_t</span>) -&gt; <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">CRYPTO_memcmp</span>(<span class="ident">a</span>: <span class="kw-2">*const</span> <span class="ident">c_void</span>, <span class="ident">b</span>: <span class="kw-2">*const</span> <span class="ident">c_void</span>, <span class="ident">len</span>: <span class="ident">size_t</span>) -&gt; <span class="ident">c_int</span>;
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl300</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OSSL_LIB_CTX_new</span>() -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OSSL_LIB_CTX</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OSSL_LIB_CTX_new</span>() -&gt; <span class="kw-2">*mut</span> <span class="ident">OSSL_LIB_CTX</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl300</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OSSL_LIB_CTX_free</span>(<span class="ident">libcts</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">OSSL_LIB_CTX</span>);
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">OSSL_LIB_CTX_free</span>(<span class="ident">libcts</span>: <span class="kw-2">*mut</span> <span class="ident">OSSL_LIB_CTX</span>);
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl_sys" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
 </body></html>

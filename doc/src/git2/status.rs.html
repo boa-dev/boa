@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;git2-0.13.25&#x2F;src&#x2F;status.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>status.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../git2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;git2-0.13.25&#x2F;src&#x2F;status.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>status.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../git2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -430,7 +431,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StatusOptions</span> {
     <span class="ident">raw</span>: <span class="ident">raw::git_status_options</span>,
     <span class="ident">pathspec</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">CString</span><span class="op">&gt;</span>,
-    <span class="ident">ptrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span><span class="op">&gt;</span>,
+    <span class="ident">ptrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">*const</span> <span class="ident">c_char</span><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// Enumeration of possible methods of what can be shown through a status</span>
@@ -455,7 +456,7 @@
 <span class="doccomment">/// Each instance appears as if it were a collection, having a length and</span>
 <span class="doccomment">/// allowing indexing, as well as providing an iterator.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Statuses</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="ident">raw</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">raw::git_status_list</span>,
+    <span class="ident">raw</span>: <span class="kw-2">*mut</span> <span class="ident">raw::git_status_list</span>,
 
     <span class="comment">// Hm, not currently present, but can&#39;t hurt?</span>
     <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;repo</span> <span class="ident">Repository</span><span class="op">&gt;</span>,
@@ -471,7 +472,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Instances are created through the `.iter()` method or the `.get()` method.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StatusEntry</span><span class="op">&lt;</span><span class="lifetime">&#39;statuses</span><span class="op">&gt;</span> {
-    <span class="ident">raw</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">raw::git_status_entry</span>,
+    <span class="ident">raw</span>: <span class="kw-2">*const</span> <span class="ident">raw::git_status_entry</span>,
     <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;statuses</span> <span class="ident">DiffDelta</span><span class="op">&lt;</span><span class="lifetime">&#39;statuses</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
@@ -486,7 +487,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">StatusOptions</span> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">mem::zeroed</span>();
-            <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">raw::git_status_init_options</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">raw</span>, <span class="ident">raw::GIT_STATUS_OPTIONS_VERSION</span>);
+            <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">raw::git_status_init_options</span>(<span class="kw-2">&amp;mut</span> <span class="ident">raw</span>, <span class="ident">raw::GIT_STATUS_OPTIONS_VERSION</span>);
             <span class="macro">assert_eq!</span>(<span class="ident">r</span>, <span class="number">0</span>);
             <span class="ident">StatusOptions</span> {
                 <span class="ident">raw</span>,
@@ -500,7 +501,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// The default, if unspecified, is to show the index and the working</span>
     <span class="doccomment">/// directory.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">show</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">show</span>: <span class="ident">StatusShow</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">StatusOptions</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">show</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">show</span>: <span class="ident">StatusShow</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">StatusOptions</span> {
         <span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">show</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">show</span> {
             <span class="ident">StatusShow::Index</span> =&gt; <span class="ident">raw::GIT_STATUS_SHOW_INDEX_ONLY</span>,
             <span class="ident">StatusShow::Workdir</span> =&gt; <span class="ident">raw::GIT_STATUS_SHOW_WORKDIR_ONLY</span>,
@@ -514,14 +515,14 @@
     <span class="doccomment">/// If the `disable_pathspec_match` option is given, then this is a literal</span>
     <span class="doccomment">/// path to match. If this is not called, then there will be no patterns to</span>
     <span class="doccomment">/// match and the entire directory will be used.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pathspec</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntoCString</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">pathspec</span>: <span class="ident">T</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">StatusOptions</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pathspec</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntoCString</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">pathspec</span>: <span class="ident">T</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">StatusOptions</span> {
         <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">util::cstring_to_repo_path</span>(<span class="ident">pathspec</span>).<span class="ident">unwrap</span>();
         <span class="self">self</span>.<span class="ident">ptrs</span>.<span class="ident">push</span>(<span class="ident">s</span>.<span class="ident">as_ptr</span>());
         <span class="self">self</span>.<span class="ident">pathspec</span>.<span class="ident">push</span>(<span class="ident">s</span>);
         <span class="self">self</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">flag</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">flag</span>: <span class="ident">raw::git_status_opt_t</span>, <span class="ident">val</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">StatusOptions</span> {
+    <span class="kw">fn</span> <span class="ident">flag</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">flag</span>: <span class="ident">raw::git_status_opt_t</span>, <span class="ident">val</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">StatusOptions</span> {
         <span class="kw">if</span> <span class="ident">val</span> {
             <span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">flags</span> <span class="op">|</span><span class="op">=</span> <span class="ident">flag</span> <span class="kw">as</span> <span class="ident">c_uint</span>;
         } <span class="kw">else</span> {
@@ -534,7 +535,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Untracked files will only be included if the workdir files are included</span>
     <span class="doccomment">/// in the status &quot;show&quot; option.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">include_untracked</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">include</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">StatusOptions</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">include_untracked</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">include</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">StatusOptions</span> {
         <span class="self">self</span>.<span class="ident">flag</span>(<span class="ident">raw::GIT_STATUS_OPT_INCLUDE_UNTRACKED</span>, <span class="ident">include</span>)
     }
 
@@ -542,12 +543,12 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// The files will only be included if the workdir files are included</span>
     <span class="doccomment">/// in the status &quot;show&quot; option.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">include_ignored</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">include</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">StatusOptions</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">include_ignored</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">include</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">StatusOptions</span> {
         <span class="self">self</span>.<span class="ident">flag</span>(<span class="ident">raw::GIT_STATUS_OPT_INCLUDE_IGNORED</span>, <span class="ident">include</span>)
     }
 
     <span class="doccomment">/// Flag to include unmodified files.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">include_unmodified</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">include</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">StatusOptions</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">include_unmodified</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">include</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">StatusOptions</span> {
         <span class="self">self</span>.<span class="ident">flag</span>(<span class="ident">raw::GIT_STATUS_OPT_INCLUDE_UNMODIFIED</span>, <span class="ident">include</span>)
     }
 
@@ -555,7 +556,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This only applies if there are no pending typechanges to the submodule</span>
     <span class="doccomment">/// (either from or to another type).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">exclude_submodules</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">exclude</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">StatusOptions</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">exclude_submodules</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">exclude</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">StatusOptions</span> {
         <span class="self">self</span>.<span class="ident">flag</span>(<span class="ident">raw::GIT_STATUS_OPT_EXCLUDE_SUBMODULES</span>, <span class="ident">exclude</span>)
     }
 
@@ -563,52 +564,52 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Normally if an entire directory is new then just the top-level directory</span>
     <span class="doccomment">/// is included (with a trailing slash on the entry name).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recurse_untracked_dirs</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">include</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">StatusOptions</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recurse_untracked_dirs</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">include</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">StatusOptions</span> {
         <span class="self">self</span>.<span class="ident">flag</span>(<span class="ident">raw::GIT_STATUS_OPT_RECURSE_UNTRACKED_DIRS</span>, <span class="ident">include</span>)
     }
 
     <span class="doccomment">/// Indicates that the given paths should be treated as literals paths, note</span>
     <span class="doccomment">/// patterns.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">disable_pathspec_match</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">include</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">StatusOptions</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">disable_pathspec_match</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">include</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">StatusOptions</span> {
         <span class="self">self</span>.<span class="ident">flag</span>(<span class="ident">raw::GIT_STATUS_OPT_DISABLE_PATHSPEC_MATCH</span>, <span class="ident">include</span>)
     }
 
     <span class="doccomment">/// Indicates that the contents of ignored directories should be included in</span>
     <span class="doccomment">/// the status.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recurse_ignored_dirs</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">include</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">StatusOptions</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recurse_ignored_dirs</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">include</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">StatusOptions</span> {
         <span class="self">self</span>.<span class="ident">flag</span>(<span class="ident">raw::GIT_STATUS_OPT_RECURSE_IGNORED_DIRS</span>, <span class="ident">include</span>)
     }
 
     <span class="doccomment">/// Indicates that rename detection should be processed between the head.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">renames_head_to_index</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">include</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">StatusOptions</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">renames_head_to_index</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">include</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">StatusOptions</span> {
         <span class="self">self</span>.<span class="ident">flag</span>(<span class="ident">raw::GIT_STATUS_OPT_RENAMES_HEAD_TO_INDEX</span>, <span class="ident">include</span>)
     }
 
     <span class="doccomment">/// Indicates that rename detection should be run between the index and the</span>
     <span class="doccomment">/// working directory.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">renames_index_to_workdir</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">include</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">StatusOptions</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">renames_index_to_workdir</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">include</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">StatusOptions</span> {
         <span class="self">self</span>.<span class="ident">flag</span>(<span class="ident">raw::GIT_STATUS_OPT_RENAMES_INDEX_TO_WORKDIR</span>, <span class="ident">include</span>)
     }
 
     <span class="doccomment">/// Override the native case sensitivity for the file system and force the</span>
     <span class="doccomment">/// output to be in case sensitive order.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sort_case_sensitively</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">include</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">StatusOptions</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sort_case_sensitively</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">include</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">StatusOptions</span> {
         <span class="self">self</span>.<span class="ident">flag</span>(<span class="ident">raw::GIT_STATUS_OPT_SORT_CASE_SENSITIVELY</span>, <span class="ident">include</span>)
     }
 
     <span class="doccomment">/// Override the native case sensitivity for the file system and force the</span>
     <span class="doccomment">/// output to be in case-insensitive order.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sort_case_insensitively</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">include</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">StatusOptions</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sort_case_insensitively</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">include</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">StatusOptions</span> {
         <span class="self">self</span>.<span class="ident">flag</span>(<span class="ident">raw::GIT_STATUS_OPT_SORT_CASE_INSENSITIVELY</span>, <span class="ident">include</span>)
     }
 
     <span class="doccomment">/// Indicates that rename detection should include rewritten files.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">renames_from_rewrites</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">include</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">StatusOptions</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">renames_from_rewrites</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">include</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">StatusOptions</span> {
         <span class="self">self</span>.<span class="ident">flag</span>(<span class="ident">raw::GIT_STATUS_OPT_RENAMES_FROM_REWRITES</span>, <span class="ident">include</span>)
     }
 
     <span class="doccomment">/// Bypasses the default status behavior of doing a &quot;soft&quot; index reload.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">no_refresh</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">include</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">StatusOptions</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">no_refresh</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">include</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">StatusOptions</span> {
         <span class="self">self</span>.<span class="ident">flag</span>(<span class="ident">raw::GIT_STATUS_OPT_NO_REFRESH</span>, <span class="ident">include</span>)
     }
 
@@ -617,19 +618,19 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This will result in less work being done on subsequent calls to fetching</span>
     <span class="doccomment">/// the status.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_index</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">include</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">StatusOptions</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_index</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">include</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">StatusOptions</span> {
         <span class="self">self</span>.<span class="ident">flag</span>(<span class="ident">raw::GIT_STATUS_OPT_UPDATE_INDEX</span>, <span class="ident">include</span>)
     }
 
     <span class="comment">// erm...</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">include_unreadable</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">include</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">StatusOptions</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">include_unreadable</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">include</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">StatusOptions</span> {
         <span class="self">self</span>.<span class="ident">flag</span>(<span class="ident">raw::GIT_STATUS_OPT_INCLUDE_UNREADABLE</span>, <span class="ident">include</span>)
     }
 
     <span class="comment">// erm...</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">include_unreadable_as_untracked</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">include</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">StatusOptions</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">include_unreadable_as_untracked</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">include</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">StatusOptions</span> {
         <span class="self">self</span>.<span class="ident">flag</span>(<span class="ident">raw::GIT_STATUS_OPT_INCLUDE_UNREADABLE_AS_UNTRACKED</span>, <span class="ident">include</span>)
     }
 
@@ -637,8 +638,8 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function is unsafe as the returned structure has interior pointers</span>
     <span class="doccomment">/// and may no longer be valid if these options continue to be mutated.</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">raw::git_status_options</span> {
-        <span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">pathspec</span>.<span class="ident">strings</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ptrs</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>;
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">*const</span> <span class="ident">raw::git_status_options</span> {
+        <span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">pathspec</span>.<span class="ident">strings</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ptrs</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>;
         <span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">pathspec</span>.<span class="ident">count</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ptrs</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">size_t</span>;
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">raw</span>
     }
@@ -678,20 +679,20 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <span class="ident">Binding</span> <span class="kw">for</span> <span class="ident">Statuses</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Raw</span> <span class="op">=</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">raw::git_status_list</span>;
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">raw::git_status_list</span>) -&gt; <span class="ident">Statuses</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
+    <span class="kw">type</span> <span class="ident">Raw</span> <span class="op">=</span> <span class="kw-2">*mut</span> <span class="ident">raw::git_status_list</span>;
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="kw-2">*mut</span> <span class="ident">raw::git_status_list</span>) -&gt; <span class="ident">Statuses</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
         <span class="ident">Statuses</span> {
             <span class="ident">raw</span>,
             <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span>,
         }
     }
-    <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">raw::git_status_list</span> {
+    <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">raw::git_status_list</span> {
         <span class="self">self</span>.<span class="ident">raw</span>
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">Statuses</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="kw">unsafe</span> {
             <span class="ident">raw::git_status_list_free</span>(<span class="self">self</span>.<span class="ident">raw</span>);
         }
@@ -700,7 +701,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">StatusIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">StatusEntry</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">StatusEntry</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">StatusEntry</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">range</span>.<span class="ident">next</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">statuses</span>.<span class="ident">get</span>(<span class="ident">i</span>))
     }
     <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
@@ -708,7 +709,7 @@
     }
 }
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">DoubleEndedIterator</span> <span class="kw">for</span> <span class="ident">StatusIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">StatusEntry</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">StatusEntry</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">range</span>.<span class="ident">next_back</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">statuses</span>.<span class="ident">get</span>(<span class="ident">i</span>))
     }
 }
@@ -753,15 +754,15 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;statuses</span><span class="op">&gt;</span> <span class="ident">Binding</span> <span class="kw">for</span> <span class="ident">StatusEntry</span><span class="op">&lt;</span><span class="lifetime">&#39;statuses</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Raw</span> <span class="op">=</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">raw::git_status_entry</span>;
+    <span class="kw">type</span> <span class="ident">Raw</span> <span class="op">=</span> <span class="kw-2">*const</span> <span class="ident">raw::git_status_entry</span>;
 
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">raw::git_status_entry</span>) -&gt; <span class="ident">StatusEntry</span><span class="op">&lt;</span><span class="lifetime">&#39;statuses</span><span class="op">&gt;</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="kw-2">*const</span> <span class="ident">raw::git_status_entry</span>) -&gt; <span class="ident">StatusEntry</span><span class="op">&lt;</span><span class="lifetime">&#39;statuses</span><span class="op">&gt;</span> {
         <span class="ident">StatusEntry</span> {
             <span class="ident">raw</span>,
             <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span>,
         }
     }
-    <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">raw::git_status_entry</span> {
+    <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*const</span> <span class="ident">raw::git_status_entry</span> {
         <span class="self">self</span>.<span class="ident">raw</span>
     }
 }
@@ -798,7 +799,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">opts</span> <span class="op">=</span> <span class="ident">StatusOptions::new</span>();
         <span class="ident">opts</span>.<span class="ident">include_untracked</span>(<span class="bool-val">true</span>).<span class="ident">pathspec</span>(<span class="string">&quot;foo&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">statuses</span> <span class="op">=</span> <span class="macro">t!</span>(<span class="ident">repo</span>.<span class="ident">statuses</span>(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">opts</span>)));
+        <span class="kw">let</span> <span class="ident">statuses</span> <span class="op">=</span> <span class="macro">t!</span>(<span class="ident">repo</span>.<span class="ident">statuses</span>(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut</span> <span class="ident">opts</span>)));
         <span class="macro">assert_eq!</span>(<span class="ident">statuses</span>.<span class="ident">iter</span>().<span class="ident">count</span>(), <span class="number">1</span>);
         <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="ident">statuses</span>.<span class="ident">iter</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>();
         <span class="macro">assert_eq!</span>(<span class="ident">status</span>.<span class="ident">path</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;foo&quot;</span>));
@@ -834,5 +835,4 @@
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
 </body></html>

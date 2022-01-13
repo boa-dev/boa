@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;git2-0.13.25&#x2F;src&#x2F;build.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>build.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../git2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;git2-0.13.25&#x2F;src&#x2F;build.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>build.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../git2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -930,7 +931,7 @@
     <span class="ident">ancestor_label</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CString</span><span class="op">&gt;</span>,
     <span class="ident">target_dir</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CString</span><span class="op">&gt;</span>,
     <span class="ident">paths</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">CString</span><span class="op">&gt;</span>,
-    <span class="ident">path_ptrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span><span class="op">&gt;</span>,
+    <span class="ident">path_ptrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">*const</span> <span class="ident">c_char</span><span class="op">&gt;</span>,
     <span class="ident">file_perm</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>,
     <span class="ident">dir_perm</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>,
     <span class="ident">disable_filters</span>: <span class="ident">bool</span>,
@@ -1011,7 +1012,7 @@
 
     <span class="doccomment">/// Indicate whether the repository will be cloned as a bare repository or</span>
     <span class="doccomment">/// not.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bare</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">bare</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RepoBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bare</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">bare</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">RepoBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">bare</span> <span class="op">=</span> <span class="ident">bare</span>;
         <span class="self">self</span>
     }
@@ -1019,7 +1020,7 @@
     <span class="doccomment">/// Specify the name of the branch to check out after the clone.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// If not specified, the remote&#39;s default branch will be used.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">branch</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">branch</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RepoBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">branch</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">branch</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">RepoBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">branch</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">CString::new</span>(<span class="ident">branch</span>).<span class="ident">unwrap</span>());
         <span class="self">self</span>
     }
@@ -1029,7 +1030,7 @@
     <span class="doccomment">/// Bypassing it means that instead of a fetch libgit2 will copy the object</span>
     <span class="doccomment">/// database directory instead of figuring out what it needs, which is</span>
     <span class="doccomment">/// faster. If possible, it will hardlink the files to save space.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clone_local</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">clone_local</span>: <span class="ident">CloneLocal</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RepoBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clone_local</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">clone_local</span>: <span class="ident">CloneLocal</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">RepoBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">clone_local</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">clone_local</span>);
         <span class="self">self</span>
     }
@@ -1041,7 +1042,7 @@
     <span class="doccomment">/// `false`, the git-aware transport will not be bypassed.</span>
     <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;use `clone_local` instead&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">local</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">local</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RepoBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">local</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">local</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">RepoBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">local</span> <span class="op">=</span> <span class="ident">local</span>;
         <span class="self">self</span>
     }
@@ -1050,14 +1051,14 @@
     <span class="doccomment">/// transport mechanism.</span>
     <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;use `clone_local` instead&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hardlinks</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">links</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RepoBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hardlinks</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">links</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">RepoBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">hardlinks</span> <span class="op">=</span> <span class="ident">links</span>;
         <span class="self">self</span>
     }
 
     <span class="doccomment">/// Configure the checkout which will be performed by consuming a checkout</span>
     <span class="doccomment">/// builder.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_checkout</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">checkout</span>: <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RepoBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_checkout</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">checkout</span>: <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">RepoBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">checkout</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">checkout</span>);
         <span class="self">self</span>
     }
@@ -1066,14 +1067,14 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// The callbacks are used for reporting fetch progress, and for acquiring</span>
     <span class="doccomment">/// credentials in the event they are needed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fetch_options</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">fetch_opts</span>: <span class="ident">FetchOptions</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RepoBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fetch_options</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">fetch_opts</span>: <span class="ident">FetchOptions</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">RepoBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">fetch_opts</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">fetch_opts</span>);
         <span class="self">self</span>
     }
 
     <span class="doccomment">/// Configures a callback used to create the git remote, prior to its being</span>
     <span class="doccomment">/// used to perform the clone operation.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remote_create</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RepoBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remote_create</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">RepoBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Repository</span>, <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Remote</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;cb</span>,
     {
@@ -1085,11 +1086,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This will use the options configured so far to clone the specified url</span>
     <span class="doccomment">/// into the specified local path.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">url</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">into</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Repository</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">url</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">into</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Repository</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">opts</span>: <span class="ident">raw::git_clone_options</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">mem::zeroed</span>() };
         <span class="kw">unsafe</span> {
             <span class="macro">try_call!</span>(<span class="ident">raw::git_clone_init_options</span>(
-                <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">opts</span>,
+                <span class="kw-2">&amp;mut</span> <span class="ident">opts</span>,
                 <span class="ident">raw::GIT_CLONE_OPTIONS_VERSION</span>
             ));
         }
@@ -1116,13 +1117,13 @@
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">c</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">checkout</span> {
             <span class="kw">unsafe</span> {
-                <span class="ident">c</span>.<span class="ident">configure</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">opts</span>.<span class="ident">checkout_opts</span>);
+                <span class="ident">c</span>.<span class="ident">configure</span>(<span class="kw-2">&amp;mut</span> <span class="ident">opts</span>.<span class="ident">checkout_opts</span>);
             }
         }
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">callback</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">remote_create</span> {
             <span class="ident">opts</span>.<span class="ident">remote_cb</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">remote_create_cb</span>);
-            <span class="ident">opts</span>.<span class="ident">remote_cb_payload</span> <span class="op">=</span> <span class="ident">callback</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>;
+            <span class="ident">opts</span>.<span class="ident">remote_cb_payload</span> <span class="op">=</span> <span class="ident">callback</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>;
         }
 
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">CString::new</span>(<span class="ident">url</span>)<span class="question-mark">?</span>;
@@ -1130,25 +1131,25 @@
         <span class="kw">let</span> <span class="ident">into</span> <span class="op">=</span> <span class="ident">into</span>.<span class="ident">into_c_string</span>()<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
         <span class="kw">unsafe</span> {
-            <span class="macro">try_call!</span>(<span class="ident">raw::git_clone</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">raw</span>, <span class="ident">url</span>, <span class="ident">into</span>, <span class="kw-2">&amp;</span><span class="ident">opts</span>));
+            <span class="macro">try_call!</span>(<span class="ident">raw::git_clone</span>(<span class="kw-2">&amp;mut</span> <span class="ident">raw</span>, <span class="ident">url</span>, <span class="ident">into</span>, <span class="kw-2">&amp;</span><span class="ident">opts</span>));
             <span class="prelude-val">Ok</span>(<span class="ident">Binding::from_raw</span>(<span class="ident">raw</span>))
         }
     }
 }
 
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">remote_create_cb</span>(
-    <span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">raw::git_remote</span>,
-    <span class="ident">repo</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">raw::git_repository</span>,
-    <span class="ident">name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
-    <span class="ident">url</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
-    <span class="ident">payload</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
+    <span class="ident">out</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">raw::git_remote</span>,
+    <span class="ident">repo</span>: <span class="kw-2">*mut</span> <span class="ident">raw::git_repository</span>,
+    <span class="ident">name</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>,
+    <span class="ident">url</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>,
+    <span class="ident">payload</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
 ) -&gt; <span class="ident">c_int</span> {
     <span class="kw">unsafe</span> {
         <span class="kw">let</span> <span class="ident">repo</span> <span class="op">=</span> <span class="ident">Repository::from_raw</span>(<span class="ident">repo</span>);
         <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="ident">panic::wrap</span>(<span class="op">|</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">CStr::from_ptr</span>(<span class="ident">name</span>).<span class="ident">to_str</span>().<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">CStr::from_ptr</span>(<span class="ident">url</span>).<span class="ident">to_str</span>().<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">payload</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">RemoteCreate</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+            <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">payload</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">RemoteCreate</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span>;
             <span class="kw">match</span> (<span class="kw-2">*</span><span class="ident">f</span>)(<span class="kw-2">&amp;</span><span class="ident">repo</span>, <span class="ident">name</span>, <span class="ident">url</span>) {
                 <span class="prelude-val">Ok</span>(<span class="ident">remote</span>) =&gt; {
                     <span class="kw-2">*</span><span class="ident">out</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::remote::remote_into_raw</span>(<span class="ident">remote</span>);
@@ -1192,7 +1193,7 @@
 
     <span class="doccomment">/// Indicate that this checkout should perform a dry run by checking for</span>
     <span class="doccomment">/// conflicts but not make any actual changes.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dry_run</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dry_run</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">checkout_opts</span> <span class="op">&amp;=</span> <span class="op">!</span>((<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">4</span>) <span class="op">-</span> <span class="number">1</span>);
         <span class="self">self</span>.<span class="ident">checkout_opts</span> <span class="op">|</span><span class="op">=</span> <span class="ident">raw::GIT_CHECKOUT_NONE</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="self">self</span>
@@ -1200,7 +1201,7 @@
 
     <span class="doccomment">/// Take any action necessary to get the working directory to match the</span>
     <span class="doccomment">/// target including potentially discarding modified files.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">force</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">force</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">checkout_opts</span> <span class="op">&amp;=</span> <span class="op">!</span>((<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">4</span>) <span class="op">-</span> <span class="number">1</span>);
         <span class="self">self</span>.<span class="ident">checkout_opts</span> <span class="op">|</span><span class="op">=</span> <span class="ident">raw::GIT_CHECKOUT_FORCE</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="self">self</span>
@@ -1210,13 +1211,13 @@
     <span class="doccomment">/// files to be created but not overwriting extisting files or changes.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This is the default.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">safe</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">safe</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">checkout_opts</span> <span class="op">&amp;=</span> <span class="op">!</span>((<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">4</span>) <span class="op">-</span> <span class="number">1</span>);
         <span class="self">self</span>.<span class="ident">checkout_opts</span> <span class="op">|</span><span class="op">=</span> <span class="ident">raw::GIT_CHECKOUT_SAFE</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="self">self</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">flag</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">bit</span>: <span class="ident">raw::git_checkout_strategy_t</span>, <span class="ident">on</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">flag</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">bit</span>: <span class="ident">raw::git_checkout_strategy_t</span>, <span class="ident">on</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">on</span> {
             <span class="self">self</span>.<span class="ident">checkout_opts</span> <span class="op">|</span><span class="op">=</span> <span class="ident">bit</span> <span class="kw">as</span> <span class="ident">u32</span>;
         } <span class="kw">else</span> {
@@ -1228,7 +1229,7 @@
     <span class="doccomment">/// In safe mode, create files that don&#39;t exist.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Defaults to false.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recreate_missing</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">allow</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recreate_missing</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">allow</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">flag</span>(<span class="ident">raw::GIT_CHECKOUT_RECREATE_MISSING</span>, <span class="ident">allow</span>)
     }
 
@@ -1236,21 +1237,21 @@
     <span class="doccomment">/// instead of canceling the checkout.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Defaults to false.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">allow_conflicts</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">allow</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">allow_conflicts</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">allow</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">flag</span>(<span class="ident">raw::GIT_CHECKOUT_ALLOW_CONFLICTS</span>, <span class="ident">allow</span>)
     }
 
     <span class="doccomment">/// Remove untracked files from the working dir.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Defaults to false.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_untracked</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">remove</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_untracked</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">remove</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">flag</span>(<span class="ident">raw::GIT_CHECKOUT_REMOVE_UNTRACKED</span>, <span class="ident">remove</span>)
     }
 
     <span class="doccomment">/// Remove ignored files from the working dir.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Defaults to false.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_ignored</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">remove</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_ignored</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">remove</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">flag</span>(<span class="ident">raw::GIT_CHECKOUT_REMOVE_IGNORED</span>, <span class="ident">remove</span>)
     }
 
@@ -1259,7 +1260,7 @@
     <span class="doccomment">/// If set, files will not be created or deleted.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Defaults to false.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_only</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">update</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_only</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">update</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">flag</span>(<span class="ident">raw::GIT_CHECKOUT_UPDATE_ONLY</span>, <span class="ident">update</span>)
     }
 
@@ -1267,7 +1268,7 @@
     <span class="doccomment">/// index.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Defaults to true.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_index</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">update</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_index</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">update</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">flag</span>(<span class="ident">raw::GIT_CHECKOUT_DONT_UPDATE_INDEX</span>, <span class="op">!</span><span class="ident">update</span>)
     }
 
@@ -1275,14 +1276,14 @@
     <span class="doccomment">/// disk before any operations.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Defaults to true,</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">refresh</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">refresh</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">refresh</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">refresh</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">flag</span>(<span class="ident">raw::GIT_CHECKOUT_NO_REFRESH</span>, <span class="op">!</span><span class="ident">refresh</span>)
     }
 
     <span class="doccomment">/// Skip files with unmerged index entries.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Defaults to false.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">skip_unmerged</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">skip</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">skip_unmerged</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">skip</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">flag</span>(<span class="ident">raw::GIT_CHECKOUT_SKIP_UNMERGED</span>, <span class="ident">skip</span>)
     }
 
@@ -1290,7 +1291,7 @@
     <span class="doccomment">/// stage 2 version of the file (&quot;ours&quot;).</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Defaults to false.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">use_ours</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ours</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">use_ours</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ours</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">flag</span>(<span class="ident">raw::GIT_CHECKOUT_USE_OURS</span>, <span class="ident">ours</span>)
     }
 
@@ -1298,21 +1299,21 @@
     <span class="doccomment">/// stage 3 version of the file (&quot;theirs&quot;).</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Defaults to false.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">use_theirs</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">theirs</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">use_theirs</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">theirs</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">flag</span>(<span class="ident">raw::GIT_CHECKOUT_USE_THEIRS</span>, <span class="ident">theirs</span>)
     }
 
     <span class="doccomment">/// Indicate whether ignored files should be overwritten during the checkout.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Defaults to true.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">overwrite_ignored</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">overwrite</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">overwrite_ignored</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">overwrite</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">flag</span>(<span class="ident">raw::GIT_CHECKOUT_DONT_OVERWRITE_IGNORED</span>, <span class="op">!</span><span class="ident">overwrite</span>)
     }
 
     <span class="doccomment">/// Indicate whether a normal merge file should be written for conflicts.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Defaults to false.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">conflict_style_merge</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">on</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">conflict_style_merge</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">on</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">flag</span>(<span class="ident">raw::GIT_CHECKOUT_CONFLICT_STYLE_MERGE</span>, <span class="ident">on</span>)
     }
 
@@ -1321,9 +1322,9 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Defaults to none.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">notify_on</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">notification_types</span>: <span class="ident">CheckoutNotificationType</span>,
-    ) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">notify_flags</span> <span class="op">=</span> <span class="ident">notification_types</span>;
         <span class="self">self</span>
     }
@@ -1332,12 +1333,12 @@
     <span class="doccomment">/// for conflicts.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Defaults to false.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">conflict_style_diff3</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">on</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">conflict_style_diff3</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">on</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">flag</span>(<span class="ident">raw::GIT_CHECKOUT_CONFLICT_STYLE_DIFF3</span>, <span class="ident">on</span>)
     }
 
     <span class="doccomment">/// Indicate whether to apply filters like CRLF conversion.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">disable_filters</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">disable</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">disable_filters</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">disable</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">disable_filters</span> <span class="op">=</span> <span class="ident">disable</span>;
         <span class="self">self</span>
     }
@@ -1345,7 +1346,7 @@
     <span class="doccomment">/// Set the mode with which new directories are created.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Default is 0755</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dir_perm</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">perm</span>: <span class="ident">i32</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dir_perm</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">perm</span>: <span class="ident">i32</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">dir_perm</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">perm</span>);
         <span class="self">self</span>
     }
@@ -1353,7 +1354,7 @@
     <span class="doccomment">/// Set the mode with which new files are created.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The default is 0644 or 0755 as dictated by the blob.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">file_perm</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">perm</span>: <span class="ident">i32</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">file_perm</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">perm</span>: <span class="ident">i32</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">file_perm</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">perm</span>);
         <span class="self">self</span>
     }
@@ -1362,7 +1363,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// If no paths are specified, then all files are checked out. Otherwise</span>
     <span class="doccomment">/// only these specified paths are checked out.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">path</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntoCString</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">path</span>: <span class="ident">T</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">path</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntoCString</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">path</span>: <span class="ident">T</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">util::cstring_to_repo_path</span>(<span class="ident">path</span>).<span class="ident">unwrap</span>();
         <span class="self">self</span>.<span class="ident">path_ptrs</span>.<span class="ident">push</span>(<span class="ident">path</span>.<span class="ident">as_ptr</span>());
         <span class="self">self</span>.<span class="ident">paths</span>.<span class="ident">push</span>(<span class="ident">path</span>);
@@ -1370,32 +1371,32 @@
     }
 
     <span class="doccomment">/// Set the directory to check out to</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">target_dir</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">target_dir</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
         <span class="comment">// Normal file path OK (does not need Windows conversion).</span>
         <span class="self">self</span>.<span class="ident">target_dir</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">dst</span>.<span class="ident">into_c_string</span>().<span class="ident">unwrap</span>());
         <span class="self">self</span>
     }
 
     <span class="doccomment">/// The name of the common ancestor side of conflicts</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ancestor_label</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">label</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ancestor_label</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">label</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">ancestor_label</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">CString::new</span>(<span class="ident">label</span>).<span class="ident">unwrap</span>());
         <span class="self">self</span>
     }
 
     <span class="doccomment">/// The name of the common our side of conflicts</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">our_label</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">label</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">our_label</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">label</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">our_label</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">CString::new</span>(<span class="ident">label</span>).<span class="ident">unwrap</span>());
         <span class="self">self</span>
     }
 
     <span class="doccomment">/// The name of the common their side of conflicts</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">their_label</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">label</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">their_label</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">label</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">their_label</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">CString::new</span>(<span class="ident">label</span>).<span class="ident">unwrap</span>());
         <span class="self">self</span>
     }
 
     <span class="doccomment">/// Set a callback to receive notifications of checkout progress.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">progress</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cb</span>: <span class="ident">F</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">progress</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cb</span>: <span class="ident">F</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Path</span><span class="op">&gt;</span>, <span class="ident">usize</span>, <span class="ident">usize</span>) <span class="op">+</span> <span class="lifetime">&#39;cb</span>,
     {
@@ -1407,7 +1408,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Callbacks are invoked prior to modifying any files on disk.</span>
     <span class="doccomment">/// Returning `false` from the callback will cancel the checkout.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">notify</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cb</span>: <span class="ident">F</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">notify</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cb</span>: <span class="ident">F</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">FnMut</span>(
                 <span class="ident">CheckoutNotificationType</span>,
@@ -1426,14 +1427,14 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This method is unsafe as there is no guarantee that this structure will</span>
     <span class="doccomment">/// outlive the provided checkout options.</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">configure</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">opts</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">raw::git_checkout_options</span>) {
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">configure</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">opts</span>: <span class="kw-2">&amp;mut</span> <span class="ident">raw::git_checkout_options</span>) {
         <span class="ident">opts</span>.<span class="ident">version</span> <span class="op">=</span> <span class="ident">raw::GIT_CHECKOUT_OPTIONS_VERSION</span>;
         <span class="ident">opts</span>.<span class="ident">disable_filters</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">disable_filters</span> <span class="kw">as</span> <span class="ident">c_int</span>;
         <span class="ident">opts</span>.<span class="ident">dir_mode</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">dir_perm</span>.<span class="ident">unwrap_or</span>(<span class="number">0</span>) <span class="kw">as</span> <span class="ident">c_uint</span>;
         <span class="ident">opts</span>.<span class="ident">file_mode</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">file_perm</span>.<span class="ident">unwrap_or</span>(<span class="number">0</span>) <span class="kw">as</span> <span class="ident">c_uint</span>;
 
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">path_ptrs</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">opts</span>.<span class="ident">paths</span>.<span class="ident">strings</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">path_ptrs</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>;
+            <span class="ident">opts</span>.<span class="ident">paths</span>.<span class="ident">strings</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">path_ptrs</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>;
             <span class="ident">opts</span>.<span class="ident">paths</span>.<span class="ident">count</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">path_ptrs</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">size_t</span>;
         }
 
@@ -1451,11 +1452,11 @@
         }
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">progress</span>.<span class="ident">is_some</span>() {
             <span class="ident">opts</span>.<span class="ident">progress_cb</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">progress_cb</span>);
-            <span class="ident">opts</span>.<span class="ident">progress_payload</span> <span class="op">=</span> <span class="self">self</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>;
+            <span class="ident">opts</span>.<span class="ident">progress_payload</span> <span class="op">=</span> <span class="self">self</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>;
         }
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">notify</span>.<span class="ident">is_some</span>() {
             <span class="ident">opts</span>.<span class="ident">notify_cb</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">notify_cb</span>);
-            <span class="ident">opts</span>.<span class="ident">notify_payload</span> <span class="op">=</span> <span class="self">self</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>;
+            <span class="ident">opts</span>.<span class="ident">notify_payload</span> <span class="op">=</span> <span class="self">self</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>;
             <span class="ident">opts</span>.<span class="ident">notify_flags</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">notify_flags</span>.<span class="ident">bits</span>() <span class="kw">as</span> <span class="ident">c_uint</span>;
         }
         <span class="ident">opts</span>.<span class="ident">checkout_strategy</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">checkout_opts</span> <span class="kw">as</span> <span class="ident">c_uint</span>;
@@ -1463,13 +1464,13 @@
 }
 
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">progress_cb</span>(
-    <span class="ident">path</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
+    <span class="ident">path</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>,
     <span class="ident">completed</span>: <span class="ident">size_t</span>,
     <span class="ident">total</span>: <span class="ident">size_t</span>,
-    <span class="ident">data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
+    <span class="ident">data</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
 ) {
     <span class="ident">panic::wrap</span>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="ident">payload</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span>(<span class="ident">data</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>);
+        <span class="kw">let</span> <span class="ident">payload</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span>(<span class="ident">data</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>);
         <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">payload</span>.<span class="ident">progress</span> {
             <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">c</span>) =&gt; <span class="ident">c</span>,
             <span class="prelude-val">None</span> =&gt; <span class="kw">return</span>,
@@ -1485,15 +1486,15 @@
 
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">notify_cb</span>(
     <span class="ident">why</span>: <span class="ident">raw::git_checkout_notify_t</span>,
-    <span class="ident">path</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
-    <span class="ident">baseline</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">raw::git_diff_file</span>,
-    <span class="ident">target</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">raw::git_diff_file</span>,
-    <span class="ident">workdir</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">raw::git_diff_file</span>,
-    <span class="ident">data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
+    <span class="ident">path</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>,
+    <span class="ident">baseline</span>: <span class="kw-2">*const</span> <span class="ident">raw::git_diff_file</span>,
+    <span class="ident">target</span>: <span class="kw-2">*const</span> <span class="ident">raw::git_diff_file</span>,
+    <span class="ident">workdir</span>: <span class="kw-2">*const</span> <span class="ident">raw::git_diff_file</span>,
+    <span class="ident">data</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
 ) -&gt; <span class="ident">c_int</span> {
     <span class="comment">// pack callback etc</span>
     <span class="ident">panic::wrap</span>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="ident">payload</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span>(<span class="ident">data</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>);
+        <span class="kw">let</span> <span class="ident">payload</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span>(<span class="ident">data</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>);
         <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">payload</span>.<span class="ident">notify</span> {
             <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">c</span>) =&gt; <span class="ident">c</span>,
             <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="number">0</span>,
@@ -1551,7 +1552,7 @@
     }
 
     <span class="doccomment">/// Add an update removing the specified `path` from a tree.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntoCString</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">path</span>: <span class="ident">T</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntoCString</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">path</span>: <span class="ident">T</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">util::cstring_to_repo_path</span>(<span class="ident">path</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">path_ptr</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">as_ptr</span>();
         <span class="self">self</span>.<span class="ident">paths</span>.<span class="ident">push</span>(<span class="ident">path</span>);
@@ -1571,7 +1572,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Note that libgit2 does not support an upsert of a previously removed path, or an upsert</span>
     <span class="doccomment">/// that changes the type of an object (such as from tree to blob or vice versa).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">upsert</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntoCString</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">path</span>: <span class="ident">T</span>, <span class="ident">id</span>: <span class="ident">Oid</span>, <span class="ident">filemode</span>: <span class="ident">FileMode</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">upsert</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntoCString</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">path</span>: <span class="ident">T</span>, <span class="ident">id</span>: <span class="ident">Oid</span>, <span class="ident">filemode</span>: <span class="ident">FileMode</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">util::cstring_to_repo_path</span>(<span class="ident">path</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">path_ptr</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">as_ptr</span>();
         <span class="self">self</span>.<span class="ident">paths</span>.<span class="ident">push</span>(<span class="ident">path</span>);
@@ -1587,19 +1588,19 @@
     <span class="doccomment">/// Create a new tree from the specified baseline and this series of updates.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The baseline tree must exist in the specified repository.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_updated</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">repo</span>: <span class="kw-2">&amp;</span><span class="ident">Repository</span>, <span class="ident">baseline</span>: <span class="kw-2">&amp;</span><span class="ident">Tree</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Oid</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_updated</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">repo</span>: <span class="kw-2">&amp;</span><span class="ident">Repository</span>, <span class="ident">baseline</span>: <span class="kw-2">&amp;</span><span class="ident">Tree</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Oid</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">raw::git_oid</span> {
             <span class="ident">id</span>: [<span class="number">0</span>; <span class="ident">raw::GIT_OID_RAWSZ</span>],
         };
         <span class="kw">unsafe</span> {
             <span class="macro">try_call!</span>(<span class="ident">raw::git_tree_create_updated</span>(
-                <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ret</span>,
+                <span class="kw-2">&amp;mut</span> <span class="ident">ret</span>,
                 <span class="ident">repo</span>.<span class="ident">raw</span>(),
                 <span class="ident">baseline</span>.<span class="ident">raw</span>(),
                 <span class="self">self</span>.<span class="ident">updates</span>.<span class="ident">len</span>(),
                 <span class="self">self</span>.<span class="ident">updates</span>.<span class="ident">as_ptr</span>()
             ));
-            <span class="prelude-val">Ok</span>(<span class="ident">Binding::from_raw</span>(<span class="kw-2">&amp;</span><span class="ident">ret</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>))
+            <span class="prelude-val">Ok</span>(<span class="ident">Binding::from_raw</span>(<span class="kw-2">&amp;</span><span class="ident">ret</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>))
         }
     }
 }
@@ -1700,11 +1701,10 @@
             <span class="macro">assert!</span>(<span class="ident">workdir</span>.<span class="ident">is_none</span>());
             <span class="bool-val">true</span>
         });
-        <span class="ident">repo</span>.<span class="ident">checkout_index</span>(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">index</span>), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">checkout_opts</span>))
+        <span class="ident">repo</span>.<span class="ident">checkout_index</span>(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut</span> <span class="ident">index</span>), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut</span> <span class="ident">checkout_opts</span>))
             .<span class="ident">unwrap</span>();
     }
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
 </body></html>

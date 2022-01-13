@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;git2-0.13.25&#x2F;src&#x2F;stash.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stash.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../git2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;git2-0.13.25&#x2F;src&#x2F;stash.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stash.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../git2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -299,20 +300,20 @@
             <span class="ident">raw_opts</span>: <span class="kw">unsafe</span> { <span class="ident">mem::zeroed</span>() },
         };
         <span class="macro">assert_eq!</span>(
-            <span class="kw">unsafe</span> { <span class="ident">raw::git_stash_apply_init_options</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">opts</span>.<span class="ident">raw_opts</span>, <span class="number">1</span>) },
+            <span class="kw">unsafe</span> { <span class="ident">raw::git_stash_apply_init_options</span>(<span class="kw-2">&amp;mut</span> <span class="ident">opts</span>.<span class="ident">raw_opts</span>, <span class="number">1</span>) },
             <span class="number">0</span>
         );
         <span class="ident">opts</span>
     }
 
     <span class="doccomment">/// Set stash application flag to GIT_STASH_APPLY_REINSTATE_INDEX</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reinstantiate_index</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">StashApplyOptions</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reinstantiate_index</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">StashApplyOptions</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">raw_opts</span>.<span class="ident">flags</span> <span class="op">=</span> <span class="ident">raw::GIT_STASH_APPLY_REINSTATE_INDEX</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="self">self</span>
     }
 
     <span class="doccomment">/// Options to use when writing files to the working directory</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">checkout_options</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">opts</span>: <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">StashApplyOptions</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">checkout_options</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">opts</span>: <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">StashApplyOptions</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">checkout_options</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">opts</span>);
         <span class="self">self</span>
     }
@@ -321,21 +322,21 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Return `true` to continue processing, or `false` to</span>
     <span class="doccomment">/// abort the stash application.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">progress_cb</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">callback</span>: <span class="ident">C</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">StashApplyOptions</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">progress_cb</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">callback</span>: <span class="ident">C</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">StashApplyOptions</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">C</span>: <span class="ident">FnMut</span>(<span class="ident">StashApplyProgress</span>) -&gt; <span class="ident">bool</span> <span class="op">+</span> <span class="lifetime">&#39;cb</span>,
     {
         <span class="self">self</span>.<span class="ident">progress</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">callback</span>) <span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">StashApplyProgressCb</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span><span class="op">&gt;</span>);
         <span class="self">self</span>.<span class="ident">raw_opts</span>.<span class="ident">progress_cb</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">stash_apply_progress_cb</span>);
-        <span class="self">self</span>.<span class="ident">raw_opts</span>.<span class="ident">progress_payload</span> <span class="op">=</span> <span class="self">self</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>;
+        <span class="self">self</span>.<span class="ident">raw_opts</span>.<span class="ident">progress_payload</span> <span class="op">=</span> <span class="self">self</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>;
         <span class="self">self</span>
     }
 
     <span class="doccomment">/// Pointer to a raw git_stash_apply_options</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">raw::git_stash_apply_options</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">raw::git_stash_apply_options</span> {
         <span class="kw">unsafe</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">opts</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">checkout_options</span>.<span class="ident">as_mut</span>() {
-                <span class="ident">opts</span>.<span class="ident">configure</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">raw_opts</span>.<span class="ident">checkout_options</span>);
+                <span class="ident">opts</span>.<span class="ident">configure</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">raw_opts</span>.<span class="ident">checkout_options</span>);
             }
         }
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">raw_opts</span>
@@ -350,14 +351,14 @@
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused</span>)]</span>
 <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">stash_cb</span>(
     <span class="ident">index</span>: <span class="ident">size_t</span>,
-    <span class="ident">message</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
-    <span class="ident">stash_id</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">raw::git_oid</span>,
-    <span class="ident">payload</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
+    <span class="ident">message</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>,
+    <span class="ident">stash_id</span>: <span class="kw-2">*const</span> <span class="ident">raw::git_oid</span>,
+    <span class="ident">payload</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
 ) -&gt; <span class="ident">c_int</span> {
     <span class="ident">panic::wrap</span>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span>(<span class="ident">payload</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">StashCbData</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span>(<span class="ident">payload</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">StashCbData</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>);
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">callback</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">data</span>.<span class="ident">callback</span>;
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">callback</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">data</span>.<span class="ident">callback</span>;
             <span class="ident">callback</span>(
                 <span class="ident">index</span>,
                 <span class="ident">CStr::from_ptr</span>(<span class="ident">message</span>).<span class="ident">to_str</span>().<span class="ident">unwrap</span>(),
@@ -392,10 +393,10 @@
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused</span>)]</span>
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">stash_apply_progress_cb</span>(
     <span class="ident">progress</span>: <span class="ident">raw::git_stash_apply_progress_t</span>,
-    <span class="ident">payload</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
+    <span class="ident">payload</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
 ) -&gt; <span class="ident">c_int</span> {
     <span class="ident">panic::wrap</span>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">options</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span>(<span class="ident">payload</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">StashApplyOptions</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">options</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span>(<span class="ident">payload</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">StashApplyOptions</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>);
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">callback</span> <span class="op">=</span> <span class="ident">options</span>.<span class="ident">progress</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>();
             <span class="ident">callback</span>(<span class="ident">convert_progress</span>(<span class="ident">progress</span>))
@@ -421,7 +422,7 @@
 
     <span class="kw">fn</span> <span class="ident">make_stash</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="ident">next</span>: <span class="ident">C</span>)
     <span class="kw">where</span>
-        <span class="ident">C</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Repository</span>),
+        <span class="ident">C</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;mut</span> <span class="ident">Repository</span>),
     {
         <span class="kw">let</span> (<span class="ident">_td</span>, <span class="kw-2">mut</span> <span class="ident">repo</span>) <span class="op">=</span> <span class="ident">repo_init</span>();
         <span class="kw">let</span> <span class="ident">signature</span> <span class="op">=</span> <span class="ident">repo</span>.<span class="ident">signature</span>().<span class="ident">unwrap</span>();
@@ -451,10 +452,10 @@
         .<span class="ident">unwrap</span>();
 
         <span class="macro">assert!</span>(<span class="ident">count</span> <span class="op">==</span> <span class="number">1</span>);
-        <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">repo</span>);
+        <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="ident">repo</span>);
     }
 
-    <span class="kw">fn</span> <span class="ident">count_stash</span>(<span class="ident">repo</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Repository</span>) -&gt; <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">count_stash</span>(<span class="ident">repo</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Repository</span>) -&gt; <span class="ident">usize</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">count</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="ident">repo</span>.<span class="ident">stash_foreach</span>(<span class="op">|</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">|</span> {
             <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
@@ -489,7 +490,7 @@
                 <span class="bool-val">true</span>
             });
 
-            <span class="ident">repo</span>.<span class="ident">stash_apply</span>(<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">options</span>)).<span class="ident">unwrap</span>();
+            <span class="ident">repo</span>.<span class="ident">stash_apply</span>(<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut</span> <span class="ident">options</span>)).<span class="ident">unwrap</span>();
             <span class="macro">assert!</span>(<span class="ident">count_stash</span>(<span class="ident">repo</span>) <span class="op">==</span> <span class="number">1</span>)
         })
     }
@@ -522,5 +523,4 @@
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
 </body></html>

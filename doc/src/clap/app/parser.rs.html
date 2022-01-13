@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;clap-2.34.0&#x2F;src&#x2F;app&#x2F;parser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parser.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../clap/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;clap-2.34.0&#x2F;src&#x2F;app&#x2F;parser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parser.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../clap/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -2323,7 +2324,7 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">help_short</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">help_short</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) {
         <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">s</span>
             .<span class="ident">trim_left_matches</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;-&#39;</span>)
             .<span class="ident">chars</span>()
@@ -2332,7 +2333,7 @@
         <span class="self">self</span>.<span class="ident">help_short</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>);
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">version_short</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">version_short</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) {
         <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">s</span>
             .<span class="ident">trim_left_matches</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;-&#39;</span>)
             .<span class="ident">chars</span>()
@@ -2341,7 +2342,7 @@
         <span class="self">self</span>.<span class="ident">version_short</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>);
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gen_completions_to</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">for_shell</span>: <span class="ident">Shell</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">W</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gen_completions_to</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">for_shell</span>: <span class="ident">Shell</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>) {
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_set</span>(<span class="ident">AS::Propagated</span>) {
             <span class="self">self</span>.<span class="ident">propagate_help_version</span>();
             <span class="self">self</span>.<span class="ident">build_bin_names</span>();
@@ -2353,7 +2354,7 @@
         <span class="ident">ComplGen::new</span>(<span class="self">self</span>).<span class="ident">generate</span>(<span class="ident">for_shell</span>, <span class="ident">buf</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gen_completions</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">for_shell</span>: <span class="ident">Shell</span>, <span class="ident">od</span>: <span class="ident">OsString</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gen_completions</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">for_shell</span>: <span class="ident">Shell</span>, <span class="ident">od</span>: <span class="ident">OsString</span>) {
         <span class="kw">use</span> <span class="ident">std::error::Error</span>;
 
         <span class="kw">let</span> <span class="ident">out_dir</span> <span class="op">=</span> <span class="ident">PathBuf::from</span>(<span class="ident">od</span>);
@@ -2370,7 +2371,7 @@
             <span class="prelude-val">Err</span>(<span class="ident">why</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;couldn&#39;t create completion file: {}&quot;</span>, <span class="ident">why</span>.<span class="ident">description</span>()),
             <span class="prelude-val">Ok</span>(<span class="ident">file</span>) =&gt; <span class="ident">file</span>,
         };
-        <span class="self">self</span>.<span class="ident">gen_completions_to</span>(<span class="ident">for_shell</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">file</span>)
+        <span class="self">self</span>.<span class="ident">gen_completions_to</span>(<span class="ident">for_shell</span>, <span class="kw-2">&amp;mut</span> <span class="ident">file</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -2466,7 +2467,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">add_conditional_reqs</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">Arg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>) {
+    <span class="kw">fn</span> <span class="ident">add_conditional_reqs</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">Arg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>) {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">r_ifs</span>) <span class="op">=</span> <span class="ident">a</span>.<span class="ident">r_ifs</span> {
             <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">arg</span>, <span class="ident">val</span>) <span class="kw">in</span> <span class="ident">r_ifs</span> {
                 <span class="self">self</span>.<span class="ident">r_ifs</span>.<span class="ident">push</span>((<span class="ident">arg</span>, <span class="ident">val</span>, <span class="ident">a</span>.<span class="ident">b</span>.<span class="ident">name</span>));
@@ -2475,7 +2476,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">add_arg_groups</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">Arg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>) {
+    <span class="kw">fn</span> <span class="ident">add_arg_groups</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">Arg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>) {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">grps</span>) <span class="op">=</span> <span class="ident">a</span>.<span class="ident">b</span>.<span class="ident">groups</span> {
             <span class="kw">for</span> <span class="ident">g</span> <span class="kw">in</span> <span class="ident">grps</span> {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">found</span> <span class="op">=</span> <span class="bool-val">false</span>;
@@ -2493,7 +2494,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">add_reqs</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">Arg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>) {
+    <span class="kw">fn</span> <span class="ident">add_reqs</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">Arg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>) {
         <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Required</span>) {
             <span class="comment">// If the arg is required, add all it&#39;s requirements to master required list</span>
             <span class="self">self</span>.<span class="ident">required</span>.<span class="ident">push</span>(<span class="ident">a</span>.<span class="ident">b</span>.<span class="ident">name</span>);
@@ -2510,7 +2511,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">implied_settings</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">Arg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>) {
+    <span class="kw">fn</span> <span class="ident">implied_settings</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">Arg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>) {
         <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Last</span>) {
             <span class="comment">// if an arg has `Last` set, we need to imply DontCollapseArgsInUsage so that args</span>
             <span class="comment">// in the usage string don&#39;t get confused or left out.</span>
@@ -2527,7 +2528,7 @@
     }
 
     <span class="comment">// actually adds the arguments</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_arg</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">a</span>: <span class="ident">Arg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_arg</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">a</span>: <span class="ident">Arg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>) {
         <span class="comment">// if it&#39;s global we have to clone anyways</span>
         <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Global</span>) {
             <span class="kw">return</span> <span class="self">self</span>.<span class="ident">add_arg_ref</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>);
@@ -2556,7 +2557,7 @@
         }
     }
     <span class="comment">// actually adds the arguments but from a borrow (which means we have to do some cloning)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_arg_ref</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">Arg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_arg_ref</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">Arg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>) {
         <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">debug_asserts</span>(<span class="ident">a</span>));
         <span class="self">self</span>.<span class="ident">add_conditional_reqs</span>(<span class="ident">a</span>);
         <span class="self">self</span>.<span class="ident">add_arg_groups</span>(<span class="ident">a</span>);
@@ -2584,7 +2585,7 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_group</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">group</span>: <span class="ident">ArgGroup</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_group</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">group</span>: <span class="ident">ArgGroup</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) {
         <span class="kw">if</span> <span class="ident">group</span>.<span class="ident">required</span> {
             <span class="self">self</span>.<span class="ident">required</span>.<span class="ident">push</span>(<span class="ident">group</span>.<span class="ident">name</span>);
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">reqs</span>) <span class="op">=</span> <span class="ident">group</span>.<span class="ident">requires</span> {
@@ -2609,7 +2610,7 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_subcommand</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">subcmd</span>: <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_subcommand</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">subcmd</span>: <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>) {
         <span class="macro">debugln!</span>(
             <span class="string">&quot;Parser::add_subcommand: term_w={:?}, name={}&quot;</span>,
             <span class="self">self</span>.<span class="ident">meta</span>.<span class="ident">term_w</span>,
@@ -2623,13 +2624,13 @@
         <span class="self">self</span>.<span class="ident">subcommands</span>.<span class="ident">push</span>(<span class="ident">subcmd</span>);
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">propagate_settings</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">propagate_settings</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="macro">debugln!</span>(
             <span class="string">&quot;Parser::propagate_settings: self={}, g_settings={:#?}&quot;</span>,
             <span class="self">self</span>.<span class="ident">meta</span>.<span class="ident">name</span>,
             <span class="self">self</span>.<span class="ident">g_settings</span>
         );
-        <span class="kw">for</span> <span class="ident">sc</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">subcommands</span> {
+        <span class="kw">for</span> <span class="ident">sc</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">subcommands</span> {
             <span class="macro">debugln!</span>(
                 <span class="string">&quot;Parser::propagate_settings: sc={}, settings={:#?}, g_settings={:#?}&quot;</span>,
                 <span class="ident">sc</span>.<span class="ident">p</span>.<span class="ident">meta</span>.<span class="ident">name</span>,
@@ -2658,7 +2659,7 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">derive_display_order</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">derive_display_order</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_set</span>(<span class="ident">AS::DeriveDisplayOrder</span>) {
             <span class="kw">let</span> <span class="ident">unified</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">is_set</span>(<span class="ident">AS::UnifiedHelpMessage</span>);
             <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">o</span>) <span class="kw">in</span> <span class="self">self</span>
@@ -2677,7 +2678,7 @@
             {
                 <span class="ident">f</span>.<span class="ident">s</span>.<span class="ident">disp_ord</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">unified</span> { <span class="ident">f</span>.<span class="ident">s</span>.<span class="ident">unified_ord</span> } <span class="kw">else</span> { <span class="ident">i</span> };
             }
-            <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">sc</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>
+            <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">sc</span>) <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>
                 .<span class="ident">subcommands</span>
                 .<span class="ident">iter_mut</span>()
                 .<span class="ident">enumerate</span>()
@@ -2686,7 +2687,7 @@
                 <span class="ident">sc</span>.<span class="ident">p</span>.<span class="ident">meta</span>.<span class="ident">disp_ord</span> <span class="op">=</span> <span class="ident">i</span>;
             }
         }
-        <span class="kw">for</span> <span class="ident">sc</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">subcommands</span> {
+        <span class="kw">for</span> <span class="ident">sc</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">subcommands</span> {
             <span class="ident">sc</span>.<span class="ident">p</span>.<span class="ident">derive_display_order</span>();
         }
     }
@@ -2762,12 +2763,12 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">s</span>: <span class="ident">AS</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">s</span>: <span class="ident">AS</span>) {
         <span class="self">self</span>.<span class="ident">settings</span>.<span class="ident">set</span>(<span class="ident">s</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unset</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">s</span>: <span class="ident">AS</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">s</span>: <span class="ident">AS</span>) {
         <span class="self">self</span>.<span class="ident">settings</span>.<span class="ident">unset</span>(<span class="ident">s</span>)
     }
 
@@ -2904,8 +2905,8 @@
         <span class="bool-val">true</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">propagate_globals</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="kw">for</span> <span class="ident">sc</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">subcommands</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">propagate_globals</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
+        <span class="kw">for</span> <span class="ident">sc</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">subcommands</span> {
             <span class="comment">// We have to create a new scope in order to tell rustc the borrow of `sc` is</span>
             <span class="comment">// done and to recursively call this method</span>
             {
@@ -2967,7 +2968,7 @@
         (<span class="bool-val">false</span>, <span class="prelude-val">None</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">parse_help_subcommand</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">it</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">I</span>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span><span class="ident">ParseResult</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">parse_help_subcommand</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">it</span>: <span class="kw-2">&amp;mut</span> <span class="ident">I</span>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span><span class="ident">ParseResult</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>,
         <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">OsString</span><span class="op">&gt;</span>,
@@ -3042,7 +3043,7 @@
 
     <span class="comment">// allow wrong self convention due to self.valid_neg_num = true and it&#39;s a private method</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;lints&quot;</span>, <span class="ident">allow</span>(<span class="ident">wrong_self_convention</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">is_new_arg</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">arg_os</span>: <span class="kw-2">&amp;</span><span class="ident">OsStr</span>, <span class="ident">needs_val_of</span>: <span class="ident">ParseResult</span>) -&gt; <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">is_new_arg</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">arg_os</span>: <span class="kw-2">&amp;</span><span class="ident">OsStr</span>, <span class="ident">needs_val_of</span>: <span class="ident">ParseResult</span>) -&gt; <span class="ident">bool</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;Parser::is_new_arg:{:?}:{:?}&quot;</span>, <span class="ident">arg_os</span>, <span class="ident">needs_val_of</span>);
         <span class="kw">let</span> <span class="ident">app_wide_settings</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_set</span>(<span class="ident">AS::AllowLeadingHyphen</span>) {
             <span class="bool-val">true</span>
@@ -3109,9 +3110,9 @@
         <span class="ident">allow</span>(<span class="ident">clippy::while_let_on_iterator</span>, <span class="ident">clippy::nonminimal_bool</span>)
     )]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_matches_with</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">T</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ArgMatcher</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-        <span class="ident">it</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Peekable</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>,
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">matcher</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ArgMatcher</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+        <span class="ident">it</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Peekable</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>,
     ) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>,
@@ -3192,8 +3193,8 @@
                         <span class="kw">let</span> <span class="ident">any_arg</span> <span class="op">=</span> <span class="macro">find_any_by_name!</span>(<span class="self">self</span>, <span class="self">self</span>.<span class="ident">cache</span>.<span class="ident">unwrap_or</span>(<span class="string">&quot;&quot;</span>));
                         <span class="ident">matcher</span>.<span class="ident">process_arg_overrides</span>(
                             <span class="ident">any_arg</span>,
-                            <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">overrides</span>,
-                            <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">required</span>,
+                            <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">overrides</span>,
+                            <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">required</span>,
                             <span class="ident">check_all</span>,
                         );
                     }
@@ -3336,8 +3337,8 @@
                         <span class="kw">let</span> <span class="ident">any_arg</span> <span class="op">=</span> <span class="macro">find_any_by_name!</span>(<span class="self">self</span>, <span class="self">self</span>.<span class="ident">cache</span>.<span class="ident">unwrap_or</span>(<span class="string">&quot;&quot;</span>));
                         <span class="ident">matcher</span>.<span class="ident">process_arg_overrides</span>(
                             <span class="ident">any_arg</span>,
-                            <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">overrides</span>,
-                            <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">required</span>,
+                            <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">overrides</span>,
+                            <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">required</span>,
                             <span class="ident">check_all</span>,
                         );
                     }
@@ -3451,7 +3452,7 @@
             } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_set</span>(<span class="ident">AS::SubcommandRequiredElseHelp</span>) {
                 <span class="macro">debugln!</span>(<span class="string">&quot;Parser::get_matches_with: SubcommandRequiredElseHelp=true&quot;</span>);
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-                <span class="self">self</span>.<span class="ident">write_help_err</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">out</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.<span class="ident">write_help_err</span>(<span class="kw-2">&amp;mut</span> <span class="ident">out</span>)<span class="question-mark">?</span>;
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span> {
                     <span class="ident">message</span>: <span class="ident">String::from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">out</span>).<span class="ident">into_owned</span>(),
                     <span class="ident">kind</span>: <span class="ident">ErrorKind::MissingArgumentOrSubcommand</span>,
@@ -3466,8 +3467,8 @@
             <span class="kw">let</span> <span class="ident">any_arg</span> <span class="op">=</span> <span class="macro">find_any_by_name!</span>(<span class="self">self</span>, <span class="self">self</span>.<span class="ident">cache</span>.<span class="ident">unwrap_or</span>(<span class="string">&quot;&quot;</span>));
             <span class="ident">matcher</span>.<span class="ident">process_arg_overrides</span>(
                 <span class="ident">any_arg</span>,
-                <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">overrides</span>,
-                <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">required</span>,
+                <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">overrides</span>,
+                <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">required</span>,
                 <span class="ident">check_all</span>,
             );
         }
@@ -3477,7 +3478,7 @@
         <span class="ident">Validator::new</span>(<span class="self">self</span>).<span class="ident">validate</span>(<span class="ident">needs_val_of</span>, <span class="ident">subcmd_name</span>, <span class="ident">matcher</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">remove_overrides</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ArgMatcher</span>) {
+    <span class="kw">fn</span> <span class="ident">remove_overrides</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ArgMatcher</span>) {
         <span class="macro">debugln!</span>(<span class="string">&quot;Parser::remove_overrides:{:?};&quot;</span>, <span class="self">self</span>.<span class="ident">overrides</span>);
         <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">overr</span>, <span class="ident">name</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">overrides</span> {
             <span class="macro">debugln!</span>(<span class="string">&quot;Parser::remove_overrides:iter:({},{});&quot;</span>, <span class="ident">overr</span>, <span class="ident">name</span>);
@@ -3505,17 +3506,17 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">propagate_help_version</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+    <span class="kw">fn</span> <span class="ident">propagate_help_version</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="macro">debugln!</span>(<span class="string">&quot;Parser::propagate_help_version;&quot;</span>);
         <span class="self">self</span>.<span class="ident">create_help_and_version</span>();
-        <span class="kw">for</span> <span class="ident">sc</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">subcommands</span> {
+        <span class="kw">for</span> <span class="ident">sc</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">subcommands</span> {
             <span class="ident">sc</span>.<span class="ident">p</span>.<span class="ident">propagate_help_version</span>();
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">build_bin_names</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+    <span class="kw">fn</span> <span class="ident">build_bin_names</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="macro">debugln!</span>(<span class="string">&quot;Parser::build_bin_names;&quot;</span>);
-        <span class="kw">for</span> <span class="ident">sc</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">subcommands</span> {
+        <span class="kw">for</span> <span class="ident">sc</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">subcommands</span> {
             <span class="macro">debug!</span>(<span class="string">&quot;Parser::build_bin_names:iter: bin_name set...&quot;</span>);
             <span class="kw">if</span> <span class="ident">sc</span>.<span class="ident">p</span>.<span class="ident">meta</span>.<span class="ident">bin_name</span>.<span class="ident">is_none</span>() {
                 <span class="macro">sdebugln!</span>(<span class="string">&quot;No&quot;</span>);
@@ -3550,10 +3551,10 @@
     }
 
     <span class="kw">fn</span> <span class="ident">parse_subcommand</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">T</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">sc_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-        <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ArgMatcher</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-        <span class="ident">it</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Peekable</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>,
+        <span class="ident">matcher</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ArgMatcher</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+        <span class="ident">it</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Peekable</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>,
     ) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>,
@@ -3570,7 +3571,7 @@
             <span class="kw">let</span> <span class="ident">reqs</span> <span class="op">=</span> <span class="ident">usage::get_required_usage_from</span>(<span class="self">self</span>, <span class="kw-2">&amp;</span><span class="ident">hs</span>, <span class="prelude-val">Some</span>(<span class="ident">matcher</span>), <span class="prelude-val">None</span>, <span class="bool-val">false</span>);
 
             <span class="kw">for</span> <span class="ident">s</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">reqs</span> {
-                <span class="macro">write!</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">mid_string</span>, <span class="string">&quot; {}&quot;</span>, <span class="ident">s</span>).<span class="ident">expect</span>(<span class="ident">INTERNAL_ERROR_MSG</span>);
+                <span class="macro">write!</span>(<span class="kw-2">&amp;mut</span> <span class="ident">mid_string</span>, <span class="string">&quot; {}&quot;</span>, <span class="ident">s</span>).<span class="ident">expect</span>(<span class="ident">INTERNAL_ERROR_MSG</span>);
             }
         }
         <span class="ident">mid_string</span>.<span class="ident">push</span>(<span class="string">&#39; &#39;</span>);
@@ -3607,7 +3608,7 @@
                 <span class="ident">sc</span>.<span class="ident">p</span>.<span class="ident">meta</span>.<span class="ident">name</span>
             );
             <span class="macro">debugln!</span>(<span class="string">&quot;Parser::parse_subcommand: sc settings={:#?}&quot;</span>, <span class="ident">sc</span>.<span class="ident">p</span>.<span class="ident">settings</span>);
-            <span class="ident">sc</span>.<span class="ident">p</span>.<span class="ident">get_matches_with</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sc_matcher</span>, <span class="ident">it</span>)<span class="question-mark">?</span>;
+            <span class="ident">sc</span>.<span class="ident">p</span>.<span class="ident">get_matches_with</span>(<span class="kw-2">&amp;mut</span> <span class="ident">sc_matcher</span>, <span class="ident">it</span>)<span class="question-mark">?</span>;
             <span class="ident">matcher</span>.<span class="ident">subcommand</span>(<span class="ident">SubCommand</span> {
                 <span class="ident">name</span>: <span class="ident">sc</span>.<span class="ident">p</span>.<span class="ident">meta</span>.<span class="ident">name</span>.<span class="ident">clone</span>(),
                 <span class="ident">matches</span>: <span class="ident">sc_matcher</span>.<span class="ident">into</span>(),
@@ -3693,7 +3694,7 @@
         <span class="ident">args</span>.<span class="ident">iter</span>().<span class="ident">copied</span>().<span class="ident">collect</span>()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_help_and_version</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_help_and_version</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="macro">debugln!</span>(<span class="string">&quot;Parser::create_help_and_version;&quot;</span>);
         <span class="comment">// name is &quot;hclap_help&quot; because flags are sorted by name</span>
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_set</span>(<span class="ident">AS::DisableHelpFlags</span>) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">contains_long</span>(<span class="string">&quot;help&quot;</span>) {
@@ -3815,7 +3816,7 @@
         <span class="macro">debugln!</span>(<span class="string">&quot;Parser::_help: use_long={:?}&quot;</span>, <span class="ident">use_long</span>);
         <span class="ident">use_long</span> <span class="op">=</span> <span class="ident">use_long</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">use_long_help</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-        <span class="kw">match</span> <span class="ident">Help::write_parser_help</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>, <span class="self">self</span>, <span class="ident">use_long</span>) {
+        <span class="kw">match</span> <span class="ident">Help::write_parser_help</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>, <span class="self">self</span>, <span class="ident">use_long</span>) {
             <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>,
             <span class="kw">_</span> =&gt; <span class="ident">Error</span> {
                 <span class="ident">message</span>: <span class="ident">String::from_utf8</span>(<span class="ident">buf</span>).<span class="ident">unwrap_or_default</span>(),
@@ -3829,7 +3830,7 @@
         <span class="macro">debugln!</span>(<span class="string">&quot;Parser::_version: &quot;</span>);
         <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">io::stdout</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf_w</span> <span class="op">=</span> <span class="ident">BufWriter::new</span>(<span class="ident">out</span>.<span class="ident">lock</span>());
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">print_version</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf_w</span>, <span class="ident">use_long</span>) {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">print_version</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf_w</span>, <span class="ident">use_long</span>) {
             <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>,
             <span class="kw">_</span> =&gt; <span class="ident">Error</span> {
                 <span class="ident">message</span>: <span class="ident">String::new</span>(),
@@ -3840,10 +3841,10 @@
     }
 
     <span class="kw">fn</span> <span class="ident">parse_long_arg</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">T</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ArgMatcher</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">matcher</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ArgMatcher</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
         <span class="ident">full_arg</span>: <span class="kw-2">&amp;</span><span class="ident">OsStr</span>,
-        <span class="ident">it</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Peekable</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>,
+        <span class="ident">it</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Peekable</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>,
     ) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span><span class="ident">ParseResult</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>,
@@ -3915,8 +3916,8 @@
     }
 
     <span class="kw">fn</span> <span class="ident">parse_short_arg</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ArgMatcher</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">matcher</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ArgMatcher</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
         <span class="ident">full_arg</span>: <span class="kw-2">&amp;</span><span class="ident">OsStr</span>,
     ) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span><span class="ident">ParseResult</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;Parser::parse_short_arg: full_arg={:?}&quot;</span>, <span class="ident">full_arg</span>);
@@ -4013,7 +4014,7 @@
         <span class="ident">val</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">OsStr</span><span class="op">&gt;</span>,
         <span class="ident">opt</span>: <span class="kw-2">&amp;</span><span class="ident">OptBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
         <span class="ident">had_eq</span>: <span class="ident">bool</span>,
-        <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ArgMatcher</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+        <span class="ident">matcher</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ArgMatcher</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
     ) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span><span class="ident">ParseResult</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;Parser::parse_opt; opt={}, val={:?}&quot;</span>, <span class="ident">opt</span>.<span class="ident">b</span>.<span class="ident">name</span>, <span class="ident">val</span>);
         <span class="macro">debugln!</span>(<span class="string">&quot;Parser::parse_opt; opt.settings={:?}&quot;</span>, <span class="ident">opt</span>.<span class="ident">b</span>.<span class="ident">settings</span>);
@@ -4076,7 +4077,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="ident">A</span>,
         <span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="ident">OsStr</span>,
-        <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ArgMatcher</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+        <span class="ident">matcher</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ArgMatcher</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
     ) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span><span class="ident">ParseResult</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">A</span>: <span class="ident">AnyArg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Display</span>,
@@ -4116,7 +4117,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="ident">A</span>,
         <span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="ident">OsStr</span>,
-        <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ArgMatcher</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+        <span class="ident">matcher</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ArgMatcher</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
     ) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span><span class="ident">ParseResult</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">A</span>: <span class="ident">AnyArg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Display</span>,
@@ -4154,7 +4155,7 @@
     <span class="kw">fn</span> <span class="ident">parse_flag</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">flag</span>: <span class="kw-2">&amp;</span><span class="ident">FlagBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
-        <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ArgMatcher</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+        <span class="ident">matcher</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ArgMatcher</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
     ) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span><span class="ident">ParseResult</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;Parser::parse_flag;&quot;</span>);
 
@@ -4172,7 +4173,7 @@
     <span class="kw">fn</span> <span class="ident">did_you_mean_error</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-        <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ArgMatcher</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+        <span class="ident">matcher</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ArgMatcher</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
         <span class="ident">args_rest</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>],
     ) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="comment">// Didn&#39;t match a flag or option</span>
@@ -4204,12 +4205,12 @@
     }
 
     <span class="comment">// Prints the version to the user and exits if quit=true</span>
-    <span class="kw">fn</span> <span class="ident">print_version</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">w</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">W</span>, <span class="ident">use_long</span>: <span class="ident">bool</span>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">print_version</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">w</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>, <span class="ident">use_long</span>: <span class="ident">bool</span>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">write_version</span>(<span class="ident">w</span>, <span class="ident">use_long</span>)<span class="question-mark">?</span>;
         <span class="ident">w</span>.<span class="ident">flush</span>().<span class="ident">map_err</span>(<span class="ident">Error::from</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_version</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">w</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">W</span>, <span class="ident">use_long</span>: <span class="ident">bool</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_version</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">w</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>, <span class="ident">use_long</span>: <span class="ident">bool</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">ver</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">use_long</span> {
             <span class="self">self</span>.<span class="ident">meta</span>
                 .<span class="ident">long_version</span>
@@ -4234,22 +4235,22 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">print_help</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">io::stdout</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf_w</span> <span class="op">=</span> <span class="ident">BufWriter::new</span>(<span class="ident">out</span>.<span class="ident">lock</span>());
-        <span class="self">self</span>.<span class="ident">write_help</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf_w</span>)
+        <span class="self">self</span>.<span class="ident">write_help</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf_w</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_help</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">w</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">W</span>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_help</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">w</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="ident">Help::write_parser_help</span>(<span class="ident">w</span>, <span class="self">self</span>, <span class="bool-val">false</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_long_help</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">w</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">W</span>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_long_help</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">w</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="ident">Help::write_parser_help</span>(<span class="ident">w</span>, <span class="self">self</span>, <span class="bool-val">true</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_help_err</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">w</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">W</span>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_help_err</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">w</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="ident">Help::write_parser_help_to_stderr</span>(<span class="ident">w</span>, <span class="self">self</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_defaults</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ArgMatcher</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_defaults</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ArgMatcher</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">debugln!</span>(<span class="string">&quot;Parser::add_defaults;&quot;</span>);
         <span class="macro">macro_rules!</span> <span class="ident">add_val</span> {
             (@<span class="ident">default</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">_self</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>:<span class="ident">ident</span>) =&gt; {
@@ -4324,7 +4325,7 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_env</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ArgMatcher</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_env</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ArgMatcher</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">macro_rules!</span> <span class="ident">add_val</span> {
             (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">_self</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>:<span class="ident">ident</span>) =&gt; {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">val</span>) <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>.<span class="ident">v</span>.<span class="ident">env</span> {
@@ -4472,5 +4473,4 @@
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="clap" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
-    <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script>
 </body></html>

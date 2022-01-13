@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;libz-sys-1.1.3&#x2F;src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../libz_sys/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;libz-sys-1.1.3&#x2F;src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../libz_sys/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -230,15 +231,15 @@
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Bytef</span> <span class="op">=</span> <span class="ident">u8</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">free_func</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="ident">voidpf</span>, <span class="ident">voidpf</span>);
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;libc&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">gzFile</span> <span class="op">=</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">gzFile_s</span>;
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">in_func</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>, <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>) -&gt; <span class="ident">c_uint</span>;
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">out_func</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>, <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>, <span class="ident">c_uint</span>) -&gt; <span class="ident">c_int</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">gzFile</span> <span class="op">=</span> <span class="kw-2">*mut</span> <span class="ident">gzFile_s</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">in_func</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="kw-2">*mut</span> <span class="ident">c_void</span>, <span class="kw-2">*mut</span> <span class="kw-2">*const</span> <span class="ident">c_uchar</span>) -&gt; <span class="ident">c_uint</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">out_func</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="kw-2">*mut</span> <span class="ident">c_void</span>, <span class="kw-2">*mut</span> <span class="ident">c_uchar</span>, <span class="ident">c_uint</span>) -&gt; <span class="ident">c_int</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">uInt</span> <span class="op">=</span> <span class="ident">c_uint</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">uLong</span> <span class="op">=</span> <span class="ident">c_ulong</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">uLongf</span> <span class="op">=</span> <span class="ident">c_ulong</span>;
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">voidp</span> <span class="op">=</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>;
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">voidpc</span> <span class="op">=</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_void</span>;
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">voidpf</span> <span class="op">=</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">voidp</span> <span class="op">=</span> <span class="kw-2">*mut</span> <span class="ident">c_void</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">voidpc</span> <span class="op">=</span> <span class="kw-2">*const</span> <span class="ident">c_void</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">voidpf</span> <span class="op">=</span> <span class="kw-2">*mut</span> <span class="ident">c_void</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;libc&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">gzFile_s</span> {}
@@ -254,29 +255,29 @@
     <span class="kw">pub</span> <span class="ident">time</span>: <span class="ident">uLong</span>,
     <span class="kw">pub</span> <span class="ident">xflags</span>: <span class="ident">c_int</span>,
     <span class="kw">pub</span> <span class="ident">os</span>: <span class="ident">c_int</span>,
-    <span class="kw">pub</span> <span class="ident">extra</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Bytef</span>,
+    <span class="kw">pub</span> <span class="ident">extra</span>: <span class="kw-2">*mut</span> <span class="ident">Bytef</span>,
     <span class="kw">pub</span> <span class="ident">extra_len</span>: <span class="ident">uInt</span>,
     <span class="kw">pub</span> <span class="ident">extra_max</span>: <span class="ident">uInt</span>,
-    <span class="kw">pub</span> <span class="ident">name</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Bytef</span>,
+    <span class="kw">pub</span> <span class="ident">name</span>: <span class="kw-2">*mut</span> <span class="ident">Bytef</span>,
     <span class="kw">pub</span> <span class="ident">name_max</span>: <span class="ident">uInt</span>,
-    <span class="kw">pub</span> <span class="ident">comment</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Bytef</span>,
+    <span class="kw">pub</span> <span class="ident">comment</span>: <span class="kw-2">*mut</span> <span class="ident">Bytef</span>,
     <span class="kw">pub</span> <span class="ident">comm_max</span>: <span class="ident">uInt</span>,
     <span class="kw">pub</span> <span class="ident">hcrc</span>: <span class="ident">c_int</span>,
     <span class="kw">pub</span> <span class="ident">done</span>: <span class="ident">c_int</span>,
 }
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">gz_headerp</span> <span class="op">=</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">gz_header</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">gz_headerp</span> <span class="op">=</span> <span class="kw-2">*mut</span> <span class="ident">gz_header</span>;
 
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">z_stream</span> {
-    <span class="kw">pub</span> <span class="ident">next_in</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Bytef</span>,
+    <span class="kw">pub</span> <span class="ident">next_in</span>: <span class="kw-2">*mut</span> <span class="ident">Bytef</span>,
     <span class="kw">pub</span> <span class="ident">avail_in</span>: <span class="ident">uInt</span>,
     <span class="kw">pub</span> <span class="ident">total_in</span>: <span class="ident">uLong</span>,
-    <span class="kw">pub</span> <span class="ident">next_out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Bytef</span>,
+    <span class="kw">pub</span> <span class="ident">next_out</span>: <span class="kw-2">*mut</span> <span class="ident">Bytef</span>,
     <span class="kw">pub</span> <span class="ident">avail_out</span>: <span class="ident">uInt</span>,
     <span class="kw">pub</span> <span class="ident">total_out</span>: <span class="ident">uLong</span>,
-    <span class="kw">pub</span> <span class="ident">msg</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_char</span>,
-    <span class="kw">pub</span> <span class="ident">state</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">internal_state</span>,
+    <span class="kw">pub</span> <span class="ident">msg</span>: <span class="kw-2">*mut</span> <span class="ident">c_char</span>,
+    <span class="kw">pub</span> <span class="ident">state</span>: <span class="kw-2">*mut</span> <span class="ident">internal_state</span>,
     <span class="kw">pub</span> <span class="ident">zalloc</span>: <span class="ident">alloc_func</span>,
     <span class="kw">pub</span> <span class="ident">zfree</span>: <span class="ident">free_func</span>,
     <span class="kw">pub</span> <span class="ident">opaque</span>: <span class="ident">voidpf</span>,
@@ -284,17 +285,17 @@
     <span class="kw">pub</span> <span class="ident">adler</span>: <span class="ident">uLong</span>,
     <span class="kw">pub</span> <span class="ident">reserved</span>: <span class="ident">uLong</span>,
 }
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">z_streamp</span> <span class="op">=</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">z_stream</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">z_streamp</span> <span class="op">=</span> <span class="kw-2">*mut</span> <span class="ident">z_stream</span>;
 
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">adler32</span>(<span class="ident">adler</span>: <span class="ident">uLong</span>, <span class="ident">buf</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Bytef</span>, <span class="ident">len</span>: <span class="ident">uInt</span>) -&gt; <span class="ident">uLong</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">crc32</span>(<span class="ident">crc</span>: <span class="ident">uLong</span>, <span class="ident">buf</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Bytef</span>, <span class="ident">len</span>: <span class="ident">uInt</span>) -&gt; <span class="ident">uLong</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">adler32</span>(<span class="ident">adler</span>: <span class="ident">uLong</span>, <span class="ident">buf</span>: <span class="kw-2">*const</span> <span class="ident">Bytef</span>, <span class="ident">len</span>: <span class="ident">uInt</span>) -&gt; <span class="ident">uLong</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">crc32</span>(<span class="ident">crc</span>: <span class="ident">uLong</span>, <span class="ident">buf</span>: <span class="kw-2">*const</span> <span class="ident">Bytef</span>, <span class="ident">len</span>: <span class="ident">uInt</span>) -&gt; <span class="ident">uLong</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">deflate</span>(<span class="ident">strm</span>: <span class="ident">z_streamp</span>, <span class="ident">flush</span>: <span class="ident">c_int</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">deflateBound</span>(<span class="ident">strm</span>: <span class="ident">z_streamp</span>, <span class="ident">sourceLen</span>: <span class="ident">uLong</span>) -&gt; <span class="ident">uLong</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">deflateCopy</span>(<span class="ident">dest</span>: <span class="ident">z_streamp</span>, <span class="ident">source</span>: <span class="ident">z_streamp</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">deflateEnd</span>(<span class="ident">strm</span>: <span class="ident">z_streamp</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">deflateInit_</span>(<span class="ident">strm</span>: <span class="ident">z_streamp</span>, <span class="ident">level</span>: <span class="ident">c_int</span>,
-                        <span class="ident">version</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
+                        <span class="ident">version</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>,
                         <span class="ident">stream_size</span>: <span class="ident">c_int</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">deflateInit2_</span>(<span class="ident">strm</span>: <span class="ident">z_streamp</span>,
                          <span class="ident">level</span>: <span class="ident">c_int</span>,
@@ -302,7 +303,7 @@
                          <span class="ident">windowBits</span>: <span class="ident">c_int</span>,
                          <span class="ident">memLevel</span>: <span class="ident">c_int</span>,
                          <span class="ident">strategy</span>: <span class="ident">c_int</span>,
-                         <span class="ident">version</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
+                         <span class="ident">version</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>,
                          <span class="ident">stream_size</span>: <span class="ident">c_int</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">deflateParams</span>(<span class="ident">strm</span>: <span class="ident">z_streamp</span>,
                          <span class="ident">level</span>: <span class="ident">c_int</span>,
@@ -310,7 +311,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">deflatePrime</span>(<span class="ident">strm</span>: <span class="ident">z_streamp</span>, <span class="ident">bits</span>: <span class="ident">c_int</span>, <span class="ident">value</span>: <span class="ident">c_int</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">deflateReset</span>(<span class="ident">strm</span>: <span class="ident">z_streamp</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">deflateSetDictionary</span>(<span class="ident">strm</span>: <span class="ident">z_streamp</span>,
-                                <span class="ident">dictionary</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Bytef</span>,
+                                <span class="ident">dictionary</span>: <span class="kw-2">*const</span> <span class="ident">Bytef</span>,
                                 <span class="ident">dictLength</span>: <span class="ident">uInt</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">deflateSetHeader</span>(<span class="ident">strm</span>: <span class="ident">z_streamp</span>, <span class="ident">head</span>: <span class="ident">gz_headerp</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">deflateTune</span>(<span class="ident">strm</span>: <span class="ident">z_streamp</span>,
@@ -321,35 +322,35 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inflate</span>(<span class="ident">strm</span>: <span class="ident">z_streamp</span>, <span class="ident">flush</span>: <span class="ident">c_int</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inflateBack</span>(<span class="ident">strm</span>: <span class="ident">z_streamp</span>,
                        <span class="ident">_in</span>: <span class="ident">in_func</span>,
-                       <span class="ident">in_desc</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
+                       <span class="ident">in_desc</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
                        <span class="ident">out</span>: <span class="ident">out_func</span>,
-                       <span class="ident">out_desc</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>) -&gt; <span class="ident">c_int</span>;
+                       <span class="ident">out_desc</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inflateBackEnd</span>(<span class="ident">strm</span>: <span class="ident">z_streamp</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inflateBackInit_</span>(<span class="ident">strm</span>: <span class="ident">z_streamp</span>,
                             <span class="ident">windowBits</span>: <span class="ident">c_int</span>,
-                            <span class="ident">window</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>,
-                            <span class="ident">version</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
+                            <span class="ident">window</span>: <span class="kw-2">*mut</span> <span class="ident">c_uchar</span>,
+                            <span class="ident">version</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>,
                             <span class="ident">stream_size</span>: <span class="ident">c_int</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inflateCopy</span>(<span class="ident">dest</span>: <span class="ident">z_streamp</span>, <span class="ident">source</span>: <span class="ident">z_streamp</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inflateEnd</span>(<span class="ident">strm</span>: <span class="ident">z_streamp</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inflateGetHeader</span>(<span class="ident">strm</span>: <span class="ident">z_streamp</span>, <span class="ident">head</span>: <span class="ident">gz_headerp</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inflateInit_</span>(<span class="ident">strm</span>: <span class="ident">z_streamp</span>,
-                        <span class="ident">version</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
+                        <span class="ident">version</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>,
                         <span class="ident">stream_size</span>: <span class="ident">c_int</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inflateInit2_</span>(<span class="ident">strm</span>: <span class="ident">z_streamp</span>,
                          <span class="ident">windowBits</span>: <span class="ident">c_int</span>,
-                         <span class="ident">version</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
+                         <span class="ident">version</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>,
                          <span class="ident">stream_size</span>: <span class="ident">c_int</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inflateMark</span>(<span class="ident">strm</span>: <span class="ident">z_streamp</span>) -&gt; <span class="ident">c_long</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inflatePrime</span>(<span class="ident">strm</span>: <span class="ident">z_streamp</span>, <span class="ident">bits</span>: <span class="ident">c_int</span>, <span class="ident">value</span>: <span class="ident">c_int</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inflateReset</span>(<span class="ident">strm</span>: <span class="ident">z_streamp</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inflateReset2</span>(<span class="ident">strm</span>: <span class="ident">z_streamp</span>, <span class="ident">windowBits</span>: <span class="ident">c_int</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inflateSetDictionary</span>(<span class="ident">strm</span>: <span class="ident">z_streamp</span>,
-                                <span class="ident">dictionary</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Bytef</span>,
+                                <span class="ident">dictionary</span>: <span class="kw-2">*const</span> <span class="ident">Bytef</span>,
                                 <span class="ident">dictLength</span>: <span class="ident">uInt</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inflateSync</span>(<span class="ident">strm</span>: <span class="ident">z_streamp</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">zlibCompileFlags</span>() -&gt; <span class="ident">uLong</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">zlibVersion</span>() -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">zlibVersion</span>() -&gt; <span class="kw-2">*const</span> <span class="ident">c_char</span>;
 
 
 <span class="comment">// The above set of functions currently target 1.2.3.4 (what&#39;s present on Ubuntu</span>
@@ -377,25 +378,25 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;libc&quot;</span>)]</span>
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">adler32_combine</span>(<span class="ident">adler1</span>: <span class="ident">uLong</span>, <span class="ident">adler2</span>: <span class="ident">uLong</span>, <span class="ident">len2</span>: <span class="ident">z_off_t</span>) -&gt; <span class="ident">uLong</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compress</span>(<span class="ident">dest</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Bytef</span>, <span class="ident">destLen</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">uLongf</span>,
-                    <span class="ident">source</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Bytef</span>, <span class="ident">sourceLen</span>: <span class="ident">uLong</span>) -&gt; <span class="ident">c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compress2</span>(<span class="ident">dest</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Bytef</span>, <span class="ident">destLen</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">uLongf</span>,
-                     <span class="ident">source</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Bytef</span>, <span class="ident">sourceLen</span>: <span class="ident">uLong</span>,
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compress</span>(<span class="ident">dest</span>: <span class="kw-2">*mut</span> <span class="ident">Bytef</span>, <span class="ident">destLen</span>: <span class="kw-2">*mut</span> <span class="ident">uLongf</span>,
+                    <span class="ident">source</span>: <span class="kw-2">*const</span> <span class="ident">Bytef</span>, <span class="ident">sourceLen</span>: <span class="ident">uLong</span>) -&gt; <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compress2</span>(<span class="ident">dest</span>: <span class="kw-2">*mut</span> <span class="ident">Bytef</span>, <span class="ident">destLen</span>: <span class="kw-2">*mut</span> <span class="ident">uLongf</span>,
+                     <span class="ident">source</span>: <span class="kw-2">*const</span> <span class="ident">Bytef</span>, <span class="ident">sourceLen</span>: <span class="ident">uLong</span>,
                      <span class="ident">level</span>: <span class="ident">c_int</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compressBound</span>(<span class="ident">sourceLen</span>: <span class="ident">uLong</span>) -&gt; <span class="ident">uLong</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">crc32_combine</span>(<span class="ident">crc1</span>: <span class="ident">uLong</span>, <span class="ident">crc2</span>: <span class="ident">uLong</span>, <span class="ident">len2</span>: <span class="ident">z_off_t</span>) -&gt; <span class="ident">uLong</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gzdirect</span>(<span class="ident">file</span>: <span class="ident">gzFile</span>) -&gt; <span class="ident">c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gzdopen</span>(<span class="ident">fd</span>: <span class="ident">c_int</span>, <span class="ident">mode</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>) -&gt; <span class="ident">gzFile</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gzdopen</span>(<span class="ident">fd</span>: <span class="ident">c_int</span>, <span class="ident">mode</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>) -&gt; <span class="ident">gzFile</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gzclearerr</span>(<span class="ident">file</span>: <span class="ident">gzFile</span>);
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gzclose</span>(<span class="ident">file</span>: <span class="ident">gzFile</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gzeof</span>(<span class="ident">file</span>: <span class="ident">gzFile</span>) -&gt; <span class="ident">c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gzerror</span>(<span class="ident">file</span>: <span class="ident">gzFile</span>, <span class="ident">errnum</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_int</span>) -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gzerror</span>(<span class="ident">file</span>: <span class="ident">gzFile</span>, <span class="ident">errnum</span>: <span class="kw-2">*mut</span> <span class="ident">c_int</span>) -&gt; <span class="kw-2">*const</span> <span class="ident">c_char</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gzflush</span>(<span class="ident">file</span>: <span class="ident">gzFile</span>, <span class="ident">flush</span>: <span class="ident">c_int</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gzgetc</span>(<span class="ident">file</span>: <span class="ident">gzFile</span>) -&gt; <span class="ident">c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gzgets</span>(<span class="ident">file</span>: <span class="ident">gzFile</span>, <span class="ident">buf</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_char</span>, <span class="ident">len</span>: <span class="ident">c_int</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_char</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gzopen</span>(<span class="ident">path</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>, <span class="ident">mode</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>) -&gt; <span class="ident">gzFile</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gzgets</span>(<span class="ident">file</span>: <span class="ident">gzFile</span>, <span class="ident">buf</span>: <span class="kw-2">*mut</span> <span class="ident">c_char</span>, <span class="ident">len</span>: <span class="ident">c_int</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">c_char</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gzopen</span>(<span class="ident">path</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>, <span class="ident">mode</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>) -&gt; <span class="ident">gzFile</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gzputc</span>(<span class="ident">file</span>: <span class="ident">gzFile</span>, <span class="ident">c</span>: <span class="ident">c_int</span>) -&gt; <span class="ident">c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gzputs</span>(<span class="ident">file</span>: <span class="ident">gzFile</span>, <span class="ident">s</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>) -&gt; <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gzputs</span>(<span class="ident">file</span>: <span class="ident">gzFile</span>, <span class="ident">s</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gzread</span>(<span class="ident">file</span>: <span class="ident">gzFile</span>, <span class="ident">buf</span>: <span class="ident">voidp</span>, <span class="ident">len</span>: <span class="ident">c_uint</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gzrewind</span>(<span class="ident">file</span>: <span class="ident">gzFile</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gzseek</span>(<span class="ident">file</span>: <span class="ident">gzFile</span>, <span class="ident">offset</span>: <span class="ident">z_off_t</span>, <span class="ident">whence</span>: <span class="ident">c_int</span>) -&gt; <span class="ident">z_off_t</span>;
@@ -403,9 +404,9 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gztell</span>(<span class="ident">file</span>: <span class="ident">gzFile</span>) -&gt; <span class="ident">z_off_t</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gzungetc</span>(<span class="ident">c</span>: <span class="ident">c_int</span>, <span class="ident">file</span>: <span class="ident">gzFile</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gzwrite</span>(<span class="ident">file</span>: <span class="ident">gzFile</span>, <span class="ident">buf</span>: <span class="ident">voidpc</span>, <span class="ident">len</span>: <span class="ident">c_uint</span>) -&gt; <span class="ident">c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">uncompress</span>(<span class="ident">dest</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Bytef</span>,
-                      <span class="ident">destLen</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">uLongf</span>,
-                      <span class="ident">source</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Bytef</span>,
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">uncompress</span>(<span class="ident">dest</span>: <span class="kw-2">*mut</span> <span class="ident">Bytef</span>,
+                      <span class="ident">destLen</span>: <span class="kw-2">*mut</span> <span class="ident">uLongf</span>,
+                      <span class="ident">source</span>: <span class="kw-2">*const</span> <span class="ident">Bytef</span>,
                       <span class="ident">sourceLen</span>: <span class="ident">uLong</span>) -&gt; <span class="ident">c_int</span>;
 }
 
@@ -446,5 +447,4 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">Z_DEFLATED</span>: <span class="ident">c_int</span> <span class="op">=</span> <span class="number">8</span>;
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="libz_sys" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
 </body></html>

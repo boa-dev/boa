@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;fast-float-0.2.0&#x2F;src&#x2F;number.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>number.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../fast_float/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;fast-float-0.2.0&#x2F;src&#x2F;number.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>number.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../fast_float/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -306,14 +307,14 @@
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">try_parse_digits</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">AsciiStr</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">u64</span>) {
+<span class="kw">fn</span> <span class="ident">try_parse_digits</span>(<span class="ident">s</span>: <span class="kw-2">&amp;mut</span> <span class="ident">AsciiStr</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">x</span>: <span class="kw-2">&amp;mut</span> <span class="ident">u64</span>) {
     <span class="ident">s</span>.<span class="ident">parse_digits</span>(<span class="op">|</span><span class="ident">digit</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">x</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">wrapping_mul</span>(<span class="number">10</span>).<span class="ident">wrapping_add</span>(<span class="ident">digit</span> <span class="kw">as</span> <span class="kw">_</span>); <span class="comment">// overflows to be handled later</span>
     });
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">try_parse_19digits</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">AsciiStr</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">u64</span>) {
+<span class="kw">fn</span> <span class="ident">try_parse_19digits</span>(<span class="ident">s</span>: <span class="kw-2">&amp;mut</span> <span class="ident">AsciiStr</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">x</span>: <span class="kw-2">&amp;mut</span> <span class="ident">u64</span>) {
     <span class="kw">while</span> <span class="kw-2">*</span><span class="ident">x</span> <span class="op">&lt;</span> <span class="ident">MIN_19DIGIT_INT</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">s</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="ident">s</span>.<span class="ident">first</span>().<span class="ident">is_ascii_digit</span>() {
         <span class="kw">let</span> <span class="ident">digit</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">first</span>() <span class="op">-</span> <span class="string">b&#39;0&#39;</span>;
         <span class="kw-2">*</span><span class="ident">x</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">x</span> <span class="op">*</span> <span class="number">10</span>) <span class="op">+</span> <span class="ident">digit</span> <span class="kw">as</span> <span class="ident">u64</span>; <span class="comment">// no overflows here</span>
@@ -322,7 +323,7 @@
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">try_parse_8digits_le</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">AsciiStr</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">u64</span>) {
+<span class="kw">fn</span> <span class="ident">try_parse_8digits_le</span>(<span class="ident">s</span>: <span class="kw-2">&amp;mut</span> <span class="ident">AsciiStr</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">x</span>: <span class="kw-2">&amp;mut</span> <span class="ident">u64</span>) {
     <span class="comment">// may cause overflows, to be handled later</span>
     <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>) {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="ident">s</span>.<span class="ident">try_read_u64</span>() {
@@ -345,7 +346,7 @@
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">parse_scientific</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">AsciiStr</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">i64</span> {
+<span class="kw">fn</span> <span class="ident">parse_scientific</span>(<span class="ident">s</span>: <span class="kw-2">&amp;mut</span> <span class="ident">AsciiStr</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">i64</span> {
     <span class="comment">// the first character is &#39;e&#39;/&#39;E&#39; and scientific mode is enabled</span>
     <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">s</span>;
     <span class="ident">s</span>.<span class="ident">step</span>();
@@ -394,7 +395,7 @@
     <span class="comment">// parse initial digits before dot</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mantissa</span> <span class="op">=</span> <span class="number">0_u64</span>;
     <span class="kw">let</span> <span class="ident">digits_start</span> <span class="op">=</span> <span class="ident">s</span>;
-    <span class="ident">try_parse_digits</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">mantissa</span>);
+    <span class="ident">try_parse_digits</span>(<span class="kw-2">&amp;mut</span> <span class="ident">s</span>, <span class="kw-2">&amp;mut</span> <span class="ident">mantissa</span>);
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">n_digits</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">offset_from</span>(<span class="kw-2">&amp;</span><span class="ident">digits_start</span>);
 
     <span class="comment">// handle dot with the following digits</span>
@@ -404,8 +405,8 @@
     <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">check_first</span>(<span class="string">b&#39;.&#39;</span>) {
         <span class="ident">s</span>.<span class="ident">step</span>();
         <span class="kw">let</span> <span class="ident">before</span> <span class="op">=</span> <span class="ident">s</span>;
-        <span class="ident">try_parse_8digits_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">mantissa</span>);
-        <span class="ident">try_parse_digits</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">mantissa</span>);
+        <span class="ident">try_parse_8digits_le</span>(<span class="kw-2">&amp;mut</span> <span class="ident">s</span>, <span class="kw-2">&amp;mut</span> <span class="ident">mantissa</span>);
+        <span class="ident">try_parse_digits</span>(<span class="kw-2">&amp;mut</span> <span class="ident">s</span>, <span class="kw-2">&amp;mut</span> <span class="ident">mantissa</span>);
         <span class="ident">n_after_dot</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">offset_from</span>(<span class="kw-2">&amp;</span><span class="ident">before</span>);
         <span class="ident">exponent</span> <span class="op">=</span> <span class="op">-</span><span class="ident">n_after_dot</span> <span class="kw">as</span> <span class="ident">i64</span>;
     }
@@ -418,7 +419,7 @@
     <span class="comment">// handle scientific format</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exp_number</span> <span class="op">=</span> <span class="number">0_i64</span>;
     <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">check_first_either</span>(<span class="string">b&#39;e&#39;</span>, <span class="string">b&#39;E&#39;</span>) {
-        <span class="ident">exp_number</span> <span class="op">=</span> <span class="ident">parse_scientific</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>);
+        <span class="ident">exp_number</span> <span class="op">=</span> <span class="ident">parse_scientific</span>(<span class="kw-2">&amp;mut</span> <span class="ident">s</span>);
         <span class="ident">exponent</span> <span class="op">+</span><span class="op">=</span> <span class="ident">exp_number</span>;
     }
 
@@ -449,13 +450,13 @@
         <span class="ident">many_digits</span> <span class="op">=</span> <span class="bool-val">true</span>;
         <span class="ident">mantissa</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">digits_start</span>;
-        <span class="ident">try_parse_19digits</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">mantissa</span>);
+        <span class="ident">try_parse_19digits</span>(<span class="kw-2">&amp;mut</span> <span class="ident">s</span>, <span class="kw-2">&amp;mut</span> <span class="ident">mantissa</span>);
         <span class="ident">exponent</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">mantissa</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">MIN_19DIGIT_INT</span> {
             <span class="ident">int_end</span>.<span class="ident">offset_from</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>) <span class="comment">// big int</span>
         } <span class="kw">else</span> {
             <span class="ident">s</span>.<span class="ident">step</span>(); <span class="comment">// fractional component, skip the &#39;.&#39;</span>
             <span class="kw">let</span> <span class="ident">before</span> <span class="op">=</span> <span class="ident">s</span>;
-            <span class="ident">try_parse_19digits</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">mantissa</span>);
+            <span class="ident">try_parse_19digits</span>(<span class="kw-2">&amp;mut</span> <span class="ident">s</span>, <span class="kw-2">&amp;mut</span> <span class="ident">mantissa</span>);
             <span class="op">-</span><span class="ident">s</span>.<span class="ident">offset_from</span>(<span class="kw-2">&amp;</span><span class="ident">before</span>)
         } <span class="kw">as</span> <span class="ident">i64</span>;
         <span class="ident">exponent</span> <span class="op">+</span><span class="op">=</span> <span class="ident">exp_number</span>; <span class="comment">// add back the explicit part</span>
@@ -508,5 +509,4 @@
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="fast_float" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
 </body></html>

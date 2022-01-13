@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;rand_chacha-0.3.1&#x2F;src&#x2F;guts.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>guts.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https:&#x2F;&#x2F;www.rust-lang.org&#x2F;favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../rand_chacha/index.html'><div class='logo-container rust-logo'><img src='https:&#x2F;&#x2F;www.rust-lang.org&#x2F;logos&#x2F;rust-logo-128x128-blk.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;rand_chacha-0.3.1&#x2F;src&#x2F;guts.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>guts.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https:&#x2F;&#x2F;www.rust-lang.org&#x2F;favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../rand_chacha/index.html'><div class='logo-container rust-logo'><img src='https:&#x2F;&#x2F;www.rust-lang.org&#x2F;logos&#x2F;rust-logo-128x128-blk.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -354,12 +355,12 @@
 
     <span class="doccomment">/// Produce 4 blocks of output, advancing the state</span>
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">refill4</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">drounds</span>: <span class="ident">u32</span>, <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>; <span class="ident">BUFSZ</span>]) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">refill4</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">drounds</span>: <span class="ident">u32</span>, <span class="ident">out</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>; <span class="ident">BUFSZ</span>]) {
         <span class="ident">refill_wide</span>(<span class="self">self</span>, <span class="ident">drounds</span>, <span class="ident">out</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_block_pos</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">u64</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_block_pos</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">u64</span>) {
         <span class="ident">set_stream_param</span>(<span class="self">self</span>, <span class="ident">STREAM_PARAM_BLOCK</span>, <span class="ident">value</span>)
     }
 
@@ -369,7 +370,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_nonce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">u64</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_nonce</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">u64</span>) {
         <span class="ident">set_stream_param</span>(<span class="self">self</span>, <span class="ident">STREAM_PARAM_NONCE</span>, <span class="ident">value</span>)
     }
 
@@ -387,7 +388,7 @@
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::many_single_char_names</span>)]</span>
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
 <span class="kw">fn</span> <span class="ident">refill_wide_impl</span><span class="op">&lt;</span><span class="ident">Mach</span>: <span class="ident">Machine</span><span class="op">&gt;</span>(
-    <span class="ident">m</span>: <span class="ident">Mach</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ChaCha</span>, <span class="ident">drounds</span>: <span class="ident">u32</span>, <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>; <span class="ident">BUFSZ</span>],
+    <span class="ident">m</span>: <span class="ident">Mach</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ChaCha</span>, <span class="ident">drounds</span>: <span class="ident">u32</span>, <span class="ident">out</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>; <span class="ident">BUFSZ</span>],
 ) {
     <span class="kw">let</span> <span class="ident">k</span> <span class="op">=</span> <span class="ident">m</span>.<span class="ident">vec</span>([<span class="number">0x6170_7865</span>, <span class="number">0x3320_646e</span>, <span class="number">0x7962_2d32</span>, <span class="number">0x6b20_6574</span>]);
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">pos64</span>(<span class="ident">m</span>);
@@ -442,7 +443,7 @@
 }
 
 <span class="macro">dispatch!</span>(<span class="ident">m</span>, <span class="ident">Mach</span>, {
-    <span class="kw">fn</span> <span class="ident">refill_wide</span>(<span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ChaCha</span>, <span class="ident">drounds</span>: <span class="ident">u32</span>, <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>; <span class="ident">BUFSZ</span>]) {
+    <span class="kw">fn</span> <span class="ident">refill_wide</span>(<span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ChaCha</span>, <span class="ident">drounds</span>: <span class="ident">u32</span>, <span class="ident">out</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>; <span class="ident">BUFSZ</span>]) {
         <span class="ident">refill_wide_impl</span>(<span class="ident">m</span>, <span class="ident">state</span>, <span class="ident">drounds</span>, <span class="ident">out</span>);
     }
 });
@@ -450,7 +451,7 @@
 <span class="comment">// Single-block, rounds-only; shared by try_apply_keystream for tails shorter than BUFSZ</span>
 <span class="comment">// and XChaCha&#39;s setup step.</span>
 <span class="macro">dispatch!</span>(<span class="ident">m</span>, <span class="ident">Mach</span>, {
-    <span class="kw">fn</span> <span class="ident">refill_narrow_rounds</span>(<span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ChaCha</span>, <span class="ident">drounds</span>: <span class="ident">u32</span>) -&gt; <span class="ident">State</span><span class="op">&lt;</span><span class="ident">vec128_storage</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">refill_narrow_rounds</span>(<span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ChaCha</span>, <span class="ident">drounds</span>: <span class="ident">u32</span>) -&gt; <span class="ident">State</span><span class="op">&lt;</span><span class="ident">vec128_storage</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">k</span>: <span class="ident">Mach::u32x4</span> <span class="op">=</span> <span class="ident">m</span>.<span class="ident">vec</span>([<span class="number">0x6170_7865</span>, <span class="number">0x3320_646e</span>, <span class="number">0x7962_2d32</span>, <span class="number">0x6b20_6574</span>]);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">State</span> {
             <span class="ident">a</span>: <span class="ident">k</span>,
@@ -472,7 +473,7 @@
 });
 
 <span class="macro">dispatch_light128!</span>(<span class="ident">m</span>, <span class="ident">Mach</span>, {
-    <span class="kw">fn</span> <span class="ident">set_stream_param</span>(<span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ChaCha</span>, <span class="ident">param</span>: <span class="ident">u32</span>, <span class="ident">value</span>: <span class="ident">u64</span>) {
+    <span class="kw">fn</span> <span class="ident">set_stream_param</span>(<span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ChaCha</span>, <span class="ident">param</span>: <span class="ident">u32</span>, <span class="ident">value</span>: <span class="ident">u64</span>) {
         <span class="kw">let</span> <span class="ident">d</span>: <span class="ident">Mach::u32x4</span> <span class="op">=</span> <span class="ident">m</span>.<span class="ident">unpack</span>(<span class="ident">state</span>.<span class="ident">d</span>);
         <span class="ident">state</span>.<span class="ident">d</span> <span class="op">=</span> <span class="ident">d</span>
             .<span class="ident">insert</span>((<span class="ident">value</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">32</span>) <span class="kw">as</span> <span class="ident">u32</span>, (<span class="ident">param</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">1</span>) <span class="op">|</span> <span class="number">1</span>)
@@ -493,8 +494,8 @@
         <span class="kw">let</span> <span class="ident">b</span>: <span class="ident">Mach::u32x4</span> <span class="op">=</span> <span class="ident">m</span>.<span class="ident">unpack</span>(<span class="ident">state</span>.<span class="ident">b</span>);
         <span class="kw">let</span> <span class="ident">c</span>: <span class="ident">Mach::u32x4</span> <span class="op">=</span> <span class="ident">m</span>.<span class="ident">unpack</span>(<span class="ident">state</span>.<span class="ident">c</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">key</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">32</span>];
-        <span class="ident">b</span>.<span class="ident">write_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">key</span>[..<span class="number">16</span>]);
-        <span class="ident">c</span>.<span class="ident">write_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">key</span>[<span class="number">16</span>..]);
+        <span class="ident">b</span>.<span class="ident">write_le</span>(<span class="kw-2">&amp;mut</span> <span class="ident">key</span>[..<span class="number">16</span>]);
+        <span class="ident">c</span>.<span class="ident">write_le</span>(<span class="kw-2">&amp;mut</span> <span class="ident">key</span>[<span class="number">16</span>..]);
         <span class="ident">key</span>
     }
 });
@@ -536,7 +537,7 @@
             <span class="ident">c</span>: <span class="ident">key1</span>.<span class="ident">into</span>(),
             <span class="ident">d</span>: <span class="ident">nonce0</span>.<span class="ident">into</span>(),
         };
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">refill_narrow_rounds</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">state</span>, <span class="ident">rounds</span>);
+        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">refill_narrow_rounds</span>(<span class="kw-2">&amp;mut</span> <span class="ident">state</span>, <span class="ident">rounds</span>);
         <span class="kw">let</span> <span class="ident">ctr_nonce1</span> <span class="op">=</span> [<span class="number">0</span>, <span class="number">0</span>, <span class="ident">read_u32le</span>(<span class="kw-2">&amp;</span><span class="ident">nonce</span>[<span class="number">16</span>..<span class="number">20</span>]), <span class="ident">read_u32le</span>(<span class="kw-2">&amp;</span><span class="ident">nonce</span>[<span class="number">20</span>..<span class="number">24</span>])];
         <span class="ident">state</span>.<span class="ident">b</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">a</span>;
         <span class="ident">state</span>.<span class="ident">c</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">d</span>;
@@ -546,5 +547,4 @@
 });
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rand_chacha" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
 </body></html>

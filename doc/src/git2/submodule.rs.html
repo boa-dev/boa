@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;git2-0.13.25&#x2F;src&#x2F;submodule.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>submodule.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../git2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;git2-0.13.25&#x2F;src&#x2F;submodule.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>submodule.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../git2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -427,7 +428,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [1]: http://git-scm.com/book/en/Git-Tools-Submodules</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Submodule</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="ident">raw</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">raw::git_submodule</span>,
+    <span class="ident">raw</span>: <span class="kw-2">*mut</span> <span class="ident">raw::git_submodule</span>,
     <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;repo</span> <span class="ident">Repository</span><span class="op">&gt;</span>,
 }
 
@@ -451,14 +452,14 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This performs the necessary `git_clone` to setup a newly-created submodule.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clone</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">opts</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">SubmoduleUpdateOptions</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">opts</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">SubmoduleUpdateOptions</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Repository</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="ident">raw_opts</span> <span class="op">=</span> <span class="ident">opts</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">o</span><span class="op">|</span> <span class="ident">o</span>.<span class="ident">raw</span>());
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">raw_repo</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
             <span class="macro">try_call!</span>(<span class="ident">raw::git_submodule_clone</span>(
-                <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">raw_repo</span>,
+                <span class="kw-2">&amp;mut</span> <span class="ident">raw_repo</span>,
                 <span class="self">self</span>.<span class="ident">raw</span>,
                 <span class="ident">raw_opts</span>.<span class="ident">as_ref</span>()
             ));
@@ -546,7 +547,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// By default, existing entries will not be overwritten, but passing `true`</span>
     <span class="doccomment">/// for `overwrite` forces them to be updated.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">overwrite</span>: <span class="ident">bool</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">overwrite</span>: <span class="ident">bool</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
             <span class="macro">try_call!</span>(<span class="ident">raw::git_submodule_init</span>(<span class="self">self</span>.<span class="ident">raw</span>, <span class="ident">overwrite</span>));
         }
@@ -560,7 +561,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">open</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Repository</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
         <span class="kw">unsafe</span> {
-            <span class="macro">try_call!</span>(<span class="ident">raw::git_submodule_open</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">raw</span>, <span class="self">self</span>.<span class="ident">raw</span>));
+            <span class="macro">try_call!</span>(<span class="ident">raw::git_submodule_open</span>(<span class="kw-2">&amp;mut</span> <span class="ident">raw</span>, <span class="self">self</span>.<span class="ident">raw</span>));
             <span class="prelude-val">Ok</span>(<span class="ident">Binding::from_raw</span>(<span class="ident">raw</span>))
         }
     }
@@ -572,7 +573,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// If `force` is `true`, then data will be reloaded even if it doesn&#39;t seem</span>
     <span class="doccomment">/// out of date</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reload</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">force</span>: <span class="ident">bool</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reload</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">force</span>: <span class="ident">bool</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
             <span class="macro">try_call!</span>(<span class="ident">raw::git_submodule_reload</span>(<span class="self">self</span>.<span class="ident">raw</span>, <span class="ident">force</span>));
         }
@@ -585,7 +586,7 @@
     <span class="doccomment">/// out submodule config, acting like &quot;git submodule sync&quot;. This is useful</span>
     <span class="doccomment">/// if you have altered the URL for the submodule (or it has been altered</span>
     <span class="doccomment">/// by a fetch of upstream changes) and you need to update your local repo.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sync</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sync</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
             <span class="macro">try_call!</span>(<span class="ident">raw::git_submodule_sync</span>(<span class="self">self</span>.<span class="ident">raw</span>));
         }
@@ -597,7 +598,7 @@
     <span class="doccomment">/// If `write_index` is true, then the index file will be immediately</span>
     <span class="doccomment">/// written. Otherwise you must explicitly call `write()` on an `Index`</span>
     <span class="doccomment">/// later on.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_to_index</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">write_index</span>: <span class="ident">bool</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_to_index</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">write_index</span>: <span class="ident">bool</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
             <span class="macro">try_call!</span>(<span class="ident">raw::git_submodule_add_to_index</span>(<span class="self">self</span>.<span class="ident">raw</span>, <span class="ident">write_index</span>));
         }
@@ -610,7 +611,7 @@
     <span class="doccomment">/// done the clone of the submodule. This adds the .gitmodules file and the</span>
     <span class="doccomment">/// newly cloned submodule to the index to be ready to be committed (but</span>
     <span class="doccomment">/// doesn&#39;t actually do the commit).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_finalize</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_finalize</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
             <span class="macro">try_call!</span>(<span class="ident">raw::git_submodule_add_finalize</span>(<span class="self">self</span>.<span class="ident">raw</span>));
         }
@@ -627,9 +628,9 @@
     <span class="doccomment">/// `init` indicates if the submodule should be initialized first if it has</span>
     <span class="doccomment">/// not been initialized yet.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">init</span>: <span class="ident">bool</span>,
-        <span class="ident">opts</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">SubmoduleUpdateOptions</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">opts</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">SubmoduleUpdateOptions</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">raw_opts</span> <span class="op">=</span> <span class="ident">opts</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">o</span><span class="op">|</span> <span class="ident">o</span>.<span class="ident">raw</span>());
@@ -644,20 +645,20 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <span class="ident">Binding</span> <span class="kw">for</span> <span class="ident">Submodule</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Raw</span> <span class="op">=</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">raw::git_submodule</span>;
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">raw::git_submodule</span>) -&gt; <span class="ident">Submodule</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
+    <span class="kw">type</span> <span class="ident">Raw</span> <span class="op">=</span> <span class="kw-2">*mut</span> <span class="ident">raw::git_submodule</span>;
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="kw-2">*mut</span> <span class="ident">raw::git_submodule</span>) -&gt; <span class="ident">Submodule</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
         <span class="ident">Submodule</span> {
             <span class="ident">raw</span>,
             <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span>,
         }
     }
-    <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">raw::git_submodule</span> {
+    <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">raw::git_submodule</span> {
         <span class="self">self</span>.<span class="ident">raw</span>
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">Submodule</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="kw">unsafe</span> { <span class="ident">raw::git_submodule_free</span>(<span class="self">self</span>.<span class="ident">raw</span>) }
     }
 }
@@ -679,12 +680,12 @@
         }
     }
 
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">raw::git_submodule_update_options</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">raw::git_submodule_update_options</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">checkout_opts</span>: <span class="ident">raw::git_checkout_options</span> <span class="op">=</span> <span class="ident">mem::zeroed</span>();
         <span class="kw">let</span> <span class="ident">init_res</span> <span class="op">=</span>
-            <span class="ident">raw::git_checkout_init_options</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">checkout_opts</span>, <span class="ident">raw::GIT_CHECKOUT_OPTIONS_VERSION</span>);
+            <span class="ident">raw::git_checkout_init_options</span>(<span class="kw-2">&amp;mut</span> <span class="ident">checkout_opts</span>, <span class="ident">raw::GIT_CHECKOUT_OPTIONS_VERSION</span>);
         <span class="macro">assert_eq!</span>(<span class="number">0</span>, <span class="ident">init_res</span>);
-        <span class="self">self</span>.<span class="ident">checkout_builder</span>.<span class="ident">configure</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">checkout_opts</span>);
+        <span class="self">self</span>.<span class="ident">checkout_builder</span>.<span class="ident">configure</span>(<span class="kw-2">&amp;mut</span> <span class="ident">checkout_opts</span>);
         <span class="kw">let</span> <span class="ident">opts</span> <span class="op">=</span> <span class="ident">raw::git_submodule_update_options</span> {
             <span class="ident">version</span>: <span class="ident">raw::GIT_SUBMODULE_UPDATE_OPTIONS_VERSION</span>,
             <span class="ident">checkout_opts</span>,
@@ -695,20 +696,20 @@
     }
 
     <span class="doccomment">/// Set checkout options.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">checkout</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">opts</span>: <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">checkout</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">opts</span>: <span class="ident">CheckoutBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">checkout_builder</span> <span class="op">=</span> <span class="ident">opts</span>;
         <span class="self">self</span>
     }
 
     <span class="doccomment">/// Set fetch options and allow fetching.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fetch</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">opts</span>: <span class="ident">FetchOptions</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fetch</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">opts</span>: <span class="ident">FetchOptions</span><span class="op">&lt;</span><span class="lifetime">&#39;cb</span><span class="op">&gt;</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">fetch_opts</span> <span class="op">=</span> <span class="ident">opts</span>;
         <span class="self">self</span>.<span class="ident">allow_fetch</span> <span class="op">=</span> <span class="bool-val">true</span>;
         <span class="self">self</span>
     }
 
     <span class="doccomment">/// Allow or disallow fetching.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">allow_fetch</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">b</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">allow_fetch</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">b</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">allow_fetch</span> <span class="op">=</span> <span class="ident">b</span>;
         <span class="self">self</span>
     }
@@ -798,7 +799,7 @@
         <span class="kw">for</span> <span class="kw-2">mut</span> <span class="ident">submodule</span> <span class="kw">in</span> <span class="ident">submodules</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">submodule_options</span> <span class="op">=</span> <span class="ident">SubmoduleUpdateOptions::new</span>();
             <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="bool-val">true</span>;
-            <span class="kw">let</span> <span class="ident">opts</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">submodule_options</span>);
+            <span class="kw">let</span> <span class="ident">opts</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut</span> <span class="ident">submodule_options</span>);
 
             <span class="macro">t!</span>(<span class="ident">submodule</span>.<span class="ident">update</span>(<span class="ident">init</span>, <span class="ident">opts</span>));
         }
@@ -822,11 +823,10 @@
             .<span class="ident">unwrap</span>();
         <span class="comment">// -----------------------------------</span>
 
-        <span class="macro">t!</span>(<span class="ident">s1</span>.<span class="ident">clone</span>(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">SubmoduleUpdateOptions::default</span>())));
+        <span class="macro">t!</span>(<span class="ident">s1</span>.<span class="ident">clone</span>(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut</span> <span class="ident">SubmoduleUpdateOptions::default</span>())));
         <span class="macro">t!</span>(<span class="ident">s2</span>.<span class="ident">clone</span>(<span class="prelude-val">None</span>));
     }
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
 </body></html>

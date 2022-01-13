@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;regex-syntax-0.6.25&#x2F;src&#x2F;hir&#x2F;mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../regex_syntax/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;regex-syntax-0.6.25&#x2F;src&#x2F;hir&#x2F;mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../regex_syntax/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -2415,13 +2416,13 @@ Defines a high-level intermediate representation for regular expressions.
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="ident"><span class="kw">crate</span>::error::Formatter::from</span>(<span class="self">self</span>).<span class="ident">fmt</span>(<span class="ident">f</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">ErrorKind</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="comment">// TODO: Remove this on the next breaking semver release.</span>
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
         <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="self">self</span>.<span class="ident">description</span>())
@@ -2516,7 +2517,7 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">/// `HirKind`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_kind</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">HirKind</span> {
         <span class="kw">use</span> <span class="ident">std::mem</span>;
-        <span class="ident">mem::replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">kind</span>, <span class="ident">HirKind::Empty</span>)
+        <span class="ident">mem::replace</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">kind</span>, <span class="ident">HirKind::Empty</span>)
     }
 
     <span class="doccomment">/// Returns an empty HIR expression.</span>
@@ -3019,7 +3020,7 @@ Defines a high-level intermediate representation for regular expressions.
 <span class="doccomment">/// This implementation uses constant stack space and heap space proportional</span>
 <span class="doccomment">/// to the size of the `Hir`.</span>
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Hir</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::hir::print::Printer</span>;
         <span class="ident">Printer::new</span>().<span class="ident">print</span>(<span class="self">self</span>, <span class="ident">f</span>)
     }
@@ -3083,7 +3084,7 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">///</span>
     <span class="doccomment">/// If this is a byte oriented character class, then this will be limited</span>
     <span class="doccomment">/// to the ASCII ranges `A-Z` and `a-z`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">case_fold_simple</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">case_fold_simple</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="ident">Class::Unicode</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">case_fold_simple</span>(),
             <span class="ident">Class::Bytes</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">case_fold_simple</span>(),
@@ -3094,7 +3095,7 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">///</span>
     <span class="doccomment">/// After completion, this character class will contain precisely the</span>
     <span class="doccomment">/// characters that weren&#39;t previously in the class.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">negate</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">negate</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="ident">Class::Unicode</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">negate</span>(),
             <span class="ident">Class::Bytes</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">negate</span>(),
@@ -3144,7 +3145,7 @@ Defines a high-level intermediate representation for regular expressions.
     }
 
     <span class="doccomment">/// Add a new range to this set.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">range</span>: <span class="ident">ClassUnicodeRange</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">range</span>: <span class="ident">ClassUnicodeRange</span>) {
         <span class="self">self</span>.<span class="ident">set</span>.<span class="ident">push</span>(<span class="ident">range</span>);
     }
 
@@ -3173,7 +3174,7 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">///</span>
     <span class="doccomment">/// Callers should prefer using `try_case_fold_simple` instead, which will</span>
     <span class="doccomment">/// return an error instead of panicking.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">case_fold_simple</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">case_fold_simple</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="self">self</span>.<span class="ident">set</span>
             .<span class="ident">case_fold_simple</span>()
             .<span class="ident">expect</span>(<span class="string">&quot;unicode-case feature must be enabled&quot;</span>);
@@ -3190,7 +3191,7 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">/// for this routine to complete is unavailable. This occurs when the</span>
     <span class="doccomment">/// `unicode-case` feature is not enabled.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_case_fold_simple</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
     ) -&gt; <span class="ident">result::Result</span><span class="op">&lt;</span>(), <span class="ident">CaseFoldError</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">set</span>.<span class="ident">case_fold_simple</span>()
     }
@@ -3199,23 +3200,23 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">///</span>
     <span class="doccomment">/// For all `c` where `c` is a Unicode scalar value, if `c` was in this</span>
     <span class="doccomment">/// set, then it will not be in this set after negation.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">negate</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">negate</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="self">self</span>.<span class="ident">set</span>.<span class="ident">negate</span>();
     }
 
     <span class="doccomment">/// Union this character class with the given character class, in place.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">union</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">ClassUnicode</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">union</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">ClassUnicode</span>) {
         <span class="self">self</span>.<span class="ident">set</span>.<span class="ident">union</span>(<span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="ident">set</span>);
     }
 
     <span class="doccomment">/// Intersect this character class with the given character class, in</span>
     <span class="doccomment">/// place.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">intersect</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">ClassUnicode</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">intersect</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">ClassUnicode</span>) {
         <span class="self">self</span>.<span class="ident">set</span>.<span class="ident">intersect</span>(<span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="ident">set</span>);
     }
 
     <span class="doccomment">/// Subtract the given character class from this character class, in place.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">difference</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">ClassUnicode</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">difference</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">ClassUnicode</span>) {
         <span class="self">self</span>.<span class="ident">set</span>.<span class="ident">difference</span>(<span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="ident">set</span>);
     }
 
@@ -3227,7 +3228,7 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">/// but all adds all elements from the given class that aren&#39;t in this</span>
     <span class="doccomment">/// class. That is, the class will contain all elements in either class,</span>
     <span class="doccomment">/// but will not contain any elements that are in both classes.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">symmetric_difference</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">ClassUnicode</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">symmetric_difference</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">ClassUnicode</span>) {
         <span class="self">self</span>.<span class="ident">set</span>.<span class="ident">symmetric_difference</span>(<span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="ident">set</span>);
     }
 
@@ -3248,7 +3249,7 @@ Defines a high-level intermediate representation for regular expressions.
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">ClassUnicodeIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ClassUnicodeRange</span>;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ClassUnicodeRange</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ClassUnicodeRange</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">next</span>()
     }
 }
@@ -3264,7 +3265,7 @@ Defines a high-level intermediate representation for regular expressions.
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">ClassUnicodeRange</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">start</span>.<span class="ident">is_whitespace</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">start</span>.<span class="ident">is_control</span>()
         {
             <span class="self">self</span>.<span class="ident">start</span>.<span class="ident">to_string</span>()
@@ -3295,11 +3296,11 @@ Defines a high-level intermediate representation for regular expressions.
         <span class="self">self</span>.<span class="ident">end</span>
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">set_lower</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">bound</span>: <span class="ident">char</span>) {
+    <span class="kw">fn</span> <span class="ident">set_lower</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">bound</span>: <span class="ident">char</span>) {
         <span class="self">self</span>.<span class="ident">start</span> <span class="op">=</span> <span class="ident">bound</span>;
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">set_upper</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">bound</span>: <span class="ident">char</span>) {
+    <span class="kw">fn</span> <span class="ident">set_upper</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">bound</span>: <span class="ident">char</span>) {
         <span class="self">self</span>.<span class="ident">end</span> <span class="op">=</span> <span class="ident">bound</span>;
     }
 
@@ -3309,7 +3310,7 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">/// is *not* maintained in the given vector.</span>
     <span class="kw">fn</span> <span class="ident">case_fold_simple</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">ranges</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ClassUnicodeRange</span><span class="op">&gt;</span>,
+        <span class="ident">ranges</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ClassUnicodeRange</span><span class="op">&gt;</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">unicode::CaseFoldError</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="op">!</span><span class="ident">unicode::contains_simple_case_mapping</span>(<span class="self">self</span>.<span class="ident">start</span>, <span class="self">self</span>.<span class="ident">end</span>)<span class="question-mark">?</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
@@ -3387,7 +3388,7 @@ Defines a high-level intermediate representation for regular expressions.
     }
 
     <span class="doccomment">/// Add a new range to this set.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">range</span>: <span class="ident">ClassBytesRange</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">range</span>: <span class="ident">ClassBytesRange</span>) {
         <span class="self">self</span>.<span class="ident">set</span>.<span class="ident">push</span>(<span class="ident">range</span>);
     }
 
@@ -3410,7 +3411,7 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">///</span>
     <span class="doccomment">/// Note that this only applies ASCII case folding, which is limited to the</span>
     <span class="doccomment">/// characters `a-z` and `A-Z`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">case_fold_simple</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">case_fold_simple</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="self">self</span>.<span class="ident">set</span>.<span class="ident">case_fold_simple</span>().<span class="ident">expect</span>(<span class="string">&quot;ASCII case folding never fails&quot;</span>);
     }
 
@@ -3418,22 +3419,22 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">///</span>
     <span class="doccomment">/// For all `b` where `b` is a any byte, if `b` was in this set, then it</span>
     <span class="doccomment">/// will not be in this set after negation.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">negate</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">negate</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="self">self</span>.<span class="ident">set</span>.<span class="ident">negate</span>();
     }
 
     <span class="doccomment">/// Union this byte class with the given byte class, in place.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">union</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">ClassBytes</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">union</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">ClassBytes</span>) {
         <span class="self">self</span>.<span class="ident">set</span>.<span class="ident">union</span>(<span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="ident">set</span>);
     }
 
     <span class="doccomment">/// Intersect this byte class with the given byte class, in place.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">intersect</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">ClassBytes</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">intersect</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">ClassBytes</span>) {
         <span class="self">self</span>.<span class="ident">set</span>.<span class="ident">intersect</span>(<span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="ident">set</span>);
     }
 
     <span class="doccomment">/// Subtract the given byte class from this byte class, in place.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">difference</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">ClassBytes</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">difference</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">ClassBytes</span>) {
         <span class="self">self</span>.<span class="ident">set</span>.<span class="ident">difference</span>(<span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="ident">set</span>);
     }
 
@@ -3444,7 +3445,7 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">/// but all adds all elements from the given class that aren&#39;t in this</span>
     <span class="doccomment">/// class. That is, the class will contain all elements in either class,</span>
     <span class="doccomment">/// but will not contain any elements that are in both classes.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">symmetric_difference</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">ClassBytes</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">symmetric_difference</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">ClassBytes</span>) {
         <span class="self">self</span>.<span class="ident">set</span>.<span class="ident">symmetric_difference</span>(<span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="ident">set</span>);
     }
 
@@ -3465,7 +3466,7 @@ Defines a high-level intermediate representation for regular expressions.
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">ClassBytesIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ClassBytesRange</span>;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ClassBytesRange</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ClassBytesRange</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">next</span>()
     }
 }
@@ -3492,11 +3493,11 @@ Defines a high-level intermediate representation for regular expressions.
         <span class="self">self</span>.<span class="ident">end</span>
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">set_lower</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">bound</span>: <span class="ident">u8</span>) {
+    <span class="kw">fn</span> <span class="ident">set_lower</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">bound</span>: <span class="ident">u8</span>) {
         <span class="self">self</span>.<span class="ident">start</span> <span class="op">=</span> <span class="ident">bound</span>;
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">set_upper</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">bound</span>: <span class="ident">u8</span>) {
+    <span class="kw">fn</span> <span class="ident">set_upper</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">bound</span>: <span class="ident">u8</span>) {
         <span class="self">self</span>.<span class="ident">end</span> <span class="op">=</span> <span class="ident">bound</span>;
     }
 
@@ -3507,7 +3508,7 @@ Defines a high-level intermediate representation for regular expressions.
     <span class="doccomment">/// is *not* maintained in the given vector.</span>
     <span class="kw">fn</span> <span class="ident">case_fold_simple</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">ranges</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ClassBytesRange</span><span class="op">&gt;</span>,
+        <span class="ident">ranges</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ClassBytesRange</span><span class="op">&gt;</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">unicode::CaseFoldError</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="op">!</span><span class="ident">ClassBytesRange::new</span>(<span class="string">b&#39;a&#39;</span>, <span class="string">b&#39;z&#39;</span>).<span class="ident">is_intersection_empty</span>(<span class="self">self</span>) {
             <span class="kw">let</span> <span class="ident">lower</span> <span class="op">=</span> <span class="ident">cmp::max</span>(<span class="self">self</span>.<span class="ident">start</span>, <span class="string">b&#39;a&#39;</span>);
@@ -3550,7 +3551,7 @@ Defines a high-level intermediate representation for regular expressions.
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">ClassBytesRange</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">debug</span> <span class="op">=</span> <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;ClassBytesRange&quot;</span>);
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">start</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0x7F</span> {
             <span class="ident">debug</span>.<span class="ident">field</span>(<span class="string">&quot;start&quot;</span>, <span class="kw-2">&amp;</span>(<span class="self">self</span>.<span class="ident">start</span> <span class="kw">as</span> <span class="ident">char</span>));
@@ -3720,7 +3721,7 @@ Defines a high-level intermediate representation for regular expressions.
 <span class="doccomment">/// A custom `Drop` impl is used for `HirKind` such that it uses constant stack</span>
 <span class="doccomment">/// space but heap space proportional to the depth of the total `Hir`.</span>
 <span class="kw">impl</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">Hir</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="kw">use</span> <span class="ident">std::mem</span>;
 
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">kind</span>() {
@@ -3745,10 +3746,10 @@ Defines a high-level intermediate representation for regular expressions.
                 <span class="op">|</span> <span class="ident">HirKind::Anchor</span>(<span class="kw">_</span>)
                 <span class="op">|</span> <span class="ident">HirKind::WordBoundary</span>(<span class="kw">_</span>) =&gt; {}
                 <span class="ident">HirKind::Group</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">x</span>) =&gt; {
-                    <span class="ident">stack</span>.<span class="ident">push</span>(<span class="ident">mem::replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">x</span>.<span class="ident">hir</span>, <span class="ident">Hir::empty</span>()));
+                    <span class="ident">stack</span>.<span class="ident">push</span>(<span class="ident">mem::replace</span>(<span class="kw-2">&amp;mut</span> <span class="ident">x</span>.<span class="ident">hir</span>, <span class="ident">Hir::empty</span>()));
                 }
                 <span class="ident">HirKind::Repetition</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">x</span>) =&gt; {
-                    <span class="ident">stack</span>.<span class="ident">push</span>(<span class="ident">mem::replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">x</span>.<span class="ident">hir</span>, <span class="ident">Hir::empty</span>()));
+                    <span class="ident">stack</span>.<span class="ident">push</span>(<span class="ident">mem::replace</span>(<span class="kw-2">&amp;mut</span> <span class="ident">x</span>.<span class="ident">hir</span>, <span class="ident">Hir::empty</span>()));
                 }
                 <span class="ident">HirKind::Concat</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">x</span>) =&gt; {
                     <span class="ident">stack</span>.<span class="ident">extend</span>(<span class="ident">x</span>.<span class="ident">drain</span>(..));
@@ -3781,7 +3782,7 @@ Defines a high-level intermediate representation for regular expressions.
             <span class="self">self</span>.<span class="ident">bools</span> <span class="op">&amp;</span> (<span class="number">0b1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bit</span>) <span class="op">&gt;</span> <span class="number">0</span>
         }
 
-        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">set_fn_name</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) {
+        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">set_fn_name</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) {
             <span class="kw">if</span> <span class="ident">yes</span> {
                 <span class="self">self</span>.<span class="ident">bools</span> <span class="op">|</span><span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bit</span>;
             } <span class="kw">else</span> {
@@ -4584,5 +4585,4 @@ Defines a high-level intermediate representation for regular expressions.
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="regex_syntax" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
-    <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script>
 </body></html>

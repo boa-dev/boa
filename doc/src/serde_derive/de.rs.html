@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;serde_derive-1.0.132&#x2F;src&#x2F;de.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>de.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../serde_derive/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;serde_derive-1.0.132&#x2F;src&#x2F;de.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>de.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../serde_derive/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -3147,7 +3148,7 @@
 <span class="kw">use</span> <span class="ident">std::ptr</span>;
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expand_derive_deserialize</span>(
-    <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">syn::DeriveInput</span>,
+    <span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">syn::DeriveInput</span>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TokenStream</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">syn::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="ident">replace_receiver</span>(<span class="ident">input</span>);
 
@@ -3468,7 +3469,7 @@
     <span class="kw">let</span> <span class="ident">stmts</span> <span class="op">=</span> <span class="ident">Stmts</span>(<span class="ident">code</span>);
 
     <span class="kw">let</span> <span class="ident">fn_deserialize_in_place</span> <span class="op">=</span> <span class="macro">quote_block!</span> {
-        <span class="kw">fn</span> <span class="ident">deserialize_in_place</span><span class="op">&lt;</span><span class="ident">__D</span><span class="op">&gt;</span>(<span class="ident">__deserializer</span>: <span class="ident">__D</span>, <span class="ident">__place</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>) -&gt; <span class="ident">_serde::__private::Result</span><span class="op">&lt;</span>(), <span class="ident">__D::Error</span><span class="op">&gt;</span>
+        <span class="kw">fn</span> <span class="ident">deserialize_in_place</span><span class="op">&lt;</span><span class="ident">__D</span><span class="op">&gt;</span>(<span class="ident">__deserializer</span>: <span class="ident">__D</span>, <span class="ident">__place</span>: <span class="kw-2">&amp;mut</span> <span class="self">Self</span>) -&gt; <span class="ident">_serde::__private::Result</span><span class="op">&lt;</span>(), <span class="ident">__D::Error</span><span class="op">&gt;</span>
         <span class="kw">where</span>
             <span class="ident">__D</span>: <span class="ident">_serde::Deserializer</span><span class="op">&lt;</span>#<span class="ident">delife</span><span class="op">&gt;</span>,
         {
@@ -3551,7 +3552,7 @@
         <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">_serde::de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">__Visitor</span> {
             <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> #<span class="ident">this</span>;
 
-            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">__formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">_serde::__private::Formatter</span>) -&gt; <span class="ident">_serde::__private::fmt::Result</span> {
+            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">__formatter</span>: <span class="kw-2">&amp;mut</span> <span class="ident">_serde::__private::Formatter</span>) -&gt; <span class="ident">_serde::__private::fmt::Result</span> {
                 <span class="ident">_serde::__private::Formatter::write_str</span>(<span class="ident">__formatter</span>, #<span class="ident">expecting</span>)
             }
 
@@ -3649,7 +3650,7 @@
         <span class="kw">impl</span> #<span class="ident">de_impl_generics</span> <span class="ident">_serde::de::Visitor</span><span class="op">&lt;</span>#<span class="ident">delife</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">__Visitor</span> #<span class="ident">de_ty_generics</span> #<span class="ident">where_clause</span> {
             <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> #<span class="ident">this</span> #<span class="ident">ty_generics</span>;
 
-            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">__formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">_serde::__private::Formatter</span>) -&gt; <span class="ident">_serde::__private::fmt::Result</span> {
+            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">__formatter</span>: <span class="kw-2">&amp;mut</span> <span class="ident">_serde::__private::Formatter</span>) -&gt; <span class="ident">_serde::__private::fmt::Result</span> {
                 <span class="ident">_serde::__private::Formatter::write_str</span>(<span class="ident">__formatter</span>, #<span class="ident">expecting</span>)
             }
 
@@ -3739,7 +3740,7 @@
         <span class="kw">impl</span> #<span class="ident">in_place_impl_generics</span> <span class="ident">_serde::de::Visitor</span><span class="op">&lt;</span>#<span class="ident">delife</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">__Visitor</span> #<span class="ident">in_place_ty_generics</span> #<span class="ident">where_clause</span> {
             <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> ();
 
-            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">__formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">_serde::__private::Formatter</span>) -&gt; <span class="ident">_serde::__private::fmt::Result</span> {
+            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">__formatter</span>: <span class="kw-2">&amp;mut</span> <span class="ident">_serde::__private::Formatter</span>) -&gt; <span class="ident">_serde::__private::fmt::Result</span> {
                 <span class="ident">_serde::__private::Formatter::write_str</span>(<span class="ident">__formatter</span>, #<span class="ident">expecting</span>)
             }
 
@@ -3793,14 +3794,14 @@
                     <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">field</span>.<span class="ident">original</span>.<span class="ident">span</span>();
                     <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span>
                         <span class="macro">quote_spanned!</span>(<span class="ident">span</span>=&gt; <span class="ident">_serde::de::SeqAccess::next_element</span>::<span class="op">&lt;</span>#<span class="ident">field_ty</span><span class="op">&gt;</span>);
-                    <span class="macro">quote!</span>(<span class="macro">try!</span>(#<span class="ident">func</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__seq</span>)))
+                    <span class="macro">quote!</span>(<span class="macro">try!</span>(#<span class="ident">func</span>(<span class="kw-2">&amp;mut</span> <span class="ident">__seq</span>)))
                 }
                 <span class="prelude-val">Some</span>(<span class="ident">path</span>) =&gt; {
                     <span class="kw">let</span> (<span class="ident">wrapper</span>, <span class="ident">wrapper_ty</span>) <span class="op">=</span> <span class="ident">wrap_deserialize_field_with</span>(<span class="ident">params</span>, <span class="ident">field</span>.<span class="ident">ty</span>, <span class="ident">path</span>);
                     <span class="macro">quote!</span>({
                         #<span class="ident">wrapper</span>
                         <span class="ident">_serde::__private::Option::map</span>(
-                            <span class="macro">try!</span>(<span class="ident">_serde::de::SeqAccess::next_element</span>::<span class="op">&lt;</span>#<span class="ident">wrapper_ty</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__seq</span>)),
+                            <span class="macro">try!</span>(<span class="ident">_serde::de::SeqAccess::next_element</span>::<span class="op">&lt;</span>#<span class="ident">wrapper_ty</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="ident">__seq</span>)),
                             <span class="op">|</span><span class="ident">__wrap</span><span class="op">|</span> <span class="ident">__wrap</span>.<span class="ident">value</span>)
                     })
                 }
@@ -3906,8 +3907,8 @@
             <span class="kw">let</span> <span class="ident">write</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">field</span>.<span class="ident">attrs</span>.<span class="ident">deserialize_with</span>() {
                 <span class="prelude-val">None</span> =&gt; {
                     <span class="macro">quote!</span> {
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">_serde::__private::None</span> <span class="op">=</span> <span class="macro">try!</span>(<span class="ident">_serde::de::SeqAccess::next_element_seed</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__seq</span>,
-                            <span class="ident">_serde::__private::de::InPlaceSeed</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">place</span>.#<span class="ident">member</span>)))
+                        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">_serde::__private::None</span> <span class="op">=</span> <span class="macro">try!</span>(<span class="ident">_serde::de::SeqAccess::next_element_seed</span>(<span class="kw-2">&amp;mut</span> <span class="ident">__seq</span>,
+                            <span class="ident">_serde::__private::de::InPlaceSeed</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">place</span>.#<span class="ident">member</span>)))
                         {
                             #<span class="ident">value_if_none</span>
                         }
@@ -3917,7 +3918,7 @@
                     <span class="kw">let</span> (<span class="ident">wrapper</span>, <span class="ident">wrapper_ty</span>) <span class="op">=</span> <span class="ident">wrap_deserialize_field_with</span>(<span class="ident">params</span>, <span class="ident">field</span>.<span class="ident">ty</span>, <span class="ident">path</span>);
                     <span class="macro">quote!</span>({
                         #<span class="ident">wrapper</span>
-                        <span class="kw">match</span> <span class="macro">try!</span>(<span class="ident">_serde::de::SeqAccess::next_element</span>::<span class="op">&lt;</span>#<span class="ident">wrapper_ty</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__seq</span>)) {
+                        <span class="kw">match</span> <span class="macro">try!</span>(<span class="ident">_serde::de::SeqAccess::next_element</span>::<span class="op">&lt;</span>#<span class="ident">wrapper_ty</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="ident">__seq</span>)) {
                             <span class="ident">_serde::__private::Some</span>(<span class="ident">__wrap</span>) =&gt; {
                                 <span class="self">self</span>.<span class="ident">place</span>.#<span class="ident">member</span> <span class="op">=</span> <span class="ident">__wrap</span>.<span class="ident">value</span>;
                             }
@@ -4013,7 +4014,7 @@
         <span class="kw">where</span>
             <span class="ident">__E</span>: <span class="ident">_serde::Deserializer</span><span class="op">&lt;</span>#<span class="ident">delife</span><span class="op">&gt;</span>,
         {
-            <span class="ident">_serde::Deserialize::deserialize_in_place</span>(<span class="ident">__e</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">place</span>.<span class="number">0</span>)
+            <span class="ident">_serde::Deserialize::deserialize_in_place</span>(<span class="ident">__e</span>, <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">place</span>.<span class="number">0</span>)
         }
     }
 }
@@ -4150,7 +4151,7 @@
         <span class="kw">impl</span> #<span class="ident">de_impl_generics</span> <span class="ident">_serde::de::Visitor</span><span class="op">&lt;</span>#<span class="ident">delife</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">__Visitor</span> #<span class="ident">de_ty_generics</span> #<span class="ident">where_clause</span> {
             <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> #<span class="ident">this</span> #<span class="ident">ty_generics</span>;
 
-            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">__formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">_serde::__private::Formatter</span>) -&gt; <span class="ident">_serde::__private::fmt::Result</span> {
+            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">__formatter</span>: <span class="kw-2">&amp;mut</span> <span class="ident">_serde::__private::Formatter</span>) -&gt; <span class="ident">_serde::__private::fmt::Result</span> {
                 <span class="ident">_serde::__private::Formatter::write_str</span>(<span class="ident">__formatter</span>, #<span class="ident">expecting</span>)
             }
 
@@ -4262,7 +4263,7 @@
         <span class="kw">impl</span> #<span class="ident">in_place_impl_generics</span> <span class="ident">_serde::de::Visitor</span><span class="op">&lt;</span>#<span class="ident">delife</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">__Visitor</span> #<span class="ident">in_place_ty_generics</span> #<span class="ident">where_clause</span> {
             <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> ();
 
-            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">__formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">_serde::__private::Formatter</span>) -&gt; <span class="ident">_serde::__private::fmt::Result</span> {
+            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">__formatter</span>: <span class="kw-2">&amp;mut</span> <span class="ident">_serde::__private::Formatter</span>) -&gt; <span class="ident">_serde::__private::fmt::Result</span> {
                 <span class="ident">_serde::__private::Formatter::write_str</span>(<span class="ident">__formatter</span>, #<span class="ident">expecting</span>)
             }
 
@@ -4405,7 +4406,7 @@
         <span class="kw">impl</span> #<span class="ident">de_impl_generics</span> <span class="ident">_serde::de::Visitor</span><span class="op">&lt;</span>#<span class="ident">delife</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">__Visitor</span> #<span class="ident">de_ty_generics</span> #<span class="ident">where_clause</span> {
             <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> #<span class="ident">this</span> #<span class="ident">ty_generics</span>;
 
-            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">__formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">_serde::__private::Formatter</span>) -&gt; <span class="ident">_serde::__private::fmt::Result</span> {
+            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">__formatter</span>: <span class="kw-2">&amp;mut</span> <span class="ident">_serde::__private::Formatter</span>) -&gt; <span class="ident">_serde::__private::fmt::Result</span> {
                 <span class="ident">_serde::__private::Formatter::write_str</span>(<span class="ident">__formatter</span>, #<span class="ident">expecting</span>)
             }
 
@@ -4577,7 +4578,7 @@
 
     <span class="comment">// Advance the map by one key, returning early in case of error.</span>
     <span class="kw">let</span> <span class="ident">next_key</span> <span class="op">=</span> <span class="macro">quote!</span> {
-        <span class="macro">try!</span>(<span class="ident">_serde::de::MapAccess::next_key_seed</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__map</span>, #<span class="ident">tag_or_content</span>))
+        <span class="macro">try!</span>(<span class="ident">_serde::de::MapAccess::next_key_seed</span>(<span class="kw-2">&amp;mut</span> <span class="ident">__map</span>, #<span class="ident">tag_or_content</span>))
     };
 
     <span class="comment">// When allowing unknown fields, we want to transparently step through keys</span>
@@ -4590,7 +4591,7 @@
             <span class="kw">while</span> <span class="kw">let</span> <span class="ident">_serde::__private::Some</span>(<span class="ident">__k</span>) <span class="op">=</span> #<span class="ident">next_key</span> {
                 <span class="kw">match</span> <span class="ident">__k</span> {
                     <span class="ident">_serde::__private::de::TagContentOtherField::Other</span> =&gt; {
-                        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="macro">try!</span>(<span class="ident">_serde::de::MapAccess::next_value</span>::<span class="op">&lt;</span><span class="ident">_serde::de::IgnoredAny</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__map</span>));
+                        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="macro">try!</span>(<span class="ident">_serde::de::MapAccess::next_value</span>::<span class="op">&lt;</span><span class="ident">_serde::de::IgnoredAny</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="ident">__map</span>));
                         <span class="kw">continue</span>;
                     },
                     <span class="ident">_serde::__private::de::TagContentOtherField::Tag</span> =&gt; {
@@ -4625,11 +4626,11 @@
 
     <span class="kw">let</span> <span class="ident">finish_content_then_tag</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">variant_arms</span>.<span class="ident">is_empty</span>() {
         <span class="macro">quote!</span> {
-            <span class="kw">match</span> <span class="macro">try!</span>(<span class="ident">_serde::de::MapAccess::next_value</span>::<span class="op">&lt;</span><span class="ident">__Field</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__map</span>)) {}
+            <span class="kw">match</span> <span class="macro">try!</span>(<span class="ident">_serde::de::MapAccess::next_value</span>::<span class="op">&lt;</span><span class="ident">__Field</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="ident">__map</span>)) {}
         }
     } <span class="kw">else</span> {
         <span class="macro">quote!</span> {
-            <span class="kw">let</span> <span class="ident">__ret</span> <span class="op">=</span> <span class="macro">try!</span>(<span class="kw">match</span> <span class="macro">try!</span>(<span class="ident">_serde::de::MapAccess::next_value</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__map</span>)) {
+            <span class="kw">let</span> <span class="ident">__ret</span> <span class="op">=</span> <span class="macro">try!</span>(<span class="kw">match</span> <span class="macro">try!</span>(<span class="ident">_serde::de::MapAccess::next_value</span>(<span class="kw-2">&amp;mut</span> <span class="ident">__map</span>)) {
                 <span class="comment">// Deserialize the buffered content now that we know the variant.</span>
                 #(#<span class="ident">variant_arms</span>)<span class="op">*</span>
             });
@@ -4670,7 +4671,7 @@
         <span class="kw">impl</span> #<span class="ident">de_impl_generics</span> <span class="ident">_serde::de::Visitor</span><span class="op">&lt;</span>#<span class="ident">delife</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">__Visitor</span> #<span class="ident">de_ty_generics</span> #<span class="ident">where_clause</span> {
             <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> #<span class="ident">this</span> #<span class="ident">ty_generics</span>;
 
-            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">__formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">_serde::__private::Formatter</span>) -&gt; <span class="ident">_serde::__private::fmt::Result</span> {
+            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">__formatter</span>: <span class="kw-2">&amp;mut</span> <span class="ident">_serde::__private::Formatter</span>) -&gt; <span class="ident">_serde::__private::fmt::Result</span> {
                 <span class="ident">_serde::__private::Formatter::write_str</span>(<span class="ident">__formatter</span>, #<span class="ident">expecting</span>)
             }
 
@@ -4683,7 +4684,7 @@
                     <span class="comment">// First key is the tag.</span>
                     <span class="ident">_serde::__private::Some</span>(<span class="ident">_serde::__private::de::TagOrContentField::Tag</span>) =&gt; {
                         <span class="comment">// Parse the tag.</span>
-                        <span class="kw">let</span> <span class="ident">__field</span> <span class="op">=</span> <span class="macro">try!</span>(<span class="ident">_serde::de::MapAccess::next_value</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__map</span>));
+                        <span class="kw">let</span> <span class="ident">__field</span> <span class="op">=</span> <span class="macro">try!</span>(<span class="ident">_serde::de::MapAccess::next_value</span>(<span class="kw-2">&amp;mut</span> <span class="ident">__map</span>));
                         <span class="comment">// Visit the second key.</span>
                         <span class="kw">match</span> #<span class="ident">next_relevant_key</span> {
                             <span class="comment">// Second key is a duplicate of the tag.</span>
@@ -4692,7 +4693,7 @@
                             }
                             <span class="comment">// Second key is the content.</span>
                             <span class="ident">_serde::__private::Some</span>(<span class="ident">_serde::__private::de::TagOrContentField::Content</span>) =&gt; {
-                                <span class="kw">let</span> <span class="ident">__ret</span> <span class="op">=</span> <span class="macro">try!</span>(<span class="ident">_serde::de::MapAccess::next_value_seed</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__map</span>,
+                                <span class="kw">let</span> <span class="ident">__ret</span> <span class="op">=</span> <span class="macro">try!</span>(<span class="ident">_serde::de::MapAccess::next_value_seed</span>(<span class="kw-2">&amp;mut</span> <span class="ident">__map</span>,
                                     <span class="ident">__Seed</span> {
                                         <span class="ident">field</span>: <span class="ident">__field</span>,
                                         <span class="ident">marker</span>: <span class="ident">_serde::__private::PhantomData</span>,
@@ -4708,7 +4709,7 @@
                     <span class="comment">// First key is the content.</span>
                     <span class="ident">_serde::__private::Some</span>(<span class="ident">_serde::__private::de::TagOrContentField::Content</span>) =&gt; {
                         <span class="comment">// Buffer up the content.</span>
-                        <span class="kw">let</span> <span class="ident">__content</span> <span class="op">=</span> <span class="macro">try!</span>(<span class="ident">_serde::de::MapAccess::next_value</span>::<span class="op">&lt;</span><span class="ident">_serde::__private::de::Content</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__map</span>));
+                        <span class="kw">let</span> <span class="ident">__content</span> <span class="op">=</span> <span class="macro">try!</span>(<span class="ident">_serde::de::MapAccess::next_value</span>::<span class="op">&lt;</span><span class="ident">_serde::__private::de::Content</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="ident">__map</span>));
                         <span class="comment">// Visit the second key.</span>
                         <span class="kw">match</span> #<span class="ident">next_relevant_key</span> {
                             <span class="comment">// Second key is the tag.</span>
@@ -4738,11 +4739,11 @@
                 <span class="ident">__A</span>: <span class="ident">_serde::de::SeqAccess</span><span class="op">&lt;</span>#<span class="ident">delife</span><span class="op">&gt;</span>,
             {
                 <span class="comment">// Visit the first element - the tag.</span>
-                <span class="kw">match</span> <span class="macro">try!</span>(<span class="ident">_serde::de::SeqAccess::next_element</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__seq</span>)) {
+                <span class="kw">match</span> <span class="macro">try!</span>(<span class="ident">_serde::de::SeqAccess::next_element</span>(<span class="kw-2">&amp;mut</span> <span class="ident">__seq</span>)) {
                     <span class="ident">_serde::__private::Some</span>(<span class="ident">__field</span>) =&gt; {
                         <span class="comment">// Visit the second element - the content.</span>
                         <span class="kw">match</span> <span class="macro">try!</span>(<span class="ident">_serde::de::SeqAccess::next_element_seed</span>(
-                            <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__seq</span>,
+                            <span class="kw-2">&amp;mut</span> <span class="ident">__seq</span>,
                             <span class="ident">__Seed</span> {
                                 <span class="ident">field</span>: <span class="ident">__field</span>,
                                 <span class="ident">marker</span>: <span class="ident">_serde::__private::PhantomData</span>,
@@ -5460,7 +5461,7 @@
     };
 
     <span class="macro">quote_block!</span> {
-        <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">__formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">_serde::__private::Formatter</span>) -&gt; <span class="ident">_serde::__private::fmt::Result</span> {
+        <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">__formatter</span>: <span class="kw-2">&amp;mut</span> <span class="ident">_serde::__private::Formatter</span>) -&gt; <span class="ident">_serde::__private::fmt::Result</span> {
             <span class="ident">_serde::__private::Formatter::write_str</span>(<span class="ident">__formatter</span>, #<span class="ident">expecting</span>)
         }
 
@@ -5612,14 +5613,14 @@
                     <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span>
                         <span class="macro">quote_spanned!</span>(<span class="ident">span</span>=&gt; <span class="ident">_serde::de::MapAccess::next_value</span>::<span class="op">&lt;</span>#<span class="ident">field_ty</span><span class="op">&gt;</span>);
                     <span class="macro">quote!</span> {
-                        <span class="macro">try!</span>(#<span class="ident">func</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__map</span>))
+                        <span class="macro">try!</span>(#<span class="ident">func</span>(<span class="kw-2">&amp;mut</span> <span class="ident">__map</span>))
                     }
                 }
                 <span class="prelude-val">Some</span>(<span class="ident">path</span>) =&gt; {
                     <span class="kw">let</span> (<span class="ident">wrapper</span>, <span class="ident">wrapper_ty</span>) <span class="op">=</span> <span class="ident">wrap_deserialize_field_with</span>(<span class="ident">params</span>, <span class="ident">field</span>.<span class="ident">ty</span>, <span class="ident">path</span>);
                     <span class="macro">quote!</span>({
                         #<span class="ident">wrapper</span>
-                        <span class="kw">match</span> <span class="ident">_serde::de::MapAccess::next_value</span>::<span class="op">&lt;</span>#<span class="ident">wrapper_ty</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__map</span>) {
+                        <span class="kw">match</span> <span class="ident">_serde::de::MapAccess::next_value</span>::<span class="op">&lt;</span>#<span class="ident">wrapper_ty</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="ident">__map</span>) {
                             <span class="ident">_serde::__private::Ok</span>(<span class="ident">__wrapper</span>) =&gt; <span class="ident">__wrapper</span>.<span class="ident">value</span>,
                             <span class="ident">_serde::__private::Err</span>(<span class="ident">__err</span>) =&gt; {
                                 <span class="kw">return</span> <span class="ident">_serde::__private::Err</span>(<span class="ident">__err</span>);
@@ -5644,14 +5645,14 @@
             <span class="ident">__Field::__other</span>(<span class="ident">__name</span>) =&gt; {
                 <span class="ident">__collect</span>.<span class="ident">push</span>(<span class="ident">_serde::__private::Some</span>((
                     <span class="ident">__name</span>,
-                    <span class="macro">try!</span>(<span class="ident">_serde::de::MapAccess::next_value</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__map</span>)))));
+                    <span class="macro">try!</span>(<span class="ident">_serde::de::MapAccess::next_value</span>(<span class="kw-2">&amp;mut</span> <span class="ident">__map</span>)))));
             }
         })
     } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">cattrs</span>.<span class="ident">deny_unknown_fields</span>() {
         <span class="prelude-val">None</span>
     } <span class="kw">else</span> {
         <span class="prelude-val">Some</span>(<span class="macro">quote!</span> {
-            <span class="kw">_</span> =&gt; { <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="macro">try!</span>(<span class="ident">_serde::de::MapAccess::next_value</span>::<span class="op">&lt;</span><span class="ident">_serde::de::IgnoredAny</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__map</span>)); }
+            <span class="kw">_</span> =&gt; { <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="macro">try!</span>(<span class="ident">_serde::de::MapAccess::next_value</span>::<span class="op">&lt;</span><span class="ident">_serde::de::IgnoredAny</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="ident">__map</span>)); }
         })
     };
 
@@ -5661,12 +5662,12 @@
             <span class="comment">// FIXME: Once we drop support for Rust 1.15:</span>
             <span class="comment">// let _serde::__private::None::&lt;__Field&gt; = try!(_serde::de::MapAccess::next_key(&amp;mut __map));</span>
             <span class="ident">_serde::__private::Option::map</span>(
-                <span class="macro">try!</span>(<span class="ident">_serde::de::MapAccess::next_key</span>::<span class="op">&lt;</span><span class="ident">__Field</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__map</span>)),
+                <span class="macro">try!</span>(<span class="ident">_serde::de::MapAccess::next_key</span>::<span class="op">&lt;</span><span class="ident">__Field</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="ident">__map</span>)),
                 <span class="op">|</span><span class="ident">__impossible</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">__impossible</span> {});
         }
     } <span class="kw">else</span> {
         <span class="macro">quote!</span> {
-            <span class="kw">while</span> <span class="kw">let</span> <span class="ident">_serde::__private::Some</span>(<span class="ident">__key</span>) <span class="op">=</span> <span class="macro">try!</span>(<span class="ident">_serde::de::MapAccess::next_key</span>::<span class="op">&lt;</span><span class="ident">__Field</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__map</span>)) {
+            <span class="kw">while</span> <span class="kw">let</span> <span class="ident">_serde::__private::Some</span>(<span class="ident">__key</span>) <span class="op">=</span> <span class="macro">try!</span>(<span class="ident">_serde::de::MapAccess::next_key</span>::<span class="op">&lt;</span><span class="ident">__Field</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="ident">__map</span>)) {
                 <span class="kw">match</span> <span class="ident">__key</span> {
                     #(#<span class="ident">value_arms</span>)<span class="op">*</span>
                     #<span class="ident">ignored_arm</span>
@@ -5704,7 +5705,7 @@
             <span class="macro">quote!</span> {
                 <span class="kw">let</span> #<span class="ident">name</span>: #<span class="ident">field_ty</span> <span class="op">=</span> <span class="macro">try!</span>(#<span class="ident">func</span>(
                     <span class="ident">_serde::__private::de::FlatMapDeserializer</span>(
-                        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__collect</span>,
+                        <span class="kw-2">&amp;mut</span> <span class="ident">__collect</span>,
                         <span class="ident">_serde::__private::PhantomData</span>)));
             }
         });
@@ -5850,14 +5851,14 @@
             <span class="kw">let</span> <span class="ident">visit</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">field</span>.<span class="ident">attrs</span>.<span class="ident">deserialize_with</span>() {
                 <span class="prelude-val">None</span> =&gt; {
                     <span class="macro">quote!</span> {
-                        <span class="macro">try!</span>(<span class="ident">_serde::de::MapAccess::next_value_seed</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__map</span>, <span class="ident">_serde::__private::de::InPlaceSeed</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">place</span>.#<span class="ident">member</span>)))
+                        <span class="macro">try!</span>(<span class="ident">_serde::de::MapAccess::next_value_seed</span>(<span class="kw-2">&amp;mut</span> <span class="ident">__map</span>, <span class="ident">_serde::__private::de::InPlaceSeed</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">place</span>.#<span class="ident">member</span>)))
                     }
                 }
                 <span class="prelude-val">Some</span>(<span class="ident">path</span>) =&gt; {
                     <span class="kw">let</span> (<span class="ident">wrapper</span>, <span class="ident">wrapper_ty</span>) <span class="op">=</span> <span class="ident">wrap_deserialize_field_with</span>(<span class="ident">params</span>, <span class="ident">field</span>.<span class="ident">ty</span>, <span class="ident">path</span>);
                     <span class="macro">quote!</span>({
                         #<span class="ident">wrapper</span>
-                        <span class="self">self</span>.<span class="ident">place</span>.#<span class="ident">member</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">_serde::de::MapAccess::next_value</span>::<span class="op">&lt;</span>#<span class="ident">wrapper_ty</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__map</span>) {
+                        <span class="self">self</span>.<span class="ident">place</span>.#<span class="ident">member</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">_serde::de::MapAccess::next_value</span>::<span class="op">&lt;</span>#<span class="ident">wrapper_ty</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="ident">__map</span>) {
                             <span class="ident">_serde::__private::Ok</span>(<span class="ident">__wrapper</span>) =&gt; <span class="ident">__wrapper</span>.<span class="ident">value</span>,
                             <span class="ident">_serde::__private::Err</span>(<span class="ident">__err</span>) =&gt; {
                                 <span class="kw">return</span> <span class="ident">_serde::__private::Err</span>(<span class="ident">__err</span>);
@@ -5882,7 +5883,7 @@
         <span class="prelude-val">None</span>
     } <span class="kw">else</span> {
         <span class="prelude-val">Some</span>(<span class="macro">quote!</span> {
-            <span class="kw">_</span> =&gt; { <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="macro">try!</span>(<span class="ident">_serde::de::MapAccess::next_value</span>::<span class="op">&lt;</span><span class="ident">_serde::de::IgnoredAny</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__map</span>)); }
+            <span class="kw">_</span> =&gt; { <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="macro">try!</span>(<span class="ident">_serde::de::MapAccess::next_value</span>::<span class="op">&lt;</span><span class="ident">_serde::de::IgnoredAny</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="ident">__map</span>)); }
         })
     };
 
@@ -5893,12 +5894,12 @@
             <span class="comment">// FIXME: Once we drop support for Rust 1.15:</span>
             <span class="comment">// let _serde::__private::None::&lt;__Field&gt; = try!(_serde::de::MapAccess::next_key(&amp;mut __map));</span>
             <span class="ident">_serde::__private::Option::map</span>(
-                <span class="macro">try!</span>(<span class="ident">_serde::de::MapAccess::next_key</span>::<span class="op">&lt;</span><span class="ident">__Field</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__map</span>)),
+                <span class="macro">try!</span>(<span class="ident">_serde::de::MapAccess::next_key</span>::<span class="op">&lt;</span><span class="ident">__Field</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="ident">__map</span>)),
                 <span class="op">|</span><span class="ident">__impossible</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">__impossible</span> {});
         }
     } <span class="kw">else</span> {
         <span class="macro">quote!</span> {
-            <span class="kw">while</span> <span class="kw">let</span> <span class="ident">_serde::__private::Some</span>(<span class="ident">__key</span>) <span class="op">=</span> <span class="macro">try!</span>(<span class="ident">_serde::de::MapAccess::next_key</span>::<span class="op">&lt;</span><span class="ident">__Field</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__map</span>)) {
+            <span class="kw">while</span> <span class="kw">let</span> <span class="ident">_serde::__private::Some</span>(<span class="ident">__key</span>) <span class="op">=</span> <span class="macro">try!</span>(<span class="ident">_serde::de::MapAccess::next_key</span>::<span class="op">&lt;</span><span class="ident">__Field</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="ident">__map</span>)) {
                 <span class="kw">match</span> <span class="ident">__key</span> {
                     #(#<span class="ident">value_arms_from</span>)<span class="op">*</span>
                     #<span class="ident">ignored_arm</span>
@@ -6127,7 +6128,7 @@
 <span class="kw">struct</span> <span class="ident">InPlaceImplGenerics</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Parameters</span>);
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">DeImplGenerics</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TokenStream</span>) {
+    <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenStream</span>) {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">generics</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">generics</span>.<span class="ident">clone</span>();
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">de_lifetime</span>) <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">borrowed</span>.<span class="ident">de_lifetime_def</span>() {
             <span class="ident">generics</span>.<span class="ident">params</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">syn::GenericParam::Lifetime</span>(<span class="ident">de_lifetime</span>))
@@ -6142,12 +6143,12 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deserialize_in_place&quot;</span>)]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">InPlaceImplGenerics</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TokenStream</span>) {
+    <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenStream</span>) {
         <span class="kw">let</span> <span class="ident">place_lifetime</span> <span class="op">=</span> <span class="ident">place_lifetime</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">generics</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">generics</span>.<span class="ident">clone</span>();
 
         <span class="comment">// Add lifetime for `&amp;&#39;place mut Self, and `&#39;a: &#39;place`</span>
-        <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">generics</span>.<span class="ident">params</span> {
+        <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="ident">generics</span>.<span class="ident">params</span> {
             <span class="kw">match</span> <span class="ident">param</span> {
                 <span class="ident">syn::GenericParam::Lifetime</span>(<span class="ident">param</span>) =&gt; {
                     <span class="ident">param</span>.<span class="ident">bounds</span>.<span class="ident">push</span>(<span class="ident">place_lifetime</span>.<span class="ident">lifetime</span>.<span class="ident">clone</span>());
@@ -6187,7 +6188,7 @@
 <span class="kw">struct</span> <span class="ident">InPlaceTypeGenerics</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Parameters</span>);
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">DeTypeGenerics</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TokenStream</span>) {
+    <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenStream</span>) {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">generics</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">generics</span>.<span class="ident">clone</span>();
         <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">borrowed</span>.<span class="ident">de_lifetime_def</span>().<span class="ident">is_some</span>() {
             <span class="kw">let</span> <span class="ident">def</span> <span class="op">=</span> <span class="ident">syn::LifetimeDef</span> {
@@ -6208,7 +6209,7 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deserialize_in_place&quot;</span>)]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">InPlaceTypeGenerics</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TokenStream</span>) {
+    <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenStream</span>) {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">generics</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">generics</span>.<span class="ident">clone</span>();
         <span class="ident">generics</span>.<span class="ident">params</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">syn::GenericParam::Lifetime</span>(<span class="ident">place_lifetime</span>()))
             .<span class="ident">into_iter</span>()
@@ -6264,5 +6265,4 @@
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="serde_derive" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
 </body></html>

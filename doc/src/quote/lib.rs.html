@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;quote-1.0.10&#x2F;src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../quote/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;quote-1.0.10&#x2F;src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../quote/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -2073,7 +2074,7 @@
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> # ( $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">inner</span>:<span class="ident">tt</span>)<span class="op">*</span> ) <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sep</span>:<span class="ident">tt</span> (<span class="kw-2">*</span>) <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a1</span>:<span class="ident">tt</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a2</span>:<span class="ident">tt</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a3</span>:<span class="ident">tt</span>) =&gt; {};
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">b3</span>:<span class="ident">tt</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">b2</span>:<span class="ident">tt</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">b1</span>:<span class="ident">tt</span> (#) <span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a2</span>:<span class="ident">tt</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a3</span>:<span class="ident">tt</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::ToTokens::to_tokens</span>(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::ToTokens::to_tokens</span>(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>, <span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">b3</span>:<span class="ident">tt</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">b2</span>:<span class="ident">tt</span> # (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>:<span class="ident">ident</span>) <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a1</span>:<span class="ident">tt</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a2</span>:<span class="ident">tt</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a3</span>:<span class="ident">tt</span>) =&gt; {};
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">b3</span>:<span class="ident">tt</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">b2</span>:<span class="ident">tt</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">b1</span>:<span class="ident">tt</span> (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">curr</span>:<span class="ident">tt</span>) <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a1</span>:<span class="ident">tt</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a2</span>:<span class="ident">tt</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a3</span>:<span class="ident">tt</span>) =&gt; {
@@ -2138,7 +2139,7 @@
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> # ( $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">inner</span>:<span class="ident">tt</span>)<span class="op">*</span> ) <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sep</span>:<span class="ident">tt</span> (<span class="kw-2">*</span>) <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a1</span>:<span class="ident">tt</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a2</span>:<span class="ident">tt</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a3</span>:<span class="ident">tt</span>) =&gt; {};
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">b3</span>:<span class="ident">tt</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">b2</span>:<span class="ident">tt</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">b1</span>:<span class="ident">tt</span> (#) <span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a2</span>:<span class="ident">tt</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a3</span>:<span class="ident">tt</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::ToTokens::to_tokens</span>(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::ToTokens::to_tokens</span>(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>, <span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">b3</span>:<span class="ident">tt</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">b2</span>:<span class="ident">tt</span> # (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>:<span class="ident">ident</span>) <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a1</span>:<span class="ident">tt</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a2</span>:<span class="ident">tt</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a3</span>:<span class="ident">tt</span>) =&gt; {};
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">b3</span>:<span class="ident">tt</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">b2</span>:<span class="ident">tt</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">b1</span>:<span class="ident">tt</span> (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">curr</span>:<span class="ident">tt</span>) <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a1</span>:<span class="ident">tt</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a2</span>:<span class="ident">tt</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a3</span>:<span class="ident">tt</span>) =&gt; {
@@ -2151,7 +2152,7 @@
 <span class="macro">macro_rules!</span> <span class="ident">quote_token</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> ( $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">inner</span>:<span class="ident">tt</span>)<span class="op">*</span> )) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_group</span>(
-            <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>,
+            <span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>,
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::Delimiter::Parenthesis</span>,
             <span class="macro-nonterminal">$</span><span class="macro">crate::quote!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">inner</span>)<span class="kw-2">*</span>),
         );
@@ -2159,7 +2160,7 @@
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> [ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">inner</span>:<span class="ident">tt</span>)<span class="op">*</span> ]) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_group</span>(
-            <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>,
+            <span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>,
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::Delimiter::Bracket</span>,
             <span class="macro-nonterminal">$</span><span class="macro">crate::quote!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">inner</span>)<span class="kw-2">*</span>),
         );
@@ -2167,194 +2168,194 @@
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">inner</span>:<span class="ident">tt</span>)<span class="op">*</span> }) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_group</span>(
-            <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>,
+            <span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>,
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::Delimiter::Brace</span>,
             <span class="macro-nonterminal">$</span><span class="macro">crate::quote!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">inner</span>)<span class="kw-2">*</span>),
         );
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="op">+</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_add</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_add</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="op">+</span><span class="op">=</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_add_eq</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_add_eq</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="kw-2">&amp;</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_and</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_and</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="op">&amp;&amp;</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_and_and</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_and_and</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="op">&amp;=</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_and_eq</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_and_eq</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> @) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_at</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_at</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="op">!</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_bang</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_bang</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="op">^</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_caret</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_caret</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="op">^</span><span class="op">=</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_caret_eq</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_caret_eq</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> :) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_colon</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_colon</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> ::) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_colon2</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_colon2</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> ,) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_comma</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_comma</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="op">/</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_div</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_div</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="op">/</span><span class="op">=</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_div_eq</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_div_eq</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> .) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_dot</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_dot</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> ..) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_dot2</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_dot2</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> ...) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_dot3</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_dot3</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> ..<span class="op">=</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_dot_dot_eq</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_dot_dot_eq</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="op">=</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_eq</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_eq</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="op">==</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_eq_eq</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_eq_eq</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="op">&gt;</span><span class="op">=</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_ge</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_ge</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="op">&gt;</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_gt</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_gt</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="op">&lt;</span><span class="op">=</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_le</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="op">&lt;</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_lt</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_lt</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="kw-2">*</span><span class="op">=</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_mul_eq</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_mul_eq</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="op">!</span><span class="op">=</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_ne</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_ne</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="op">|</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_or</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_or</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="op">|</span><span class="op">=</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_or_eq</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_or_eq</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="op">|</span><span class="op">|</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_or_or</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_or_or</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> #) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_pound</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_pound</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="question-mark">?</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_question</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_question</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> -&gt;) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_rarrow</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_rarrow</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="op">&lt;</span><span class="op">-</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_larrow</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_larrow</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="op">%</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_rem</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_rem</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="op">%</span><span class="op">=</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_rem_eq</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_rem_eq</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> =&gt;) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_fat_arrow</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_fat_arrow</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> ;) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_semi</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_semi</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="op">&lt;</span><span class="op">&lt;</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_shl</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_shl</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="op">&lt;</span><span class="op">&lt;</span><span class="op">=</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_shl_eq</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_shl_eq</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="op">&gt;</span><span class="op">&gt;</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_shr</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_shr</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="op">&gt;</span><span class="op">&gt;</span><span class="op">=</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_shr_eq</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_shr_eq</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="kw-2">*</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_star</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_star</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="op">-</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_sub</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_sub</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="op">-</span><span class="op">=</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_sub_eq</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_sub_eq</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span>:<span class="ident">ident</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_ident</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span>));
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_ident</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span>));
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">other</span>:<span class="ident">tt</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::parse</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">other</span>));
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::parse</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">other</span>));
     };
 }
 
@@ -2363,7 +2364,7 @@
 <span class="macro">macro_rules!</span> <span class="ident">quote_token_spanned</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> ( $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">inner</span>:<span class="ident">tt</span>)<span class="op">*</span> )) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_group_spanned</span>(
-            <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>,
+            <span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>,
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>,
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::Delimiter::Parenthesis</span>,
             <span class="macro-nonterminal">$</span><span class="macro">crate::quote_spanned!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>=&gt; $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">inner</span>)<span class="kw-2">*</span>),
@@ -2372,7 +2373,7 @@
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> [ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">inner</span>:<span class="ident">tt</span>)<span class="op">*</span> ]) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_group_spanned</span>(
-            <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>,
+            <span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>,
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>,
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::Delimiter::Bracket</span>,
             <span class="macro-nonterminal">$</span><span class="macro">crate::quote_spanned!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>=&gt; $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">inner</span>)<span class="kw-2">*</span>),
@@ -2381,7 +2382,7 @@
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">inner</span>:<span class="ident">tt</span>)<span class="op">*</span> }) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_group_spanned</span>(
-            <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>,
+            <span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>,
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>,
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::Delimiter::Brace</span>,
             <span class="macro-nonterminal">$</span><span class="macro">crate::quote_spanned!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>=&gt; $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">inner</span>)<span class="kw-2">*</span>),
@@ -2389,190 +2390,189 @@
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> <span class="op">+</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_add_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_add_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> <span class="op">+</span><span class="op">=</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_add_eq_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_add_eq_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> <span class="kw-2">&amp;</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_and_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_and_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> <span class="op">&amp;&amp;</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_and_and_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_and_and_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> <span class="op">&amp;=</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_and_eq_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_and_eq_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> @) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_at_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_at_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> <span class="op">!</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_bang_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_bang_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> <span class="op">^</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_caret_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_caret_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> <span class="op">^</span><span class="op">=</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_caret_eq_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_caret_eq_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> :) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_colon_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_colon_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> ::) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_colon2_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_colon2_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> ,) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_comma_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_comma_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> <span class="op">/</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_div_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_div_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> <span class="op">/</span><span class="op">=</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_div_eq_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_div_eq_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> .) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_dot_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_dot_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> ..) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_dot2_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_dot2_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> ...) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_dot3_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_dot3_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> ..<span class="op">=</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_dot_dot_eq_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_dot_dot_eq_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> <span class="op">=</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_eq_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_eq_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> <span class="op">==</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_eq_eq_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_eq_eq_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> <span class="op">&gt;</span><span class="op">=</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_ge_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_ge_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> <span class="op">&gt;</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_gt_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_gt_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> <span class="op">&lt;</span><span class="op">=</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_le_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_le_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> <span class="op">&lt;</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_lt_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_lt_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> <span class="kw-2">*</span><span class="op">=</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_mul_eq_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_mul_eq_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> <span class="op">!</span><span class="op">=</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_ne_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_ne_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> <span class="op">|</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_or_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_or_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> <span class="op">|</span><span class="op">=</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_or_eq_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_or_eq_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> <span class="op">|</span><span class="op">|</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_or_or_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_or_or_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> #) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_pound_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_pound_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> <span class="question-mark">?</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_question_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_question_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> -&gt;) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_rarrow_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_rarrow_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> <span class="op">&lt;</span><span class="op">-</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_larrow_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_larrow_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> <span class="op">%</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_rem_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_rem_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> <span class="op">%</span><span class="op">=</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_rem_eq_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_rem_eq_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> =&gt;) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_fat_arrow_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_fat_arrow_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> ;) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_semi_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_semi_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> <span class="op">&lt;</span><span class="op">&lt;</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_shl_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_shl_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> <span class="op">&lt;</span><span class="op">&lt;</span><span class="op">=</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_shl_eq_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_shl_eq_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> <span class="op">&gt;</span><span class="op">&gt;</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_shr_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_shr_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> <span class="op">&gt;</span><span class="op">&gt;</span><span class="op">=</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_shr_eq_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_shr_eq_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> <span class="kw-2">*</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_star_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_star_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> <span class="op">-</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_sub_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_sub_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> <span class="op">-</span><span class="op">=</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_sub_eq_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_sub_eq_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>);
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span>:<span class="ident">ident</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_ident_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span>));
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::push_ident_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ident</span>));
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">other</span>:<span class="ident">tt</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::parse_spanned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">other</span>));
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::__private::parse_spanned</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokens</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">other</span>));
     };
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="quote" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
 </body></html>

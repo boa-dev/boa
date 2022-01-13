@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;regex-syntax-0.6.25&#x2F;src&#x2F;hir&#x2F;translate.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>translate.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../regex_syntax/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;regex-syntax-0.6.25&#x2F;src&#x2F;hir&#x2F;translate.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>translate.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../regex_syntax/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -3222,19 +3223,19 @@ Defines a translator that converts an `Ast` to an `Hir`.
     <span class="doccomment">/// word boundary (uttered as `(?-u:\B)` in the concrete syntax) will cause</span>
     <span class="doccomment">/// the parser to return an error. Namely, a negated ASCII word boundary</span>
     <span class="doccomment">/// can result in matching positions that aren&#39;t valid UTF-8 boundaries.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">allow_invalid_utf8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TranslatorBuilder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">allow_invalid_utf8</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">TranslatorBuilder</span> {
         <span class="self">self</span>.<span class="ident">allow_invalid_utf8</span> <span class="op">=</span> <span class="ident">yes</span>;
         <span class="self">self</span>
     }
 
     <span class="doccomment">/// Enable or disable the case insensitive flag (`i`) by default.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">case_insensitive</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TranslatorBuilder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">case_insensitive</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">TranslatorBuilder</span> {
         <span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">case_insensitive</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">yes</span> { <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) } <span class="kw">else</span> { <span class="prelude-val">None</span> };
         <span class="self">self</span>
     }
 
     <span class="doccomment">/// Enable or disable the multi-line matching flag (`m`) by default.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">multi_line</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TranslatorBuilder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">multi_line</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">TranslatorBuilder</span> {
         <span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">multi_line</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">yes</span> { <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) } <span class="kw">else</span> { <span class="prelude-val">None</span> };
         <span class="self">self</span>
     }
@@ -3242,21 +3243,21 @@ Defines a translator that converts an `Ast` to an `Hir`.
     <span class="doccomment">/// Enable or disable the &quot;dot matches any character&quot; flag (`s`) by</span>
     <span class="doccomment">/// default.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dot_matches_new_line</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">yes</span>: <span class="ident">bool</span>,
-    ) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TranslatorBuilder</span> {
+    ) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">TranslatorBuilder</span> {
         <span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">dot_matches_new_line</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">yes</span> { <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) } <span class="kw">else</span> { <span class="prelude-val">None</span> };
         <span class="self">self</span>
     }
 
     <span class="doccomment">/// Enable or disable the &quot;swap greed&quot; flag (`U`) by default.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">swap_greed</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TranslatorBuilder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">swap_greed</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">TranslatorBuilder</span> {
         <span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">swap_greed</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">yes</span> { <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) } <span class="kw">else</span> { <span class="prelude-val">None</span> };
         <span class="self">self</span>
     }
 
     <span class="doccomment">/// Enable or disable the Unicode flag (`u`) by default.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unicode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TranslatorBuilder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unicode</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">TranslatorBuilder</span> {
         <span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">unicode</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">yes</span> { <span class="prelude-val">None</span> } <span class="kw">else</span> { <span class="prelude-val">Some</span>(<span class="bool-val">false</span>) };
         <span class="self">self</span>
     }
@@ -3295,7 +3296,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
     <span class="doccomment">/// The original pattern string used to produce the `Ast` *must* also be</span>
     <span class="doccomment">/// provided. The translator does not use the pattern string during any</span>
     <span class="doccomment">/// correct translation, but is used for error reporting.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">translate</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="ident">Ast</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Hir</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">translate</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="ident">Ast</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Hir</span><span class="op">&gt;</span> {
         <span class="ident">ast::visit</span>(<span class="ident">ast</span>, <span class="ident">TranslatorI::new</span>(<span class="self">self</span>, <span class="ident">pattern</span>))
     }
 }
@@ -3410,7 +3411,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap_expr</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_pre</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="ident">Ast</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">visit_pre</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="ident">Ast</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">ast</span> {
             <span class="ident">Ast::Class</span>(<span class="ident">ast::Class::Bracketed</span>(<span class="kw">_</span>)) =&gt; {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">unicode</span>() {
@@ -3441,7 +3442,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_post</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="ident">Ast</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">visit_post</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="ident">Ast</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">ast</span> {
             <span class="ident">Ast::Empty</span>(<span class="kw">_</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">HirFrame::Expr</span>(<span class="ident">Hir::empty</span>()));
@@ -3489,7 +3490,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
                     <span class="self">self</span>.<span class="ident">unicode_fold_and_negate</span>(
                         <span class="kw-2">&amp;</span><span class="ident">ast</span>.<span class="ident">span</span>,
                         <span class="ident">ast</span>.<span class="ident">negated</span>,
-                        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">cls</span>,
+                        <span class="kw-2">&amp;mut</span> <span class="ident">cls</span>,
                     )<span class="question-mark">?</span>;
                     <span class="kw">if</span> <span class="ident">cls</span>.<span class="ident">ranges</span>().<span class="ident">is_empty</span>() {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">error</span>(
@@ -3504,7 +3505,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
                     <span class="self">self</span>.<span class="ident">bytes_fold_and_negate</span>(
                         <span class="kw-2">&amp;</span><span class="ident">ast</span>.<span class="ident">span</span>,
                         <span class="ident">ast</span>.<span class="ident">negated</span>,
-                        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">cls</span>,
+                        <span class="kw-2">&amp;mut</span> <span class="ident">cls</span>,
                     )<span class="question-mark">?</span>;
                     <span class="kw">if</span> <span class="ident">cls</span>.<span class="ident">ranges</span>().<span class="ident">is_empty</span>() {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">error</span>(
@@ -3550,7 +3551,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
     }
 
     <span class="kw">fn</span> <span class="ident">visit_class_set_item_pre</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="ident">ast::ClassSetItem</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">ast</span> {
@@ -3571,7 +3572,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
     }
 
     <span class="kw">fn</span> <span class="ident">visit_class_set_item_post</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="ident">ast::ClassSetItem</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">ast</span> {
@@ -3608,7 +3609,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
                         <span class="ident">cls</span>.<span class="ident">push</span>(<span class="ident">hir::ClassUnicodeRange::new</span>(<span class="ident">s</span>, <span class="ident">e</span>));
                     }
                     <span class="self">self</span>.<span class="ident">unicode_fold_and_negate</span>(
-                        <span class="kw-2">&amp;</span><span class="ident">x</span>.<span class="ident">span</span>, <span class="ident">x</span>.<span class="ident">negated</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">cls</span>,
+                        <span class="kw-2">&amp;</span><span class="ident">x</span>.<span class="ident">span</span>, <span class="ident">x</span>.<span class="ident">negated</span>, <span class="kw-2">&amp;mut</span> <span class="ident">cls</span>,
                     )<span class="question-mark">?</span>;
                     <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">HirFrame::ClassUnicode</span>(<span class="ident">cls</span>));
                 } <span class="kw">else</span> {
@@ -3616,7 +3617,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
                     <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">s</span>, <span class="ident">e</span>) <span class="kw">in</span> <span class="ident">ascii_class</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>.<span class="ident">kind</span>) {
                         <span class="ident">cls</span>.<span class="ident">push</span>(<span class="ident">hir::ClassBytesRange::new</span>(<span class="ident">s</span> <span class="kw">as</span> <span class="ident">u8</span>, <span class="ident">e</span> <span class="kw">as</span> <span class="ident">u8</span>));
                     }
-                    <span class="self">self</span>.<span class="ident">bytes_fold_and_negate</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>.<span class="ident">span</span>, <span class="ident">x</span>.<span class="ident">negated</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">cls</span>)<span class="question-mark">?</span>;
+                    <span class="self">self</span>.<span class="ident">bytes_fold_and_negate</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>.<span class="ident">span</span>, <span class="ident">x</span>.<span class="ident">negated</span>, <span class="kw-2">&amp;mut</span> <span class="ident">cls</span>)<span class="question-mark">?</span>;
                     <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">HirFrame::ClassBytes</span>(<span class="ident">cls</span>));
                 }
             }
@@ -3645,7 +3646,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
                     <span class="self">self</span>.<span class="ident">unicode_fold_and_negate</span>(
                         <span class="kw-2">&amp;</span><span class="ident">ast</span>.<span class="ident">span</span>,
                         <span class="ident">ast</span>.<span class="ident">negated</span>,
-                        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">cls1</span>,
+                        <span class="kw-2">&amp;mut</span> <span class="ident">cls1</span>,
                     )<span class="question-mark">?</span>;
 
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cls2</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap_class_unicode</span>();
@@ -3656,7 +3657,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
                     <span class="self">self</span>.<span class="ident">bytes_fold_and_negate</span>(
                         <span class="kw-2">&amp;</span><span class="ident">ast</span>.<span class="ident">span</span>,
                         <span class="ident">ast</span>.<span class="ident">negated</span>,
-                        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">cls1</span>,
+                        <span class="kw-2">&amp;mut</span> <span class="ident">cls1</span>,
                     )<span class="question-mark">?</span>;
 
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cls2</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap_class_bytes</span>();
@@ -3671,7 +3672,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
     }
 
     <span class="kw">fn</span> <span class="ident">visit_class_set_binary_op_pre</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">_op</span>: <span class="kw-2">&amp;</span><span class="ident">ast::ClassSetBinaryOp</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">unicode</span>() {
@@ -3685,7 +3686,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
     }
 
     <span class="kw">fn</span> <span class="ident">visit_class_set_binary_op_in</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">_op</span>: <span class="kw-2">&amp;</span><span class="ident">ast::ClassSetBinaryOp</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">unicode</span>() {
@@ -3699,7 +3700,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
     }
 
     <span class="kw">fn</span> <span class="ident">visit_class_set_binary_op_post</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">op</span>: <span class="kw-2">&amp;</span><span class="ident">ast::ClassSetBinaryOp</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ast::ClassSetBinaryOpKind</span>::<span class="kw-2">*</span>;
@@ -4093,7 +4094,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">span</span>: <span class="kw-2">&amp;</span><span class="ident">Span</span>,
         <span class="ident">negated</span>: <span class="ident">bool</span>,
-        <span class="ident">class</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">hir::ClassUnicode</span>,
+        <span class="ident">class</span>: <span class="kw-2">&amp;mut</span> <span class="ident">hir::ClassUnicode</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="comment">// Note that we must apply case folding before negation!</span>
         <span class="comment">// Consider `(?i)[^x]`. If we applied negation field, then</span>
@@ -4114,7 +4115,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">span</span>: <span class="kw-2">&amp;</span><span class="ident">Span</span>,
         <span class="ident">negated</span>: <span class="ident">bool</span>,
-        <span class="ident">class</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">hir::ClassBytes</span>,
+        <span class="ident">class</span>: <span class="kw-2">&amp;mut</span> <span class="ident">hir::ClassBytes</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="comment">// Note that we must apply case folding before negation!</span>
         <span class="comment">// Consider `(?i)[^x]`. If we applied negation field, then</span>
@@ -4197,7 +4198,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         <span class="ident">flags</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">merge</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">previous</span>: <span class="kw-2">&amp;</span><span class="ident">Flags</span>) {
+    <span class="kw">fn</span> <span class="ident">merge</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">previous</span>: <span class="kw-2">&amp;</span><span class="ident">Flags</span>) {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">case_insensitive</span>.<span class="ident">is_none</span>() {
             <span class="self">self</span>.<span class="ident">case_insensitive</span> <span class="op">=</span> <span class="ident">previous</span>.<span class="ident">case_insensitive</span>;
         }
@@ -6338,5 +6339,4 @@ Defines a translator that converts an `Ast` to an `Hir`.
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="regex_syntax" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
-    <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script>
 </body></html>

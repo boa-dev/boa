@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;byteorder-1.4.3&#x2F;src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../byteorder/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;byteorder-1.4.3&#x2F;src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../byteorder/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -4432,7 +4433,7 @@ cases.
     <span class="doccomment">/// LittleEndian::write_u16(&amp;mut buf, 1_000);</span>
     <span class="doccomment">/// assert_eq!(1_000, LittleEndian::read_u16(&amp;buf));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">write_u16</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u16</span>);
+    <span class="kw">fn</span> <span class="ident">write_u16</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u16</span>);
 
     <span class="doccomment">/// Writes an unsigned 24 bit integer `n` to `buf`, stored in u32.</span>
     <span class="doccomment">///</span>
@@ -4451,7 +4452,7 @@ cases.
     <span class="doccomment">/// LittleEndian::write_u24(&amp;mut buf, 1_000_000);</span>
     <span class="doccomment">/// assert_eq!(1_000_000, LittleEndian::read_u24(&amp;buf));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">write_u24</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u32</span>) {
+    <span class="kw">fn</span> <span class="ident">write_u24</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u32</span>) {
         <span class="ident"><span class="self">Self</span>::write_uint</span>(<span class="ident">buf</span>, <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u64</span>, <span class="number">3</span>)
     }
 
@@ -4472,7 +4473,7 @@ cases.
     <span class="doccomment">/// LittleEndian::write_u32(&amp;mut buf, 1_000_000);</span>
     <span class="doccomment">/// assert_eq!(1_000_000, LittleEndian::read_u32(&amp;buf));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">write_u32</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u32</span>);
+    <span class="kw">fn</span> <span class="ident">write_u32</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u32</span>);
 
     <span class="doccomment">/// Writes an unsigned 48 bit integer `n` to `buf`, stored in u64.</span>
     <span class="doccomment">///</span>
@@ -4491,7 +4492,7 @@ cases.
     <span class="doccomment">/// LittleEndian::write_u48(&amp;mut buf, 1_000_000_000_000);</span>
     <span class="doccomment">/// assert_eq!(1_000_000_000_000, LittleEndian::read_u48(&amp;buf));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">write_u48</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u64</span>) {
+    <span class="kw">fn</span> <span class="ident">write_u48</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u64</span>) {
         <span class="ident"><span class="self">Self</span>::write_uint</span>(<span class="ident">buf</span>, <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u64</span>, <span class="number">6</span>)
     }
 
@@ -4512,7 +4513,7 @@ cases.
     <span class="doccomment">/// LittleEndian::write_u64(&amp;mut buf, 1_000_000);</span>
     <span class="doccomment">/// assert_eq!(1_000_000, LittleEndian::read_u64(&amp;buf));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">write_u64</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u64</span>);
+    <span class="kw">fn</span> <span class="ident">write_u64</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u64</span>);
 
     <span class="doccomment">/// Writes an unsigned 128 bit integer `n` to `buf`.</span>
     <span class="doccomment">///</span>
@@ -4531,7 +4532,7 @@ cases.
     <span class="doccomment">/// LittleEndian::write_u128(&amp;mut buf, 1_000_000);</span>
     <span class="doccomment">/// assert_eq!(1_000_000, LittleEndian::read_u128(&amp;buf));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">write_u128</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u128</span>);
+    <span class="kw">fn</span> <span class="ident">write_u128</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u128</span>);
 
     <span class="doccomment">/// Writes an unsigned integer `n` to `buf` using only `nbytes`.</span>
     <span class="doccomment">///</span>
@@ -4551,7 +4552,7 @@ cases.
     <span class="doccomment">/// LittleEndian::write_uint(&amp;mut buf, 1_000_000, 3);</span>
     <span class="doccomment">/// assert_eq!(1_000_000, LittleEndian::read_uint(&amp;buf, 3));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">write_uint</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u64</span>, <span class="ident">nbytes</span>: <span class="ident">usize</span>);
+    <span class="kw">fn</span> <span class="ident">write_uint</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u64</span>, <span class="ident">nbytes</span>: <span class="ident">usize</span>);
 
     <span class="doccomment">/// Writes an unsigned integer `n` to `buf` using only `nbytes`.</span>
     <span class="doccomment">///</span>
@@ -4571,7 +4572,7 @@ cases.
     <span class="doccomment">/// LittleEndian::write_uint128(&amp;mut buf, 1_000_000, 3);</span>
     <span class="doccomment">/// assert_eq!(1_000_000, LittleEndian::read_uint128(&amp;buf, 3));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">write_uint128</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u128</span>, <span class="ident">nbytes</span>: <span class="ident">usize</span>);
+    <span class="kw">fn</span> <span class="ident">write_uint128</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u128</span>, <span class="ident">nbytes</span>: <span class="ident">usize</span>);
 
     <span class="doccomment">/// Reads a signed 16 bit integer from `buf`.</span>
     <span class="doccomment">///</span>
@@ -4815,7 +4816,7 @@ cases.
     <span class="doccomment">/// assert_eq!(-1_000, LittleEndian::read_i16(&amp;buf));</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_i16</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">i16</span>) {
+    <span class="kw">fn</span> <span class="ident">write_i16</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">i16</span>) {
         <span class="ident"><span class="self">Self</span>::write_u16</span>(<span class="ident">buf</span>, <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u16</span>)
     }
 
@@ -4837,7 +4838,7 @@ cases.
     <span class="doccomment">/// assert_eq!(-1_000_000, LittleEndian::read_i24(&amp;buf));</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_i24</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">i32</span>) {
+    <span class="kw">fn</span> <span class="ident">write_i24</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">i32</span>) {
         <span class="ident"><span class="self">Self</span>::write_int</span>(<span class="ident">buf</span>, <span class="ident">n</span> <span class="kw">as</span> <span class="ident">i64</span>, <span class="number">3</span>)
     }
 
@@ -4859,7 +4860,7 @@ cases.
     <span class="doccomment">/// assert_eq!(-1_000_000, LittleEndian::read_i32(&amp;buf));</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_i32</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">i32</span>) {
+    <span class="kw">fn</span> <span class="ident">write_i32</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">i32</span>) {
         <span class="ident"><span class="self">Self</span>::write_u32</span>(<span class="ident">buf</span>, <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u32</span>)
     }
 
@@ -4881,7 +4882,7 @@ cases.
     <span class="doccomment">/// assert_eq!(-1_000_000_000_000, LittleEndian::read_i48(&amp;buf));</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_i48</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">i64</span>) {
+    <span class="kw">fn</span> <span class="ident">write_i48</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">i64</span>) {
         <span class="ident"><span class="self">Self</span>::write_int</span>(<span class="ident">buf</span>, <span class="ident">n</span> <span class="kw">as</span> <span class="ident">i64</span>, <span class="number">6</span>)
     }
 
@@ -4903,7 +4904,7 @@ cases.
     <span class="doccomment">/// assert_eq!(-1_000_000_000, LittleEndian::read_i64(&amp;buf));</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_i64</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">i64</span>) {
+    <span class="kw">fn</span> <span class="ident">write_i64</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">i64</span>) {
         <span class="ident"><span class="self">Self</span>::write_u64</span>(<span class="ident">buf</span>, <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u64</span>)
     }
 
@@ -4925,7 +4926,7 @@ cases.
     <span class="doccomment">/// assert_eq!(-1_000_000_000, LittleEndian::read_i128(&amp;buf));</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_i128</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">i128</span>) {
+    <span class="kw">fn</span> <span class="ident">write_i128</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">i128</span>) {
         <span class="ident"><span class="self">Self</span>::write_u128</span>(<span class="ident">buf</span>, <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u128</span>)
     }
 
@@ -4948,7 +4949,7 @@ cases.
     <span class="doccomment">/// assert_eq!(-1_000, LittleEndian::read_int(&amp;buf, 3));</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_int</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">i64</span>, <span class="ident">nbytes</span>: <span class="ident">usize</span>) {
+    <span class="kw">fn</span> <span class="ident">write_int</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">i64</span>, <span class="ident">nbytes</span>: <span class="ident">usize</span>) {
         <span class="ident"><span class="self">Self</span>::write_uint</span>(<span class="ident">buf</span>, <span class="ident">unextend_sign</span>(<span class="ident">n</span>, <span class="ident">nbytes</span>), <span class="ident">nbytes</span>)
     }
 
@@ -4971,7 +4972,7 @@ cases.
     <span class="doccomment">/// assert_eq!(-1_000, LittleEndian::read_int128(&amp;buf, 3));</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_int128</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">i128</span>, <span class="ident">nbytes</span>: <span class="ident">usize</span>) {
+    <span class="kw">fn</span> <span class="ident">write_int128</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">i128</span>, <span class="ident">nbytes</span>: <span class="ident">usize</span>) {
         <span class="ident"><span class="self">Self</span>::write_uint128</span>(<span class="ident">buf</span>, <span class="ident">unextend_sign128</span>(<span class="ident">n</span>, <span class="ident">nbytes</span>), <span class="ident">nbytes</span>)
     }
 
@@ -4994,7 +4995,7 @@ cases.
     <span class="doccomment">/// assert_eq!(e, LittleEndian::read_f32(&amp;buf));</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_f32</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">f32</span>) {
+    <span class="kw">fn</span> <span class="ident">write_f32</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">f32</span>) {
         <span class="ident"><span class="self">Self</span>::write_u32</span>(<span class="ident">buf</span>, <span class="ident">n</span>.<span class="ident">to_bits</span>())
     }
 
@@ -5017,7 +5018,7 @@ cases.
     <span class="doccomment">/// assert_eq!(phi, LittleEndian::read_f64(&amp;buf));</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_f64</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">f64</span>) {
+    <span class="kw">fn</span> <span class="ident">write_f64</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">f64</span>) {
         <span class="ident"><span class="self">Self</span>::write_u64</span>(<span class="ident">buf</span>, <span class="ident">n</span>.<span class="ident">to_bits</span>())
     }
 
@@ -5042,7 +5043,7 @@ cases.
     <span class="doccomment">/// LittleEndian::read_u16_into(&amp;bytes, &amp;mut numbers_got);</span>
     <span class="doccomment">/// assert_eq!(numbers_given, numbers_got);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">read_u16_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u16</span>]);
+    <span class="kw">fn</span> <span class="ident">read_u16_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u16</span>]);
 
     <span class="doccomment">/// Reads unsigned 32 bit integers from `src` into `dst`.</span>
     <span class="doccomment">///</span>
@@ -5065,7 +5066,7 @@ cases.
     <span class="doccomment">/// LittleEndian::read_u32_into(&amp;bytes, &amp;mut numbers_got);</span>
     <span class="doccomment">/// assert_eq!(numbers_given, numbers_got);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">read_u32_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u32</span>]);
+    <span class="kw">fn</span> <span class="ident">read_u32_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u32</span>]);
 
     <span class="doccomment">/// Reads unsigned 64 bit integers from `src` into `dst`.</span>
     <span class="doccomment">///</span>
@@ -5088,7 +5089,7 @@ cases.
     <span class="doccomment">/// LittleEndian::read_u64_into(&amp;bytes, &amp;mut numbers_got);</span>
     <span class="doccomment">/// assert_eq!(numbers_given, numbers_got);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">read_u64_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u64</span>]);
+    <span class="kw">fn</span> <span class="ident">read_u64_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u64</span>]);
 
     <span class="doccomment">/// Reads unsigned 128 bit integers from `src` into `dst`.</span>
     <span class="doccomment">///</span>
@@ -5111,7 +5112,7 @@ cases.
     <span class="doccomment">/// LittleEndian::read_u128_into(&amp;bytes, &amp;mut numbers_got);</span>
     <span class="doccomment">/// assert_eq!(numbers_given, numbers_got);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">read_u128_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u128</span>]);
+    <span class="kw">fn</span> <span class="ident">read_u128_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u128</span>]);
 
     <span class="doccomment">/// Reads signed 16 bit integers from `src` to `dst`.</span>
     <span class="doccomment">///</span>
@@ -5135,9 +5136,9 @@ cases.
     <span class="doccomment">/// assert_eq!(numbers_given, numbers_got);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_i16_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">i16</span>]) {
+    <span class="kw">fn</span> <span class="ident">read_i16_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">i16</span>]) {
         <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">dst</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u16</span>, <span class="ident">dst</span>.<span class="ident">len</span>())
+            <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">dst</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">u16</span>, <span class="ident">dst</span>.<span class="ident">len</span>())
         };
         <span class="ident"><span class="self">Self</span>::read_u16_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>)
     }
@@ -5164,9 +5165,9 @@ cases.
     <span class="doccomment">/// assert_eq!(numbers_given, numbers_got);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_i32_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">i32</span>]) {
+    <span class="kw">fn</span> <span class="ident">read_i32_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">i32</span>]) {
         <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">dst</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u32</span>, <span class="ident">dst</span>.<span class="ident">len</span>())
+            <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">dst</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">u32</span>, <span class="ident">dst</span>.<span class="ident">len</span>())
         };
         <span class="ident"><span class="self">Self</span>::read_u32_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
     }
@@ -5193,9 +5194,9 @@ cases.
     <span class="doccomment">/// assert_eq!(numbers_given, numbers_got);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_i64_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">i64</span>]) {
+    <span class="kw">fn</span> <span class="ident">read_i64_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">i64</span>]) {
         <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">dst</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u64</span>, <span class="ident">dst</span>.<span class="ident">len</span>())
+            <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">dst</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">u64</span>, <span class="ident">dst</span>.<span class="ident">len</span>())
         };
         <span class="ident"><span class="self">Self</span>::read_u64_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
     }
@@ -5222,9 +5223,9 @@ cases.
     <span class="doccomment">/// assert_eq!(numbers_given, numbers_got);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_i128_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">i128</span>]) {
+    <span class="kw">fn</span> <span class="ident">read_i128_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">i128</span>]) {
         <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">dst</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u128</span>, <span class="ident">dst</span>.<span class="ident">len</span>())
+            <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">dst</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">u128</span>, <span class="ident">dst</span>.<span class="ident">len</span>())
         };
         <span class="ident"><span class="self">Self</span>::read_u128_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
     }
@@ -5252,9 +5253,9 @@ cases.
     <span class="doccomment">/// assert_eq!(numbers_given, numbers_got);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_f32_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">f32</span>]) {
+    <span class="kw">fn</span> <span class="ident">read_f32_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">f32</span>]) {
         <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">dst</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u32</span>, <span class="ident">dst</span>.<span class="ident">len</span>())
+            <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">dst</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">u32</span>, <span class="ident">dst</span>.<span class="ident">len</span>())
         };
         <span class="ident"><span class="self">Self</span>::read_u32_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
     }
@@ -5286,7 +5287,7 @@ cases.
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;1.3.0&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;please use `read_f32_into` instead&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">read_f32_into_unchecked</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">f32</span>]) {
+    <span class="kw">fn</span> <span class="ident">read_f32_into_unchecked</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">f32</span>]) {
         <span class="ident"><span class="self">Self</span>::read_f32_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
     }
 
@@ -5313,9 +5314,9 @@ cases.
     <span class="doccomment">/// assert_eq!(numbers_given, numbers_got);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_f64_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">f64</span>]) {
+    <span class="kw">fn</span> <span class="ident">read_f64_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">f64</span>]) {
         <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">dst</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u64</span>, <span class="ident">dst</span>.<span class="ident">len</span>())
+            <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">dst</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">u64</span>, <span class="ident">dst</span>.<span class="ident">len</span>())
         };
         <span class="ident"><span class="self">Self</span>::read_u64_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
     }
@@ -5348,7 +5349,7 @@ cases.
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;1.3.0&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;please use `read_f64_into` instead&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">read_f64_into_unchecked</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">f64</span>]) {
+    <span class="kw">fn</span> <span class="ident">read_f64_into_unchecked</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">f64</span>]) {
         <span class="ident"><span class="self">Self</span>::read_f64_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
     }
 
@@ -5373,7 +5374,7 @@ cases.
     <span class="doccomment">/// LittleEndian::read_u16_into(&amp;bytes, &amp;mut numbers_got);</span>
     <span class="doccomment">/// assert_eq!(numbers_given, numbers_got);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">write_u16_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u16</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]);
+    <span class="kw">fn</span> <span class="ident">write_u16_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u16</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]);
 
     <span class="doccomment">/// Writes unsigned 32 bit integers from `src` into `dst`.</span>
     <span class="doccomment">///</span>
@@ -5396,7 +5397,7 @@ cases.
     <span class="doccomment">/// LittleEndian::read_u32_into(&amp;bytes, &amp;mut numbers_got);</span>
     <span class="doccomment">/// assert_eq!(numbers_given, numbers_got);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">write_u32_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u32</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]);
+    <span class="kw">fn</span> <span class="ident">write_u32_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u32</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]);
 
     <span class="doccomment">/// Writes unsigned 64 bit integers from `src` into `dst`.</span>
     <span class="doccomment">///</span>
@@ -5419,7 +5420,7 @@ cases.
     <span class="doccomment">/// LittleEndian::read_u64_into(&amp;bytes, &amp;mut numbers_got);</span>
     <span class="doccomment">/// assert_eq!(numbers_given, numbers_got);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">write_u64_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u64</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]);
+    <span class="kw">fn</span> <span class="ident">write_u64_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u64</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]);
 
     <span class="doccomment">/// Writes unsigned 128 bit integers from `src` into `dst`.</span>
     <span class="doccomment">///</span>
@@ -5442,7 +5443,7 @@ cases.
     <span class="doccomment">/// LittleEndian::read_u128_into(&amp;bytes, &amp;mut numbers_got);</span>
     <span class="doccomment">/// assert_eq!(numbers_given, numbers_got);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">write_u128_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u128</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]);
+    <span class="kw">fn</span> <span class="ident">write_u128_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u128</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]);
 
     <span class="doccomment">/// Writes signed 8 bit integers from `src` into `dst`.</span>
     <span class="doccomment">///</span>
@@ -5471,9 +5472,9 @@ cases.
     <span class="doccomment">/// bytes.as_ref().read_i8_into(&amp;mut numbers_got);</span>
     <span class="doccomment">/// assert_eq!(numbers_given, numbers_got);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">write_i8_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">i8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) {
+    <span class="kw">fn</span> <span class="ident">write_i8_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">i8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) {
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">slice::from_raw_parts</span>(<span class="ident">src</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>, <span class="ident">src</span>.<span class="ident">len</span>())
+            <span class="ident">slice::from_raw_parts</span>(<span class="ident">src</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u8</span>, <span class="ident">src</span>.<span class="ident">len</span>())
         };
         <span class="ident">dst</span>.<span class="ident">copy_from_slice</span>(<span class="ident">src</span>);
     }
@@ -5499,9 +5500,9 @@ cases.
     <span class="doccomment">/// LittleEndian::read_i16_into(&amp;bytes, &amp;mut numbers_got);</span>
     <span class="doccomment">/// assert_eq!(numbers_given, numbers_got);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">write_i16_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">i16</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) {
+    <span class="kw">fn</span> <span class="ident">write_i16_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">i16</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) {
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">slice::from_raw_parts</span>(<span class="ident">src</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u16</span>, <span class="ident">src</span>.<span class="ident">len</span>())
+            <span class="ident">slice::from_raw_parts</span>(<span class="ident">src</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u16</span>, <span class="ident">src</span>.<span class="ident">len</span>())
         };
         <span class="ident"><span class="self">Self</span>::write_u16_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
     }
@@ -5527,9 +5528,9 @@ cases.
     <span class="doccomment">/// LittleEndian::read_i32_into(&amp;bytes, &amp;mut numbers_got);</span>
     <span class="doccomment">/// assert_eq!(numbers_given, numbers_got);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">write_i32_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">i32</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) {
+    <span class="kw">fn</span> <span class="ident">write_i32_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">i32</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) {
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">slice::from_raw_parts</span>(<span class="ident">src</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u32</span>, <span class="ident">src</span>.<span class="ident">len</span>())
+            <span class="ident">slice::from_raw_parts</span>(<span class="ident">src</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u32</span>, <span class="ident">src</span>.<span class="ident">len</span>())
         };
         <span class="ident"><span class="self">Self</span>::write_u32_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
     }
@@ -5555,9 +5556,9 @@ cases.
     <span class="doccomment">/// LittleEndian::read_i64_into(&amp;bytes, &amp;mut numbers_got);</span>
     <span class="doccomment">/// assert_eq!(numbers_given, numbers_got);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">write_i64_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">i64</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) {
+    <span class="kw">fn</span> <span class="ident">write_i64_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">i64</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) {
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">slice::from_raw_parts</span>(<span class="ident">src</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u64</span>, <span class="ident">src</span>.<span class="ident">len</span>())
+            <span class="ident">slice::from_raw_parts</span>(<span class="ident">src</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u64</span>, <span class="ident">src</span>.<span class="ident">len</span>())
         };
         <span class="ident"><span class="self">Self</span>::write_u64_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
     }
@@ -5583,9 +5584,9 @@ cases.
     <span class="doccomment">/// LittleEndian::read_i128_into(&amp;bytes, &amp;mut numbers_got);</span>
     <span class="doccomment">/// assert_eq!(numbers_given, numbers_got);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">write_i128_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">i128</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) {
+    <span class="kw">fn</span> <span class="ident">write_i128_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">i128</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) {
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">slice::from_raw_parts</span>(<span class="ident">src</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u128</span>, <span class="ident">src</span>.<span class="ident">len</span>())
+            <span class="ident">slice::from_raw_parts</span>(<span class="ident">src</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u128</span>, <span class="ident">src</span>.<span class="ident">len</span>())
         };
         <span class="ident"><span class="self">Self</span>::write_u128_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
     }
@@ -5612,9 +5613,9 @@ cases.
     <span class="doccomment">/// LittleEndian::read_f32_into(&amp;bytes, &amp;mut numbers_got);</span>
     <span class="doccomment">/// assert_eq!(numbers_given, numbers_got);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">write_f32_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">f32</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) {
+    <span class="kw">fn</span> <span class="ident">write_f32_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">f32</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) {
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">slice::from_raw_parts</span>(<span class="ident">src</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u32</span>, <span class="ident">src</span>.<span class="ident">len</span>())
+            <span class="ident">slice::from_raw_parts</span>(<span class="ident">src</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u32</span>, <span class="ident">src</span>.<span class="ident">len</span>())
         };
         <span class="ident"><span class="self">Self</span>::write_u32_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
     }
@@ -5641,9 +5642,9 @@ cases.
     <span class="doccomment">/// LittleEndian::read_f64_into(&amp;bytes, &amp;mut numbers_got);</span>
     <span class="doccomment">/// assert_eq!(numbers_given, numbers_got);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">write_f64_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">f64</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) {
+    <span class="kw">fn</span> <span class="ident">write_f64_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">f64</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) {
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">slice::from_raw_parts</span>(<span class="ident">src</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u64</span>, <span class="ident">src</span>.<span class="ident">len</span>())
+            <span class="ident">slice::from_raw_parts</span>(<span class="ident">src</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u64</span>, <span class="ident">src</span>.<span class="ident">len</span>())
         };
         <span class="ident"><span class="self">Self</span>::write_u64_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
     }
@@ -5665,7 +5666,7 @@ cases.
     <span class="doccomment">/// BigEndian::from_slice_u16(&amp;mut numbers);</span>
     <span class="doccomment">/// assert_eq!(numbers, [5u16.to_be(), 65000u16.to_be()]);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">from_slice_u16</span>(<span class="ident">numbers</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u16</span>]);
+    <span class="kw">fn</span> <span class="ident">from_slice_u16</span>(<span class="ident">numbers</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u16</span>]);
 
     <span class="doccomment">/// Converts the given slice of unsigned 32 bit integers to a particular</span>
     <span class="doccomment">/// endianness.</span>
@@ -5684,7 +5685,7 @@ cases.
     <span class="doccomment">/// BigEndian::from_slice_u32(&amp;mut numbers);</span>
     <span class="doccomment">/// assert_eq!(numbers, [5u32.to_be(), 65000u32.to_be()]);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">from_slice_u32</span>(<span class="ident">numbers</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u32</span>]);
+    <span class="kw">fn</span> <span class="ident">from_slice_u32</span>(<span class="ident">numbers</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u32</span>]);
 
     <span class="doccomment">/// Converts the given slice of unsigned 64 bit integers to a particular</span>
     <span class="doccomment">/// endianness.</span>
@@ -5703,7 +5704,7 @@ cases.
     <span class="doccomment">/// BigEndian::from_slice_u64(&amp;mut numbers);</span>
     <span class="doccomment">/// assert_eq!(numbers, [5u64.to_be(), 65000u64.to_be()]);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">from_slice_u64</span>(<span class="ident">numbers</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u64</span>]);
+    <span class="kw">fn</span> <span class="ident">from_slice_u64</span>(<span class="ident">numbers</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u64</span>]);
 
     <span class="doccomment">/// Converts the given slice of unsigned 128 bit integers to a particular</span>
     <span class="doccomment">/// endianness.</span>
@@ -5722,7 +5723,7 @@ cases.
     <span class="doccomment">/// BigEndian::from_slice_u128(&amp;mut numbers);</span>
     <span class="doccomment">/// assert_eq!(numbers, [5u128.to_be(), 65000u128.to_be()]);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">from_slice_u128</span>(<span class="ident">numbers</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u128</span>]);
+    <span class="kw">fn</span> <span class="ident">from_slice_u128</span>(<span class="ident">numbers</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u128</span>]);
 
     <span class="doccomment">/// Converts the given slice of signed 16 bit integers to a particular</span>
     <span class="doccomment">/// endianness.</span>
@@ -5742,9 +5743,9 @@ cases.
     <span class="doccomment">/// assert_eq!(numbers, [5i16.to_be(), 6500i16.to_be()]);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_slice_i16</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">i16</span>]) {
+    <span class="kw">fn</span> <span class="ident">from_slice_i16</span>(<span class="ident">src</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">i16</span>]) {
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">src</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u16</span>, <span class="ident">src</span>.<span class="ident">len</span>())
+            <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">src</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">u16</span>, <span class="ident">src</span>.<span class="ident">len</span>())
         };
         <span class="ident"><span class="self">Self</span>::from_slice_u16</span>(<span class="ident">src</span>);
     }
@@ -5767,9 +5768,9 @@ cases.
     <span class="doccomment">/// assert_eq!(numbers, [5i32.to_be(), 65000i32.to_be()]);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_slice_i32</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">i32</span>]) {
+    <span class="kw">fn</span> <span class="ident">from_slice_i32</span>(<span class="ident">src</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">i32</span>]) {
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">src</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u32</span>, <span class="ident">src</span>.<span class="ident">len</span>())
+            <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">src</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">u32</span>, <span class="ident">src</span>.<span class="ident">len</span>())
         };
         <span class="ident"><span class="self">Self</span>::from_slice_u32</span>(<span class="ident">src</span>);
     }
@@ -5792,9 +5793,9 @@ cases.
     <span class="doccomment">/// assert_eq!(numbers, [5i64.to_be(), 65000i64.to_be()]);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_slice_i64</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">i64</span>]) {
+    <span class="kw">fn</span> <span class="ident">from_slice_i64</span>(<span class="ident">src</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">i64</span>]) {
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">src</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u64</span>, <span class="ident">src</span>.<span class="ident">len</span>())
+            <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">src</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">u64</span>, <span class="ident">src</span>.<span class="ident">len</span>())
         };
         <span class="ident"><span class="self">Self</span>::from_slice_u64</span>(<span class="ident">src</span>);
     }
@@ -5817,9 +5818,9 @@ cases.
     <span class="doccomment">/// assert_eq!(numbers, [5i128.to_be(), 65000i128.to_be()]);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_slice_i128</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">i128</span>]) {
+    <span class="kw">fn</span> <span class="ident">from_slice_i128</span>(<span class="ident">src</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">i128</span>]) {
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">src</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u128</span>, <span class="ident">src</span>.<span class="ident">len</span>())
+            <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">src</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">u128</span>, <span class="ident">src</span>.<span class="ident">len</span>())
         };
         <span class="ident"><span class="self">Self</span>::from_slice_u128</span>(<span class="ident">src</span>);
     }
@@ -5829,14 +5830,14 @@ cases.
     <span class="doccomment">///</span>
     <span class="doccomment">/// If the endianness matches the endianness of the host platform, then</span>
     <span class="doccomment">/// this is a no-op.</span>
-    <span class="kw">fn</span> <span class="ident">from_slice_f32</span>(<span class="ident">numbers</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">f32</span>]);
+    <span class="kw">fn</span> <span class="ident">from_slice_f32</span>(<span class="ident">numbers</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">f32</span>]);
 
     <span class="doccomment">/// Converts the given slice of IEEE754 double-precision (8 bytes) floating</span>
     <span class="doccomment">/// point numbers to a particular endianness.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// If the endianness matches the endianness of the host platform, then</span>
     <span class="doccomment">/// this is a no-op.</span>
-    <span class="kw">fn</span> <span class="ident">from_slice_f64</span>(<span class="ident">numbers</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">f64</span>]);
+    <span class="kw">fn</span> <span class="ident">from_slice_f64</span>(<span class="ident">numbers</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">f64</span>]);
 }
 
 <span class="doccomment">/// Defines big-endian serialization.</span>
@@ -5958,7 +5959,7 @@ cases.
         <span class="macro">assert!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">size</span> <span class="op">&lt;</span><span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dst</span>.<span class="ident">len</span>());
         <span class="kw">unsafe</span> {
             <span class="comment">// N.B. https://github.com/rust-lang/rust/issues/22776</span>
-            <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">n</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">which</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> [<span class="ident">u8</span>; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">size</span>]);
+            <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">n</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">which</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*const</span> [<span class="ident">u8</span>; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">size</span>]);
             <span class="ident">copy_nonoverlapping</span>((<span class="kw-2">&amp;</span><span class="ident">bytes</span>).<span class="ident">as_ptr</span>(), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dst</span>.<span class="ident">as_mut_ptr</span>(), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">size</span>);
         }
     }};
@@ -5977,7 +5978,7 @@ cases.
         <span class="kw">unsafe</span> {
             <span class="ident">copy_nonoverlapping</span>(
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">src</span>.<span class="ident">as_ptr</span>(),
-                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dst</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>,
+                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dst</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">u8</span>,
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">src</span>.<span class="ident">len</span>(),
             );
         }
@@ -6000,7 +6001,7 @@ cases.
 
         <span class="kw">unsafe</span> {
             <span class="ident">copy_nonoverlapping</span>(
-                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">src</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>,
+                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">src</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u8</span>,
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dst</span>.<span class="ident">as_mut_ptr</span>(),
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dst</span>.<span class="ident">len</span>(),
             );
@@ -6044,7 +6045,7 @@ cases.
     <span class="kw">fn</span> <span class="ident">read_uint</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">nbytes</span>: <span class="ident">usize</span>) -&gt; <span class="ident">u64</span> {
         <span class="macro">assert!</span>(<span class="number">1</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">nbytes</span> <span class="op">&amp;&amp;</span> <span class="ident">nbytes</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">8</span> <span class="op">&amp;&amp;</span> <span class="ident">nbytes</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">buf</span>.<span class="ident">len</span>());
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span> <span class="op">=</span> <span class="number">0u64</span>;
-        <span class="kw">let</span> <span class="ident">ptr_out</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">out</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u64</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>;
+        <span class="kw">let</span> <span class="ident">ptr_out</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">out</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">u64</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">u8</span>;
         <span class="kw">unsafe</span> {
             <span class="ident">copy_nonoverlapping</span>(
                 <span class="ident">buf</span>.<span class="ident">as_ptr</span>(),
@@ -6059,7 +6060,7 @@ cases.
     <span class="kw">fn</span> <span class="ident">read_uint128</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">nbytes</span>: <span class="ident">usize</span>) -&gt; <span class="ident">u128</span> {
         <span class="macro">assert!</span>(<span class="number">1</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">nbytes</span> <span class="op">&amp;&amp;</span> <span class="ident">nbytes</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">16</span> <span class="op">&amp;&amp;</span> <span class="ident">nbytes</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">buf</span>.<span class="ident">len</span>());
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">let</span> <span class="ident">ptr_out</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">out</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u128</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>;
+        <span class="kw">let</span> <span class="ident">ptr_out</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">out</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">u128</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">u8</span>;
         <span class="kw">unsafe</span> {
             <span class="ident">copy_nonoverlapping</span>(
                 <span class="ident">buf</span>.<span class="ident">as_ptr</span>(),
@@ -6071,31 +6072,31 @@ cases.
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_u16</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u16</span>) {
+    <span class="kw">fn</span> <span class="ident">write_u16</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u16</span>) {
         <span class="macro">unsafe_write_num_bytes!</span>(<span class="ident">u16</span>, <span class="number">2</span>, <span class="ident">n</span>, <span class="ident">buf</span>, <span class="ident">to_be</span>);
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_u32</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u32</span>) {
+    <span class="kw">fn</span> <span class="ident">write_u32</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u32</span>) {
         <span class="macro">unsafe_write_num_bytes!</span>(<span class="ident">u32</span>, <span class="number">4</span>, <span class="ident">n</span>, <span class="ident">buf</span>, <span class="ident">to_be</span>);
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_u64</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u64</span>) {
+    <span class="kw">fn</span> <span class="ident">write_u64</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u64</span>) {
         <span class="macro">unsafe_write_num_bytes!</span>(<span class="ident">u64</span>, <span class="number">8</span>, <span class="ident">n</span>, <span class="ident">buf</span>, <span class="ident">to_be</span>);
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_u128</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u128</span>) {
+    <span class="kw">fn</span> <span class="ident">write_u128</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u128</span>) {
         <span class="macro">unsafe_write_num_bytes!</span>(<span class="ident">u128</span>, <span class="number">16</span>, <span class="ident">n</span>, <span class="ident">buf</span>, <span class="ident">to_be</span>);
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_uint</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u64</span>, <span class="ident">nbytes</span>: <span class="ident">usize</span>) {
+    <span class="kw">fn</span> <span class="ident">write_uint</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u64</span>, <span class="ident">nbytes</span>: <span class="ident">usize</span>) {
         <span class="macro">assert!</span>(<span class="ident">pack_size</span>(<span class="ident">n</span>) <span class="op">&lt;</span><span class="op">=</span> <span class="ident">nbytes</span> <span class="op">&amp;&amp;</span> <span class="ident">nbytes</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">8</span>);
         <span class="macro">assert!</span>(<span class="ident">nbytes</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">buf</span>.<span class="ident">len</span>());
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="kw-2">&amp;</span><span class="ident">n</span>.<span class="ident">to_be</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u64</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> [<span class="ident">u8</span>; <span class="number">8</span>]);
+            <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="kw-2">&amp;</span><span class="ident">n</span>.<span class="ident">to_be</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u64</span> <span class="kw">as</span> <span class="kw-2">*const</span> [<span class="ident">u8</span>; <span class="number">8</span>]);
             <span class="ident">copy_nonoverlapping</span>(
                 <span class="ident">bytes</span>.<span class="ident">as_ptr</span>().<span class="ident">offset</span>((<span class="number">8</span> <span class="op">-</span> <span class="ident">nbytes</span>) <span class="kw">as</span> <span class="ident">isize</span>),
                 <span class="ident">buf</span>.<span class="ident">as_mut_ptr</span>(),
@@ -6105,11 +6106,11 @@ cases.
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_uint128</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u128</span>, <span class="ident">nbytes</span>: <span class="ident">usize</span>) {
+    <span class="kw">fn</span> <span class="ident">write_uint128</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u128</span>, <span class="ident">nbytes</span>: <span class="ident">usize</span>) {
         <span class="macro">assert!</span>(<span class="ident">pack_size128</span>(<span class="ident">n</span>) <span class="op">&lt;</span><span class="op">=</span> <span class="ident">nbytes</span> <span class="op">&amp;&amp;</span> <span class="ident">nbytes</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">16</span>);
         <span class="macro">assert!</span>(<span class="ident">nbytes</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">buf</span>.<span class="ident">len</span>());
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="kw-2">&amp;</span><span class="ident">n</span>.<span class="ident">to_be</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u128</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> [<span class="ident">u8</span>; <span class="number">16</span>]);
+            <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="kw-2">&amp;</span><span class="ident">n</span>.<span class="ident">to_be</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u128</span> <span class="kw">as</span> <span class="kw-2">*const</span> [<span class="ident">u8</span>; <span class="number">16</span>]);
             <span class="ident">copy_nonoverlapping</span>(
                 <span class="ident">bytes</span>.<span class="ident">as_ptr</span>().<span class="ident">offset</span>((<span class="number">16</span> <span class="op">-</span> <span class="ident">nbytes</span>) <span class="kw">as</span> <span class="ident">isize</span>),
                 <span class="ident">buf</span>.<span class="ident">as_mut_ptr</span>(),
@@ -6119,27 +6120,27 @@ cases.
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_u16_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u16</span>]) {
+    <span class="kw">fn</span> <span class="ident">read_u16_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u16</span>]) {
         <span class="macro">unsafe_read_slice!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="number">2</span>, <span class="ident">to_be</span>);
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_u32_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u32</span>]) {
+    <span class="kw">fn</span> <span class="ident">read_u32_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u32</span>]) {
         <span class="macro">unsafe_read_slice!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="number">4</span>, <span class="ident">to_be</span>);
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_u64_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u64</span>]) {
+    <span class="kw">fn</span> <span class="ident">read_u64_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u64</span>]) {
         <span class="macro">unsafe_read_slice!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="number">8</span>, <span class="ident">to_be</span>);
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_u128_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u128</span>]) {
+    <span class="kw">fn</span> <span class="ident">read_u128_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u128</span>]) {
         <span class="macro">unsafe_read_slice!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="number">16</span>, <span class="ident">to_be</span>);
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_u16_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u16</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) {
+    <span class="kw">fn</span> <span class="ident">write_u16_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u16</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) {
         <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;big&quot;</span>) {
             <span class="macro">unsafe_write_slice_native!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="ident">u16</span>);
         } <span class="kw">else</span> {
@@ -6148,7 +6149,7 @@ cases.
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_u32_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u32</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) {
+    <span class="kw">fn</span> <span class="ident">write_u32_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u32</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) {
         <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;big&quot;</span>) {
             <span class="macro">unsafe_write_slice_native!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="ident">u32</span>);
         } <span class="kw">else</span> {
@@ -6157,7 +6158,7 @@ cases.
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_u64_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u64</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) {
+    <span class="kw">fn</span> <span class="ident">write_u64_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u64</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) {
         <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;big&quot;</span>) {
             <span class="macro">unsafe_write_slice_native!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="ident">u64</span>);
         } <span class="kw">else</span> {
@@ -6166,7 +6167,7 @@ cases.
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_u128_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u128</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) {
+    <span class="kw">fn</span> <span class="ident">write_u128_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u128</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) {
         <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;big&quot;</span>) {
             <span class="macro">unsafe_write_slice_native!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="ident">u128</span>);
         } <span class="kw">else</span> {
@@ -6175,7 +6176,7 @@ cases.
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_slice_u16</span>(<span class="ident">numbers</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u16</span>]) {
+    <span class="kw">fn</span> <span class="ident">from_slice_u16</span>(<span class="ident">numbers</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u16</span>]) {
         <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>) {
             <span class="kw">for</span> <span class="ident">n</span> <span class="kw">in</span> <span class="ident">numbers</span> {
                 <span class="kw-2">*</span><span class="ident">n</span> <span class="op">=</span> <span class="ident">n</span>.<span class="ident">to_be</span>();
@@ -6184,7 +6185,7 @@ cases.
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_slice_u32</span>(<span class="ident">numbers</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u32</span>]) {
+    <span class="kw">fn</span> <span class="ident">from_slice_u32</span>(<span class="ident">numbers</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u32</span>]) {
         <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>) {
             <span class="kw">for</span> <span class="ident">n</span> <span class="kw">in</span> <span class="ident">numbers</span> {
                 <span class="kw-2">*</span><span class="ident">n</span> <span class="op">=</span> <span class="ident">n</span>.<span class="ident">to_be</span>();
@@ -6193,7 +6194,7 @@ cases.
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_slice_u64</span>(<span class="ident">numbers</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u64</span>]) {
+    <span class="kw">fn</span> <span class="ident">from_slice_u64</span>(<span class="ident">numbers</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u64</span>]) {
         <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>) {
             <span class="kw">for</span> <span class="ident">n</span> <span class="kw">in</span> <span class="ident">numbers</span> {
                 <span class="kw-2">*</span><span class="ident">n</span> <span class="op">=</span> <span class="ident">n</span>.<span class="ident">to_be</span>();
@@ -6202,7 +6203,7 @@ cases.
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_slice_u128</span>(<span class="ident">numbers</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u128</span>]) {
+    <span class="kw">fn</span> <span class="ident">from_slice_u128</span>(<span class="ident">numbers</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u128</span>]) {
         <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>) {
             <span class="kw">for</span> <span class="ident">n</span> <span class="kw">in</span> <span class="ident">numbers</span> {
                 <span class="kw-2">*</span><span class="ident">n</span> <span class="op">=</span> <span class="ident">n</span>.<span class="ident">to_be</span>();
@@ -6211,24 +6212,24 @@ cases.
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_slice_f32</span>(<span class="ident">numbers</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">f32</span>]) {
+    <span class="kw">fn</span> <span class="ident">from_slice_f32</span>(<span class="ident">numbers</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">f32</span>]) {
         <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>) {
             <span class="kw">for</span> <span class="ident">n</span> <span class="kw">in</span> <span class="ident">numbers</span> {
                 <span class="kw">unsafe</span> {
-                    <span class="kw">let</span> <span class="ident">int</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">f32</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u32</span>);
-                    <span class="kw-2">*</span><span class="ident">n</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="kw-2">&amp;</span><span class="ident">int</span>.<span class="ident">to_be</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u32</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">f32</span>);
+                    <span class="kw">let</span> <span class="ident">int</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">f32</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u32</span>);
+                    <span class="kw-2">*</span><span class="ident">n</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="kw-2">&amp;</span><span class="ident">int</span>.<span class="ident">to_be</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u32</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">f32</span>);
                 }
             }
         }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_slice_f64</span>(<span class="ident">numbers</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">f64</span>]) {
+    <span class="kw">fn</span> <span class="ident">from_slice_f64</span>(<span class="ident">numbers</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">f64</span>]) {
         <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>) {
             <span class="kw">for</span> <span class="ident">n</span> <span class="kw">in</span> <span class="ident">numbers</span> {
                 <span class="kw">unsafe</span> {
-                    <span class="kw">let</span> <span class="ident">int</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">f64</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u64</span>);
-                    <span class="kw-2">*</span><span class="ident">n</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="kw-2">&amp;</span><span class="ident">int</span>.<span class="ident">to_be</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u64</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">f64</span>);
+                    <span class="kw">let</span> <span class="ident">int</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">f64</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u64</span>);
+                    <span class="kw-2">*</span><span class="ident">n</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="kw-2">&amp;</span><span class="ident">int</span>.<span class="ident">to_be</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u64</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">f64</span>);
                 }
             }
         }
@@ -6260,7 +6261,7 @@ cases.
     <span class="kw">fn</span> <span class="ident">read_uint</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">nbytes</span>: <span class="ident">usize</span>) -&gt; <span class="ident">u64</span> {
         <span class="macro">assert!</span>(<span class="number">1</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">nbytes</span> <span class="op">&amp;&amp;</span> <span class="ident">nbytes</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">8</span> <span class="op">&amp;&amp;</span> <span class="ident">nbytes</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">buf</span>.<span class="ident">len</span>());
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span> <span class="op">=</span> <span class="number">0u64</span>;
-        <span class="kw">let</span> <span class="ident">ptr_out</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">out</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u64</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>;
+        <span class="kw">let</span> <span class="ident">ptr_out</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">out</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">u64</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">u8</span>;
         <span class="kw">unsafe</span> {
             <span class="ident">copy_nonoverlapping</span>(<span class="ident">buf</span>.<span class="ident">as_ptr</span>(), <span class="ident">ptr_out</span>, <span class="ident">nbytes</span>);
         }
@@ -6271,7 +6272,7 @@ cases.
     <span class="kw">fn</span> <span class="ident">read_uint128</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">nbytes</span>: <span class="ident">usize</span>) -&gt; <span class="ident">u128</span> {
         <span class="macro">assert!</span>(<span class="number">1</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">nbytes</span> <span class="op">&amp;&amp;</span> <span class="ident">nbytes</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">16</span> <span class="op">&amp;&amp;</span> <span class="ident">nbytes</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">buf</span>.<span class="ident">len</span>());
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">let</span> <span class="ident">ptr_out</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">out</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u128</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>;
+        <span class="kw">let</span> <span class="ident">ptr_out</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">out</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">u128</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">u8</span>;
         <span class="kw">unsafe</span> {
             <span class="ident">copy_nonoverlapping</span>(<span class="ident">buf</span>.<span class="ident">as_ptr</span>(), <span class="ident">ptr_out</span>, <span class="ident">nbytes</span>);
         }
@@ -6279,67 +6280,67 @@ cases.
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_u16</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u16</span>) {
+    <span class="kw">fn</span> <span class="ident">write_u16</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u16</span>) {
         <span class="macro">unsafe_write_num_bytes!</span>(<span class="ident">u16</span>, <span class="number">2</span>, <span class="ident">n</span>, <span class="ident">buf</span>, <span class="ident">to_le</span>);
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_u32</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u32</span>) {
+    <span class="kw">fn</span> <span class="ident">write_u32</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u32</span>) {
         <span class="macro">unsafe_write_num_bytes!</span>(<span class="ident">u32</span>, <span class="number">4</span>, <span class="ident">n</span>, <span class="ident">buf</span>, <span class="ident">to_le</span>);
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_u64</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u64</span>) {
+    <span class="kw">fn</span> <span class="ident">write_u64</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u64</span>) {
         <span class="macro">unsafe_write_num_bytes!</span>(<span class="ident">u64</span>, <span class="number">8</span>, <span class="ident">n</span>, <span class="ident">buf</span>, <span class="ident">to_le</span>);
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_u128</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u128</span>) {
+    <span class="kw">fn</span> <span class="ident">write_u128</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u128</span>) {
         <span class="macro">unsafe_write_num_bytes!</span>(<span class="ident">u128</span>, <span class="number">16</span>, <span class="ident">n</span>, <span class="ident">buf</span>, <span class="ident">to_le</span>);
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_uint</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u64</span>, <span class="ident">nbytes</span>: <span class="ident">usize</span>) {
+    <span class="kw">fn</span> <span class="ident">write_uint</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u64</span>, <span class="ident">nbytes</span>: <span class="ident">usize</span>) {
         <span class="macro">assert!</span>(<span class="ident">pack_size</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">&lt;</span><span class="op">=</span> <span class="ident">nbytes</span> <span class="op">&amp;&amp;</span> <span class="ident">nbytes</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">8</span>);
         <span class="macro">assert!</span>(<span class="ident">nbytes</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">buf</span>.<span class="ident">len</span>());
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="kw-2">&amp;</span><span class="ident">n</span>.<span class="ident">to_le</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u64</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> [<span class="ident">u8</span>; <span class="number">8</span>]);
+            <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="kw-2">&amp;</span><span class="ident">n</span>.<span class="ident">to_le</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u64</span> <span class="kw">as</span> <span class="kw-2">*const</span> [<span class="ident">u8</span>; <span class="number">8</span>]);
             <span class="ident">copy_nonoverlapping</span>(<span class="ident">bytes</span>.<span class="ident">as_ptr</span>(), <span class="ident">buf</span>.<span class="ident">as_mut_ptr</span>(), <span class="ident">nbytes</span>);
         }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_uint128</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u128</span>, <span class="ident">nbytes</span>: <span class="ident">usize</span>) {
+    <span class="kw">fn</span> <span class="ident">write_uint128</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u128</span>, <span class="ident">nbytes</span>: <span class="ident">usize</span>) {
         <span class="macro">assert!</span>(<span class="ident">pack_size128</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">u128</span>) <span class="op">&lt;</span><span class="op">=</span> <span class="ident">nbytes</span> <span class="op">&amp;&amp;</span> <span class="ident">nbytes</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">16</span>);
         <span class="macro">assert!</span>(<span class="ident">nbytes</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">buf</span>.<span class="ident">len</span>());
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="kw-2">&amp;</span><span class="ident">n</span>.<span class="ident">to_le</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u128</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> [<span class="ident">u8</span>; <span class="number">16</span>]);
+            <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="kw-2">&amp;</span><span class="ident">n</span>.<span class="ident">to_le</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u128</span> <span class="kw">as</span> <span class="kw-2">*const</span> [<span class="ident">u8</span>; <span class="number">16</span>]);
             <span class="ident">copy_nonoverlapping</span>(<span class="ident">bytes</span>.<span class="ident">as_ptr</span>(), <span class="ident">buf</span>.<span class="ident">as_mut_ptr</span>(), <span class="ident">nbytes</span>);
         }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_u16_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u16</span>]) {
+    <span class="kw">fn</span> <span class="ident">read_u16_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u16</span>]) {
         <span class="macro">unsafe_read_slice!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="number">2</span>, <span class="ident">to_le</span>);
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_u32_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u32</span>]) {
+    <span class="kw">fn</span> <span class="ident">read_u32_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u32</span>]) {
         <span class="macro">unsafe_read_slice!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="number">4</span>, <span class="ident">to_le</span>);
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_u64_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u64</span>]) {
+    <span class="kw">fn</span> <span class="ident">read_u64_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u64</span>]) {
         <span class="macro">unsafe_read_slice!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="number">8</span>, <span class="ident">to_le</span>);
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_u128_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u128</span>]) {
+    <span class="kw">fn</span> <span class="ident">read_u128_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u128</span>]) {
         <span class="macro">unsafe_read_slice!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="number">16</span>, <span class="ident">to_le</span>);
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_u16_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u16</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) {
+    <span class="kw">fn</span> <span class="ident">write_u16_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u16</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) {
         <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>) {
             <span class="macro">unsafe_write_slice_native!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="ident">u16</span>);
         } <span class="kw">else</span> {
@@ -6348,7 +6349,7 @@ cases.
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_u32_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u32</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) {
+    <span class="kw">fn</span> <span class="ident">write_u32_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u32</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) {
         <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>) {
             <span class="macro">unsafe_write_slice_native!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="ident">u32</span>);
         } <span class="kw">else</span> {
@@ -6357,7 +6358,7 @@ cases.
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_u64_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u64</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) {
+    <span class="kw">fn</span> <span class="ident">write_u64_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u64</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) {
         <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>) {
             <span class="macro">unsafe_write_slice_native!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="ident">u64</span>);
         } <span class="kw">else</span> {
@@ -6366,7 +6367,7 @@ cases.
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">write_u128_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u128</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) {
+    <span class="kw">fn</span> <span class="ident">write_u128_into</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u128</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) {
         <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>) {
             <span class="macro">unsafe_write_slice_native!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="ident">u128</span>);
         } <span class="kw">else</span> {
@@ -6375,7 +6376,7 @@ cases.
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_slice_u16</span>(<span class="ident">numbers</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u16</span>]) {
+    <span class="kw">fn</span> <span class="ident">from_slice_u16</span>(<span class="ident">numbers</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u16</span>]) {
         <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;big&quot;</span>) {
             <span class="kw">for</span> <span class="ident">n</span> <span class="kw">in</span> <span class="ident">numbers</span> {
                 <span class="kw-2">*</span><span class="ident">n</span> <span class="op">=</span> <span class="ident">n</span>.<span class="ident">to_le</span>();
@@ -6384,7 +6385,7 @@ cases.
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_slice_u32</span>(<span class="ident">numbers</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u32</span>]) {
+    <span class="kw">fn</span> <span class="ident">from_slice_u32</span>(<span class="ident">numbers</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u32</span>]) {
         <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;big&quot;</span>) {
             <span class="kw">for</span> <span class="ident">n</span> <span class="kw">in</span> <span class="ident">numbers</span> {
                 <span class="kw-2">*</span><span class="ident">n</span> <span class="op">=</span> <span class="ident">n</span>.<span class="ident">to_le</span>();
@@ -6393,7 +6394,7 @@ cases.
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_slice_u64</span>(<span class="ident">numbers</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u64</span>]) {
+    <span class="kw">fn</span> <span class="ident">from_slice_u64</span>(<span class="ident">numbers</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u64</span>]) {
         <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;big&quot;</span>) {
             <span class="kw">for</span> <span class="ident">n</span> <span class="kw">in</span> <span class="ident">numbers</span> {
                 <span class="kw-2">*</span><span class="ident">n</span> <span class="op">=</span> <span class="ident">n</span>.<span class="ident">to_le</span>();
@@ -6402,7 +6403,7 @@ cases.
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_slice_u128</span>(<span class="ident">numbers</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u128</span>]) {
+    <span class="kw">fn</span> <span class="ident">from_slice_u128</span>(<span class="ident">numbers</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u128</span>]) {
         <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;big&quot;</span>) {
             <span class="kw">for</span> <span class="ident">n</span> <span class="kw">in</span> <span class="ident">numbers</span> {
                 <span class="kw-2">*</span><span class="ident">n</span> <span class="op">=</span> <span class="ident">n</span>.<span class="ident">to_le</span>();
@@ -6411,24 +6412,24 @@ cases.
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_slice_f32</span>(<span class="ident">numbers</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">f32</span>]) {
+    <span class="kw">fn</span> <span class="ident">from_slice_f32</span>(<span class="ident">numbers</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">f32</span>]) {
         <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;big&quot;</span>) {
             <span class="kw">for</span> <span class="ident">n</span> <span class="kw">in</span> <span class="ident">numbers</span> {
                 <span class="kw">unsafe</span> {
-                    <span class="kw">let</span> <span class="ident">int</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">f32</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u32</span>);
-                    <span class="kw-2">*</span><span class="ident">n</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="kw-2">&amp;</span><span class="ident">int</span>.<span class="ident">to_le</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u32</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">f32</span>);
+                    <span class="kw">let</span> <span class="ident">int</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">f32</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u32</span>);
+                    <span class="kw-2">*</span><span class="ident">n</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="kw-2">&amp;</span><span class="ident">int</span>.<span class="ident">to_le</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u32</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">f32</span>);
                 }
             }
         }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_slice_f64</span>(<span class="ident">numbers</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">f64</span>]) {
+    <span class="kw">fn</span> <span class="ident">from_slice_f64</span>(<span class="ident">numbers</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">f64</span>]) {
         <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;big&quot;</span>) {
             <span class="kw">for</span> <span class="ident">n</span> <span class="kw">in</span> <span class="ident">numbers</span> {
                 <span class="kw">unsafe</span> {
-                    <span class="kw">let</span> <span class="ident">int</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">f64</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u64</span>);
-                    <span class="kw-2">*</span><span class="ident">n</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="kw-2">&amp;</span><span class="ident">int</span>.<span class="ident">to_le</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u64</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">f64</span>);
+                    <span class="kw">let</span> <span class="ident">int</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">f64</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u64</span>);
+                    <span class="kw-2">*</span><span class="ident">n</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="kw-2">&amp;</span><span class="ident">int</span>.<span class="ident">to_le</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u64</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">f64</span>);
                 }
             }
         }
@@ -6473,7 +6474,7 @@ cases.
     }
 
     <span class="kw">impl</span> <span class="ident">Arbitrary</span> <span class="kw">for</span> <span class="ident">Wi128</span><span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">arbitrary</span><span class="op">&lt;</span><span class="ident">G</span>: <span class="ident">Gen</span><span class="op">&gt;</span>(<span class="ident">gen</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">G</span>) -&gt; <span class="ident">Wi128</span><span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">arbitrary</span><span class="op">&lt;</span><span class="ident">G</span>: <span class="ident">Gen</span><span class="op">&gt;</span>(<span class="ident">gen</span>: <span class="kw-2">&amp;mut</span> <span class="ident">G</span>) -&gt; <span class="ident">Wi128</span><span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">max</span> <span class="op">=</span> <span class="macro">calc_max!</span>(<span class="ident">::core::u128::MAX</span>, <span class="ident">gen</span>.<span class="ident">size</span>(), <span class="number">16</span>);
             <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> (<span class="ident">gen</span>.<span class="ident">gen</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">u128</span>)
                 <span class="op">|</span> ((<span class="ident">gen</span>.<span class="ident">gen</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">u128</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">64</span>);
@@ -6482,7 +6483,7 @@ cases.
     }
 
     <span class="kw">impl</span> <span class="ident">Arbitrary</span> <span class="kw">for</span> <span class="ident">Wi128</span><span class="op">&lt;</span><span class="ident">i128</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">arbitrary</span><span class="op">&lt;</span><span class="ident">G</span>: <span class="ident">Gen</span><span class="op">&gt;</span>(<span class="ident">gen</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">G</span>) -&gt; <span class="ident">Wi128</span><span class="op">&lt;</span><span class="ident">i128</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">arbitrary</span><span class="op">&lt;</span><span class="ident">G</span>: <span class="ident">Gen</span><span class="op">&gt;</span>(<span class="ident">gen</span>: <span class="kw-2">&amp;mut</span> <span class="ident">G</span>) -&gt; <span class="ident">Wi128</span><span class="op">&lt;</span><span class="ident">i128</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">max</span> <span class="op">=</span> <span class="macro">calc_max!</span>(<span class="ident">::core::i128::MAX</span>, <span class="ident">gen</span>.<span class="ident">size</span>(), <span class="number">16</span>);
             <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> (<span class="ident">gen</span>.<span class="ident">gen</span>::<span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">i128</span>)
                 <span class="op">|</span> ((<span class="ident">gen</span>.<span class="ident">gen</span>::<span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">i128</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">64</span>);
@@ -6512,7 +6513,7 @@ cases.
                 <span class="kw">fn</span> <span class="ident">big_endian</span>() {
                     <span class="kw">fn</span> <span class="ident">prop</span>(<span class="ident">n</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty_int</span>) -&gt; <span class="ident">bool</span> {
                         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">16</span>];
-                        <span class="ident">BigEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>, <span class="ident">n</span>.<span class="ident">clone</span>(), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bytes</span>);
+                        <span class="ident">BigEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>, <span class="ident">n</span>.<span class="ident">clone</span>(), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bytes</span>);
                         <span class="ident">n</span> <span class="op">==</span> <span class="ident">BigEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">read</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..<span class="macro-nonterminal">$</span><span class="macro-nonterminal">bytes</span>], <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bytes</span>)
                     }
                     <span class="ident">qc_sized</span>(<span class="ident">prop</span> <span class="kw">as</span> <span class="kw">fn</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty_int</span>) -&gt; <span class="ident">bool</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">max</span>);
@@ -6522,7 +6523,7 @@ cases.
                 <span class="kw">fn</span> <span class="ident">little_endian</span>() {
                     <span class="kw">fn</span> <span class="ident">prop</span>(<span class="ident">n</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty_int</span>) -&gt; <span class="ident">bool</span> {
                         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">16</span>];
-                        <span class="ident">LittleEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>, <span class="ident">n</span>.<span class="ident">clone</span>(), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bytes</span>);
+                        <span class="ident">LittleEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>, <span class="ident">n</span>.<span class="ident">clone</span>(), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bytes</span>);
                         <span class="ident">n</span> <span class="op">==</span> <span class="ident">LittleEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">read</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..<span class="macro-nonterminal">$</span><span class="macro-nonterminal">bytes</span>], <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bytes</span>)
                     }
                     <span class="ident">qc_sized</span>(<span class="ident">prop</span> <span class="kw">as</span> <span class="kw">fn</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty_int</span>) -&gt; <span class="ident">bool</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">max</span>);
@@ -6532,7 +6533,7 @@ cases.
                 <span class="kw">fn</span> <span class="ident">native_endian</span>() {
                     <span class="kw">fn</span> <span class="ident">prop</span>(<span class="ident">n</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty_int</span>) -&gt; <span class="ident">bool</span> {
                         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">16</span>];
-                        <span class="ident">NativeEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>, <span class="ident">n</span>.<span class="ident">clone</span>(), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bytes</span>);
+                        <span class="ident">NativeEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>, <span class="ident">n</span>.<span class="ident">clone</span>(), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bytes</span>);
                         <span class="ident">n</span> <span class="op">==</span> <span class="ident">NativeEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">read</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..<span class="macro-nonterminal">$</span><span class="macro-nonterminal">bytes</span>], <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bytes</span>)
                     }
                     <span class="ident">qc_sized</span>(<span class="ident">prop</span> <span class="kw">as</span> <span class="kw">fn</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty_int</span>) -&gt; <span class="ident">bool</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">max</span>);
@@ -6554,7 +6555,7 @@ cases.
                     <span class="kw">fn</span> <span class="ident">prop</span>(<span class="ident">n</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty_int</span>) -&gt; <span class="ident">bool</span> {
                         <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty_int</span><span class="op">&gt;</span>();
                         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">16</span>];
-                        <span class="ident">BigEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>[<span class="number">16</span> <span class="op">-</span> <span class="ident">bytes</span>..], <span class="ident">n</span>.<span class="ident">clone</span>());
+                        <span class="ident">BigEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[<span class="number">16</span> <span class="op">-</span> <span class="ident">bytes</span>..], <span class="ident">n</span>.<span class="ident">clone</span>());
                         <span class="ident">n</span> <span class="op">==</span> <span class="ident">BigEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">read</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[<span class="number">16</span> <span class="op">-</span> <span class="ident">bytes</span>..])
                     }
                     <span class="ident">qc_sized</span>(<span class="ident">prop</span> <span class="kw">as</span> <span class="kw">fn</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty_int</span>) -&gt; <span class="ident">bool</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">max</span> <span class="op">-</span> <span class="number">1</span>);
@@ -6565,7 +6566,7 @@ cases.
                     <span class="kw">fn</span> <span class="ident">prop</span>(<span class="ident">n</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty_int</span>) -&gt; <span class="ident">bool</span> {
                         <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty_int</span><span class="op">&gt;</span>();
                         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">16</span>];
-                        <span class="ident">LittleEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>[..<span class="ident">bytes</span>], <span class="ident">n</span>.<span class="ident">clone</span>());
+                        <span class="ident">LittleEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..<span class="ident">bytes</span>], <span class="ident">n</span>.<span class="ident">clone</span>());
                         <span class="ident">n</span> <span class="op">==</span> <span class="ident">LittleEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">read</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..<span class="ident">bytes</span>])
                     }
                     <span class="ident">qc_sized</span>(<span class="ident">prop</span> <span class="kw">as</span> <span class="kw">fn</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty_int</span>) -&gt; <span class="ident">bool</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">max</span> <span class="op">-</span> <span class="number">1</span>);
@@ -6576,7 +6577,7 @@ cases.
                     <span class="kw">fn</span> <span class="ident">prop</span>(<span class="ident">n</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty_int</span>) -&gt; <span class="ident">bool</span> {
                         <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty_int</span><span class="op">&gt;</span>();
                         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">16</span>];
-                        <span class="ident">NativeEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>[..<span class="ident">bytes</span>], <span class="ident">n</span>.<span class="ident">clone</span>());
+                        <span class="ident">NativeEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..<span class="ident">bytes</span>], <span class="ident">n</span>.<span class="ident">clone</span>());
                         <span class="ident">n</span> <span class="op">==</span> <span class="ident">NativeEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">read</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..<span class="ident">bytes</span>])
                     }
                     <span class="ident">qc_sized</span>(<span class="ident">prop</span> <span class="kw">as</span> <span class="kw">fn</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty_int</span>) -&gt; <span class="ident">bool</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">max</span> <span class="op">-</span> <span class="number">1</span>);
@@ -7099,21 +7100,21 @@ cases.
                 <span class="attribute">#[<span class="ident">should_panic</span>]</span>
                 <span class="kw">fn</span> <span class="ident">write_big_endian</span>() {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">maximally_small</span>];
-                    <span class="ident">BigEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">zero</span>);
+                    <span class="ident">BigEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">zero</span>);
                 }
 
                 <span class="attribute">#[<span class="ident">test</span>]</span>
                 <span class="attribute">#[<span class="ident">should_panic</span>]</span>
                 <span class="kw">fn</span> <span class="ident">write_little_endian</span>() {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">maximally_small</span>];
-                    <span class="ident">LittleEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">zero</span>);
+                    <span class="ident">LittleEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">zero</span>);
                 }
 
                 <span class="attribute">#[<span class="ident">test</span>]</span>
                 <span class="attribute">#[<span class="ident">should_panic</span>]</span>
                 <span class="kw">fn</span> <span class="ident">write_native_endian</span>() {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">maximally_small</span>];
-                    <span class="ident">NativeEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">zero</span>);
+                    <span class="ident">NativeEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">zero</span>);
                 }
             }
         };
@@ -7220,7 +7221,7 @@ cases.
                 <span class="kw">fn</span> <span class="ident">read_big_endian</span>() {
                     <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> [<span class="number">0</span>; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">num_bytes</span>];
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">numbers</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">numbers</span>;
-                    <span class="ident">BigEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">read</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">numbers</span>);
+                    <span class="ident">BigEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">read</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>, <span class="kw-2">&amp;mut</span> <span class="ident">numbers</span>);
                 }
 
                 <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -7228,7 +7229,7 @@ cases.
                 <span class="kw">fn</span> <span class="ident">read_little_endian</span>() {
                     <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> [<span class="number">0</span>; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">num_bytes</span>];
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">numbers</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">numbers</span>;
-                    <span class="ident">LittleEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">read</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">numbers</span>);
+                    <span class="ident">LittleEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">read</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>, <span class="kw-2">&amp;mut</span> <span class="ident">numbers</span>);
                 }
 
                 <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -7236,7 +7237,7 @@ cases.
                 <span class="kw">fn</span> <span class="ident">read_native_endian</span>() {
                     <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> [<span class="number">0</span>; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">num_bytes</span>];
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">numbers</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">numbers</span>;
-                    <span class="ident">NativeEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">read</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">numbers</span>);
+                    <span class="ident">NativeEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">read</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>, <span class="kw-2">&amp;mut</span> <span class="ident">numbers</span>);
                 }
 
                 <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -7244,7 +7245,7 @@ cases.
                 <span class="kw">fn</span> <span class="ident">write_big_endian</span>() {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes</span> <span class="op">=</span> [<span class="number">0</span>; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">num_bytes</span>];
                     <span class="kw">let</span> <span class="ident">numbers</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">numbers</span>;
-                    <span class="ident">BigEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>(<span class="kw-2">&amp;</span><span class="ident">numbers</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">bytes</span>);
+                    <span class="ident">BigEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>(<span class="kw-2">&amp;</span><span class="ident">numbers</span>, <span class="kw-2">&amp;mut</span> <span class="ident">bytes</span>);
                 }
 
                 <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -7252,7 +7253,7 @@ cases.
                 <span class="kw">fn</span> <span class="ident">write_little_endian</span>() {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes</span> <span class="op">=</span> [<span class="number">0</span>; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">num_bytes</span>];
                     <span class="kw">let</span> <span class="ident">numbers</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">numbers</span>;
-                    <span class="ident">LittleEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>(<span class="kw-2">&amp;</span><span class="ident">numbers</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">bytes</span>);
+                    <span class="ident">LittleEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>(<span class="kw-2">&amp;</span><span class="ident">numbers</span>, <span class="kw-2">&amp;mut</span> <span class="ident">bytes</span>);
                 }
 
                 <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -7260,7 +7261,7 @@ cases.
                 <span class="kw">fn</span> <span class="ident">write_native_endian</span>() {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes</span> <span class="op">=</span> [<span class="number">0</span>; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">num_bytes</span>];
                     <span class="kw">let</span> <span class="ident">numbers</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">numbers</span>;
-                    <span class="ident">NativeEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>(<span class="kw-2">&amp;</span><span class="ident">numbers</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">bytes</span>);
+                    <span class="ident">NativeEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>(<span class="kw-2">&amp;</span><span class="ident">numbers</span>, <span class="kw-2">&amp;mut</span> <span class="ident">bytes</span>);
                 }
             }
         };
@@ -7472,7 +7473,7 @@ cases.
                         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">wtr</span> <span class="op">=</span> <span class="macro">vec!</span>[];
                         <span class="ident">wtr</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>::<span class="op">&lt;</span><span class="ident">BigEndian</span><span class="op">&gt;</span>(<span class="ident">n</span>.<span class="ident">clone</span>()).<span class="ident">unwrap</span>();
                         <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">wtr</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bytes</span>;
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rdr</span> <span class="op">=</span> <span class="ident">Cursor::new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">wtr</span>[<span class="ident">offset</span>..]);
+                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rdr</span> <span class="op">=</span> <span class="ident">Cursor::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">wtr</span>[<span class="ident">offset</span>..]);
                         <span class="ident">n</span> <span class="op">==</span> <span class="ident">rdr</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">read</span>::<span class="op">&lt;</span><span class="ident">BigEndian</span><span class="op">&gt;</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">bytes</span>).<span class="ident">unwrap</span>()
                     }
                     <span class="ident">qc_sized</span>(<span class="ident">prop</span> <span class="kw">as</span> <span class="kw">fn</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty_int</span>) -&gt; <span class="ident">bool</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">max</span>);
@@ -7499,7 +7500,7 @@ cases.
                         } <span class="kw">else</span> {
                             <span class="number">0</span>
                         };
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rdr</span> <span class="op">=</span> <span class="ident">Cursor::new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">wtr</span>[<span class="ident">offset</span>..]);
+                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rdr</span> <span class="op">=</span> <span class="ident">Cursor::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">wtr</span>[<span class="ident">offset</span>..]);
                         <span class="ident">n</span> <span class="op">==</span> <span class="ident">rdr</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">read</span>::<span class="op">&lt;</span><span class="ident">NativeEndian</span><span class="op">&gt;</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">bytes</span>).<span class="ident">unwrap</span>()
                     }
                     <span class="ident">qc_sized</span>(<span class="ident">prop</span> <span class="kw">as</span> <span class="kw">fn</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty_int</span>) -&gt; <span class="ident">bool</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">max</span>);
@@ -8021,11 +8022,11 @@ cases.
                         <span class="kw">let</span> <span class="ident">num_bytes</span> <span class="op">=</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty_int</span><span class="op">&gt;</span>() <span class="op">*</span> <span class="ident">numbers</span>.<span class="ident">len</span>();
                         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0</span>; <span class="ident">num_bytes</span>];
 
-                        <span class="ident">BigEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>(<span class="kw-2">&amp;</span><span class="ident">numbers</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">bytes</span>);
+                        <span class="ident">BigEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>(<span class="kw-2">&amp;</span><span class="ident">numbers</span>, <span class="kw-2">&amp;mut</span> <span class="ident">bytes</span>);
 
                         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">got</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">zero</span>; <span class="ident">numbers</span>.<span class="ident">len</span>()];
                         <span class="kw">unsafe</span> {
-                            <span class="ident">BigEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">read</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">got</span>);
+                            <span class="ident">BigEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">read</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>, <span class="kw-2">&amp;mut</span> <span class="ident">got</span>);
                         }
 
                         <span class="ident">numbers</span> <span class="op">==</span> <span class="ident">got</span>
@@ -8042,11 +8043,11 @@ cases.
                         <span class="kw">let</span> <span class="ident">num_bytes</span> <span class="op">=</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty_int</span><span class="op">&gt;</span>() <span class="op">*</span> <span class="ident">numbers</span>.<span class="ident">len</span>();
                         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0</span>; <span class="ident">num_bytes</span>];
 
-                        <span class="ident">LittleEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>(<span class="kw-2">&amp;</span><span class="ident">numbers</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">bytes</span>);
+                        <span class="ident">LittleEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>(<span class="kw-2">&amp;</span><span class="ident">numbers</span>, <span class="kw-2">&amp;mut</span> <span class="ident">bytes</span>);
 
                         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">got</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">zero</span>; <span class="ident">numbers</span>.<span class="ident">len</span>()];
                         <span class="kw">unsafe</span> {
-                            <span class="ident">LittleEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">read</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">got</span>);
+                            <span class="ident">LittleEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">read</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>, <span class="kw-2">&amp;mut</span> <span class="ident">got</span>);
                         }
 
                         <span class="ident">numbers</span> <span class="op">==</span> <span class="ident">got</span>
@@ -8063,11 +8064,11 @@ cases.
                         <span class="kw">let</span> <span class="ident">num_bytes</span> <span class="op">=</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty_int</span><span class="op">&gt;</span>() <span class="op">*</span> <span class="ident">numbers</span>.<span class="ident">len</span>();
                         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0</span>; <span class="ident">num_bytes</span>];
 
-                        <span class="ident">NativeEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>(<span class="kw-2">&amp;</span><span class="ident">numbers</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">bytes</span>);
+                        <span class="ident">NativeEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>(<span class="kw-2">&amp;</span><span class="ident">numbers</span>, <span class="kw-2">&amp;mut</span> <span class="ident">bytes</span>);
 
                         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">got</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">zero</span>; <span class="ident">numbers</span>.<span class="ident">len</span>()];
                         <span class="kw">unsafe</span> {
-                            <span class="ident">NativeEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">read</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">got</span>);
+                            <span class="ident">NativeEndian</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">read</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>, <span class="kw-2">&amp;mut</span> <span class="ident">got</span>);
                         }
 
                         <span class="ident">numbers</span> <span class="op">==</span> <span class="ident">got</span>
@@ -8104,5 +8105,4 @@ cases.
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="byteorder" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
 </body></html>

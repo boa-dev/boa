@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;openssl-sys-0.9.72&#x2F;src&#x2F;x509v3.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>x509v3.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../openssl_sys/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;openssl-sys-0.9.72&#x2F;src&#x2F;x509v3.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>x509v3.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../openssl_sys/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -216,36 +217,36 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GENERAL_NAME</span> {
     <span class="kw">pub</span> <span class="ident">type_</span>: <span class="ident">c_int</span>,
     <span class="comment">// FIXME should be a union</span>
-    <span class="kw">pub</span> <span class="ident">d</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
+    <span class="kw">pub</span> <span class="ident">d</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
 }
 
 <span class="macro">stack!</span>(<span class="ident">stack_st_GENERAL_NAME</span>);
 
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">GENERAL_NAME_free</span>(<span class="ident">name</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">GENERAL_NAME</span>);
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">GENERAL_NAME_free</span>(<span class="ident">name</span>: <span class="kw-2">*mut</span> <span class="ident">GENERAL_NAME</span>);
 }
 
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ACCESS_DESCRIPTION</span> {
-    <span class="kw">pub</span> <span class="ident">method</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ASN1_OBJECT</span>,
-    <span class="kw">pub</span> <span class="ident">location</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">GENERAL_NAME</span>,
+    <span class="kw">pub</span> <span class="ident">method</span>: <span class="kw-2">*mut</span> <span class="ident">ASN1_OBJECT</span>,
+    <span class="kw">pub</span> <span class="ident">location</span>: <span class="kw-2">*mut</span> <span class="ident">GENERAL_NAME</span>,
 }
 
 <span class="macro">stack!</span>(<span class="ident">stack_st_ACCESS_DESCRIPTION</span>);
 
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ACCESS_DESCRIPTION_free</span>(<span class="ident">ad</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ACCESS_DESCRIPTION</span>);
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ACCESS_DESCRIPTION_free</span>(<span class="ident">ad</span>: <span class="kw-2">*mut</span> <span class="ident">ACCESS_DESCRIPTION</span>);
 }
 
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AUTHORITY_KEYID</span> {
-    <span class="kw">pub</span> <span class="ident">keyid</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ASN1_OCTET_STRING</span>,
-    <span class="kw">pub</span> <span class="ident">issuer</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">stack_st_GENERAL_NAME</span>,
-    <span class="kw">pub</span> <span class="ident">serial</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ASN1_INTEGER</span>,
+    <span class="kw">pub</span> <span class="ident">keyid</span>: <span class="kw-2">*mut</span> <span class="ident">ASN1_OCTET_STRING</span>,
+    <span class="kw">pub</span> <span class="ident">issuer</span>: <span class="kw-2">*mut</span> <span class="ident">stack_st_GENERAL_NAME</span>,
+    <span class="kw">pub</span> <span class="ident">serial</span>: <span class="kw-2">*mut</span> <span class="ident">ASN1_INTEGER</span>,
 }
 
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">AUTHORITY_KEYID_free</span>(<span class="ident">akid</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">AUTHORITY_KEYID</span>);
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">AUTHORITY_KEYID_free</span>(<span class="ident">akid</span>: <span class="kw-2">*mut</span> <span class="ident">AUTHORITY_KEYID</span>);
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl102</span>, <span class="ident">libressl261</span>))]</span>
@@ -264,36 +265,36 @@
 <span class="macro">const_ptr_api!</span> {
     <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509V3_EXT_nconf_nid</span>(
-            <span class="ident">conf</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">CONF</span>,
-            <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509V3_CTX</span>,
+            <span class="ident">conf</span>: <span class="kw-2">*mut</span> <span class="ident">CONF</span>,
+            <span class="ident">ctx</span>: <span class="kw-2">*mut</span> <span class="ident">X509V3_CTX</span>,
             <span class="ident">ext_nid</span>: <span class="ident">c_int</span>,
             <span class="ident">value</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <span class="ident">c_char</span>,
-        ) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_EXTENSION</span>;
+        ) -&gt; <span class="kw-2">*mut</span> <span class="ident">X509_EXTENSION</span>;
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509V3_EXT_nconf</span>(
-            <span class="ident">conf</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">CONF</span>,
-            <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509V3_CTX</span>,
+            <span class="ident">conf</span>: <span class="kw-2">*mut</span> <span class="ident">CONF</span>,
+            <span class="ident">ctx</span>: <span class="kw-2">*mut</span> <span class="ident">X509V3_CTX</span>,
             <span class="ident">name</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <span class="ident">c_char</span>,
             <span class="ident">value</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <span class="ident">c_char</span>,
-        ) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_EXTENSION</span>;
+        ) -&gt; <span class="kw-2">*mut</span> <span class="ident">X509_EXTENSION</span>;
     }
 }
 
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_check_issued</span>(<span class="ident">issuer</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509</span>, <span class="ident">subject</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509</span>) -&gt; <span class="ident">c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_verify</span>(<span class="ident">req</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509</span>, <span class="ident">pkey</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_PKEY</span>) -&gt; <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_check_issued</span>(<span class="ident">issuer</span>: <span class="kw-2">*mut</span> <span class="ident">X509</span>, <span class="ident">subject</span>: <span class="kw-2">*mut</span> <span class="ident">X509</span>) -&gt; <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_verify</span>(<span class="ident">req</span>: <span class="kw-2">*mut</span> <span class="ident">X509</span>, <span class="ident">pkey</span>: <span class="kw-2">*mut</span> <span class="ident">EVP_PKEY</span>) -&gt; <span class="ident">c_int</span>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509V3_set_nconf</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509V3_CTX</span>, <span class="ident">conf</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">CONF</span>);
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509V3_set_nconf</span>(<span class="ident">ctx</span>: <span class="kw-2">*mut</span> <span class="ident">X509V3_CTX</span>, <span class="ident">conf</span>: <span class="kw-2">*mut</span> <span class="ident">CONF</span>);
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509V3_set_ctx</span>(
-        <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509V3_CTX</span>,
-        <span class="ident">issuer</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509</span>,
-        <span class="ident">subject</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509</span>,
-        <span class="ident">req</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_REQ</span>,
-        <span class="ident">crl</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_CRL</span>,
+        <span class="ident">ctx</span>: <span class="kw-2">*mut</span> <span class="ident">X509V3_CTX</span>,
+        <span class="ident">issuer</span>: <span class="kw-2">*mut</span> <span class="ident">X509</span>,
+        <span class="ident">subject</span>: <span class="kw-2">*mut</span> <span class="ident">X509</span>,
+        <span class="ident">req</span>: <span class="kw-2">*mut</span> <span class="ident">X509_REQ</span>,
+        <span class="ident">crl</span>: <span class="kw-2">*mut</span> <span class="ident">X509_CRL</span>,
         <span class="ident">flags</span>: <span class="ident">c_int</span>,
     );
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_get1_ocsp</span>(<span class="ident">x</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">stack_st_OPENSSL_STRING</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_get1_ocsp</span>(<span class="ident">x</span>: <span class="kw-2">*mut</span> <span class="ident">X509</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">stack_st_OPENSSL_STRING</span>;
 }
 
 <span class="macro">const_ptr_api!</span> {
@@ -301,10 +302,10 @@
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509V3_get_d2i</span>(
             <span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <span class="ident">stack_st_X509_EXTENSION</span>,
             <span class="ident">nid</span>: <span class="ident">c_int</span>,
-            <span class="ident">crit</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_int</span>,
-            <span class="ident">idx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_int</span>,
-        ) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509V3_extensions_print</span>(<span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>, <span class="ident">title</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <span class="ident">c_char</span>, <span class="ident">exts</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <span class="ident">stack_st_X509_EXTENSION</span>, <span class="ident">flag</span>: <span class="ident">c_ulong</span>, <span class="ident">indent</span>: <span class="ident">c_int</span>) -&gt; <span class="ident">c_int</span>;
+            <span class="ident">crit</span>: <span class="kw-2">*mut</span> <span class="ident">c_int</span>,
+            <span class="ident">idx</span>: <span class="kw-2">*mut</span> <span class="ident">c_int</span>,
+        ) -&gt; <span class="kw-2">*mut</span> <span class="ident">c_void</span>;
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509V3_extensions_print</span>(<span class="ident">out</span>: <span class="kw-2">*mut</span> <span class="ident">BIO</span>, <span class="ident">title</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <span class="ident">c_char</span>, <span class="ident">exts</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <span class="ident">stack_st_X509_EXTENSION</span>, <span class="ident">flag</span>: <span class="ident">c_ulong</span>, <span class="ident">indent</span>: <span class="ident">c_int</span>) -&gt; <span class="ident">c_int</span>;
     }
 }
 
@@ -371,30 +372,29 @@ cfg_if! {
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">XKU_ANYEKU</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0x100</span>;
 
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509V3_EXT_d2i</span>(<span class="ident">ext</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_EXTENSION</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509V3_EXT_i2d</span>(<span class="ident">ext_nid</span>: <span class="ident">c_int</span>, <span class="ident">crit</span>: <span class="ident">c_int</span>, <span class="ident">ext</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_EXTENSION</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509V3_EXT_d2i</span>(<span class="ident">ext</span>: <span class="kw-2">*mut</span> <span class="ident">X509_EXTENSION</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">c_void</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509V3_EXT_i2d</span>(<span class="ident">ext_nid</span>: <span class="ident">c_int</span>, <span class="ident">crit</span>: <span class="ident">c_int</span>, <span class="ident">ext</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">X509_EXTENSION</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509V3_add1_i2d</span>(
-        <span class="ident">x</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">stack_st_X509_EXTENSION</span>,
+        <span class="ident">x</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">stack_st_X509_EXTENSION</span>,
         <span class="ident">nid</span>: <span class="ident">c_int</span>,
-        <span class="ident">value</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
+        <span class="ident">value</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
         <span class="ident">crit</span>: <span class="ident">c_int</span>,
         <span class="ident">flags</span>: <span class="ident">c_ulong</span>,
     ) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509V3_EXT_print</span>(
-        <span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BIO</span>,
-        <span class="ident">ext</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_EXTENSION</span>,
+        <span class="ident">out</span>: <span class="kw-2">*mut</span> <span class="ident">BIO</span>,
+        <span class="ident">ext</span>: <span class="kw-2">*mut</span> <span class="ident">X509_EXTENSION</span>,
         <span class="ident">flag</span>: <span class="ident">c_ulong</span>,
         <span class="ident">indent</span>: <span class="ident">c_int</span>,
     ) -&gt; <span class="ident">c_int</span>;
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_get_extension_flags</span>(<span class="ident">x</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509</span>) -&gt; <span class="ident">u32</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_get_extension_flags</span>(<span class="ident">x</span>: <span class="kw-2">*mut</span> <span class="ident">X509</span>) -&gt; <span class="ident">u32</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_get_key_usage</span>(<span class="ident">x</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509</span>) -&gt; <span class="ident">u32</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_get_key_usage</span>(<span class="ident">x</span>: <span class="kw-2">*mut</span> <span class="ident">X509</span>) -&gt; <span class="ident">u32</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_get_extended_key_usage</span>(<span class="ident">x</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509</span>) -&gt; <span class="ident">u32</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_get_extended_key_usage</span>(<span class="ident">x</span>: <span class="kw-2">*mut</span> <span class="ident">X509</span>) -&gt; <span class="ident">u32</span>;
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl_sys" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
 </body></html>

@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;regex-syntax-0.6.25&#x2F;src&#x2F;hir&#x2F;literal&#x2F;mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../regex_syntax/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;regex-syntax-0.6.25&#x2F;src&#x2F;hir&#x2F;literal&#x2F;mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../regex_syntax/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1765,7 +1766,7 @@ Provides routines for extracting literal prefixes and suffixes from an `Hir`.
     <span class="doccomment">///</span>
     <span class="doccomment">/// The new limits will only apply to additions to this set. Existing</span>
     <span class="doccomment">/// members remain unchanged, even if the set exceeds the new limit.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_limit_size</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">size</span>: <span class="ident">usize</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Literals</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_limit_size</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">size</span>: <span class="ident">usize</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">Literals</span> {
         <span class="self">self</span>.<span class="ident">limit_size</span> <span class="op">=</span> <span class="ident">size</span>;
         <span class="self">self</span>
     }
@@ -1785,7 +1786,7 @@ Provides routines for extracting literal prefixes and suffixes from an `Hir`.
     <span class="doccomment">///</span>
     <span class="doccomment">/// The new limits will only apply to additions to this set. Existing</span>
     <span class="doccomment">/// members remain unchanged, even if the set exceeds the new limit.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_limit_class</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">size</span>: <span class="ident">usize</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Literals</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_limit_class</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">size</span>: <span class="ident">usize</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">Literals</span> {
         <span class="self">self</span>.<span class="ident">limit_class</span> <span class="op">=</span> <span class="ident">size</span>;
         <span class="self">self</span>
     }
@@ -1920,7 +1921,7 @@ Provides routines for extracting literal prefixes and suffixes from an `Hir`.
                 <span class="ident">new</span>.<span class="ident">lits</span>.<span class="ident">push</span>(<span class="ident">candidate</span>);
                 <span class="kw">continue</span>;
             }
-            <span class="kw">for</span> <span class="ident">lit2</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">new</span>.<span class="ident">lits</span> {
+            <span class="kw">for</span> <span class="ident">lit2</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="ident">new</span>.<span class="ident">lits</span> {
                 <span class="kw">if</span> <span class="ident">lit2</span>.<span class="ident">is_empty</span>() {
                     <span class="kw">continue</span>;
                 }
@@ -1991,9 +1992,9 @@ Provides routines for extracting literal prefixes and suffixes from an `Hir`.
     <span class="doccomment">/// Note that prefix literals extracted from `expr` are said to be complete</span>
     <span class="doccomment">/// if and only if the literal extends from the beginning of `expr` to the</span>
     <span class="doccomment">/// end of `expr`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">union_prefixes</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">expr</span>: <span class="kw-2">&amp;</span><span class="ident">Hir</span>) -&gt; <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">union_prefixes</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">expr</span>: <span class="kw-2">&amp;</span><span class="ident">Hir</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lits</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_empty</span>();
-        <span class="ident">prefixes</span>(<span class="ident">expr</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">lits</span>);
+        <span class="ident">prefixes</span>(<span class="ident">expr</span>, <span class="kw-2">&amp;mut</span> <span class="ident">lits</span>);
         <span class="op">!</span><span class="ident">lits</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">lits</span>.<span class="ident">contains_empty</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">union</span>(<span class="ident">lits</span>)
     }
 
@@ -2006,9 +2007,9 @@ Provides routines for extracting literal prefixes and suffixes from an `Hir`.
     <span class="doccomment">/// Note that prefix literals extracted from `expr` are said to be complete</span>
     <span class="doccomment">/// if and only if the literal extends from the end of `expr` to the</span>
     <span class="doccomment">/// beginning of `expr`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">union_suffixes</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">expr</span>: <span class="kw-2">&amp;</span><span class="ident">Hir</span>) -&gt; <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">union_suffixes</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">expr</span>: <span class="kw-2">&amp;</span><span class="ident">Hir</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lits</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_empty</span>();
-        <span class="ident">suffixes</span>(<span class="ident">expr</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">lits</span>);
+        <span class="ident">suffixes</span>(<span class="ident">expr</span>, <span class="kw-2">&amp;mut</span> <span class="ident">lits</span>);
         <span class="ident">lits</span>.<span class="ident">reverse</span>();
         <span class="op">!</span><span class="ident">lits</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">lits</span>.<span class="ident">contains_empty</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">union</span>(<span class="ident">lits</span>)
     }
@@ -2018,7 +2019,7 @@ Provides routines for extracting literal prefixes and suffixes from an `Hir`.
     <span class="doccomment">/// If the union would cause the set to exceed its limits, then the union</span>
     <span class="doccomment">/// is skipped and it returns false. Otherwise, if the union succeeds, it</span>
     <span class="doccomment">/// returns true.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">union</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">lits</span>: <span class="ident">Literals</span>) -&gt; <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">union</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">lits</span>: <span class="ident">Literals</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">num_bytes</span>() <span class="op">+</span> <span class="ident">lits</span>.<span class="ident">num_bytes</span>() <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">limit_size</span> {
             <span class="kw">return</span> <span class="bool-val">false</span>;
         }
@@ -2037,7 +2038,7 @@ Provides routines for extracting literal prefixes and suffixes from an `Hir`.
     <span class="doccomment">/// If a cross product would cause this set to exceed its limits, then the</span>
     <span class="doccomment">/// cross product is skipped and it returns false. Otherwise, if the cross</span>
     <span class="doccomment">/// product succeeds, it returns true.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cross_product</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">lits</span>: <span class="kw-2">&amp;</span><span class="ident">Literals</span>) -&gt; <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cross_product</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">lits</span>: <span class="kw-2">&amp;</span><span class="ident">Literals</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="ident">lits</span>.<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="bool-val">true</span>;
         }
@@ -2086,7 +2087,7 @@ Provides routines for extracting literal prefixes and suffixes from an `Hir`.
     <span class="doccomment">/// to be exceeded, then no bytes are added and false is returned. If a</span>
     <span class="doccomment">/// prefix of `bytes` can be fit into this set, then it is used and all</span>
     <span class="doccomment">/// resulting literals are cut.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cross_add</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cross_add</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">bool</span> {
         <span class="comment">// N.B. This could be implemented by simply calling cross_product with</span>
         <span class="comment">// a literal set containing just `bytes`, but we can be smarter about</span>
         <span class="comment">// taking shorter prefixes of `bytes` if they&#39;ll fit.</span>
@@ -2109,7 +2110,7 @@ Provides routines for extracting literal prefixes and suffixes from an `Hir`.
         {
             <span class="ident">i</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         }
-        <span class="kw">for</span> <span class="ident">lit</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">lits</span> {
+        <span class="kw">for</span> <span class="ident">lit</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">lits</span> {
             <span class="kw">if</span> <span class="op">!</span><span class="ident">lit</span>.<span class="ident">is_cut</span>() {
                 <span class="ident">lit</span>.<span class="ident">extend</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>[..<span class="ident">i</span>]);
                 <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">bytes</span>.<span class="ident">len</span>() {
@@ -2124,7 +2125,7 @@ Provides routines for extracting literal prefixes and suffixes from an `Hir`.
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns false if adding this literal would cause the class to be too</span>
     <span class="doccomment">/// big.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">lit</span>: <span class="ident">Literal</span>) -&gt; <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">lit</span>: <span class="ident">Literal</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">num_bytes</span>() <span class="op">+</span> <span class="ident">lit</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">limit_size</span> {
             <span class="kw">return</span> <span class="bool-val">false</span>;
         }
@@ -2135,7 +2136,7 @@ Provides routines for extracting literal prefixes and suffixes from an `Hir`.
     <span class="doccomment">/// Extends each literal in this set with the character class given.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns false if the character class was too big to add.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_char_class</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cls</span>: <span class="kw-2">&amp;</span><span class="ident">hir::ClassUnicode</span>) -&gt; <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_char_class</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cls</span>: <span class="kw-2">&amp;</span><span class="ident">hir::ClassUnicode</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">_add_char_class</span>(<span class="ident">cls</span>, <span class="bool-val">false</span>)
     }
 
@@ -2143,12 +2144,12 @@ Provides routines for extracting literal prefixes and suffixes from an `Hir`.
     <span class="doccomment">/// writing the bytes of each character in reverse.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns false if the character class was too big to add.</span>
-    <span class="kw">fn</span> <span class="ident">add_char_class_reverse</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cls</span>: <span class="kw-2">&amp;</span><span class="ident">hir::ClassUnicode</span>) -&gt; <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">add_char_class_reverse</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cls</span>: <span class="kw-2">&amp;</span><span class="ident">hir::ClassUnicode</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">_add_char_class</span>(<span class="ident">cls</span>, <span class="bool-val">true</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">_add_char_class</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">cls</span>: <span class="kw-2">&amp;</span><span class="ident">hir::ClassUnicode</span>,
         <span class="ident">reverse</span>: <span class="ident">bool</span>,
     ) -&gt; <span class="ident">bool</span> {
@@ -2180,7 +2181,7 @@ Provides routines for extracting literal prefixes and suffixes from an `Hir`.
     <span class="doccomment">/// Extends each literal in this set with the byte class given.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns false if the byte class was too big to add.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_byte_class</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cls</span>: <span class="kw-2">&amp;</span><span class="ident">hir::ClassBytes</span>) -&gt; <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_byte_class</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cls</span>: <span class="kw-2">&amp;</span><span class="ident">hir::ClassBytes</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">class_exceeds_limits</span>(<span class="ident">cls_byte_count</span>(<span class="ident">cls</span>)) {
             <span class="kw">return</span> <span class="bool-val">false</span>;
         }
@@ -2202,28 +2203,28 @@ Provides routines for extracting literal prefixes and suffixes from an `Hir`.
 
     <span class="doccomment">/// Cuts every member of this set. When a member is cut, it can never</span>
     <span class="doccomment">/// be extended.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="kw">for</span> <span class="ident">lit</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">lits</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
+        <span class="kw">for</span> <span class="ident">lit</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">lits</span> {
             <span class="ident">lit</span>.<span class="ident">cut</span>();
         }
     }
 
     <span class="doccomment">/// Reverses all members in place.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reverse</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="kw">for</span> <span class="ident">lit</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">lits</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reverse</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
+        <span class="kw">for</span> <span class="ident">lit</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">lits</span> {
             <span class="ident">lit</span>.<span class="ident">reverse</span>();
         }
     }
 
     <span class="doccomment">/// Clears this set of all members.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="self">self</span>.<span class="ident">lits</span>.<span class="ident">clear</span>();
     }
 
     <span class="doccomment">/// Pops all complete literals out of this set.</span>
-    <span class="kw">fn</span> <span class="ident">remove_complete</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Literal</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">remove_complete</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Literal</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">base</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-        <span class="kw">for</span> <span class="ident">lit</span> <span class="kw">in</span> <span class="ident">mem::replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">lits</span>, <span class="macro">vec!</span>[]) {
+        <span class="kw">for</span> <span class="ident">lit</span> <span class="kw">in</span> <span class="ident">mem::replace</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">lits</span>, <span class="macro">vec!</span>[]) {
             <span class="kw">if</span> <span class="ident">lit</span>.<span class="ident">is_cut</span>() {
                 <span class="self">self</span>.<span class="ident">lits</span>.<span class="ident">push</span>(<span class="ident">lit</span>);
             } <span class="kw">else</span> {
@@ -2266,11 +2267,11 @@ Provides routines for extracting literal prefixes and suffixes from an `Hir`.
     }
 }
 
-<span class="kw">fn</span> <span class="ident">prefixes</span>(<span class="ident">expr</span>: <span class="kw-2">&amp;</span><span class="ident">Hir</span>, <span class="ident">lits</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Literals</span>) {
+<span class="kw">fn</span> <span class="ident">prefixes</span>(<span class="ident">expr</span>: <span class="kw-2">&amp;</span><span class="ident">Hir</span>, <span class="ident">lits</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Literals</span>) {
     <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">expr</span>.<span class="ident">kind</span>() {
         <span class="ident">HirKind::Literal</span>(<span class="ident">hir::Literal::Unicode</span>(<span class="ident">c</span>)) =&gt; {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">4</span>];
-            <span class="ident">lits</span>.<span class="ident">cross_add</span>(<span class="ident">c</span>.<span class="ident">encode_utf8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>).<span class="ident">as_bytes</span>());
+            <span class="ident">lits</span>.<span class="ident">cross_add</span>(<span class="ident">c</span>.<span class="ident">encode_utf8</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>).<span class="ident">as_bytes</span>());
         }
         <span class="ident">HirKind::Literal</span>(<span class="ident">hir::Literal::Byte</span>(<span class="ident">b</span>)) =&gt; {
             <span class="ident">lits</span>.<span class="ident">cross_add</span>(<span class="kw-2">&amp;</span>[<span class="ident">b</span>]);
@@ -2322,7 +2323,7 @@ Provides routines for extracting literal prefixes and suffixes from an `Hir`.
                     <span class="kw">continue</span>;
                 }
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lits2</span> <span class="op">=</span> <span class="ident">lits</span>.<span class="ident">to_empty</span>();
-                <span class="ident">prefixes</span>(<span class="ident">e</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">lits2</span>);
+                <span class="ident">prefixes</span>(<span class="ident">e</span>, <span class="kw-2">&amp;mut</span> <span class="ident">lits2</span>);
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">lits</span>.<span class="ident">cross_product</span>(<span class="kw-2">&amp;</span><span class="ident">lits2</span>) <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">lits2</span>.<span class="ident">any_complete</span>() {
                     <span class="comment">// If this expression couldn&#39;t yield any literal that</span>
                     <span class="comment">// could be extended, then we need to quit. Since we&#39;re</span>
@@ -2339,12 +2340,12 @@ Provides routines for extracting literal prefixes and suffixes from an `Hir`.
     }
 }
 
-<span class="kw">fn</span> <span class="ident">suffixes</span>(<span class="ident">expr</span>: <span class="kw-2">&amp;</span><span class="ident">Hir</span>, <span class="ident">lits</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Literals</span>) {
+<span class="kw">fn</span> <span class="ident">suffixes</span>(<span class="ident">expr</span>: <span class="kw-2">&amp;</span><span class="ident">Hir</span>, <span class="ident">lits</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Literals</span>) {
     <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">expr</span>.<span class="ident">kind</span>() {
         <span class="ident">HirKind::Literal</span>(<span class="ident">hir::Literal::Unicode</span>(<span class="ident">c</span>)) =&gt; {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">4</span>];
-            <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="ident">c</span>.<span class="ident">encode_utf8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>).<span class="ident">len</span>();
-            <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>[..<span class="ident">i</span>];
+            <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="ident">c</span>.<span class="ident">encode_utf8</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>).<span class="ident">len</span>();
+            <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..<span class="ident">i</span>];
             <span class="ident">buf</span>.<span class="ident">reverse</span>();
             <span class="ident">lits</span>.<span class="ident">cross_add</span>(<span class="ident">buf</span>);
         }
@@ -2398,7 +2399,7 @@ Provides routines for extracting literal prefixes and suffixes from an `Hir`.
                     <span class="kw">continue</span>;
                 }
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lits2</span> <span class="op">=</span> <span class="ident">lits</span>.<span class="ident">to_empty</span>();
-                <span class="ident">suffixes</span>(<span class="ident">e</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">lits2</span>);
+                <span class="ident">suffixes</span>(<span class="ident">e</span>, <span class="kw-2">&amp;mut</span> <span class="ident">lits2</span>);
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">lits</span>.<span class="ident">cross_product</span>(<span class="kw-2">&amp;</span><span class="ident">lits2</span>) <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">lits2</span>.<span class="ident">any_complete</span>() {
                     <span class="comment">// If this expression couldn&#39;t yield any literal that</span>
                     <span class="comment">// could be extended, then we need to quit. Since we&#39;re</span>
@@ -2415,14 +2416,14 @@ Provides routines for extracting literal prefixes and suffixes from an `Hir`.
     }
 }
 
-<span class="kw">fn</span> <span class="ident">repeat_zero_or_one_literals</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">Hir</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Literals</span>)<span class="op">&gt;</span>(
+<span class="kw">fn</span> <span class="ident">repeat_zero_or_one_literals</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">Hir</span>, <span class="kw-2">&amp;mut</span> <span class="ident">Literals</span>)<span class="op">&gt;</span>(
     <span class="ident">e</span>: <span class="kw-2">&amp;</span><span class="ident">Hir</span>,
-    <span class="ident">lits</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Literals</span>,
+    <span class="ident">lits</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Literals</span>,
     <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>,
 ) {
     <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">lits2</span>, <span class="kw-2">mut</span> <span class="ident">lits3</span>) <span class="op">=</span> (<span class="ident">lits</span>.<span class="ident">clone</span>(), <span class="ident">lits</span>.<span class="ident">to_empty</span>());
     <span class="ident">lits3</span>.<span class="ident">set_limit_size</span>(<span class="ident">lits</span>.<span class="ident">limit_size</span>() <span class="op">/</span> <span class="number">2</span>);
-    <span class="ident">f</span>(<span class="ident">e</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">lits3</span>);
+    <span class="ident">f</span>(<span class="ident">e</span>, <span class="kw-2">&amp;mut</span> <span class="ident">lits3</span>);
 
     <span class="kw">if</span> <span class="ident">lits3</span>.<span class="ident">is_empty</span>() <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">lits2</span>.<span class="ident">cross_product</span>(<span class="kw-2">&amp;</span><span class="ident">lits3</span>) {
         <span class="ident">lits</span>.<span class="ident">cut</span>();
@@ -2434,14 +2435,14 @@ Provides routines for extracting literal prefixes and suffixes from an `Hir`.
     }
 }
 
-<span class="kw">fn</span> <span class="ident">repeat_zero_or_more_literals</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">Hir</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Literals</span>)<span class="op">&gt;</span>(
+<span class="kw">fn</span> <span class="ident">repeat_zero_or_more_literals</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">Hir</span>, <span class="kw-2">&amp;mut</span> <span class="ident">Literals</span>)<span class="op">&gt;</span>(
     <span class="ident">e</span>: <span class="kw-2">&amp;</span><span class="ident">Hir</span>,
-    <span class="ident">lits</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Literals</span>,
+    <span class="ident">lits</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Literals</span>,
     <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>,
 ) {
     <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">lits2</span>, <span class="kw-2">mut</span> <span class="ident">lits3</span>) <span class="op">=</span> (<span class="ident">lits</span>.<span class="ident">clone</span>(), <span class="ident">lits</span>.<span class="ident">to_empty</span>());
     <span class="ident">lits3</span>.<span class="ident">set_limit_size</span>(<span class="ident">lits</span>.<span class="ident">limit_size</span>() <span class="op">/</span> <span class="number">2</span>);
-    <span class="ident">f</span>(<span class="ident">e</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">lits3</span>);
+    <span class="ident">f</span>(<span class="ident">e</span>, <span class="kw-2">&amp;mut</span> <span class="ident">lits3</span>);
 
     <span class="kw">if</span> <span class="ident">lits3</span>.<span class="ident">is_empty</span>() <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">lits2</span>.<span class="ident">cross_product</span>(<span class="kw-2">&amp;</span><span class="ident">lits3</span>) {
         <span class="ident">lits</span>.<span class="ident">cut</span>();
@@ -2454,21 +2455,21 @@ Provides routines for extracting literal prefixes and suffixes from an `Hir`.
     }
 }
 
-<span class="kw">fn</span> <span class="ident">repeat_one_or_more_literals</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">Hir</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Literals</span>)<span class="op">&gt;</span>(
+<span class="kw">fn</span> <span class="ident">repeat_one_or_more_literals</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">Hir</span>, <span class="kw-2">&amp;mut</span> <span class="ident">Literals</span>)<span class="op">&gt;</span>(
     <span class="ident">e</span>: <span class="kw-2">&amp;</span><span class="ident">Hir</span>,
-    <span class="ident">lits</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Literals</span>,
+    <span class="ident">lits</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Literals</span>,
     <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>,
 ) {
     <span class="ident">f</span>(<span class="ident">e</span>, <span class="ident">lits</span>);
     <span class="ident">lits</span>.<span class="ident">cut</span>();
 }
 
-<span class="kw">fn</span> <span class="ident">repeat_range_literals</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">Hir</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Literals</span>)<span class="op">&gt;</span>(
+<span class="kw">fn</span> <span class="ident">repeat_range_literals</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">Hir</span>, <span class="kw-2">&amp;mut</span> <span class="ident">Literals</span>)<span class="op">&gt;</span>(
     <span class="ident">e</span>: <span class="kw-2">&amp;</span><span class="ident">Hir</span>,
     <span class="ident">min</span>: <span class="ident">u32</span>,
     <span class="ident">max</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
     <span class="ident">greedy</span>: <span class="ident">bool</span>,
-    <span class="ident">lits</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Literals</span>,
+    <span class="ident">lits</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Literals</span>,
     <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>,
 ) {
     <span class="kw">if</span> <span class="ident">min</span> <span class="op">==</span> <span class="number">0</span> {
@@ -2498,16 +2499,16 @@ Provides routines for extracting literal prefixes and suffixes from an `Hir`.
     }
 }
 
-<span class="kw">fn</span> <span class="ident">alternate_literals</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">Hir</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Literals</span>)<span class="op">&gt;</span>(
+<span class="kw">fn</span> <span class="ident">alternate_literals</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">Hir</span>, <span class="kw-2">&amp;mut</span> <span class="ident">Literals</span>)<span class="op">&gt;</span>(
     <span class="ident">es</span>: <span class="kw-2">&amp;</span>[<span class="ident">Hir</span>],
-    <span class="ident">lits</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Literals</span>,
+    <span class="ident">lits</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Literals</span>,
     <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>,
 ) {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lits2</span> <span class="op">=</span> <span class="ident">lits</span>.<span class="ident">to_empty</span>();
     <span class="kw">for</span> <span class="ident">e</span> <span class="kw">in</span> <span class="ident">es</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lits3</span> <span class="op">=</span> <span class="ident">lits</span>.<span class="ident">to_empty</span>();
         <span class="ident">lits3</span>.<span class="ident">set_limit_size</span>(<span class="ident">lits</span>.<span class="ident">limit_size</span>() <span class="op">/</span> <span class="number">5</span>);
-        <span class="ident">f</span>(<span class="ident">e</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">lits3</span>);
+        <span class="ident">f</span>(<span class="ident">e</span>, <span class="kw-2">&amp;mut</span> <span class="ident">lits3</span>);
         <span class="kw">if</span> <span class="ident">lits3</span>.<span class="ident">is_empty</span>() <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">lits2</span>.<span class="ident">union</span>(<span class="ident">lits3</span>) {
             <span class="comment">// If we couldn&#39;t find suffixes for *any* of the</span>
             <span class="comment">// alternates, then the entire alternation has to be thrown</span>
@@ -2523,7 +2524,7 @@ Provides routines for extracting literal prefixes and suffixes from an `Hir`.
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Literals</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;Literals&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;lits&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">lits</span>)
             .<span class="ident">field</span>(<span class="string">&quot;limit_size&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">limit_size</span>)
@@ -2549,7 +2550,7 @@ Provides routines for extracting literal prefixes and suffixes from an `Hir`.
     }
 
     <span class="doccomment">/// Cuts this literal.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="self">self</span>.<span class="ident">cut</span> <span class="op">=</span> <span class="bool-val">true</span>;
     }
 }
@@ -2567,7 +2568,7 @@ Provides routines for extracting literal prefixes and suffixes from an `Hir`.
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Literal</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_cut</span>() {
             <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Cut({})&quot;</span>, <span class="ident">escape_unicode</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">v</span>))
         } <span class="kw">else</span> {
@@ -2590,8 +2591,8 @@ Provides routines for extracting literal prefixes and suffixes from an `Hir`.
 }
 
 <span class="kw">impl</span> <span class="ident">ops::DerefMut</span> <span class="kw">for</span> <span class="ident">Literal</span> {
-    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">v</span>
+    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">v</span>
     }
 }
 
@@ -2702,7 +2703,7 @@ Provides routines for extracting literal prefixes and suffixes from an `Hir`.
     }
 
     <span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">ULiteral</span> {
-        <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
+        <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_cut</span>() {
                 <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Cut({})&quot;</span>, <span class="self">self</span>.<span class="ident">v</span>)
             } <span class="kw">else</span> {
@@ -2732,11 +2733,11 @@ Provides routines for extracting literal prefixes and suffixes from an `Hir`.
         <span class="ident">ULiteral</span> { <span class="ident">v</span>: <span class="ident">s</span>.<span class="ident">to_owned</span>(), <span class="ident">cut</span>: <span class="bool-val">false</span> }
     }
 
-    <span class="kw">fn</span> <span class="ident">prefixes</span>(<span class="ident">lits</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Literals</span>, <span class="ident">expr</span>: <span class="kw-2">&amp;</span><span class="ident">Hir</span>) {
+    <span class="kw">fn</span> <span class="ident">prefixes</span>(<span class="ident">lits</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Literals</span>, <span class="ident">expr</span>: <span class="kw-2">&amp;</span><span class="ident">Hir</span>) {
         <span class="ident">lits</span>.<span class="ident">union_prefixes</span>(<span class="ident">expr</span>);
     }
 
-    <span class="kw">fn</span> <span class="ident">suffixes</span>(<span class="ident">lits</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Literals</span>, <span class="ident">expr</span>: <span class="kw-2">&amp;</span><span class="ident">Hir</span>) {
+    <span class="kw">fn</span> <span class="ident">suffixes</span>(<span class="ident">lits</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Literals</span>, <span class="ident">expr</span>: <span class="kw-2">&amp;</span><span class="ident">Hir</span>) {
         <span class="ident">lits</span>.<span class="ident">union_suffixes</span>(<span class="ident">expr</span>);
     }
 
@@ -2957,7 +2958,7 @@ Provides routines for extracting literal prefixes and suffixes from an `Hir`.
                     .<span class="ident">unwrap</span>();
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lits</span> <span class="op">=</span> <span class="ident">Literals::empty</span>();
                 <span class="ident">lits</span>.<span class="ident">set_limit_size</span>(<span class="number">20</span>).<span class="ident">set_limit_class</span>(<span class="number">10</span>);
-                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">which</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">lits</span>, <span class="kw-2">&amp;</span><span class="ident">expr</span>);
+                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">which</span>(<span class="kw-2">&amp;mut</span> <span class="ident">lits</span>, <span class="kw-2">&amp;</span><span class="ident">expr</span>);
                 <span class="macro">assert_lit_eq!</span>(<span class="ident">Unicode</span>, <span class="ident">lits</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">lit</span>),<span class="kw-2">*</span>);
 
                 <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="ident">ParserBuilder::new</span>()
@@ -2968,7 +2969,7 @@ Provides routines for extracting literal prefixes and suffixes from an `Hir`.
                     .<span class="ident">unwrap</span>();
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lits</span> <span class="op">=</span> <span class="ident">Literals::empty</span>();
                 <span class="ident">lits</span>.<span class="ident">set_limit_size</span>(<span class="number">20</span>).<span class="ident">set_limit_class</span>(<span class="number">10</span>);
-                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">which</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">lits</span>, <span class="kw-2">&amp;</span><span class="ident">expr</span>);
+                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">which</span>(<span class="kw-2">&amp;mut</span> <span class="ident">lits</span>, <span class="kw-2">&amp;</span><span class="ident">expr</span>);
                 <span class="macro">assert_lit_eq!</span>(<span class="ident">Bytes</span>, <span class="ident">lits</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">lit</span>),<span class="kw-2">*</span>);
             }
         };
@@ -3370,5 +3371,4 @@ Provides routines for extracting literal prefixes and suffixes from an `Hir`.
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="regex_syntax" data-search-index-js="../../../../search-index.js" data-search-js="../../../../search.js"></div>
-    <script src="../../../../main.js"></script><script src="../../../../source-script.js"></script><script src="../../../../source-files.js"></script>
 </body></html>

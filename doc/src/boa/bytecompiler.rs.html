@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa&#x2F;src&#x2F;bytecompiler.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bytecompiler.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;boa-dev&#x2F;boa&#x2F;main&#x2F;assets&#x2F;logo.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../boa/index.html'><div class='logo-container rust-logo'><img src='https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;boa-dev&#x2F;boa&#x2F;main&#x2F;assets&#x2F;logo.svg' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa&#x2F;src&#x2F;bytecompiler.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bytecompiler.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;boa-dev&#x2F;boa&#x2F;main&#x2F;assets&#x2F;logo.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../boa/index.html'><div class='logo-container rust-logo'><img src='https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;boa-dev&#x2F;boa&#x2F;main&#x2F;assets&#x2F;logo.svg' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1853,7 +1854,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">get_or_insert_literal</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">literal</span>: <span class="ident">Literal</span>) -&gt; <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">get_or_insert_literal</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">literal</span>: <span class="ident">Literal</span>) -&gt; <span class="ident">u32</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">literals_map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">literal</span>) {
             <span class="kw">return</span> <span class="kw-2">*</span><span class="ident">index</span>;
         }
@@ -1870,7 +1871,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">get_or_insert_name</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">get_or_insert_name</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">u32</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">names_map</span>.<span class="ident">get</span>(<span class="ident">name</span>) {
             <span class="kw">return</span> <span class="kw-2">*</span><span class="ident">index</span>;
         }
@@ -1883,13 +1884,13 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next_opcode_location</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">next_opcode_location</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">u32</span> {
         <span class="macro">assert!</span>(<span class="self">self</span>.<span class="ident">code_block</span>.<span class="ident">code</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">u32::MAX</span> <span class="kw">as</span> <span class="ident">usize</span>);
         <span class="self">self</span>.<span class="ident">code_block</span>.<span class="ident">code</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">emit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">opcode</span>: <span class="ident">Opcode</span>, <span class="ident">operands</span>: <span class="kw-2">&amp;</span>[<span class="ident">u32</span>]) {
+    <span class="kw">fn</span> <span class="ident">emit</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">opcode</span>: <span class="ident">Opcode</span>, <span class="ident">operands</span>: <span class="kw-2">&amp;</span>[<span class="ident">u32</span>]) {
         <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">opcode</span>);
         <span class="kw">for</span> <span class="ident">operand</span> <span class="kw">in</span> <span class="ident">operands</span> {
             <span class="self">self</span>.<span class="ident">emit_u32</span>(<span class="kw-2">*</span><span class="ident">operand</span>);
@@ -1897,32 +1898,32 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">emit_u64</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">u64</span>) {
+    <span class="kw">fn</span> <span class="ident">emit_u64</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">u64</span>) {
         <span class="self">self</span>.<span class="ident">code_block</span>.<span class="ident">code</span>.<span class="ident">extend</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>.<span class="ident">to_ne_bytes</span>());
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">emit_u32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">u32</span>) {
+    <span class="kw">fn</span> <span class="ident">emit_u32</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">u32</span>) {
         <span class="self">self</span>.<span class="ident">code_block</span>.<span class="ident">code</span>.<span class="ident">extend</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>.<span class="ident">to_ne_bytes</span>());
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">emit_u16</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">u16</span>) {
+    <span class="kw">fn</span> <span class="ident">emit_u16</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">u16</span>) {
         <span class="self">self</span>.<span class="ident">code_block</span>.<span class="ident">code</span>.<span class="ident">extend</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>.<span class="ident">to_ne_bytes</span>());
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">emit_opcode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">opcode</span>: <span class="ident">Opcode</span>) {
+    <span class="kw">fn</span> <span class="ident">emit_opcode</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">opcode</span>: <span class="ident">Opcode</span>) {
         <span class="self">self</span>.<span class="ident">emit_u8</span>(<span class="ident">opcode</span> <span class="kw">as</span> <span class="ident">u8</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">emit_u8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">u8</span>) {
+    <span class="kw">fn</span> <span class="ident">emit_u8</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">u8</span>) {
         <span class="self">self</span>.<span class="ident">code_block</span>.<span class="ident">code</span>.<span class="ident">push</span>(<span class="ident">value</span>);
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">emit_push_integer</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">i32</span>) {
+    <span class="kw">fn</span> <span class="ident">emit_push_integer</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">i32</span>) {
         <span class="kw">match</span> <span class="ident">value</span> {
             <span class="number">0</span> =&gt; <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushZero</span>),
             <span class="number">1</span> =&gt; <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushOne</span>),
@@ -1939,13 +1940,13 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">emit_push_literal</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">literal</span>: <span class="ident">Literal</span>) {
+    <span class="kw">fn</span> <span class="ident">emit_push_literal</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">literal</span>: <span class="ident">Literal</span>) {
         <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_literal</span>(<span class="ident">literal</span>);
         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::PushLiteral</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">emit_push_rational</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">f64</span>) {
+    <span class="kw">fn</span> <span class="ident">emit_push_rational</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">f64</span>) {
         <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_nan</span>() {
             <span class="kw">return</span> <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushNaN</span>);
         }
@@ -1969,14 +1970,14 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">jump</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Label</span> {
+    <span class="kw">fn</span> <span class="ident">jump</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">Label</span> {
         <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_opcode_location</span>();
         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Jump</span>, <span class="kw-2">&amp;</span>[<span class="ident"><span class="self">Self</span>::DUMMY_ADDRESS</span>]);
         <span class="ident">Label</span> { <span class="ident">index</span> }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">jump_if_false</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Label</span> {
+    <span class="kw">fn</span> <span class="ident">jump_if_false</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">Label</span> {
         <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_opcode_location</span>();
         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::JumpIfFalse</span>, <span class="kw-2">&amp;</span>[<span class="ident"><span class="self">Self</span>::DUMMY_ADDRESS</span>]);
 
@@ -1984,14 +1985,14 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">jump_with_custom_opcode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">opcode</span>: <span class="ident">Opcode</span>) -&gt; <span class="ident">Label</span> {
+    <span class="kw">fn</span> <span class="ident">jump_with_custom_opcode</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">opcode</span>: <span class="ident">Opcode</span>) -&gt; <span class="ident">Label</span> {
         <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_opcode_location</span>();
         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">opcode</span>, <span class="kw-2">&amp;</span>[<span class="ident"><span class="self">Self</span>::DUMMY_ADDRESS</span>]);
         <span class="ident">Label</span> { <span class="ident">index</span> }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">patch_jump_with_target</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">label</span>: <span class="ident">Label</span>, <span class="ident">target</span>: <span class="ident">u32</span>) {
+    <span class="kw">fn</span> <span class="ident">patch_jump_with_target</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">label</span>: <span class="ident">Label</span>, <span class="ident">target</span>: <span class="ident">u32</span>) {
         <span class="kw">let</span> <span class="ident">Label</span> { <span class="ident">index</span> } <span class="op">=</span> <span class="ident">label</span>;
 
         <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>;
@@ -2004,13 +2005,13 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">patch_jump</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">label</span>: <span class="ident">Label</span>) {
+    <span class="kw">fn</span> <span class="ident">patch_jump</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">label</span>: <span class="ident">Label</span>) {
         <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_opcode_location</span>();
         <span class="self">self</span>.<span class="ident">patch_jump_with_target</span>(<span class="ident">label</span>, <span class="ident">target</span>);
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">push_loop_control_info</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">label</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">start_address</span>: <span class="ident">u32</span>) {
+    <span class="kw">fn</span> <span class="ident">push_loop_control_info</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">label</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">start_address</span>: <span class="ident">u32</span>) {
         <span class="self">self</span>.<span class="ident">jump_info</span>.<span class="ident">push</span>(<span class="ident">JumpControlInfo</span> {
             <span class="ident">label</span>,
             <span class="ident">start_address</span>,
@@ -2023,7 +2024,7 @@
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">push_loop_control_info_for_of_in_loop</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">label</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">start_address</span>: <span class="ident">u32</span>,
     ) {
@@ -2038,7 +2039,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">pop_loop_control_info</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+    <span class="kw">fn</span> <span class="ident">pop_loop_control_info</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="kw">let</span> <span class="ident">loop_info</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">jump_info</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>();
 
         <span class="macro">assert!</span>(<span class="ident">loop_info</span>.<span class="ident">kind</span> <span class="op">==</span> <span class="ident">JumpControlInfoKind::Loop</span>);
@@ -2049,7 +2050,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">push_switch_control_info</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">label</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">start_address</span>: <span class="ident">u32</span>) {
+    <span class="kw">fn</span> <span class="ident">push_switch_control_info</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">label</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">start_address</span>: <span class="ident">u32</span>) {
         <span class="self">self</span>.<span class="ident">jump_info</span>.<span class="ident">push</span>(<span class="ident">JumpControlInfo</span> {
             <span class="ident">label</span>,
             <span class="ident">start_address</span>,
@@ -2061,7 +2062,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">pop_switch_control_info</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+    <span class="kw">fn</span> <span class="ident">pop_switch_control_info</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="kw">let</span> <span class="ident">info</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">jump_info</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>();
 
         <span class="macro">assert!</span>(<span class="ident">info</span>.<span class="ident">kind</span> <span class="op">==</span> <span class="ident">JumpControlInfoKind::Switch</span>);
@@ -2072,7 +2073,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">push_try_control_info</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+    <span class="kw">fn</span> <span class="ident">push_try_control_info</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">jump_info</span>.<span class="ident">is_empty</span>() {
             <span class="kw">let</span> <span class="ident">start_address</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">jump_info</span>.<span class="ident">last</span>().<span class="ident">unwrap</span>().<span class="ident">start_address</span>;
 
@@ -2088,7 +2089,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">pop_try_control_info</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">finally_start_address</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>) {
+    <span class="kw">fn</span> <span class="ident">pop_try_control_info</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">finally_start_address</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>) {
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">jump_info</span>.<span class="ident">is_empty</span>() {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">info</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">jump_info</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>();
 
@@ -2117,16 +2118,16 @@
                     }
                 }
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">jump_info</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">jump_info</span>.<span class="ident">last_mut</span>() {
-                    <span class="ident">jump_info</span>.<span class="ident">breaks</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">breaks</span>);
+                    <span class="ident">jump_info</span>.<span class="ident">breaks</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="ident">breaks</span>);
                 }
             } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">jump_info</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">jump_info</span>.<span class="ident">last_mut</span>() {
-                <span class="ident">jump_info</span>.<span class="ident">breaks</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">info</span>.<span class="ident">breaks</span>);
+                <span class="ident">jump_info</span>.<span class="ident">breaks</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="ident">info</span>.<span class="ident">breaks</span>);
             }
         }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">compile_access</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Node</span>) -&gt; <span class="ident">Access</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">compile_access</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Node</span>) -&gt; <span class="ident">Access</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">node</span> {
             <span class="ident">Node::Identifier</span>(<span class="ident">name</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">name</span>.<span class="ident">as_ref</span>());
@@ -2140,7 +2141,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">access_get</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">access</span>: <span class="ident">Access</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">use_expr</span>: <span class="ident">bool</span>) {
+    <span class="kw">fn</span> <span class="ident">access_get</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">access</span>: <span class="ident">Access</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">use_expr</span>: <span class="ident">bool</span>) {
         <span class="kw">match</span> <span class="ident">access</span> {
             <span class="ident">Access::Variable</span> { <span class="ident">index</span>: <span class="ident">name</span> } =&gt; {
                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetName</span>, <span class="kw-2">&amp;</span>[<span class="ident">name</span>]);
@@ -2166,7 +2167,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">access_set</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">access</span>: <span class="ident">Access</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">expr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Node</span><span class="op">&gt;</span>, <span class="ident">use_expr</span>: <span class="ident">bool</span>) {
+    <span class="kw">fn</span> <span class="ident">access_set</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">access</span>: <span class="ident">Access</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">expr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Node</span><span class="op">&gt;</span>, <span class="ident">use_expr</span>: <span class="ident">bool</span>) {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">expr</span>) <span class="op">=</span> <span class="ident">expr</span> {
             <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">expr</span>, <span class="bool-val">true</span>);
         }
@@ -2194,7 +2195,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile_statement_list</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">list</span>: <span class="kw-2">&amp;</span><span class="ident">StatementList</span>, <span class="ident">use_expr</span>: <span class="ident">bool</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile_statement_list</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">list</span>: <span class="kw-2">&amp;</span><span class="ident">StatementList</span>, <span class="ident">use_expr</span>: <span class="ident">bool</span>) {
         <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">node</span>) <span class="kw">in</span> <span class="ident">list</span>.<span class="ident">items</span>().<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
             <span class="kw">if</span> <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span> <span class="op">==</span> <span class="ident">list</span>.<span class="ident">items</span>().<span class="ident">len</span>() {
                 <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">node</span>, <span class="ident">use_expr</span>);
@@ -2206,7 +2207,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile_expr</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">expr</span>: <span class="kw-2">&amp;</span><span class="ident">Node</span>, <span class="ident">use_expr</span>: <span class="ident">bool</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile_expr</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">expr</span>: <span class="kw-2">&amp;</span><span class="ident">Node</span>, <span class="ident">use_expr</span>: <span class="ident">bool</span>) {
         <span class="kw">match</span> <span class="ident">expr</span> {
             <span class="ident">Node::Const</span>(<span class="ident">c</span>) =&gt; {
                 <span class="kw">match</span> <span class="ident">c</span> {
@@ -2725,7 +2726,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile_stmt</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="ident">Node</span>, <span class="ident">use_expr</span>: <span class="ident">bool</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile_stmt</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="ident">Node</span>, <span class="ident">use_expr</span>: <span class="ident">bool</span>) {
         <span class="kw">match</span> <span class="ident">node</span> {
             <span class="ident">Node::VarDeclList</span>(<span class="ident">list</span>) =&gt; {
                 <span class="kw">for</span> <span class="ident">decl</span> <span class="kw">in</span> <span class="ident">list</span>.<span class="ident">as_ref</span>() {
@@ -3220,7 +3221,7 @@
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">function</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="ident">Node</span>, <span class="ident">use_expr</span>: <span class="ident">bool</span>) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">function</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="ident">Node</span>, <span class="ident">use_expr</span>: <span class="ident">bool</span>) {
         <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>)]</span>
         <span class="kw">enum</span> <span class="ident">FunctionKind</span> {
             <span class="ident">Declaration</span>,
@@ -3330,7 +3331,7 @@
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="ident">Node</span>, <span class="ident">use_expr</span>: <span class="ident">bool</span>) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">call</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="ident">Node</span>, <span class="ident">use_expr</span>: <span class="ident">bool</span>) {
         <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>)]</span>
         <span class="kw">enum</span> <span class="ident">CallKind</span> {
             <span class="ident">Call</span>,
@@ -3394,7 +3395,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">compile_declaration_pattern</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="ident">DeclarationPattern</span>, <span class="ident">def</span>: <span class="ident">Opcode</span>) {
+    <span class="kw">fn</span> <span class="ident">compile_declaration_pattern</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="ident">DeclarationPattern</span>, <span class="ident">def</span>: <span class="ident">Opcode</span>) {
         <span class="kw">match</span> <span class="ident">pattern</span> {
             <span class="ident">DeclarationPattern::Object</span>(<span class="ident">pattern</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">skip_init</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">jump_with_custom_opcode</span>(<span class="ident">Opcode::JumpIfNotUndefined</span>);
@@ -3550,5 +3551,4 @@
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
 </body></html>

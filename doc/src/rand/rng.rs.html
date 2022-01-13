@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;rand-0.8.4&#x2F;src&#x2F;rng.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>rng.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https:&#x2F;&#x2F;www.rust-lang.org&#x2F;favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../rand/index.html'><div class='logo-container rust-logo'><img src='https:&#x2F;&#x2F;www.rust-lang.org&#x2F;logos&#x2F;rust-logo-128x128-blk.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;rand-0.8.4&#x2F;src&#x2F;rng.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>rng.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https:&#x2F;&#x2F;www.rust-lang.org&#x2F;favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../rand/index.html'><div class='logo-container rust-logo'><img src='https:&#x2F;&#x2F;www.rust-lang.org&#x2F;logos&#x2F;rust-logo-128x128-blk.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -693,7 +694,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`Standard`]: distributions::Standard</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">gen</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">T</span>
+    <span class="kw">fn</span> <span class="ident">gen</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">T</span>
     <span class="kw">where</span> <span class="ident">Standard</span>: <span class="ident">Distribution</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="ident">Standard</span>.<span class="ident">sample</span>(<span class="self">self</span>)
     }
@@ -729,7 +730,7 @@
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`Uniform`]: distributions::uniform::Uniform</span>
-    <span class="kw">fn</span> <span class="ident">gen_range</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">range</span>: <span class="ident">R</span>) -&gt; <span class="ident">T</span>
+    <span class="kw">fn</span> <span class="ident">gen_range</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">range</span>: <span class="ident">R</span>) -&gt; <span class="ident">T</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">SampleUniform</span>,
         <span class="ident">R</span>: <span class="ident">SampleRange</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
@@ -752,7 +753,7 @@
     <span class="doccomment">/// // distribution can be inferred.</span>
     <span class="doccomment">/// let y = rng.sample::&lt;u16, _&gt;(Uniform::new(10, 15));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">sample</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">D</span>: <span class="ident">Distribution</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">distr</span>: <span class="ident">D</span>) -&gt; <span class="ident">T</span> {
+    <span class="kw">fn</span> <span class="ident">sample</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">D</span>: <span class="ident">Distribution</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">distr</span>: <span class="ident">D</span>) -&gt; <span class="ident">T</span> {
         <span class="ident">distr</span>.<span class="ident">sample</span>(<span class="self">self</span>)
     }
 
@@ -818,7 +819,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`fill_bytes`]: RngCore::fill_bytes</span>
     <span class="doccomment">/// [`try_fill`]: Rng::try_fill</span>
-    <span class="kw">fn</span> <span class="ident">fill</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Fill</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>) {
+    <span class="kw">fn</span> <span class="ident">fill</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Fill</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;mut</span> <span class="ident">T</span>) {
         <span class="ident">dest</span>.<span class="ident">try_fill</span>(<span class="self">self</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="macro">panic!</span>(<span class="string">&quot;Rng::fill failed&quot;</span>))
     }
 
@@ -846,7 +847,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`try_fill_bytes`]: RngCore::try_fill_bytes</span>
     <span class="doccomment">/// [`fill`]: Rng::fill</span>
-    <span class="kw">fn</span> <span class="ident">try_fill</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Fill</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">try_fill</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Fill</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;mut</span> <span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="ident">dest</span>.<span class="ident">try_fill</span>(<span class="self">self</span>)
     }
 
@@ -870,7 +871,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`Bernoulli`]: distributions::Bernoulli</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">gen_bool</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">p</span>: <span class="ident">f64</span>) -&gt; <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">gen_bool</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">p</span>: <span class="ident">f64</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> <span class="ident">distributions::Bernoulli::new</span>(<span class="ident">p</span>).<span class="ident">unwrap</span>();
         <span class="self">self</span>.<span class="ident">sample</span>(<span class="ident">d</span>)
     }
@@ -899,7 +900,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`Bernoulli`]: distributions::Bernoulli</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">gen_ratio</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">numerator</span>: <span class="ident">u32</span>, <span class="ident">denominator</span>: <span class="ident">u32</span>) -&gt; <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">gen_ratio</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">numerator</span>: <span class="ident">u32</span>, <span class="ident">denominator</span>: <span class="ident">u32</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> <span class="ident">distributions::Bernoulli::from_ratio</span>(<span class="ident">numerator</span>, <span class="ident">denominator</span>).<span class="ident">unwrap</span>();
         <span class="self">self</span>.<span class="ident">sample</span>(<span class="ident">d</span>)
     }
@@ -916,14 +917,14 @@
 <span class="doccomment">/// [Chapter on Portability](https://rust-random.github.io/book/portability.html)).</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Fill</span> {
     <span class="doccomment">/// Fill self with random data</span>
-    <span class="kw">fn</span> <span class="ident">try_fill</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">try_fill</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span>;
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">impl_fill_each</span> {
     () =&gt; {};
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>) =&gt; {
         <span class="kw">impl</span> <span class="ident">Fill</span> <span class="kw">for</span> [<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>] {
-            <span class="kw">fn</span> <span class="ident">try_fill</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="ident">try_fill</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
                 <span class="kw">for</span> <span class="ident">elt</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">iter_mut</span>() {
                     <span class="kw-2">*</span><span class="ident">elt</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">gen</span>();
                 }
@@ -940,7 +941,7 @@
 <span class="macro">impl_fill_each!</span>(<span class="ident">bool</span>, <span class="ident">char</span>, <span class="ident">f32</span>, <span class="ident">f64</span>,);
 
 <span class="kw">impl</span> <span class="ident">Fill</span> <span class="kw">for</span> [<span class="ident">u8</span>] {
-    <span class="kw">fn</span> <span class="ident">try_fill</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">try_fill</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="ident">rng</span>.<span class="ident">try_fill_bytes</span>(<span class="self">self</span>)
     }
 }
@@ -950,11 +951,11 @@
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>) =&gt; {
         <span class="kw">impl</span> <span class="ident">Fill</span> <span class="kw">for</span> [<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>] {
             <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span> <span class="comment">// in micro benchmarks, this improves performance</span>
-            <span class="kw">fn</span> <span class="ident">try_fill</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="ident">try_fill</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">0</span> {
                     <span class="ident">rng</span>.<span class="ident">try_fill_bytes</span>(<span class="kw">unsafe</span> {
                         <span class="ident">slice::from_raw_parts_mut</span>(<span class="self">self</span>.<span class="ident">as_mut_ptr</span>()
-                            <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>,
+                            <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">u8</span>,
                             <span class="self">self</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span>()
                         )
                     })<span class="question-mark">?</span>;
@@ -968,11 +969,11 @@
 
         <span class="kw">impl</span> <span class="ident">Fill</span> <span class="kw">for</span> [<span class="ident">Wrapping</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span>] {
             <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span>
-            <span class="kw">fn</span> <span class="ident">try_fill</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="ident">try_fill</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">0</span> {
                     <span class="ident">rng</span>.<span class="ident">try_fill_bytes</span>(<span class="kw">unsafe</span> {
                         <span class="ident">slice::from_raw_parts_mut</span>(<span class="self">self</span>.<span class="ident">as_mut_ptr</span>()
-                            <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>,
+                            <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">u8</span>,
                             <span class="self">self</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span>()
                         )
                     })<span class="question-mark">?</span>;
@@ -1003,7 +1004,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="kw">const</span> <span class="ident">N</span>: <span class="ident">usize</span><span class="op">&gt;</span> <span class="ident">Fill</span> <span class="kw">for</span> [<span class="ident">T</span>; <span class="ident">N</span>]
 <span class="kw">where</span> [<span class="ident">T</span>]: <span class="ident">Fill</span>
 {
-    <span class="kw">fn</span> <span class="ident">try_fill</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">try_fill</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="self">self</span>[..].<span class="ident">try_fill</span>(<span class="ident">rng</span>)
     }
 }
@@ -1013,7 +1014,7 @@
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">n</span>:<span class="ident">expr</span>,) =&gt; {};
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">n</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">N</span>:<span class="ident">ident</span>) =&gt; {
         <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Fill</span> <span class="kw">for</span> [<span class="ident">T</span>; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">n</span>] <span class="kw">where</span> [<span class="ident">T</span>]: <span class="ident">Fill</span> {
-            <span class="kw">fn</span> <span class="ident">try_fill</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="ident">try_fill</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
                 <span class="self">self</span>[..].<span class="ident">try_fill</span>(<span class="ident">rng</span>)
             }
         }
@@ -1049,7 +1050,7 @@
         <span class="kw">let</span> <span class="ident">lengths</span> <span class="op">=</span> [<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">80</span>, <span class="number">81</span>, <span class="number">82</span>, <span class="number">83</span>, <span class="number">84</span>, <span class="number">85</span>, <span class="number">86</span>, <span class="number">87</span>];
         <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">n</span> <span class="kw">in</span> <span class="ident">lengths</span>.<span class="ident">iter</span>() {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">87</span>];
-            <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buffer</span>[<span class="number">0</span>..<span class="ident">n</span>];
+            <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">buffer</span>[<span class="number">0</span>..<span class="ident">n</span>];
             <span class="ident">r</span>.<span class="ident">fill_bytes</span>(<span class="ident">v</span>);
 
             <span class="comment">// use this to get nicer error messages.</span>
@@ -1068,25 +1069,25 @@
 
         <span class="comment">// Convert to byte sequence and back to u64; byte-swap twice if BE.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">array</span> <span class="op">=</span> [<span class="number">0u64</span>; <span class="number">2</span>];
-        <span class="ident">rng</span>.<span class="ident">fill</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">array</span>[..]);
+        <span class="ident">rng</span>.<span class="ident">fill</span>(<span class="kw-2">&amp;mut</span> <span class="ident">array</span>[..]);
         <span class="macro">assert_eq!</span>(<span class="ident">array</span>, [<span class="ident">x</span>, <span class="ident">x</span>]);
         <span class="macro">assert_eq!</span>(<span class="ident">rng</span>.<span class="ident">next_u64</span>(), <span class="ident">x</span>);
 
         <span class="comment">// Convert to bytes then u32 in LE order</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">array</span> <span class="op">=</span> [<span class="number">0u32</span>; <span class="number">2</span>];
-        <span class="ident">rng</span>.<span class="ident">fill</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">array</span>[..]);
+        <span class="ident">rng</span>.<span class="ident">fill</span>(<span class="kw-2">&amp;mut</span> <span class="ident">array</span>[..]);
         <span class="macro">assert_eq!</span>(<span class="ident">array</span>, [<span class="ident">x</span> <span class="kw">as</span> <span class="ident">u32</span>, (<span class="ident">x</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">32</span>) <span class="kw">as</span> <span class="ident">u32</span>]);
         <span class="macro">assert_eq!</span>(<span class="ident">rng</span>.<span class="ident">next_u32</span>(), <span class="ident">x</span> <span class="kw">as</span> <span class="ident">u32</span>);
 
         <span class="comment">// Check equivalence using wrapped arrays</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">warray</span> <span class="op">=</span> [<span class="ident">Wrapping</span>(<span class="number">0u32</span>); <span class="number">2</span>];
-        <span class="ident">rng</span>.<span class="ident">fill</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">warray</span>[..]);
+        <span class="ident">rng</span>.<span class="ident">fill</span>(<span class="kw-2">&amp;mut</span> <span class="ident">warray</span>[..]);
         <span class="macro">assert_eq!</span>(<span class="ident">array</span>[<span class="number">0</span>], <span class="ident">warray</span>[<span class="number">0</span>].<span class="number">0</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">array</span>[<span class="number">1</span>], <span class="ident">warray</span>[<span class="number">1</span>].<span class="number">0</span>);
 
         <span class="comment">// Check equivalence for generated floats</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">array</span> <span class="op">=</span> [<span class="number">0f32</span>; <span class="number">2</span>];
-        <span class="ident">rng</span>.<span class="ident">fill</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">array</span>);
+        <span class="ident">rng</span>.<span class="ident">fill</span>(<span class="kw-2">&amp;mut</span> <span class="ident">array</span>);
         <span class="kw">let</span> <span class="ident">gen</span>: [<span class="ident">f32</span>; <span class="number">2</span>] <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">gen</span>();
         <span class="macro">assert_eq!</span>(<span class="ident">array</span>, <span class="ident">gen</span>);
     }
@@ -1095,8 +1096,8 @@
     <span class="kw">fn</span> <span class="ident">test_fill_empty</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">array</span> <span class="op">=</span> [<span class="number">0u32</span>; <span class="number">0</span>];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span> <span class="op">=</span> <span class="ident">StepRng::new</span>(<span class="number">0</span>, <span class="number">1</span>);
-        <span class="ident">rng</span>.<span class="ident">fill</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">array</span>);
-        <span class="ident">rng</span>.<span class="ident">fill</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">array</span>[..]);
+        <span class="ident">rng</span>.<span class="ident">fill</span>(<span class="kw-2">&amp;mut</span> <span class="ident">array</span>);
+        <span class="ident">rng</span>.<span class="ident">fill</span>(<span class="kw-2">&amp;mut</span> <span class="ident">array</span>[..]);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -1166,11 +1167,11 @@
     <span class="kw">fn</span> <span class="ident">test_rng_trait_object</span>() {
         <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::distributions</span>::{<span class="ident">Distribution</span>, <span class="ident">Standard</span>};
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span> <span class="op">=</span> <span class="ident">rng</span>(<span class="number">109</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">r</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span> <span class="kw">as</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">dyn</span> <span class="ident">RngCore</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">r</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">rng</span> <span class="kw">as</span> <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">RngCore</span>;
         <span class="ident">r</span>.<span class="ident">next_u32</span>();
         <span class="ident">r</span>.<span class="ident">gen</span>::<span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>();
         <span class="macro">assert_eq!</span>(<span class="ident">r</span>.<span class="ident">gen_range</span>(<span class="number">0</span>..<span class="number">1</span>), <span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">_c</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="ident">Standard</span>.<span class="ident">sample</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>);
+        <span class="kw">let</span> <span class="ident">_c</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="ident">Standard</span>.<span class="ident">sample</span>(<span class="kw-2">&amp;mut</span> <span class="ident">r</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -1182,7 +1183,7 @@
         <span class="ident">r</span>.<span class="ident">next_u32</span>();
         <span class="ident">r</span>.<span class="ident">gen</span>::<span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>();
         <span class="macro">assert_eq!</span>(<span class="ident">r</span>.<span class="ident">gen_range</span>(<span class="number">0</span>..<span class="number">1</span>), <span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">_c</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="ident">Standard</span>.<span class="ident">sample</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>);
+        <span class="kw">let</span> <span class="ident">_c</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="ident">Standard</span>.<span class="ident">sample</span>(<span class="kw-2">&amp;mut</span> <span class="ident">r</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -1206,5 +1207,4 @@
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rand" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
 </body></html>

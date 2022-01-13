@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;regress-0.4.1&#x2F;src&#x2F;parse.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parse.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../regress/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;regress-0.4.1&#x2F;src&#x2F;parse.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parse.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../regress/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -993,7 +994,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">text</span>)
     }
 }
@@ -1068,7 +1069,7 @@
     })
 }
 
-<span class="kw">fn</span> <span class="ident">add_class_atom</span>(<span class="ident">bc</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">BracketContents</span>, <span class="ident">atom</span>: <span class="ident">ClassAtom</span>) {
+<span class="kw">fn</span> <span class="ident">add_class_atom</span>(<span class="ident">bc</span>: <span class="kw-2">&amp;mut</span> <span class="ident">BracketContents</span>, <span class="ident">atom</span>: <span class="ident">ClassAtom</span>) {
     <span class="kw">match</span> <span class="ident">atom</span> {
         <span class="ident">ClassAtom::CodePoint</span>(<span class="ident">c</span>) =&gt; <span class="ident">bc</span>.<span class="ident">cps</span>.<span class="ident">add_one</span>(<span class="ident">c</span> <span class="kw">as</span> <span class="ident">u32</span>),
         <span class="ident">ClassAtom::CharacterClass</span> {
@@ -1115,7 +1116,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Parser</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Consume a character, returning it.</span>
-    <span class="kw">fn</span> <span class="ident">consume</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="ident">char</span> {
+    <span class="kw">fn</span> <span class="ident">consume</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="ident">char</span> {
         <span class="kw">let</span> <span class="ident">nc</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">next</span>();
         <span class="macro">std::debug_assert!</span>(<span class="ident">nc</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>), <span class="string">&quot;char was not next&quot;</span>);
         <span class="ident">nc</span>.<span class="ident">unwrap</span>()
@@ -1123,7 +1124,7 @@
 
     <span class="doccomment">/// If our contents begin with the char c, consume it from our contents</span>
     <span class="doccomment">/// and return true. Otherwise return false.</span>
-    <span class="kw">fn</span> <span class="ident">try_consume</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">try_consume</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cursor</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">clone</span>();
         <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">next</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) {
             <span class="self">self</span>.<span class="ident">input</span> <span class="op">=</span> <span class="ident">cursor</span>;
@@ -1135,7 +1136,7 @@
 
     <span class="doccomment">/// If our contents begin with the string \p s, consume it from our contents</span>
     <span class="doccomment">/// and return true. Otherwise return false.</span>
-    <span class="kw">fn</span> <span class="ident">try_consume_str</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">try_consume_str</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cursor</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">clone</span>();
         <span class="kw">for</span> <span class="ident">c1</span> <span class="kw">in</span> <span class="ident">s</span>.<span class="ident">chars</span>() {
             <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">next</span>() <span class="op">!</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">c1</span>) {
@@ -1147,16 +1148,16 @@
     }
 
     <span class="doccomment">/// Peek at the next character.</span>
-    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">peek</span>().<span class="ident">copied</span>()
     }
 
     <span class="doccomment">/// \return the next character.</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">next</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">try_parse</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ir::Regex</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">try_parse</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ir::Regex</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">parse_capture_groups</span>();
 
         <span class="comment">// Parse a catenation. If we consume everything, it&#39;s success. If there&#39;s</span>
@@ -1173,7 +1174,7 @@
     }
 
     <span class="doccomment">/// ES6 21.2.2.3 Disjunction.</span>
-    <span class="kw">fn</span> <span class="ident">consume_disjunction</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ir::Node</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">consume_disjunction</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ir::Node</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">terms</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="self">self</span>.<span class="ident">consume_term</span>()<span class="question-mark">?</span>];
         <span class="kw">while</span> <span class="self">self</span>.<span class="ident">try_consume</span>(<span class="string">&#39;|&#39;</span>) {
             <span class="ident">terms</span>.<span class="ident">push</span>(<span class="self">self</span>.<span class="ident">consume_term</span>()<span class="question-mark">?</span>)
@@ -1182,7 +1183,7 @@
     }
 
     <span class="doccomment">/// ES6 21.2.2.5 Term.</span>
-    <span class="kw">fn</span> <span class="ident">consume_term</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ir::Node</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">consume_term</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ir::Node</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ir::Node</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
         <span class="kw">loop</span> {
             <span class="kw">let</span> <span class="ident">start_group</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">group_count</span>;
@@ -1345,7 +1346,7 @@
     }
 
     <span class="doccomment">/// ES6 21.2.2.13 CharacterClass.</span>
-    <span class="kw">fn</span> <span class="ident">consume_bracket</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ir::Node</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">consume_bracket</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ir::Node</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">consume</span>(<span class="string">&#39;[&#39;</span>);
         <span class="kw">let</span> <span class="ident">invert</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">try_consume</span>(<span class="string">&#39;^&#39;</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">BracketContents</span> {
@@ -1376,15 +1377,15 @@
 
             <span class="comment">// Check for a dash; we may have a range.</span>
             <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">try_consume</span>(<span class="string">&#39;-&#39;</span>) {
-                <span class="ident">add_class_atom</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">result</span>, <span class="ident">first</span>.<span class="ident">unwrap</span>());
+                <span class="ident">add_class_atom</span>(<span class="kw-2">&amp;mut</span> <span class="ident">result</span>, <span class="ident">first</span>.<span class="ident">unwrap</span>());
                 <span class="kw">continue</span>;
             }
 
             <span class="kw">let</span> <span class="ident">second</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">try_consume_bracket_class_atom</span>()<span class="question-mark">?</span>;
             <span class="kw">if</span> <span class="ident">second</span>.<span class="ident">is_none</span>() {
                 <span class="comment">// No second atom. For example: [a-].</span>
-                <span class="ident">add_class_atom</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">result</span>, <span class="ident">first</span>.<span class="ident">unwrap</span>());
-                <span class="ident">add_class_atom</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">result</span>, <span class="ident">ClassAtom::CodePoint</span>(<span class="string">&#39;-&#39;</span>));
+                <span class="ident">add_class_atom</span>(<span class="kw-2">&amp;mut</span> <span class="ident">result</span>, <span class="ident">first</span>.<span class="ident">unwrap</span>());
+                <span class="ident">add_class_atom</span>(<span class="kw-2">&amp;mut</span> <span class="ident">result</span>, <span class="ident">ClassAtom::CodePoint</span>(<span class="string">&#39;-&#39;</span>));
                 <span class="kw">continue</span>;
             }
 
@@ -1405,7 +1406,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">try_consume_bracket_class_atom</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ClassAtom</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">try_consume_bracket_class_atom</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ClassAtom</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">peek</span>();
         <span class="kw">if</span> <span class="ident">c</span>.<span class="ident">is_none</span>() {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
@@ -1462,7 +1463,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">try_consume_quantifier</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ir::Quantifier</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">try_consume_quantifier</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ir::Quantifier</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">quant</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">try_consume_quantifier_prefix</span>()<span class="question-mark">?</span> {
             <span class="ident">quant</span>.<span class="ident">greedy</span> <span class="op">=</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">try_consume</span>(<span class="string">&#39;?&#39;</span>);
             <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">quant</span>))
@@ -1471,7 +1472,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">try_consume_quantifier_prefix</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ir::Quantifier</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">try_consume_quantifier_prefix</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ir::Quantifier</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">nc</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">peek</span>();
         <span class="kw">if</span> <span class="ident">nc</span>.<span class="ident">is_none</span>() {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
@@ -1536,7 +1537,7 @@
     <span class="doccomment">/// ES6 11.8.3 DecimalIntegerLiteral.</span>
     <span class="doccomment">/// If the value would overflow, usize::MAX is returned.</span>
     <span class="doccomment">/// All decimal digits are consumed regardless.</span>
-    <span class="kw">fn</span> <span class="ident">try_consume_decimal_integer_literal</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">try_consume_decimal_integer_literal</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">char_count</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">peek</span>() {
@@ -1557,7 +1558,7 @@
     }
 
     <span class="kw">fn</span> <span class="ident">consume_lookaround_assertion</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">params</span>: <span class="ident">LookaroundParams</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ir::Node</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">start_group</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">group_count</span>;
@@ -1572,7 +1573,7 @@
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">consume_character_escape</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">char</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">consume_character_escape</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">char</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">u2c</span> <span class="op">=</span> <span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">std::char::from_u32</span>(<span class="ident">c</span>).<span class="ident">expect</span>(<span class="string">&quot;Invalid char&quot;</span>));
         <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">peek</span>().<span class="ident">expect</span>(<span class="string">&quot;Should have a character&quot;</span>);
         <span class="kw">match</span> <span class="ident">c</span> {
@@ -1653,7 +1654,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">consume_atom_escape</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ir::Node</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">consume_atom_escape</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ir::Node</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">nc</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">peek</span>();
         <span class="kw">if</span> <span class="ident">nc</span>.<span class="ident">is_none</span>() {
             <span class="kw">return</span> <span class="ident">error</span>(<span class="string">&quot;Incomplete escape&quot;</span>);
@@ -1722,7 +1723,7 @@
     }
 
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::branches_sharing_code</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">try_escape_unicode_sequence</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">try_escape_unicode_sequence</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">orig_input</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">clone</span>();
 
         <span class="comment">// Support \u{X..X} (Unicode CodePoint)</span>
@@ -1806,7 +1807,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">try_consume_named_capture_group_name</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">try_consume_named_capture_group_name</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">try_consume</span>(<span class="string">&#39;&lt;&#39;</span>) {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
@@ -1868,7 +1869,7 @@
     }
 
     <span class="comment">// Quickly parse all capture groups.</span>
-    <span class="kw">fn</span> <span class="ident">parse_capture_groups</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+    <span class="kw">fn</span> <span class="ident">parse_capture_groups</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="kw">let</span> <span class="ident">orig_input</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">clone</span>();
 
         <span class="kw">loop</span> {
@@ -1912,7 +1913,7 @@
         <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">loop_count</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">MAX_LOOPS</span> <span class="kw">as</span> <span class="ident">u32</span>);
         <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">group_count</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">MAX_CAPTURE_GROUPS</span>);
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_lookbehind</span> {
-            <span class="ident">ir::walk_mut</span>(<span class="bool-val">false</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">re</span>.<span class="ident">node</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ir::Node::reverse_cats</span>);
+            <span class="ident">ir::walk_mut</span>(<span class="bool-val">false</span>, <span class="kw-2">&amp;mut</span> <span class="ident">re</span>.<span class="ident">node</span>, <span class="kw-2">&amp;mut</span> <span class="ident">ir::Node::reverse_cats</span>);
         }
         <span class="prelude-val">Ok</span>(<span class="ident">re</span>)
     }
@@ -1944,5 +1945,4 @@
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="regress" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
 </body></html>
