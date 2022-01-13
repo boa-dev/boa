@@ -253,24 +253,21 @@ pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) {
             diff_format(panic_diff),
         );
         println!(
-            "| Conformance | {:.2}% | {:.2}% | {} |",
+            "| Conformance | {:.2}% | {:.2}% | {}{}{:.2}%{} |",
             base_conformance,
             new_conformance,
-            format!(
-                "{}{}{:.2}%{}",
-                if conformance_diff.abs() > f64::EPSILON {
-                    "**"
-                } else {
-                    ""
-                },
-                if conformance_diff > 0_f64 { "+" } else { "" },
-                conformance_diff,
-                if conformance_diff.abs() > f64::EPSILON {
-                    "**"
-                } else {
-                    ""
-                },
-            ),
+            if conformance_diff.abs() > f64::EPSILON {
+                "**"
+            } else {
+                ""
+            },
+            if conformance_diff > 0_f64 { "+" } else { "" },
+            conformance_diff,
+            if conformance_diff.abs() > f64::EPSILON {
+                "**"
+            } else {
+                ""
+            },
         );
 
         if !test_diff.fixed.is_empty() {
