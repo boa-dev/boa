@@ -641,7 +641,7 @@ fn regex_literal_flags() {
 
     let expected = [TokenKind::regular_expression_literal(
         interner.get_or_intern_static("\\/[^\\/]*\\/*"),
-        interner.get_or_intern_static("gmi"),
+        interner.get_or_intern_static("gim"),
     )];
 
     expect_tokens(&mut lexer, &expected, &mut interner);
