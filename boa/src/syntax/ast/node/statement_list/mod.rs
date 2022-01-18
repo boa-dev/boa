@@ -83,7 +83,7 @@ impl StatementList {
                             if !set.insert(ident.sym()) {
                                 unreachable!(
                                     "Redeclaration of {}",
-                                    interner.resolve(ident.sym()).expect("string disappeared")
+                                    interner.resolve_expect(ident.sym())
                                 );
                             }
                         }
@@ -92,7 +92,7 @@ impl StatementList {
                                 if !set.insert(ident) {
                                     unreachable!(
                                         "Redeclaration of {}",
-                                        interner.resolve(ident).expect("string disappeared")
+                                        interner.resolve_expect(ident)
                                     );
                                 }
                             }

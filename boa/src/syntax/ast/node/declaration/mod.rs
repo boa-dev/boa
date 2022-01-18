@@ -527,14 +527,12 @@ impl ToInternedString for BindingPatternTypeObject {
                 default_init,
             } => {
                 let mut buf = if ident == property_name {
-                    format!(" {}", interner.resolve(*ident).expect("string disappeared"))
+                    format!(" {}", interner.resolve_expect(*ident))
                 } else {
                     format!(
                         " {} : {}",
-                        interner
-                            .resolve(*property_name)
-                            .expect("string disappeared"),
-                        interner.resolve(*ident).expect("string disappeared")
+                        interner.resolve_expect(*property_name),
+                        interner.resolve_expect(*ident)
                     )
                 };
                 if let Some(ref init) = default_init {
@@ -546,12 +544,7 @@ impl ToInternedString for BindingPatternTypeObject {
                 ident: property_name,
                 excluded_keys: _,
             } => {
-                format!(
-                    " ... {}",
-                    interner
-                        .resolve(*property_name)
-                        .expect("string disappeared")
-                )
+                format!(" ... {}", interner.resolve_expect(*property_name))
             }
             BindingPatternTypeObject::BindingPattern {
                 ident: property_name,
@@ -560,9 +553,7 @@ impl ToInternedString for BindingPatternTypeObject {
             } => {
                 let mut buf = format!(
                     " {} : {}",
-                    interner
-                        .resolve(*property_name)
-                        .expect("string disappeared"),
+                    interner.resolve_expect(*property_name),
                     pattern.to_interned_string(interner)
                 );
                 if let Some(ref init) = default_init {
@@ -652,7 +643,7 @@ impl ToInternedString for BindingPatternTypeArray {
                 ident,
                 default_init,
             } => {
-                let mut buf = format!(" {}", interner.resolve(*ident).expect("string disappeared"));
+                let mut buf = format!(" {}", interner.resolve_expect(*ident));
                 if let Some(ref init) = default_init {
                     buf.push_str(&format!(" = {}", init.to_interned_string(interner)));
                 }
@@ -662,10 +653,7 @@ impl ToInternedString for BindingPatternTypeArray {
                 format!(" {}", pattern.to_interned_string(interner))
             }
             BindingPatternTypeArray::SingleNameRest { ident } => {
-                format!(
-                    " ... {}",
-                    interner.resolve(*ident).expect("string disappeared")
-                )
+                format!(" ... {}", interner.resolve_expect(*ident))
             }
             BindingPatternTypeArray::BindingPatternRest { pattern } => {
                 format!(" ... {}", pattern.to_interned_string(interner))

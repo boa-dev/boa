@@ -45,9 +45,7 @@ impl ToInternedString for TemplateLit {
 
         for elt in self.elements.iter() {
             match elt {
-                TemplateElement::String(s) => {
-                    buf.push_str(interner.resolve(*s).expect("string disappeared"))
-                }
+                TemplateElement::String(s) => buf.push_str(interner.resolve_expect(*s)),
                 TemplateElement::Expr(n) => {
                     buf.push_str(&format!("${{{}}}", n.to_interned_string(interner)))
                 }
@@ -107,7 +105,7 @@ impl ToInternedString for TaggedTemplate {
         for (&raw, expr) in self.raws.iter().zip(self.exprs.iter()) {
             buf.push_str(&format!(
                 "{}${{{}}}",
-                interner.resolve(raw).expect("string disappeared"),
+                interner.resolve_expect(raw),
                 expr.to_interned_string(interner)
             ));
         }

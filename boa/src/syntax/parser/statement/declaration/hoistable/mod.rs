@@ -203,7 +203,7 @@ fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
                     return Err(ParseError::lex(LexError::Syntax(
                         format!(
                             "Redeclaration of formal parameter `{}`",
-                            interner.resolve(param_name).expect("string disappeared")
+                            interner.resolve_expect(param_name)
                         )
                         .into(),
                         match cursor.peek(0, interner)? {

@@ -434,7 +434,7 @@ where
                     return Ok(Vec::new().into());
                 }
                 TokenKind::StringLiteral(string)
-                    if interner.resolve(*string).expect("string disappeared") == "use strict" =>
+                    if interner.resolve_expect(*string) == "use strict" =>
                 {
                     cursor.set_strict_mode(true);
                     strict = true;

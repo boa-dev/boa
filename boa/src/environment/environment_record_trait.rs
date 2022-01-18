@@ -212,10 +212,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
                 Some(outer) => outer.recursive_get_binding_value(name, context),
                 None => context.throw_reference_error(format!(
                     "{} is not defined",
-                    context
-                        .interner()
-                        .resolve(name)
-                        .expect("string disappeared")
+                    context.interner().resolve_expect(name)
                 )),
             }
         }

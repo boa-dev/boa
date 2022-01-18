@@ -63,7 +63,7 @@ impl ToInternedString for GetConstField {
         format!(
             "{}.{}",
             self.obj.to_interned_string(interner),
-            interner.resolve(self.field).expect("string disappeared")
+            interner.resolve_expect(self.field)
         )
     }
 }

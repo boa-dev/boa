@@ -637,10 +637,7 @@ pub enum PropertyName {
 impl ToInternedString for PropertyName {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
-            PropertyName::Literal(key) => interner
-                .resolve(*key)
-                .expect("string disappeared")
-                .to_owned(),
+            PropertyName::Literal(key) => interner.resolve_expect(*key).to_owned(),
             PropertyName::Computed(key) => key.to_interned_string(interner),
         }
     }

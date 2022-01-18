@@ -70,7 +70,7 @@ impl FunctionDecl {
     ) -> String {
         let mut buf = format!(
             "function {}({}",
-            interner.resolve(self.name).expect("string disappeared"),
+            interner.resolve_expect(self.name),
             join_nodes(interner, &self.parameters)
         );
         if self.body().items().is_empty() {

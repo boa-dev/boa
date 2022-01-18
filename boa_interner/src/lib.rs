@@ -142,6 +142,16 @@ impl Interner {
         }
     }
 
+    /// Returns the string for the given symbol.
+    ///
+    /// # Panics
+    ///
+    /// If the interner cannot resolve the given symbol.
+    #[inline]
+    pub fn resolve_expect(&self, symbol: Sym) -> &str {
+        self.resolve(symbol).expect("string disappeared")
+    }
+
     /// Gets the symbol of the static string if one of them
     fn get_static(string: &str) -> Option<Sym> {
         Self::STATIC_STRINGS

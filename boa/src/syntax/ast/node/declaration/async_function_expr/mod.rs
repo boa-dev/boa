@@ -64,10 +64,7 @@ impl AsyncFunctionExpr {
     ) -> String {
         let mut buf = "async function".to_owned();
         if let Some(name) = self.name {
-            buf.push_str(&format!(
-                " {}",
-                interner.resolve(name).expect("string disappeared")
-            ));
+            buf.push_str(&format!(" {}", interner.resolve_expect(name)));
         }
         buf.push_str(&format!("({}", join_nodes(interner, &self.parameters)));
         if self.body().is_empty() {

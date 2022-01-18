@@ -45,10 +45,7 @@ impl Identifier {
 
 impl ToInternedString for Identifier {
     fn to_interned_string(&self, interner: &Interner) -> String {
-        interner
-            .resolve(self.ident)
-            .expect("string disappeared")
-            .to_owned()
+        interner.resolve_expect(self.ident).to_owned()
     }
 }
 

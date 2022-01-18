@@ -331,9 +331,7 @@ where
                                         return Err(ParseError::lex(LexError::Syntax(
                                             format!(
                                                 "Redeclaration of variable `{}`",
-                                                interner
-                                                    .resolve(ident.sym())
-                                                    .expect("string disappeared")
+                                                interner.resolve_expect(ident.sym())
                                             )
                                             .into(),
                                             match cursor.peek(0, interner)? {
@@ -351,9 +349,7 @@ where
                                             return Err(ParseError::lex(LexError::Syntax(
                                                 format!(
                                                     "Redeclaration of variable `{}`",
-                                                    interner
-                                                        .resolve(ident)
-                                                        .expect("string disappeared")
+                                                    interner.resolve_expect(ident)
                                                 )
                                                 .into(),
                                                 match cursor.peek(0, interner)? {
@@ -376,9 +372,7 @@ where
                                         return Err(ParseError::lex(LexError::Syntax(
                                             format!(
                                                 "Redeclaration of variable `{}`",
-                                                interner
-                                                    .resolve(ident.sym())
-                                                    .expect("string disappeared")
+                                                interner.resolve_expect(ident.sym())
                                             )
                                             .into(),
                                             match cursor.peek(0, interner)? {
@@ -397,9 +391,7 @@ where
                                             return Err(ParseError::lex(LexError::Syntax(
                                                 format!(
                                                     "Redeclaration of variable `{}`",
-                                                    interner
-                                                        .resolve(ident)
-                                                        .expect("string disappeared")
+                                                    interner.resolve_expect(ident)
                                                 )
                                                 .into(),
                                                 match cursor.peek(0, interner)? {

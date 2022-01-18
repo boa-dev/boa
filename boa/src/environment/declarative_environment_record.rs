@@ -79,10 +79,7 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
             assert!(
                 !self.env_rec.borrow().contains_key(&name),
                 "Identifier {} has already been declared",
-                context
-                    .interner()
-                    .resolve(name)
-                    .expect("string disappeared")
+                context.interner().resolve_expect(name)
             );
         }
 
@@ -118,10 +115,7 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         assert!(
             !self.env_rec.borrow().contains_key(&name),
             "Identifier {} has already been declared",
-            context
-                .interner()
-                .resolve(name)
-                .expect("string disappeared")
+            context.interner().resolve_expect(name)
         );
 
         // 2. Create an immutable binding in envRec for N and record that it is uninitialized.
@@ -161,10 +155,7 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         // 1. Assert: envRec must have an uninitialized binding for N.
         panic!(
             "record must have binding for {}",
-            context
-                .interner()
-                .resolve(name)
-                .expect("string disappeared")
+            context.interner().resolve_expect(name)
         );
     }
 
@@ -188,10 +179,7 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
             if strict {
                 return context.throw_reference_error(format!(
                     "{} not found",
-                    context
-                        .interner()
-                        .resolve(name)
-                        .expect("string disappeared")
+                    context.interner().resolve_expect(name)
                 ));
             }
 
@@ -219,10 +207,7 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         if binding_value_is_none {
             return context.throw_reference_error(format!(
                 "{} has not been initialized",
-                context
-                    .interner()
-                    .resolve(name)
-                    .expect("string disappeared")
+                context.interner().resolve_expect(name)
             ));
         // 4. Else if the binding for N in envRec is a mutable binding, change its bound value to V.
         } else if binding_mutable {
@@ -235,10 +220,7 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         } else if strict {
             return context.throw_type_error(format!(
                 "Cannot mutate an immutable binding {}",
-                context
-                    .interner()
-                    .resolve(name)
-                    .expect("string disappeared")
+                context.interner().resolve_expect(name)
             ));
         }
 
@@ -267,19 +249,13 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
             } else {
                 context.throw_reference_error(format!(
                     "{} is an uninitialized binding",
-                    context
-                        .interner()
-                        .resolve(name)
-                        .expect("string disappeared")
+                    context.interner().resolve_expect(name)
                 ))
             }
         } else {
             panic!(
                 "Cannot get binding value for {}",
-                context
-                    .interner()
-                    .resolve(name)
-                    .expect("string disappeared")
+                context.interner().resolve_expect(name)
             );
         }
     }
@@ -306,10 +282,7 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
             }
             None => panic!(
                 "env_rec has no binding for {}",
-                context
-                    .interner()
-                    .resolve(name)
-                    .expect("string disappeared")
+                context.interner().resolve_expect(name)
             ),
         }
     }

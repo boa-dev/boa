@@ -298,7 +298,7 @@ impl CodeBlock {
 
 impl ToInternedString for CodeBlock {
     fn to_interned_string(&self, interner: &Interner) -> String {
-        let name = interner.resolve(self.name).expect("string disappeared");
+        let name = interner.resolve_expect(self.name);
         let mut f = if self.name == Sym::MAIN {
             String::new()
         } else {
@@ -356,7 +356,7 @@ impl ToInternedString for CodeBlock {
                 f.push_str(&format!(
                     "    {:04}: name: '{}' (length: {})\n",
                     i,
-                    interner.resolve(code.name).expect("string disappeared"),
+                    interner.resolve_expect(code.name),
                     code.length
                 ));
             }
@@ -380,12 +380,7 @@ impl JsVmFunction {
         let prototype = context.construct_object();
 
         let name_property = PropertyDescriptor::builder()
-            .value(
-                context
-                    .interner()
-                    .resolve(code.name)
-                    .expect("string disappeared"),
-            )
+            .value(context.interner().resolve_expect(code.name))
             .writable(false)
             .enumerable(false)
             .configurable(true)

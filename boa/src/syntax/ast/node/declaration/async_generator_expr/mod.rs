@@ -62,10 +62,7 @@ impl AsyncGeneratorExpr {
     ) -> String {
         let mut buf = "async function*".to_owned();
         if let Some(name) = self.name {
-            buf.push_str(&format!(
-                " {}",
-                interner.resolve(name).expect("string disappeared")
-            ));
+            buf.push_str(&format!(" {}", interner.resolve_expect(name)));
         }
         buf.push_str(&format!(
             "({}) {}",

@@ -52,14 +52,10 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         // 1. Let bindingObject be envRec.[[BindingObject]].
         // 2. Let foundBinding be ? HasProperty(bindingObject, N).
         // 3. If foundBinding is false, return false.
-        if !self.bindings.has_property(
-            context
-                .interner()
-                .resolve(name)
-                .expect("string disappeared")
-                .to_owned(),
-            context,
-        )? {
+        if !self
+            .bindings
+            .has_property(context.interner().resolve_expect(name).to_owned(), context)?
+        {
             return Ok(false);
         }
 
@@ -78,14 +74,7 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
             // a. Let blocked be ! ToBoolean(? Get(unscopables, N)).
             // b. If blocked is true, return false.
             if unscopables
-                .get(
-                    context
-                        .interner()
-                        .resolve(name)
-                        .expect("string disappeared")
-                        .to_owned(),
-                    context,
-                )?
+                .get(context.interner().resolve_expect(name).to_owned(), context)?
                 .to_boolean()
             {
                 return Ok(false);
@@ -112,11 +101,7 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         // 1. Let bindingObject be envRec.[[BindingObject]].
         // 2. Return ? DefinePropertyOrThrow(bindingObject, N, PropertyDescriptor { [[Value]]: undefined, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: D }).
         self.bindings.define_property_or_throw(
-            context
-                .interner()
-                .resolve(name)
-                .expect("string disappeared")
-                .to_owned(),
+            context.interner().resolve_expect(name).to_owned(),
             PropertyDescriptor::builder()
                 .value(JsValue::undefined())
                 .writable(true)
@@ -168,14 +153,9 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
     ) -> JsResult<()> {
         // 1. Let bindingObject be envRec.[[BindingObject]].
         // 2. Let stillExists be ? HasProperty(bindingObject, N).
-        let still_exists = self.bindings.has_property(
-            context
-                .interner()
-                .resolve(name)
-                .expect("string disappeared")
-                .to_owned(),
-            context,
-        )?;
+        let still_exists = self
+            .bindings
+            .has_property(context.interner().resolve_expect(name).to_owned(), context)?;
 
         // 3. If stillExists is false and S is true, throw a ReferenceError exception.
         if !still_exists && strict {
@@ -184,11 +164,7 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
 
         // 4. Return ? Set(bindingObject, N, V, S).
         self.bindings.set(
-            context
-                .interner()
-                .resolve(name)
-                .expect("string disappeared")
-                .to_owned(),
+            context.interner().resolve_expect(name).to_owned(),
             value,
             strict,
             context,
@@ -211,37 +187,24 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         // 1. Let bindingObject be envRec.[[BindingObject]].
         // 2. Let value be ? HasProperty(bindingObject, N).
         // 3. If value is false, then
-        if !self.bindings.__has_property__(
-            &context
-                .interner()
-                .resolve(name)
-                .expect("string disappeared")
-                .into(),
-            context,
-        )? {
+        if !self
+            .bindings
+            .__has_property__(&context.interner().resolve_expect(name).into(), context)?
+        {
             // a. If S is false, return the value undefined; otherwise throw a ReferenceError exception.
             if !strict {
                 return Ok(JsValue::undefined());
             } else {
                 return context.throw_reference_error(format!(
                     "{} has no binding",
-                    context
-                        .interner()
-                        .resolve(name)
-                        .expect("string disappeared")
+                    context.interner().resolve_expect(name)
                 ));
             }
         }
 
         // 4. Return ? Get(bindingObject, N).
-        self.bindings.get(
-            context
-                .interner()
-                .resolve(name)
-                .expect("string disappeared")
-                .to_owned(),
-            context,
-        )
+        self.bindings
+            .get(context.interner().resolve_expect(name).to_owned(), context)
     }
 
     /// `9.1.1.2.7 DeleteBinding ( N )`
@@ -253,14 +216,8 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
     fn delete_binding(&self, name: Sym, context: &mut Context) -> JsResult<bool> {
         // 1. Let bindingObject be envRec.[[BindingObject]].
         // 2. Return ? bindingObject.[[Delete]](N).
-        self.bindings.__delete__(
-            &context
-                .interner()
-                .resolve(name)
-                .expect("string disappeared")
-                .into(),
-            context,
-        )
+        self.bindings
+            .__delete__(&context.interner().resolve_expect(name).into(), context)
     }
 
     /// `9.1.1.2.8 HasThisBinding ( )`

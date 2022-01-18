@@ -307,8 +307,7 @@ impl Console {
             stack_trace.push(
                 context
                     .interner()
-                    .resolve(frame.code.name)
-                    .expect("string disappeared")
+                    .resolve_expect(frame.code.name)
                     .to_owned(),
             );
             prev_frame = frame.prev.as_ref();

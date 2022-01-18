@@ -229,29 +229,22 @@ impl TokenKind {
         match *self {
             Self::BooleanLiteral(val) => val.to_string(),
             Self::EOF => "end of file".to_owned(),
-            Self::Identifier(ident) => interner
-                .resolve(ident)
-                .expect("string disappeared")
-                .to_owned(),
+            Self::Identifier(ident) => interner.resolve_expect(ident).to_owned(),
             Self::Keyword(word) => word.to_string(),
             Self::NullLiteral => "null".to_owned(),
             Self::NumericLiteral(Numeric::Rational(num)) => num.to_string(),
             Self::NumericLiteral(Numeric::Integer(num)) => num.to_string(),
             Self::NumericLiteral(Numeric::BigInt(ref num)) => format!("{}n", num),
             Self::Punctuator(punc) => punc.to_string(),
-            Self::StringLiteral(lit) => interner
-                .resolve(lit)
-                .expect("string disappeared")
-                .to_owned(),
-            Self::TemplateNoSubstitution(ts) | Self::TemplateMiddle(ts) => interner
-                .resolve(ts.as_raw())
-                .expect("string disappeared")
-                .to_owned(),
+            Self::StringLiteral(lit) => interner.resolve_expect(lit).to_owned(),
+            Self::TemplateNoSubstitution(ts) | Self::TemplateMiddle(ts) => {
+                interner.resolve_expect(ts.as_raw()).to_owned()
+            }
             Self::RegularExpressionLiteral(body, flags) => {
                 format!(
                     "/{}/{}",
-                    interner.resolve(body).expect("string disappeared"),
-                    interner.resolve(flags).expect("string disappeared"),
+                    interner.resolve_expect(body),
+                    interner.resolve_expect(flags),
                 )
             }
             Self::LineTerminator => "line terminator".to_owned(),

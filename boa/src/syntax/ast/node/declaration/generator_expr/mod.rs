@@ -63,10 +63,7 @@ impl GeneratorExpr {
     ) -> String {
         let mut buf = "function*".to_owned();
         if let Some(name) = self.name {
-            buf.push_str(&format!(
-                " {}",
-                interner.resolve(name).expect("string disappeared")
-            ));
+            buf.push_str(&format!(" {}", interner.resolve_expect(name)));
         }
         buf.push_str(&format!(
             "({}) {}",

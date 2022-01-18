@@ -60,7 +60,7 @@ impl AsyncGeneratorDecl {
     ) -> String {
         let mut buf = format!(
             "async function* {}({}",
-            interner.resolve(self.name).expect("string disappeared"),
+            interner.resolve_expect(self.name),
             join_nodes(interner, &self.parameters)
         );
         if self.body().is_empty() {

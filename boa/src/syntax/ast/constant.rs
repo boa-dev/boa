@@ -149,7 +149,7 @@ impl ToInternedString for Const {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match *self {
             Self::String(st) => {
-                format!("\"{}\"", interner.resolve(st).expect("string disappeared"))
+                format!("\"{}\"", interner.resolve_expect(st))
             }
             Self::Num(num) => num.to_string(),
             Self::Int(num) => num.to_string(),

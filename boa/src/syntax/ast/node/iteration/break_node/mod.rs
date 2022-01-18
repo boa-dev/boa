@@ -56,7 +56,7 @@ impl ToInternedString for Break {
         format!(
             "break{}",
             if let Some(label) = self.label {
-                format!(" {}", interner.resolve(label).expect("string disappeared"))
+                format!(" {}", interner.resolve_expect(label))
             } else {
                 String::new()
             }

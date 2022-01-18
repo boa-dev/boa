@@ -46,10 +46,7 @@ impl ToInternedString for Continue {
     fn to_interned_string(&self, interner: &Interner) -> String {
         let mut buf = "continue".to_owned();
         if let Some(label) = self.label {
-            buf.push_str(&format!(
-                " {}",
-                interner.resolve(label).expect("string disappeared")
-            ));
+            buf.push_str(&format!(" {}", interner.resolve_expect(label)));
         }
         buf
     }

@@ -47,13 +47,8 @@ impl TemplateString {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-templatestrings
     pub fn to_owned_cooked(self, interner: &mut Interner) -> Result<Sym, Error> {
-        let mut cursor = Cursor::with_position(
-            interner
-                .resolve(self.raw)
-                .expect("string disappeared")
-                .as_bytes(),
-            self.start_pos,
-        );
+        let mut cursor =
+            Cursor::with_position(interner.resolve_expect(self.raw).as_bytes(), self.start_pos);
         let mut buf: Vec<u16> = Vec::new();
 
         loop {

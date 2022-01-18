@@ -94,14 +94,8 @@ impl GlobalEnvironmentRecord {
         let global_object = &self.object_record.bindings;
 
         // 3. Let existingProp be ? globalObject.[[GetOwnProperty]](N).
-        let existing_prop = global_object.__get_own_property__(
-            &context
-                .interner()
-                .resolve(name)
-                .expect("string disappeared")
-                .into(),
-            context,
-        )?;
+        let existing_prop = global_object
+            .__get_own_property__(&context.interner().resolve_expect(name).into(), context)?;
 
         if let Some(existing_prop) = existing_prop {
             // 5. If existingProp.[[Configurable]] is true, return false.
@@ -125,11 +119,7 @@ impl GlobalEnvironmentRecord {
         let global_object = &self.object_record.bindings;
 
         // 3. Let hasProperty be ? HasOwnProperty(globalObject, N).
-        let key = context
-            .interner()
-            .resolve(name)
-            .expect("string disappeared")
-            .to_owned();
+        let key = context.interner().resolve_expect(name).to_owned();
         let has_property = global_object.has_own_property(key, context)?;
 
         // 4. If hasProperty is true, return true.
@@ -153,14 +143,8 @@ impl GlobalEnvironmentRecord {
         let global_object = &self.object_record.bindings;
 
         // 3. Let existingProp be ? globalObject.[[GetOwnProperty]](N).
-        let existing_prop = global_object.__get_own_property__(
-            &context
-                .interner()
-                .resolve(name)
-                .expect("string disappeared")
-                .into(),
-            context,
-        )?;
+        let existing_prop = global_object
+            .__get_own_property__(&context.interner().resolve_expect(name).into(), context)?;
 
         if let Some(existing_prop) = existing_prop {
             // 5. If existingProp.[[Configurable]] is true, return true.
@@ -203,14 +187,8 @@ impl GlobalEnvironmentRecord {
         let global_object = &self.object_record.bindings;
 
         // 3. Let hasProperty be ? HasOwnProperty(globalObject, N).
-        let has_property = global_object.has_own_property(
-            context
-                .interner()
-                .resolve(name)
-                .expect("string disappeared")
-                .to_owned(),
-            context,
-        )?;
+        let has_property = global_object
+            .has_own_property(context.interner().resolve_expect(name).to_owned(), context)?;
         // 4. Let extensible be ? IsExtensible(globalObject).
         let extensible = global_object.is_extensible(context)?;
 
@@ -254,14 +232,8 @@ impl GlobalEnvironmentRecord {
         let global_object = &self.object_record.bindings;
 
         // 3. Let existingProp be ? globalObject.[[GetOwnProperty]](N).
-        let existing_prop = global_object.__get_own_property__(
-            &context
-                .interner()
-                .resolve(name)
-                .expect("string disappeared")
-                .into(),
-            context,
-        )?;
+        let existing_prop = global_object
+            .__get_own_property__(&context.interner().resolve_expect(name).into(), context)?;
 
         // 4. If existingProp is undefined or existingProp.[[Configurable]] is true, then
         let desc = if existing_prop
@@ -281,11 +253,7 @@ impl GlobalEnvironmentRecord {
             PropertyDescriptor::builder().value(value.clone()).build()
         };
 
-        let name_str = context
-            .interner()
-            .resolve(name)
-            .expect("string disappeared")
-            .to_owned();
+        let name_str = context.interner().resolve_expect(name).to_owned();
 
         // 6. Perform ? DefinePropertyOrThrow(globalObject, N, desc).
         global_object.define_property_or_throw(name_str.as_str(), desc, context)?;
@@ -341,10 +309,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
         if !allow_name_reuse && self.declarative_record.has_binding(name, context)? {
             return context.throw_type_error(format!(
                 "Binding already exists for {}",
-                context
-                    .interner()
-                    .resolve(name)
-                    .expect("string disappeared")
+                context.interner().resolve_expect(name)
             ));
         }
 
@@ -370,10 +335,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
         if self.declarative_record.has_binding(name, context)? {
             return context.throw_type_error(format!(
                 "Binding already exists for {}",
-                context
-                    .interner()
-                    .resolve(name)
-                    .expect("string disappeared")
+                context.interner().resolve_expect(name)
             ));
         }
 
@@ -483,14 +445,9 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
 
         // 5. Let existingProp be ? HasOwnProperty(globalObject, N).
         // 6. If existingProp is true, then
-        if global_object.has_own_property(
-            context
-                .interner()
-                .resolve(name)
-                .expect("string disappeared")
-                .to_owned(),
-            context,
-        )? {
+        if global_object
+            .has_own_property(context.interner().resolve_expect(name).to_owned(), context)?
+        {
             // a. Let status be ? ObjRec.DeleteBinding(N).
             let status = self.object_record.delete_binding(name, context)?;
 
