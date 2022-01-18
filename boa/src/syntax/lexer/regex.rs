@@ -170,5 +170,30 @@ fn parse_regex_flags(s: &str, start: Position, interner: &mut Interner) -> Resul
             flags.insert(new_flag);
         }
     }
-    Ok(interner.get_or_intern(s))
+    Ok(interner.get_or_intern(flags.to_string()))
+}
+
+impl ToString for RegExpFlags {
+    fn to_string(&self) -> String {
+        let mut s = String::new();
+        if self.contains(Self::GLOBAL) {
+            s.push('g');
+        }
+        if self.contains(Self::IGNORE_CASE) {
+            s.push('i');
+        }
+        if self.contains(Self::MULTILINE) {
+            s.push('m');
+        }
+        if self.contains(Self::DOT_ALL) {
+            s.push('s');
+        }
+        if self.contains(Self::UNICODE) {
+            s.push('u');
+        }
+        if self.contains(Self::STICKY) {
+            s.push('y');
+        }
+        s
+    }
 }

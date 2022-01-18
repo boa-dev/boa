@@ -204,7 +204,7 @@ impl Default for Interner {
 /// The string symbol type for Boa.
 ///
 /// This symbol type is internally a `NonZeroUsize`, which makes it pointer-width in size and it's
-/// optimized so that it can ocupy 1 pointer width even in an `Option` type.
+/// optimized so that it can occupy 1 pointer width even in an `Option` type.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Finalize)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
