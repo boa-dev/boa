@@ -96,7 +96,7 @@ impl Proxy {
     fn create(target: &JsValue, handler: &JsValue, context: &mut Context) -> JsResult<JsValue> {
         // 1. If Type(target) is not Object, throw a TypeError exception.
         let target = target.as_object().ok_or_else(|| {
-            context.construct_type_error("Proxy constructor called with non-object handler")
+            context.construct_type_error("Proxy constructor called with non-object target")
         })?;
 
         // 2. If Type(handler) is not Object, throw a TypeError exception.
