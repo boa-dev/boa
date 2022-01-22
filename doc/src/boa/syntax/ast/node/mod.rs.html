@@ -691,6 +691,14 @@
 <span id="690">690</span>
 <span id="691">691</span>
 <span id="692">692</span>
+<span id="693">693</span>
+<span id="694">694</span>
+<span id="695">695</span>
+<span id="696">696</span>
+<span id="697">697</span>
+<span id="698">698</span>
+<span id="699">699</span>
+<span id="700">700</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `Node` structure, which composes the AST.</span>
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">array</span>;
@@ -1360,6 +1368,8 @@
 <span class="doccomment">/// level.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">fn</span> <span class="ident">test_formatting</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) {
+    <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">syntax::Parser</span>, <span class="ident">Interner</span>};
+
     <span class="comment">// Remove preceding newline.</span>
     <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">source</span>[<span class="number">1</span>..];
 
@@ -1373,7 +1383,13 @@
         .<span class="ident">map</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">l</span>[<span class="ident">characters_to_remove</span>..]) <span class="comment">// Remove preceding whitespace from each line</span>
         .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>()
         .<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>);
-    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident"><span class="kw">crate</span>::parse</span>(<span class="kw-2">&amp;</span><span class="ident">scenario</span>, <span class="bool-val">false</span>).<span class="ident">unwrap</span>());
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">interner</span> <span class="op">=</span> <span class="ident">Interner::new</span>();
+    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="macro">format!</span>(
+        <span class="string">&quot;{}&quot;</span>,
+        <span class="ident">Parser::new</span>(<span class="ident">scenario</span>.<span class="ident">as_bytes</span>(), <span class="bool-val">false</span>)
+            .<span class="ident">parse_all</span>(<span class="kw-2">&amp;mut</span> <span class="ident">interner</span>)
+            .<span class="ident">expect</span>(<span class="string">&quot;parsing failed&quot;</span>)
+    );
     <span class="kw">if</span> <span class="ident">scenario</span> <span class="op">!</span><span class="op">=</span> <span class="ident">result</span> {
         <span class="macro">eprint!</span>(<span class="string">&quot;========= Expected:\n{}&quot;</span>, <span class="ident">scenario</span>);
         <span class="macro">eprint!</span>(<span class="string">&quot;========= Got:\n{}&quot;</span>, <span class="ident">result</span>);

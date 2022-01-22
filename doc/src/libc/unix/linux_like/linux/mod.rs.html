@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;libc-0.2.112&#x2F;src&#x2F;unix&#x2F;linux_like&#x2F;linux&#x2F;mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script src="../../../../../crates.js"></script><script defer src="../../../../../main.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;libc-0.2.113&#x2F;src&#x2F;unix&#x2F;linux_like&#x2F;linux&#x2F;mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script src="../../../../../crates.js"></script><script defer src="../../../../../main.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../../libc/index.html'><div class='logo-container rust-logo'><img src='../../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -3961,6 +3961,84 @@
 <span id="3960">3960</span>
 <span id="3961">3961</span>
 <span id="3962">3962</span>
+<span id="3963">3963</span>
+<span id="3964">3964</span>
+<span id="3965">3965</span>
+<span id="3966">3966</span>
+<span id="3967">3967</span>
+<span id="3968">3968</span>
+<span id="3969">3969</span>
+<span id="3970">3970</span>
+<span id="3971">3971</span>
+<span id="3972">3972</span>
+<span id="3973">3973</span>
+<span id="3974">3974</span>
+<span id="3975">3975</span>
+<span id="3976">3976</span>
+<span id="3977">3977</span>
+<span id="3978">3978</span>
+<span id="3979">3979</span>
+<span id="3980">3980</span>
+<span id="3981">3981</span>
+<span id="3982">3982</span>
+<span id="3983">3983</span>
+<span id="3984">3984</span>
+<span id="3985">3985</span>
+<span id="3986">3986</span>
+<span id="3987">3987</span>
+<span id="3988">3988</span>
+<span id="3989">3989</span>
+<span id="3990">3990</span>
+<span id="3991">3991</span>
+<span id="3992">3992</span>
+<span id="3993">3993</span>
+<span id="3994">3994</span>
+<span id="3995">3995</span>
+<span id="3996">3996</span>
+<span id="3997">3997</span>
+<span id="3998">3998</span>
+<span id="3999">3999</span>
+<span id="4000">4000</span>
+<span id="4001">4001</span>
+<span id="4002">4002</span>
+<span id="4003">4003</span>
+<span id="4004">4004</span>
+<span id="4005">4005</span>
+<span id="4006">4006</span>
+<span id="4007">4007</span>
+<span id="4008">4008</span>
+<span id="4009">4009</span>
+<span id="4010">4010</span>
+<span id="4011">4011</span>
+<span id="4012">4012</span>
+<span id="4013">4013</span>
+<span id="4014">4014</span>
+<span id="4015">4015</span>
+<span id="4016">4016</span>
+<span id="4017">4017</span>
+<span id="4018">4018</span>
+<span id="4019">4019</span>
+<span id="4020">4020</span>
+<span id="4021">4021</span>
+<span id="4022">4022</span>
+<span id="4023">4023</span>
+<span id="4024">4024</span>
+<span id="4025">4025</span>
+<span id="4026">4026</span>
+<span id="4027">4027</span>
+<span id="4028">4028</span>
+<span id="4029">4029</span>
+<span id="4030">4030</span>
+<span id="4031">4031</span>
+<span id="4032">4032</span>
+<span id="4033">4033</span>
+<span id="4034">4034</span>
+<span id="4035">4035</span>
+<span id="4036">4036</span>
+<span id="4037">4037</span>
+<span id="4038">4038</span>
+<span id="4039">4039</span>
+<span id="4040">4040</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Linux-specific definitions for linux-like values</span>
 
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">useconds_t</span> <span class="op">=</span> <span class="ident">u32</span>;
@@ -5788,6 +5866,69 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLOSE_RANGE_UNSHARE</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">1</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLOSE_RANGE_CLOEXEC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">2</span>;
 
+<span class="comment">// linux/filter.h</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SKF_AD_OFF</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="op">-</span><span class="number">0x1000</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SKF_AD_PROTOCOL</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SKF_AD_PKTTYPE</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">4</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SKF_AD_IFINDEX</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">8</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SKF_AD_NLATTR</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">12</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SKF_AD_NLATTR_NEST</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">16</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SKF_AD_MARK</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">20</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SKF_AD_QUEUE</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">24</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SKF_AD_HATYPE</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">28</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SKF_AD_RXHASH</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">32</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SKF_AD_CPU</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">36</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SKF_AD_ALU_XOR_X</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">40</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SKF_AD_VLAN_TAG</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">44</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SKF_AD_VLAN_TAG_PRESENT</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">48</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SKF_AD_PAY_OFFSET</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">52</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SKF_AD_RANDOM</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">56</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SKF_AD_VLAN_TPID</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">60</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SKF_AD_MAX</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">64</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SKF_NET_OFF</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="op">-</span><span class="number">0x100000</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SKF_LL_OFF</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="op">-</span><span class="number">0x200000</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_NET_OFF</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="ident">SKF_NET_OFF</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_LL_OFF</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="ident">SKF_LL_OFF</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_MEMWORDS</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">16</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_MAXINSNS</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">4096</span>;
+
+<span class="comment">// linux/bpf_common.h</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_LD</span>: <span class="ident">::__u32</span> <span class="op">=</span> <span class="number">0x00</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_LDX</span>: <span class="ident">::__u32</span> <span class="op">=</span> <span class="number">0x01</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_ST</span>: <span class="ident">::__u32</span> <span class="op">=</span> <span class="number">0x02</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_STX</span>: <span class="ident">::__u32</span> <span class="op">=</span> <span class="number">0x03</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_ALU</span>: <span class="ident">::__u32</span> <span class="op">=</span> <span class="number">0x04</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_JMP</span>: <span class="ident">::__u32</span> <span class="op">=</span> <span class="number">0x05</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_RET</span>: <span class="ident">::__u32</span> <span class="op">=</span> <span class="number">0x06</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_MISC</span>: <span class="ident">::__u32</span> <span class="op">=</span> <span class="number">0x07</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_W</span>: <span class="ident">::__u32</span> <span class="op">=</span> <span class="number">0x00</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_H</span>: <span class="ident">::__u32</span> <span class="op">=</span> <span class="number">0x08</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_B</span>: <span class="ident">::__u32</span> <span class="op">=</span> <span class="number">0x10</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_IMM</span>: <span class="ident">::__u32</span> <span class="op">=</span> <span class="number">0x00</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_ABS</span>: <span class="ident">::__u32</span> <span class="op">=</span> <span class="number">0x20</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_IND</span>: <span class="ident">::__u32</span> <span class="op">=</span> <span class="number">0x40</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_MEM</span>: <span class="ident">::__u32</span> <span class="op">=</span> <span class="number">0x60</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_LEN</span>: <span class="ident">::__u32</span> <span class="op">=</span> <span class="number">0x80</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_MSH</span>: <span class="ident">::__u32</span> <span class="op">=</span> <span class="number">0xa0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_ADD</span>: <span class="ident">::__u32</span> <span class="op">=</span> <span class="number">0x00</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_SUB</span>: <span class="ident">::__u32</span> <span class="op">=</span> <span class="number">0x10</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_MUL</span>: <span class="ident">::__u32</span> <span class="op">=</span> <span class="number">0x20</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_DIV</span>: <span class="ident">::__u32</span> <span class="op">=</span> <span class="number">0x30</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_OR</span>: <span class="ident">::__u32</span> <span class="op">=</span> <span class="number">0x40</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_AND</span>: <span class="ident">::__u32</span> <span class="op">=</span> <span class="number">0x50</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_LSH</span>: <span class="ident">::__u32</span> <span class="op">=</span> <span class="number">0x60</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_RSH</span>: <span class="ident">::__u32</span> <span class="op">=</span> <span class="number">0x70</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_NEG</span>: <span class="ident">::__u32</span> <span class="op">=</span> <span class="number">0x80</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_MOD</span>: <span class="ident">::__u32</span> <span class="op">=</span> <span class="number">0x90</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_XOR</span>: <span class="ident">::__u32</span> <span class="op">=</span> <span class="number">0xa0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_JA</span>: <span class="ident">::__u32</span> <span class="op">=</span> <span class="number">0x00</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_JEQ</span>: <span class="ident">::__u32</span> <span class="op">=</span> <span class="number">0x10</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_JGT</span>: <span class="ident">::__u32</span> <span class="op">=</span> <span class="number">0x20</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_JGE</span>: <span class="ident">::__u32</span> <span class="op">=</span> <span class="number">0x30</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_JSET</span>: <span class="ident">::__u32</span> <span class="op">=</span> <span class="number">0x40</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_K</span>: <span class="ident">::__u32</span> <span class="op">=</span> <span class="number">0x00</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_X</span>: <span class="ident">::__u32</span> <span class="op">=</span> <span class="number">0x08</span>;
+
 <span class="comment">// linux/openat2.h</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RESOLVE_NO_XDEV</span>: <span class="ident">::__u64</span> <span class="op">=</span> <span class="number">0x01</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RESOLVE_NO_MAGICLINKS</span>: <span class="ident">::__u64</span> <span class="op">=</span> <span class="number">0x02</span>;
@@ -7184,6 +7325,22 @@ pub const NFQA_VLAN_TCI: ::c_int = 2;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SO_EE_OFFENDER</span>(<span class="ident">ee</span>: <span class="kw-2">*const</span> <span class="ident">::sock_extended_err</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">::sockaddr</span> {
         <span class="ident">ee</span>.<span class="ident">offset</span>(<span class="number">1</span>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">::sockaddr</span>
     }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">BPF_RVAL</span>(<span class="ident">code</span>: <span class="ident">::__u32</span>) -&gt; <span class="ident">::__u32</span> {
+        <span class="ident">code</span> <span class="op">&amp;</span> <span class="number">0x18</span>
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">BPF_MISCOP</span>(<span class="ident">code</span>: <span class="ident">::__u32</span>) -&gt; <span class="ident">::__u32</span> {
+        <span class="ident">code</span> <span class="op">&amp;</span> <span class="number">0xf8</span>
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">BPF_STMT</span>(<span class="ident">code</span>: <span class="ident">::__u16</span>, <span class="ident">k</span>: <span class="ident">::__u32</span>) -&gt; <span class="ident">sock_filter</span> {
+        <span class="ident">sock_filter</span>{<span class="ident">code</span>: <span class="ident">code</span>, <span class="ident">jt</span>: <span class="number">0</span>, <span class="ident">jf</span>: <span class="number">0</span>, <span class="ident">k</span>: <span class="ident">k</span>}
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">BPF_JUMP</span>(<span class="ident">code</span>: <span class="ident">::__u16</span>, <span class="ident">k</span>: <span class="ident">::__u32</span>, <span class="ident">jt</span>: <span class="ident">::__u8</span>, <span class="ident">jf</span>: <span class="ident">::__u8</span>) -&gt; <span class="ident">sock_filter</span> {
+        <span class="ident">sock_filter</span>{<span class="ident">code</span>: <span class="ident">code</span>, <span class="ident">jt</span>: <span class="ident">jt</span>, <span class="ident">jf</span>: <span class="ident">jf</span>, <span class="ident">k</span>: <span class="ident">k</span>}
+    }
 }
 
 <span class="macro">cfg_if!</span> {
@@ -7497,7 +7654,6 @@ pub const NFQA_VLAN_TCI: ::c_int = 2;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">seekdir</span>(<span class="ident">dirp</span>: <span class="kw-2">*mut</span> <span class="ident">::DIR</span>, <span class="ident">loc</span>: <span class="ident">::c_long</span>);
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">telldir</span>(<span class="ident">dirp</span>: <span class="kw-2">*mut</span> <span class="ident">::DIR</span>) -&gt; <span class="ident">::c_long</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mlock2</span>(<span class="ident">addr</span>: <span class="kw-2">*const</span> <span class="ident">::c_void</span>, <span class="ident">len</span>: <span class="ident">::size_t</span>, <span class="ident">flags</span>: <span class="ident">::c_uint</span>) -&gt; <span class="ident">::c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">madvise</span>(<span class="ident">addr</span>: <span class="kw-2">*mut</span> <span class="ident">::c_void</span>, <span class="ident">len</span>: <span class="ident">::size_t</span>, <span class="ident">advice</span>: <span class="ident">::c_int</span>) -&gt; <span class="ident">::c_int</span>;
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">msync</span>(<span class="ident">addr</span>: <span class="kw-2">*mut</span> <span class="ident">::c_void</span>, <span class="ident">len</span>: <span class="ident">::size_t</span>, <span class="ident">flags</span>: <span class="ident">::c_int</span>) -&gt; <span class="ident">::c_int</span>;

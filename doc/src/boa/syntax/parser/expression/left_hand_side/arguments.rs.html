@@ -114,6 +114,13 @@
 <span id="113">113</span>
 <span id="114">114</span>
 <span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Argument parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -124,6 +131,7 @@
 <span class="doccomment">//! [spec]: https://tc39.es/ecma262/#prod-Arguments</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::lexer::TokenKind</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Interner</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">syntax</span>::{
         <span class="ident">ast</span>::{<span class="ident">node::Spread</span>, <span class="ident">Node</span>, <span class="ident">Punctuator</span>},
@@ -172,49 +180,55 @@
 {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">Node</span>]<span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(
+        <span class="self">self</span>,
+        <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
+        <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Arguments&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
-        <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Punctuator::OpenParen</span>, <span class="string">&quot;arguments&quot;</span>)<span class="question-mark">?</span>;
+        <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Punctuator::OpenParen</span>, <span class="string">&quot;arguments&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">args</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
         <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="ident">next_token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">next_token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
 
             <span class="kw">match</span> <span class="ident">next_token</span>.<span class="ident">kind</span>() {
                 <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::CloseParen</span>) =&gt; {
-                    <span class="ident">cursor</span>.<span class="ident">next</span>()<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;) token vanished&quot;</span>); <span class="comment">// Consume the token.</span>
+                    <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;) token vanished&quot;</span>); <span class="comment">// Consume the token.</span>
                     <span class="kw">break</span>;
                 }
                 <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Comma</span>) =&gt; {
-                    <span class="kw">let</span> <span class="ident">next_token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>()<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;, token vanished&quot;</span>); <span class="comment">// Consume the token.</span>
+                    <span class="kw">let</span> <span class="ident">next_token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;, token vanished&quot;</span>); <span class="comment">// Consume the token.</span>
 
                     <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::unexpected</span>(<span class="ident">next_token</span>, <span class="prelude-val">None</span>));
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::unexpected</span>(
+                            <span class="ident">next_token</span>.<span class="ident">to_string</span>(<span class="ident">interner</span>),
+                            <span class="ident">next_token</span>.<span class="ident">span</span>(),
+                            <span class="prelude-val">None</span>,
+                        ));
                     }
 
-                    <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">next_if</span>(<span class="ident">Punctuator::CloseParen</span>)<span class="question-mark">?</span>.<span class="ident">is_some</span>() {
+                    <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">next_if</span>(<span class="ident">Punctuator::CloseParen</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">is_some</span>() {
                         <span class="kw">break</span>;
                     }
                 }
                 <span class="kw">_</span> =&gt; {
                     <span class="kw">if</span> <span class="op">!</span><span class="ident">args</span>.<span class="ident">is_empty</span>() {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::expected</span>(
-                            <span class="macro">vec!</span>[
-                                <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Comma</span>),
-                                <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::CloseParen</span>),
-                            ],
-                            <span class="ident">next_token</span>.<span class="ident">clone</span>(),
+                            [<span class="string">&quot;,&quot;</span>.<span class="ident">to_owned</span>(), <span class="string">&quot;}&quot;</span>.<span class="ident">to_owned</span>()],
+                            <span class="ident">next_token</span>.<span class="ident">to_string</span>(<span class="ident">interner</span>),
+                            <span class="ident">next_token</span>.<span class="ident">span</span>(),
                             <span class="string">&quot;argument list&quot;</span>,
                         ));
                     }
                 }
             }
 
-            <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">next_if</span>(<span class="ident">Punctuator::Spread</span>)<span class="question-mark">?</span>.<span class="ident">is_some</span>() {
+            <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">next_if</span>(<span class="ident">Punctuator::Spread</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">is_some</span>() {
                 <span class="ident">args</span>.<span class="ident">push</span>(
                     <span class="ident">Spread::new</span>(
                         <span class="ident">AssignmentExpression::new</span>(<span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                            .<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>,
+                            .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
                     )
                     .<span class="ident">into</span>(),
                 );
@@ -222,7 +236,7 @@
                 <span class="ident">cursor</span>.<span class="ident">set_goal</span>(<span class="ident">InputElement::RegExp</span>);
                 <span class="ident">args</span>.<span class="ident">push</span>(
                     <span class="ident">AssignmentExpression::new</span>(<span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                        .<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>,
+                        .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
                 );
             }
         }

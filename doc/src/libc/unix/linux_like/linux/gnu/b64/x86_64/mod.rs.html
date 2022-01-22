@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;libc-0.2.112&#x2F;src&#x2F;unix&#x2F;linux_like&#x2F;linux&#x2F;gnu&#x2F;b64&#x2F;x86_64&#x2F;mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../../../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../../../../../../storage.js"></script><script src="../../../../../../../../crates.js"></script><script defer src="../../../../../../../../main.js"></script><script defer src="../../../../../../../../source-script.js"></script><script defer src="../../../../../../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;libc-0.2.113&#x2F;src&#x2F;unix&#x2F;linux_like&#x2F;linux&#x2F;gnu&#x2F;b64&#x2F;x86_64&#x2F;mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../../../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../../../../../../storage.js"></script><script src="../../../../../../../../crates.js"></script><script defer src="../../../../../../../../main.js"></script><script defer src="../../../../../../../../source-script.js"></script><script defer src="../../../../../../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../../../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../../../../../libc/index.html'><div class='logo-container rust-logo'><img src='../../../../../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../../../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../../../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../../../../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -822,30 +822,6 @@
 <span id="821">821</span>
 <span id="822">822</span>
 <span id="823">823</span>
-<span id="824">824</span>
-<span id="825">825</span>
-<span id="826">826</span>
-<span id="827">827</span>
-<span id="828">828</span>
-<span id="829">829</span>
-<span id="830">830</span>
-<span id="831">831</span>
-<span id="832">832</span>
-<span id="833">833</span>
-<span id="834">834</span>
-<span id="835">835</span>
-<span id="836">836</span>
-<span id="837">837</span>
-<span id="838">838</span>
-<span id="839">839</span>
-<span id="840">840</span>
-<span id="841">841</span>
-<span id="842">842</span>
-<span id="843">843</span>
-<span id="844">844</span>
-<span id="845">845</span>
-<span id="846">846</span>
-<span id="847">847</span>
 </pre><pre class="rust"><code><span class="doccomment">//! x86_64-specific definitions for 64-bit linux-like values</span>
 
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">c_char</span> <span class="op">=</span> <span class="ident">i8</span>;
@@ -855,6 +831,7 @@
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">greg_t</span> <span class="op">=</span> <span class="ident">i64</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">suseconds_t</span> <span class="op">=</span> <span class="ident">i64</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">__u64</span> <span class="op">=</span> <span class="ident">::c_ulonglong</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">__s64</span> <span class="op">=</span> <span class="ident">::c_longlong</span>;
 
 <span class="macro">s!</span> {
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">sigaction</span> {
@@ -1112,6 +1089,12 @@
         <span class="kw">pub</span> <span class="ident">imr_address</span>: <span class="ident">::in_addr</span>,
         <span class="kw">pub</span> <span class="ident">imr_ifindex</span>: <span class="ident">::c_int</span>,
     }
+
+    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">seccomp_notif_sizes</span> {
+        <span class="kw">pub</span> <span class="ident">seccomp_notif</span>: <span class="ident">::__u16</span>,
+        <span class="kw">pub</span> <span class="ident">seccomp_notif_resp</span>: <span class="ident">::__u16</span>,
+        <span class="kw">pub</span> <span class="ident">seccomp_data</span>: <span class="ident">::__u16</span>,
+    }
 }
 
 <span class="macro">s_no_extra_traits!</span> {
@@ -1246,10 +1229,6 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RTLD_DEEPBIND</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">0x8</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RTLD_GLOBAL</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">0x100</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RTLD_NOLOAD</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">0x4</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCGSOFTCAR</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x5419</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSSOFTCAR</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x541A</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCGRS485</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">0x542E</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSRS485</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">0x542F</span>;
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIMIT_RSS</span>: <span class="ident">::__rlimit_resource_t</span> <span class="op">=</span> <span class="number">5</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIMIT_AS</span>: <span class="ident">::__rlimit_resource_t</span> <span class="op">=</span> <span class="number">9</span>;
@@ -1414,14 +1393,6 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCSADRAIN</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">1</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCSAFLUSH</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">2</span>;
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCLINUX</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x541C</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCGSERIAL</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x541E</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCEXCL</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x540C</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCNXCL</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x540D</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSCTTY</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x540E</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSTI</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x5412</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCCONS</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x541D</span>;
-
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SFD_CLOEXEC</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">0x080000</span>;
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCCS</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">32</span>;
@@ -1480,10 +1451,6 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENAVAIL</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">119</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EISNAM</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">120</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EREMOTEIO</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">121</span>;
-
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FIOCLEX</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x5451</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FIONCLEX</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x5450</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FIONBIO</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x5421</span>;
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PTRACE_GETFPREGS</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">14</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PTRACE_SETFPREGS</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">15</span>;
@@ -1593,26 +1560,6 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TOSTOP</span>: <span class="ident">::tcflag_t</span> <span class="op">=</span> <span class="number">0x00000100</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FLUSHO</span>: <span class="ident">::tcflag_t</span> <span class="op">=</span> <span class="number">0x00001000</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EXTPROC</span>: <span class="ident">::tcflag_t</span> <span class="op">=</span> <span class="number">0x00010000</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCGETS</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x5401</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCSETS</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x5402</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCSETSW</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x5403</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCSETSF</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x5404</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCGETA</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x5405</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCSETA</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x5406</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCSETAW</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x5407</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCSETAF</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x5408</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCSBRK</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x5409</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCXONC</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x540A</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCFLSH</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x540B</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCINQ</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x541B</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCGPGRP</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x540F</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSPGRP</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x5410</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCOUTQ</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x5411</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCGWINSZ</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x5413</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSWINSZ</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x5414</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FIONREAD</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x541B</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSBRK</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x5427</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCCBRK</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x5428</span>;
 
 <span class="comment">// offsets in user_regs_structs, from sys/reg.h</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R15</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">0</span>;
@@ -1667,6 +1614,11 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">REG_TRAPNO</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">20</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">REG_OLDMASK</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">21</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">REG_CR2</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">22</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SECCOMP_SET_MODE_STRICT</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SECCOMP_SET_MODE_FILTER</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SECCOMP_GET_ACTION_AVAIL</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">2</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SECCOMP_GET_NOTIF_SIZES</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">3</span>;
 
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getcontext</span>(<span class="ident">ucp</span>: <span class="kw-2">*mut</span> <span class="ident">ucontext_t</span>) -&gt; <span class="ident">::c_int</span>;

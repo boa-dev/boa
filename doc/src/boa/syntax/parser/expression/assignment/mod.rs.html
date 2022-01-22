@@ -232,6 +232,14 @@
 <span id="231">231</span>
 <span id="232">232</span>
 <span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Assignment operator parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -249,6 +257,7 @@
 <span class="kw">use</span> <span class="self">self</span>::<span class="ident">r#yield</span><span class="ident">::YieldExpression</span>;
 <span class="kw">use</span> <span class="self">self</span>::{<span class="ident">arrow_function::ArrowFunction</span>, <span class="ident">conditional::ConditionalExpression</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::lexer</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">LexError</span>, <span class="ident">InputElement</span>, <span class="ident">TokenKind</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Interner</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">syntax</span>::{
         <span class="ident">ast</span>::{
@@ -314,46 +323,53 @@
 {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Node</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) -&gt; <span class="ident">ParseResult</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;AssignmentExpression&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
         <span class="ident">cursor</span>.<span class="ident">set_goal</span>(<span class="ident">InputElement::Div</span>);
 
-        <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>.<span class="ident">kind</span>() {
+        <span class="kw">match</span> <span class="ident">cursor</span>
+            .<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
+            .<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>
+            .<span class="ident">kind</span>()
+        {
             <span class="comment">// [+Yield]YieldExpression[?In, ?Await]</span>
             <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Yield</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">allow_yield</span>.<span class="number">0</span> =&gt; {
-                <span class="kw">return</span> <span class="ident">YieldExpression::new</span>(<span class="self">self</span>.<span class="ident">allow_in</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)
+                <span class="kw">return</span> <span class="ident">YieldExpression::new</span>(<span class="self">self</span>.<span class="ident">allow_in</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
             }
             <span class="comment">// ArrowFunction[?In, ?Yield, ?Await] -&gt; ArrowParameters[?Yield, ?Await] -&gt; BindingIdentifier[?Yield, ?Await]</span>
             <span class="ident">TokenKind::Identifier</span>(<span class="kw">_</span>)
             <span class="op">|</span> <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Yield</span>)
             <span class="op">|</span> <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Await</span>) =&gt; {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">tok</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek_expect_no_lineterminator</span>(<span class="number">1</span>, <span class="string">&quot;assignment expression&quot;</span>) {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">tok</span>) <span class="op">=</span>
+                    <span class="ident">cursor</span>.<span class="ident">peek_expect_no_lineterminator</span>(<span class="number">1</span>, <span class="string">&quot;assignment expression&quot;</span>, <span class="ident">interner</span>)
+                {
                     <span class="kw">if</span> <span class="ident">tok</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Arrow</span>) {
                         <span class="kw">return</span> <span class="ident">ArrowFunction::new</span>(
                             <span class="self">self</span>.<span class="ident">allow_in</span>,
                             <span class="self">self</span>.<span class="ident">allow_yield</span>,
                             <span class="self">self</span>.<span class="ident">allow_await</span>,
                         )
-                        .<span class="ident">parse</span>(<span class="ident">cursor</span>)
+                        .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
                         .<span class="ident">map</span>(<span class="ident">Node::ArrowFunctionDecl</span>);
                     }
                 }
             }
             <span class="comment">// ArrowFunction[?In, ?Yield, ?Await] -&gt; ArrowParameters[?Yield, ?Await] -&gt; CoverParenthesizedExpressionAndArrowParameterList[?Yield, ?Await]</span>
             <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenParen</span>) =&gt; {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">next_token</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">1</span>)<span class="question-mark">?</span> {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">next_token</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">1</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
                     <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">next_token</span>.<span class="ident">kind</span>() {
                         <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::CloseParen</span>) =&gt; {
                             <span class="comment">// Need to check if the token after the close paren is an arrow, if so then this is an ArrowFunction</span>
                             <span class="comment">// otherwise it is an expression of the form (b).</span>
-                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">2</span>)<span class="question-mark">?</span> {
+                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">2</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
                                 <span class="kw">if</span> <span class="ident">t</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Arrow</span>) {
                                     <span class="kw">return</span> <span class="ident">ArrowFunction::new</span>(
                                         <span class="self">self</span>.<span class="ident">allow_in</span>,
                                         <span class="self">self</span>.<span class="ident">allow_yield</span>,
                                         <span class="self">self</span>.<span class="ident">allow_await</span>,
                                     )
-                                    .<span class="ident">parse</span>(<span class="ident">cursor</span>)
+                                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
                                     .<span class="ident">map</span>(<span class="ident">Node::ArrowFunctionDecl</span>);
                                 }
                             }
@@ -364,11 +380,11 @@
                                 <span class="self">self</span>.<span class="ident">allow_yield</span>,
                                 <span class="self">self</span>.<span class="ident">allow_await</span>,
                             )
-                            .<span class="ident">parse</span>(<span class="ident">cursor</span>)
+                            .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
                             .<span class="ident">map</span>(<span class="ident">Node::ArrowFunctionDecl</span>);
                         }
                         <span class="ident">TokenKind::Identifier</span>(<span class="kw">_</span>) =&gt; {
-                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">2</span>)<span class="question-mark">?</span> {
+                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">2</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
                                 <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">t</span>.<span class="ident">kind</span>() {
                                     <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Comma</span>) =&gt; {
                                         <span class="comment">// This must be an argument list and therefore (a, b) =&gt; {}</span>
@@ -377,13 +393,13 @@
                                             <span class="self">self</span>.<span class="ident">allow_yield</span>,
                                             <span class="self">self</span>.<span class="ident">allow_await</span>,
                                         )
-                                        .<span class="ident">parse</span>(<span class="ident">cursor</span>)
+                                        .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
                                         .<span class="ident">map</span>(<span class="ident">Node::ArrowFunctionDecl</span>);
                                     }
                                     <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::CloseParen</span>) =&gt; {
                                         <span class="comment">// Need to check if the token after the close paren is an arrow, if so then this is an ArrowFunction</span>
                                         <span class="comment">// otherwise it is an expression of the form (b).</span>
-                                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">3</span>)<span class="question-mark">?</span> {
+                                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">3</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
                                             <span class="kw">if</span> <span class="ident">t</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Arrow</span>)
                                             {
                                                 <span class="kw">return</span> <span class="ident">ArrowFunction::new</span>(
@@ -391,7 +407,7 @@
                                                     <span class="self">self</span>.<span class="ident">allow_yield</span>,
                                                     <span class="self">self</span>.<span class="ident">allow_await</span>,
                                                 )
-                                                .<span class="ident">parse</span>(<span class="ident">cursor</span>)
+                                                .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
                                                 .<span class="ident">map</span>(<span class="ident">Node::ArrowFunctionDecl</span>);
                                             }
                                         }
@@ -411,16 +427,16 @@
         <span class="ident">cursor</span>.<span class="ident">set_goal</span>(<span class="ident">InputElement::Div</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">ConditionalExpression::new</span>(<span class="self">self</span>.<span class="ident">allow_in</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-            .<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>;
+            .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// Review if we are trying to assign to an invalid left hand side expression.</span>
         <span class="comment">// TODO: can we avoid cloning?</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">tok</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>)<span class="question-mark">?</span>.<span class="ident">cloned</span>() {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">tok</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">cloned</span>() {
             <span class="kw">match</span> <span class="ident">tok</span>.<span class="ident">kind</span>() {
                 <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Assign</span>) =&gt; {
-                    <span class="ident">cursor</span>.<span class="ident">next</span>()<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;= token vanished&quot;</span>); <span class="comment">// Consume the token.</span>
+                    <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;= token vanished&quot;</span>); <span class="comment">// Consume the token.</span>
                     <span class="kw">if</span> <span class="ident">is_assignable</span>(<span class="kw-2">&amp;</span><span class="ident">lhs</span>) {
-                        <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">Assign::new</span>(<span class="ident">lhs</span>, <span class="self">self</span>.<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>).<span class="ident">into</span>();
+                        <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">Assign::new</span>(<span class="ident">lhs</span>, <span class="self">self</span>.<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>).<span class="ident">into</span>();
                     } <span class="kw">else</span> {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
                             <span class="string">&quot;Invalid left-hand side in assignment&quot;</span>.<span class="ident">into</span>(),
@@ -429,10 +445,10 @@
                     }
                 }
                 <span class="ident">TokenKind::Punctuator</span>(<span class="ident">p</span>) <span class="kw">if</span> <span class="ident">p</span>.<span class="ident">as_binop</span>().<span class="ident">is_some</span>() <span class="op">&amp;&amp;</span> <span class="ident">p</span> <span class="op">!</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">Punctuator::Comma</span> =&gt; {
-                    <span class="ident">cursor</span>.<span class="ident">next</span>()<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;token vanished&quot;</span>); <span class="comment">// Consume the token.</span>
+                    <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;token vanished&quot;</span>); <span class="comment">// Consume the token.</span>
                     <span class="kw">if</span> <span class="ident">is_assignable</span>(<span class="kw-2">&amp;</span><span class="ident">lhs</span>) {
                         <span class="kw">let</span> <span class="ident">binop</span> <span class="op">=</span> <span class="ident">p</span>.<span class="ident">as_binop</span>().<span class="ident">expect</span>(<span class="string">&quot;binop disappeared&quot;</span>);
-                        <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>;
+                        <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
                         <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">BinOp::new</span>(<span class="ident">binop</span>, <span class="ident">lhs</span>, <span class="ident">expr</span>).<span class="ident">into</span>();
                     } <span class="kw">else</span> {

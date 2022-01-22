@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;wasm-bindgen-0.2.79&#x2F;src&#x2F;convert&#x2F;impls.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>impls.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;wasm-bindgen-0.2.78&#x2F;src&#x2F;convert&#x2F;impls.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>impls.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../wasm_bindgen/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -408,78 +408,13 @@
 <span id="407">407</span>
 <span id="408">408</span>
 <span id="409">409</span>
-<span id="410">410</span>
-<span id="411">411</span>
-<span id="412">412</span>
-<span id="413">413</span>
-<span id="414">414</span>
-<span id="415">415</span>
-<span id="416">416</span>
-<span id="417">417</span>
-<span id="418">418</span>
-<span id="419">419</span>
-<span id="420">420</span>
-<span id="421">421</span>
-<span id="422">422</span>
-<span id="423">423</span>
-<span id="424">424</span>
-<span id="425">425</span>
-<span id="426">426</span>
-<span id="427">427</span>
-<span id="428">428</span>
-<span id="429">429</span>
-<span id="430">430</span>
-<span id="431">431</span>
-<span id="432">432</span>
-<span id="433">433</span>
-<span id="434">434</span>
-<span id="435">435</span>
-<span id="436">436</span>
-<span id="437">437</span>
-<span id="438">438</span>
-<span id="439">439</span>
-<span id="440">440</span>
-<span id="441">441</span>
-<span id="442">442</span>
-<span id="443">443</span>
-<span id="444">444</span>
-<span id="445">445</span>
-<span id="446">446</span>
-<span id="447">447</span>
-<span id="448">448</span>
-<span id="449">449</span>
-<span id="450">450</span>
-<span id="451">451</span>
-<span id="452">452</span>
-<span id="453">453</span>
-<span id="454">454</span>
-<span id="455">455</span>
-<span id="456">456</span>
-<span id="457">457</span>
-<span id="458">458</span>
-<span id="459">459</span>
-<span id="460">460</span>
-<span id="461">461</span>
-<span id="462">462</span>
-<span id="463">463</span>
-<span id="464">464</span>
-<span id="465">465</span>
-<span id="466">466</span>
-<span id="467">467</span>
-<span id="468">468</span>
-<span id="469">469</span>
-<span id="470">470</span>
-<span id="471">471</span>
-<span id="472">472</span>
-<span id="473">473</span>
-<span id="474">474</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">core::char</span>;
 <span class="kw">use</span> <span class="ident">core::mem</span>::{<span class="self">self</span>, <span class="ident">ManuallyDrop</span>};
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::convert::traits::WasmAbi</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::convert</span>::{<span class="ident">FromWasmAbi</span>, <span class="ident">IntoWasmAbi</span>, <span class="ident">RefFromWasmAbi</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::convert</span>::{<span class="ident">OptionFromWasmAbi</span>, <span class="ident">OptionIntoWasmAbi</span>, <span class="ident">ReturnWasmAbi</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Clamped</span>, <span class="ident">JsError</span>, <span class="ident">JsValue</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Clamped</span>, <span class="ident">JsValue</span>};
 
 <span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">WasmAbi</span> <span class="kw">for</span> () {}
 
@@ -871,80 +806,15 @@
     }
 }
 
-<span class="doccomment">/// This is an encoding of a Result. It can only store things that can be decoded by the JS</span>
-<span class="doccomment">/// bindings.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// At the moment, we do not write the exact struct packing layout of everything into the</span>
-<span class="doccomment">/// glue/descriptions of datatypes, so T cannot be arbitrary. The current requirements of the</span>
-<span class="doccomment">/// struct unpacker (StructUnpacker), which apply to ResultAbi&lt;T&gt; as a whole, are as follows:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// - repr(C), of course</span>
-<span class="doccomment">/// - u32/i32/f32/f64 fields at the &quot;leaf fields&quot; of the &quot;field tree&quot;</span>
-<span class="doccomment">/// - layout equivalent to a completely flattened repr(C) struct, constructed by an in order</span>
-<span class="doccomment">///   traversal of all the leaf fields in it.</span>
-<span class="doccomment">///  </span>
-<span class="doccomment">/// This means that you can&#39;t embed struct A(u32, f64) as struct B(u32, A); because the &quot;completely</span>
-<span class="doccomment">/// flattened&quot; struct AB(u32, u32, f64) would miss the 4 byte padding that is actually present</span>
-<span class="doccomment">/// within B and then as a consequence also miss the 4 byte padding within A that repr(C) inserts.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The enemy is padding. Padding is only required when there is an `f64` field. So the enemy is</span>
-<span class="doccomment">/// `f64` after anything else, particularly anything arbitrary. There is no smaller sized type, so</span>
-<span class="doccomment">/// we don&#39;t need to worry about 1-byte integers, etc. It&#39;s best, therefore, to place your f64s</span>
-<span class="doccomment">/// first in your structs, that&#39;s why we have `abi` first, although here it doesn&#39;t matter as the</span>
-<span class="doccomment">/// other two fields total 8 bytes anyway.</span>
-<span class="doccomment">///</span>
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ResultAbi</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// This field is the same size/align as `T`.</span>
-    <span class="ident">abi</span>: <span class="ident">ResultAbiUnion</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// Order of args here is such that we can pop() the possible error first, deal with it and</span>
-    <span class="doccomment">/// move on. Later fields are popped off the stack first.</span>
-    <span class="ident">err</span>: <span class="ident">u32</span>,
-    <span class="ident">is_err</span>: <span class="ident">u32</span>,
-}
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntoWasmAbi</span><span class="op">&gt;</span> <span class="ident">ReturnWasmAbi</span> <span class="kw">for</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">type</span> <span class="ident">Abi</span> <span class="op">=</span> <span class="ident">T::Abi</span>;
 
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">pub</span> <span class="kw">union</span> <span class="ident">ResultAbiUnion</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="comment">// ManuallyDrop is #[repr(transparent)]</span>
-    <span class="ident">ok</span>: <span class="ident">std::mem::ManuallyDrop</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-    <span class="ident">err</span>: (),
-}
-
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">WasmAbi</span><span class="op">&gt;</span> <span class="ident">WasmAbi</span> <span class="kw">for</span> <span class="ident">ResultAbi</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">WasmAbi</span><span class="op">&gt;</span> <span class="ident">WasmAbi</span> <span class="kw">for</span> <span class="ident">ResultAbiUnion</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntoWasmAbi</span>, <span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">ReturnWasmAbi</span> <span class="kw">for</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Abi</span> <span class="op">=</span> <span class="ident">ResultAbi</span><span class="op">&lt;</span><span class="ident">T::Abi</span><span class="op">&gt;</span>;
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">return_abi</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Abi</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">v</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">abi</span> <span class="op">=</span> <span class="ident">ResultAbiUnion</span> {
-                    <span class="ident">ok</span>: <span class="ident">std::mem::ManuallyDrop::new</span>(<span class="ident">v</span>.<span class="ident">into_abi</span>()),
-                };
-                <span class="ident">ResultAbi</span> {
-                    <span class="ident">abi</span>,
-                    <span class="ident">is_err</span>: <span class="number">0</span>,
-                    <span class="ident">err</span>: <span class="number">0</span>,
-                }
-            }
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">jsval</span> <span class="op">=</span> <span class="ident">e</span>.<span class="ident">into</span>();
-                <span class="ident">ResultAbi</span> {
-                    <span class="ident">abi</span>: <span class="ident">ResultAbiUnion</span> { <span class="ident">err</span>: () },
-                    <span class="ident">is_err</span>: <span class="number">1</span>,
-                    <span class="ident">err</span>: <span class="ident">jsval</span>.<span class="ident">into_abi</span>(),
-                }
-            }
+            <span class="prelude-val">Ok</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span>.<span class="ident">into_abi</span>(),
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="ident"><span class="kw">crate</span>::throw_val</span>(<span class="ident">e</span>),
         }
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">IntoWasmAbi</span> <span class="kw">for</span> <span class="ident">JsError</span> {
-    <span class="kw">type</span> <span class="ident">Abi</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">JsValue</span> <span class="kw">as</span> <span class="ident">IntoWasmAbi</span><span class="op">&gt;</span><span class="ident">::Abi</span>;
-
-    <span class="kw">fn</span> <span class="ident">into_abi</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Abi</span> {
-        <span class="self">self</span>.<span class="ident">value</span>.<span class="ident">into_abi</span>()
     }
 }
 </code></pre></div>

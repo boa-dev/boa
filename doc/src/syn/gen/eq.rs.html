@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;syn-1.0.83&#x2F;src&#x2F;gen&#x2F;eq.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>eq.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;syn-1.0.86&#x2F;src&#x2F;gen&#x2F;eq.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>eq.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../syn/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -2194,99 +2194,6 @@
 <span id="2193">2193</span>
 <span id="2194">2194</span>
 <span id="2195">2195</span>
-<span id="2196">2196</span>
-<span id="2197">2197</span>
-<span id="2198">2198</span>
-<span id="2199">2199</span>
-<span id="2200">2200</span>
-<span id="2201">2201</span>
-<span id="2202">2202</span>
-<span id="2203">2203</span>
-<span id="2204">2204</span>
-<span id="2205">2205</span>
-<span id="2206">2206</span>
-<span id="2207">2207</span>
-<span id="2208">2208</span>
-<span id="2209">2209</span>
-<span id="2210">2210</span>
-<span id="2211">2211</span>
-<span id="2212">2212</span>
-<span id="2213">2213</span>
-<span id="2214">2214</span>
-<span id="2215">2215</span>
-<span id="2216">2216</span>
-<span id="2217">2217</span>
-<span id="2218">2218</span>
-<span id="2219">2219</span>
-<span id="2220">2220</span>
-<span id="2221">2221</span>
-<span id="2222">2222</span>
-<span id="2223">2223</span>
-<span id="2224">2224</span>
-<span id="2225">2225</span>
-<span id="2226">2226</span>
-<span id="2227">2227</span>
-<span id="2228">2228</span>
-<span id="2229">2229</span>
-<span id="2230">2230</span>
-<span id="2231">2231</span>
-<span id="2232">2232</span>
-<span id="2233">2233</span>
-<span id="2234">2234</span>
-<span id="2235">2235</span>
-<span id="2236">2236</span>
-<span id="2237">2237</span>
-<span id="2238">2238</span>
-<span id="2239">2239</span>
-<span id="2240">2240</span>
-<span id="2241">2241</span>
-<span id="2242">2242</span>
-<span id="2243">2243</span>
-<span id="2244">2244</span>
-<span id="2245">2245</span>
-<span id="2246">2246</span>
-<span id="2247">2247</span>
-<span id="2248">2248</span>
-<span id="2249">2249</span>
-<span id="2250">2250</span>
-<span id="2251">2251</span>
-<span id="2252">2252</span>
-<span id="2253">2253</span>
-<span id="2254">2254</span>
-<span id="2255">2255</span>
-<span id="2256">2256</span>
-<span id="2257">2257</span>
-<span id="2258">2258</span>
-<span id="2259">2259</span>
-<span id="2260">2260</span>
-<span id="2261">2261</span>
-<span id="2262">2262</span>
-<span id="2263">2263</span>
-<span id="2264">2264</span>
-<span id="2265">2265</span>
-<span id="2266">2266</span>
-<span id="2267">2267</span>
-<span id="2268">2268</span>
-<span id="2269">2269</span>
-<span id="2270">2270</span>
-<span id="2271">2271</span>
-<span id="2272">2272</span>
-<span id="2273">2273</span>
-<span id="2274">2274</span>
-<span id="2275">2275</span>
-<span id="2276">2276</span>
-<span id="2277">2277</span>
-<span id="2278">2278</span>
-<span id="2279">2279</span>
-<span id="2280">2280</span>
-<span id="2281">2281</span>
-<span id="2282">2282</span>
-<span id="2283">2283</span>
-<span id="2284">2284</span>
-<span id="2285">2285</span>
-<span id="2286">2286</span>
-<span id="2287">2287</span>
-<span id="2288">2288</span>
 </pre><pre class="rust"><code><span class="comment">// This file is @generated by syn-internal-codegen.</span>
 <span class="comment">// It is not intended for manual editing.</span>
 
@@ -2320,11 +2227,8 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">Arm</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">pat</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">pat</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">guard</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">guard</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">body</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">body</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">comma</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">comma</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">pat</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">pat</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">guard</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">guard</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">body</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">body</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">comma</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">comma</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
@@ -2348,8 +2252,7 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">Attribute</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">style</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">style</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">path</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">path</span>
+        <span class="self">self</span>.<span class="ident">style</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">style</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">path</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">path</span>
             <span class="op">&amp;&amp;</span> <span class="ident">TokenStreamHelper</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">tokens</span>) <span class="op">==</span> <span class="ident">TokenStreamHelper</span>(<span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="ident">tokens</span>)
     }
 }
@@ -2440,11 +2343,8 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ConstParam</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ty</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ty</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">eq_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">eq_token</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">default</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">default</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ty</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ty</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">eq_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">eq_token</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">default</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">default</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
@@ -2509,11 +2409,8 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">DeriveInput</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">generics</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">generics</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">data</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">data</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">generics</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">generics</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">data</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">data</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
@@ -2627,9 +2524,7 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ExprAssignOp</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">left</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">left</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">op</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">op</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">left</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">left</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">op</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">op</span>
             <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">right</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">right</span>
     }
 }
@@ -2640,7 +2535,8 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ExprAsync</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">capture</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">capture</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">block</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">block</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">capture</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">capture</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">block</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">block</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -2660,9 +2556,7 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ExprBinary</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">left</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">left</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">op</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">op</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">left</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">left</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">op</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">op</span>
             <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">right</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">right</span>
     }
 }
@@ -2673,7 +2567,8 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ExprBlock</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">label</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">label</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">block</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">block</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">label</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">label</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">block</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">block</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -2723,12 +2618,9 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ExprClosure</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">asyncness</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">asyncness</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">movability</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">movability</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">capture</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">capture</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">inputs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">inputs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">output</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">output</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">movability</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">movability</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">asyncness</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">asyncness</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">capture</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">capture</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">inputs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">inputs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">output</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">output</span>
             <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">body</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">body</span>
     }
 }
@@ -2749,7 +2641,8 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ExprField</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">base</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">base</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">member</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">member</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">base</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">base</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">member</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">member</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -2759,11 +2652,8 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ExprForLoop</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">label</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">label</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">pat</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">pat</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">expr</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">expr</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">body</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">body</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">label</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">label</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">pat</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">pat</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">expr</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">expr</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">body</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">body</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -2783,8 +2673,7 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ExprIf</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">cond</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">cond</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">cond</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">cond</span>
             <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">then_branch</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">then_branch</span>
             <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">else_branch</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">else_branch</span>
     }
@@ -2856,10 +2745,8 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ExprMethodCall</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">receiver</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">receiver</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">method</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">method</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">turbofish</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">turbofish</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">receiver</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">receiver</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">method</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">method</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">turbofish</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">turbofish</span>
             <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">args</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">args</span>
     }
 }
@@ -2890,10 +2777,8 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ExprRange</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">from</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">from</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">limits</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">limits</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">to</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">to</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">from</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">from</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">limits</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">limits</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">to</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">to</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -2903,7 +2788,8 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ExprReference</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">mutability</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">mutability</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">expr</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">expr</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">mutability</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">mutability</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">expr</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">expr</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -2933,10 +2819,8 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ExprStruct</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">path</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">path</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">fields</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">fields</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">dot2_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">dot2_token</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">path</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">path</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">fields</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">fields</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">dot2_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">dot2_token</span>
             <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">rest</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">rest</span>
     }
 }
@@ -3007,9 +2891,7 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ExprWhile</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">label</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">label</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">cond</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">cond</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">label</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">label</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">cond</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">cond</span>
             <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">body</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">body</span>
     }
 }
@@ -3030,11 +2912,8 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">Field</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">colon_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">colon_token</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ty</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ty</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">colon_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">colon_token</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ty</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ty</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -3044,10 +2923,8 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">FieldPat</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">member</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">member</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">colon_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">colon_token</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">pat</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">pat</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">member</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">member</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">colon_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">colon_token</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">pat</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">pat</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -3057,10 +2934,8 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">FieldValue</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">member</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">member</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">colon_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">colon_token</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">expr</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">expr</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">member</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">member</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">colon_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">colon_token</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">expr</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">expr</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
@@ -3105,7 +2980,8 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">File</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">shebang</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">shebang</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">items</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">items</span>
+        <span class="self">self</span>.<span class="ident">shebang</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">shebang</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">items</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">items</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -3158,7 +3034,8 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ForeignItemMacro</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">mac</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">mac</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">semi_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">semi_token</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">mac</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">mac</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">semi_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">semi_token</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -3168,10 +3045,8 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ForeignItemStatic</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">mutability</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">mutability</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">mutability</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">mutability</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
             <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ty</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ty</span>
     }
 }
@@ -3196,12 +3071,18 @@
             (<span class="ident">GenericArgument::Lifetime</span>(<span class="ident">self0</span>), <span class="ident">GenericArgument::Lifetime</span>(<span class="ident">other0</span>)) =&gt; {
                 <span class="ident">self0</span> <span class="op">==</span> <span class="ident">other0</span>
             }
-            (<span class="ident">GenericArgument::Type</span>(<span class="ident">self0</span>), <span class="ident">GenericArgument::Type</span>(<span class="ident">other0</span>)) =&gt; <span class="ident">self0</span> <span class="op">==</span> <span class="ident">other0</span>,
-            (<span class="ident">GenericArgument::Binding</span>(<span class="ident">self0</span>), <span class="ident">GenericArgument::Binding</span>(<span class="ident">other0</span>)) =&gt; <span class="ident">self0</span> <span class="op">==</span> <span class="ident">other0</span>,
+            (<span class="ident">GenericArgument::Type</span>(<span class="ident">self0</span>), <span class="ident">GenericArgument::Type</span>(<span class="ident">other0</span>)) =&gt; {
+                <span class="ident">self0</span> <span class="op">==</span> <span class="ident">other0</span>
+            }
+            (<span class="ident">GenericArgument::Binding</span>(<span class="ident">self0</span>), <span class="ident">GenericArgument::Binding</span>(<span class="ident">other0</span>)) =&gt; {
+                <span class="ident">self0</span> <span class="op">==</span> <span class="ident">other0</span>
+            }
             (<span class="ident">GenericArgument::Constraint</span>(<span class="ident">self0</span>), <span class="ident">GenericArgument::Constraint</span>(<span class="ident">other0</span>)) =&gt; {
                 <span class="ident">self0</span> <span class="op">==</span> <span class="ident">other0</span>
             }
-            (<span class="ident">GenericArgument::Const</span>(<span class="ident">self0</span>), <span class="ident">GenericArgument::Const</span>(<span class="ident">other0</span>)) =&gt; <span class="ident">self0</span> <span class="op">==</span> <span class="ident">other0</span>,
+            (<span class="ident">GenericArgument::Const</span>(<span class="ident">self0</span>), <span class="ident">GenericArgument::Const</span>(<span class="ident">other0</span>)) =&gt; {
+                <span class="ident">self0</span> <span class="op">==</span> <span class="ident">other0</span>
+            }
             <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
@@ -3217,9 +3098,10 @@
             (<span class="ident">GenericMethodArgument::Type</span>(<span class="ident">self0</span>), <span class="ident">GenericMethodArgument::Type</span>(<span class="ident">other0</span>)) =&gt; {
                 <span class="ident">self0</span> <span class="op">==</span> <span class="ident">other0</span>
             }
-            (<span class="ident">GenericMethodArgument::Const</span>(<span class="ident">self0</span>), <span class="ident">GenericMethodArgument::Const</span>(<span class="ident">other0</span>)) =&gt; {
-                <span class="ident">self0</span> <span class="op">==</span> <span class="ident">other0</span>
-            }
+            (
+                <span class="ident">GenericMethodArgument::Const</span>(<span class="ident">self0</span>),
+                <span class="ident">GenericMethodArgument::Const</span>(<span class="ident">other0</span>),
+            ) =&gt; <span class="ident">self0</span> <span class="op">==</span> <span class="ident">other0</span>,
             <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
@@ -3233,7 +3115,9 @@
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
             (<span class="ident">GenericParam::Type</span>(<span class="ident">self0</span>), <span class="ident">GenericParam::Type</span>(<span class="ident">other0</span>)) =&gt; <span class="ident">self0</span> <span class="op">==</span> <span class="ident">other0</span>,
-            (<span class="ident">GenericParam::Lifetime</span>(<span class="ident">self0</span>), <span class="ident">GenericParam::Lifetime</span>(<span class="ident">other0</span>)) =&gt; <span class="ident">self0</span> <span class="op">==</span> <span class="ident">other0</span>,
+            (<span class="ident">GenericParam::Lifetime</span>(<span class="ident">self0</span>), <span class="ident">GenericParam::Lifetime</span>(<span class="ident">other0</span>)) =&gt; {
+                <span class="ident">self0</span> <span class="op">==</span> <span class="ident">other0</span>
+            }
             (<span class="ident">GenericParam::Const</span>(<span class="ident">self0</span>), <span class="ident">GenericParam::Const</span>(<span class="ident">other0</span>)) =&gt; <span class="ident">self0</span> <span class="op">==</span> <span class="ident">other0</span>,
             <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
@@ -3246,10 +3130,8 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">Generics</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">lt_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">lt_token</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">params</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">params</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">gt_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">gt_token</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">where_clause</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">where_clause</span>
+        <span class="self">self</span>.<span class="ident">lt_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">lt_token</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">params</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">params</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">gt_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">gt_token</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">where_clause</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">where_clause</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -3278,12 +3160,9 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ImplItemConst</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">defaultness</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">defaultness</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ty</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ty</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">expr</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">expr</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">defaultness</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">defaultness</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ty</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ty</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">expr</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">expr</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -3293,7 +3172,8 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ImplItemMacro</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">mac</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">mac</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">semi_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">semi_token</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">mac</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">mac</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">semi_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">semi_token</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -3303,10 +3183,8 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ImplItemMethod</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">defaultness</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">defaultness</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">sig</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">sig</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">defaultness</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">defaultness</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">sig</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">sig</span>
             <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">block</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">block</span>
     }
 }
@@ -3317,12 +3195,9 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ImplItemType</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">defaultness</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">defaultness</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">generics</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">generics</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ty</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ty</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">defaultness</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">defaultness</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">generics</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">generics</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ty</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ty</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -3363,11 +3238,8 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ItemConst</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ty</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ty</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">expr</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">expr</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ty</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ty</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">expr</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">expr</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -3377,11 +3249,8 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ItemEnum</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">generics</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">generics</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">variants</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">variants</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">generics</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">generics</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">variants</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">variants</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -3391,9 +3260,7 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ItemExternCrate</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
             <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">rename</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">rename</span>
     }
 }
@@ -3404,9 +3271,7 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ItemFn</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">sig</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">sig</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">sig</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">sig</span>
             <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">block</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">block</span>
     }
 }
@@ -3427,12 +3292,9 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ItemImpl</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">defaultness</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">defaultness</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">unsafety</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">unsafety</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">generics</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">generics</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">trait_</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">trait_</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">self_ty</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">self_ty</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">defaultness</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">defaultness</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">unsafety</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">unsafety</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">generics</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">generics</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">trait_</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">trait_</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">self_ty</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">self_ty</span>
             <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">items</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">items</span>
     }
 }
@@ -3443,9 +3305,7 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ItemMacro</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">mac</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">mac</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">mac</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">mac</span>
             <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">semi_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">semi_token</span>
     }
 }
@@ -3456,9 +3316,7 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ItemMacro2</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
             <span class="op">&amp;&amp;</span> <span class="ident">TokenStreamHelper</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">rules</span>) <span class="op">==</span> <span class="ident">TokenStreamHelper</span>(<span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="ident">rules</span>)
     }
 }
@@ -3469,11 +3327,8 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ItemMod</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">content</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">content</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">semi</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">semi</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">content</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">content</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">semi</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">semi</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -3483,12 +3338,9 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ItemStatic</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">mutability</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">mutability</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ty</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ty</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">expr</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">expr</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">mutability</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">mutability</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ty</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ty</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">expr</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">expr</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -3498,11 +3350,8 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ItemStruct</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">generics</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">generics</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">fields</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">fields</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">generics</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">generics</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">fields</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">fields</span>
             <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">semi_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">semi_token</span>
     }
 }
@@ -3513,15 +3362,11 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ItemTrait</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">unsafety</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">unsafety</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">auto_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">auto_token</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">generics</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">generics</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">unsafety</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">unsafety</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">auto_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">auto_token</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">generics</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">generics</span>
             <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">colon_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">colon_token</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">supertraits</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">supertraits</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">items</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">items</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">supertraits</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">supertraits</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">items</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">items</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -3531,11 +3376,8 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ItemTraitAlias</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">generics</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">generics</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">bounds</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">bounds</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">generics</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">generics</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">bounds</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">bounds</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -3545,11 +3387,8 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ItemType</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">generics</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">generics</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ty</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ty</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">generics</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">generics</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ty</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ty</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -3559,11 +3398,8 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ItemUnion</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">generics</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">generics</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">fields</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">fields</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">generics</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">generics</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">fields</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">fields</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -3573,10 +3409,8 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ItemUse</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">leading_colon</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">leading_colon</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">tree</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">tree</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vis</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">vis</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">leading_colon</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">leading_colon</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">tree</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">tree</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -3596,10 +3430,8 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">LifetimeDef</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">lifetime</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">lifetime</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">colon_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">colon_token</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">bounds</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">bounds</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">lifetime</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">lifetime</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">colon_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">colon_token</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">bounds</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">bounds</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
@@ -3659,8 +3491,7 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">Macro</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">path</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">path</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">delimiter</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">delimiter</span>
+        <span class="self">self</span>.<span class="ident">path</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">path</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">delimiter</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">delimiter</span>
             <span class="op">&amp;&amp;</span> <span class="ident">TokenStreamHelper</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">tokens</span>) <span class="op">==</span> <span class="ident">TokenStreamHelper</span>(<span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="ident">tokens</span>)
     }
 }
@@ -3795,10 +3626,8 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">PatIdent</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">by_ref</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">by_ref</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">mutability</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">mutability</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">by_ref</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">by_ref</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">mutability</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">mutability</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
             <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">subpat</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">subpat</span>
     }
 }
@@ -3829,8 +3658,7 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">PatOr</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">leading_vert</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">leading_vert</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">leading_vert</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">leading_vert</span>
             <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">cases</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">cases</span>
     }
 }
@@ -3851,9 +3679,7 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">PatRange</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">lo</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">lo</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">limits</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">limits</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">lo</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">lo</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">limits</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">limits</span>
             <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">hi</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">hi</span>
     }
 }
@@ -3864,7 +3690,8 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">PatReference</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">mutability</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">mutability</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">pat</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">pat</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">mutability</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">mutability</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">pat</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">pat</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -3894,10 +3721,8 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">PatStruct</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">path</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">path</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">fields</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">fields</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">dot2_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">dot2_token</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">path</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">path</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">fields</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">fields</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">dot2_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">dot2_token</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -3959,12 +3784,14 @@
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
             (<span class="ident">PathArguments::None</span>, <span class="ident">PathArguments::None</span>) =&gt; <span class="bool-val">true</span>,
-            (<span class="ident">PathArguments::AngleBracketed</span>(<span class="ident">self0</span>), <span class="ident">PathArguments::AngleBracketed</span>(<span class="ident">other0</span>)) =&gt; {
-                <span class="ident">self0</span> <span class="op">==</span> <span class="ident">other0</span>
-            }
-            (<span class="ident">PathArguments::Parenthesized</span>(<span class="ident">self0</span>), <span class="ident">PathArguments::Parenthesized</span>(<span class="ident">other0</span>)) =&gt; {
-                <span class="ident">self0</span> <span class="op">==</span> <span class="ident">other0</span>
-            }
+            (
+                <span class="ident">PathArguments::AngleBracketed</span>(<span class="ident">self0</span>),
+                <span class="ident">PathArguments::AngleBracketed</span>(<span class="ident">other0</span>),
+            ) =&gt; <span class="ident">self0</span> <span class="op">==</span> <span class="ident">other0</span>,
+            (
+                <span class="ident">PathArguments::Parenthesized</span>(<span class="ident">self0</span>),
+                <span class="ident">PathArguments::Parenthesized</span>(<span class="ident">other0</span>),
+            ) =&gt; <span class="ident">self0</span> <span class="op">==</span> <span class="ident">other0</span>,
             <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
@@ -4006,8 +3833,7 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">PredicateType</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">lifetimes</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">lifetimes</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">bounded_ty</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">bounded_ty</span>
+        <span class="self">self</span>.<span class="ident">lifetimes</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">lifetimes</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">bounded_ty</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">bounded_ty</span>
             <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">bounds</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">bounds</span>
     }
 }
@@ -4018,7 +3844,8 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">QSelf</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">ty</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ty</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">position</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">position</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">as_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">as_token</span>
+        <span class="self">self</span>.<span class="ident">ty</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ty</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">position</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">position</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">as_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">as_token</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -4042,8 +3869,7 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">Receiver</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">reference</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">reference</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">reference</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">reference</span>
             <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">mutability</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">mutability</span>
     }
 }
@@ -4068,14 +3894,10 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">Signature</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">constness</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">constness</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">asyncness</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">asyncness</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">unsafety</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">unsafety</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">abi</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">abi</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">generics</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">generics</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">inputs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">inputs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">variadic</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">variadic</span>
+        <span class="self">self</span>.<span class="ident">constness</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">constness</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">asyncness</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">asyncness</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">unsafety</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">unsafety</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">abi</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">abi</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">generics</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">generics</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">inputs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">inputs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">variadic</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">variadic</span>
             <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">output</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">output</span>
     }
 }
@@ -4102,10 +3924,8 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">TraitBound</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">paren_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">paren_token</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">modifier</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">modifier</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">lifetimes</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">lifetimes</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">path</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">path</span>
+        <span class="self">self</span>.<span class="ident">paren_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">paren_token</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">modifier</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">modifier</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">lifetimes</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">lifetimes</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">path</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">path</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
@@ -4148,9 +3968,7 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">TraitItemConst</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ty</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ty</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ty</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ty</span>
             <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">default</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">default</span>
     }
 }
@@ -4161,7 +3979,8 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">TraitItemMacro</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">mac</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">mac</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">semi_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">semi_token</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">mac</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">mac</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">semi_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">semi_token</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -4171,10 +3990,8 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">TraitItemMethod</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">sig</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">sig</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">default</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">default</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">semi_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">semi_token</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">sig</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">sig</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">default</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">default</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">semi_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">semi_token</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -4184,12 +4001,9 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">TraitItemType</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">generics</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">generics</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">colon_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">colon_token</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">bounds</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">bounds</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">default</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">default</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">generics</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">generics</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">colon_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">colon_token</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">bounds</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">bounds</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">default</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">default</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
@@ -4238,12 +4052,9 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">TypeBareFn</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">lifetimes</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">lifetimes</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">unsafety</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">unsafety</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">abi</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">abi</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">inputs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">inputs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">variadic</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">variadic</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">output</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">output</span>
+        <span class="self">self</span>.<span class="ident">lifetimes</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">lifetimes</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">unsafety</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">unsafety</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">abi</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">abi</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">inputs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">inputs</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">variadic</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">variadic</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">output</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">output</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
@@ -4303,12 +4114,9 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">TypeParam</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">colon_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">colon_token</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">bounds</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">bounds</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">eq_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">eq_token</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">default</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">default</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">colon_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">colon_token</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">bounds</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">bounds</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">eq_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">eq_token</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">default</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">default</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
@@ -4319,8 +4127,12 @@
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">TypeParamBound</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
-            (<span class="ident">TypeParamBound::Trait</span>(<span class="ident">self0</span>), <span class="ident">TypeParamBound::Trait</span>(<span class="ident">other0</span>)) =&gt; <span class="ident">self0</span> <span class="op">==</span> <span class="ident">other0</span>,
-            (<span class="ident">TypeParamBound::Lifetime</span>(<span class="ident">self0</span>), <span class="ident">TypeParamBound::Lifetime</span>(<span class="ident">other0</span>)) =&gt; <span class="ident">self0</span> <span class="op">==</span> <span class="ident">other0</span>,
+            (<span class="ident">TypeParamBound::Trait</span>(<span class="ident">self0</span>), <span class="ident">TypeParamBound::Trait</span>(<span class="ident">other0</span>)) =&gt; {
+                <span class="ident">self0</span> <span class="op">==</span> <span class="ident">other0</span>
+            }
+            (<span class="ident">TypeParamBound::Lifetime</span>(<span class="ident">self0</span>), <span class="ident">TypeParamBound::Lifetime</span>(<span class="ident">other0</span>)) =&gt; {
+                <span class="ident">self0</span> <span class="op">==</span> <span class="ident">other0</span>
+            }
             <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
@@ -4352,8 +4164,7 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">TypePtr</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">const_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">const_token</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">mutability</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">mutability</span>
+        <span class="self">self</span>.<span class="ident">const_token</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">const_token</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">mutability</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">mutability</span>
             <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">elem</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">elem</span>
     }
 }
@@ -4364,8 +4175,7 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">TypeReference</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">lifetime</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">lifetime</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">mutability</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">mutability</span>
+        <span class="self">self</span>.<span class="ident">lifetime</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">lifetime</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">mutability</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">mutability</span>
             <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">elem</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">elem</span>
     }
 }
@@ -4498,10 +4308,8 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">Variant</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">fields</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">fields</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">discriminant</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">discriminant</span>
+        <span class="self">self</span>.<span class="ident">attrs</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">attrs</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">fields</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">fields</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">discriminant</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">discriminant</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
@@ -4544,7 +4352,9 @@
         <span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
             (<span class="ident">Visibility::Public</span>(<span class="ident">self0</span>), <span class="ident">Visibility::Public</span>(<span class="ident">other0</span>)) =&gt; <span class="ident">self0</span> <span class="op">==</span> <span class="ident">other0</span>,
             (<span class="ident">Visibility::Crate</span>(<span class="ident">self0</span>), <span class="ident">Visibility::Crate</span>(<span class="ident">other0</span>)) =&gt; <span class="ident">self0</span> <span class="op">==</span> <span class="ident">other0</span>,
-            (<span class="ident">Visibility::Restricted</span>(<span class="ident">self0</span>), <span class="ident">Visibility::Restricted</span>(<span class="ident">other0</span>)) =&gt; <span class="ident">self0</span> <span class="op">==</span> <span class="ident">other0</span>,
+            (<span class="ident">Visibility::Restricted</span>(<span class="ident">self0</span>), <span class="ident">Visibility::Restricted</span>(<span class="ident">other0</span>)) =&gt; {
+                <span class="ident">self0</span> <span class="op">==</span> <span class="ident">other0</span>
+            }
             (<span class="ident">Visibility::Inherited</span>, <span class="ident">Visibility::Inherited</span>) =&gt; <span class="bool-val">true</span>,
             <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
@@ -4568,8 +4378,12 @@
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">WherePredicate</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
-            (<span class="ident">WherePredicate::Type</span>(<span class="ident">self0</span>), <span class="ident">WherePredicate::Type</span>(<span class="ident">other0</span>)) =&gt; <span class="ident">self0</span> <span class="op">==</span> <span class="ident">other0</span>,
-            (<span class="ident">WherePredicate::Lifetime</span>(<span class="ident">self0</span>), <span class="ident">WherePredicate::Lifetime</span>(<span class="ident">other0</span>)) =&gt; <span class="ident">self0</span> <span class="op">==</span> <span class="ident">other0</span>,
+            (<span class="ident">WherePredicate::Type</span>(<span class="ident">self0</span>), <span class="ident">WherePredicate::Type</span>(<span class="ident">other0</span>)) =&gt; {
+                <span class="ident">self0</span> <span class="op">==</span> <span class="ident">other0</span>
+            }
+            (<span class="ident">WherePredicate::Lifetime</span>(<span class="ident">self0</span>), <span class="ident">WherePredicate::Lifetime</span>(<span class="ident">other0</span>)) =&gt; {
+                <span class="ident">self0</span> <span class="op">==</span> <span class="ident">other0</span>
+            }
             (<span class="ident">WherePredicate::Eq</span>(<span class="ident">self0</span>), <span class="ident">WherePredicate::Eq</span>(<span class="ident">other0</span>)) =&gt; <span class="ident">self0</span> <span class="op">==</span> <span class="ident">other0</span>,
             <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }

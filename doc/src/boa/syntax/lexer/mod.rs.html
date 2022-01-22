@@ -320,6 +320,23 @@
 <span id="319">319</span>
 <span id="320">320</span>
 <span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A lexical analyzer for JavaScript source code.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This module contains the Boa lexer or tokenizer implementation.</span>
@@ -362,8 +379,11 @@
     <span class="ident">string::StringLiteral</span>,
     <span class="ident">template::TemplateLiteral</span>,
 };
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast</span>::{<span class="ident">Punctuator</span>, <span class="ident">Span</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">profiler::BoaProfiler</span>, <span class="ident">syntax::ast::Position</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">syntax::ast</span>::{<span class="ident">Punctuator</span>, <span class="ident">Span</span>},
+    <span class="ident">Interner</span>,
+};
 <span class="kw">use</span> <span class="ident">core::convert::TryFrom</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">error::Error</span>;
 <span class="kw">use</span> <span class="ident">std::io::Read</span>;
@@ -371,7 +391,12 @@
 
 <span class="kw">trait</span> <span class="ident">Tokenizer</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Lexes the next token.</span>
-    <span class="kw">fn</span> <span class="ident">lex</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">start_pos</span>: <span class="ident">Position</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Token</span>, <span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">lex</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
+        <span class="ident">start_pos</span>: <span class="ident">Position</span>,
+        <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Token</span>, <span class="ident">Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">R</span>: <span class="ident">Read</span>;
 }
@@ -442,7 +467,11 @@
     <span class="comment">// that means it could be multiple different tokens depending on the input token.</span>
     <span class="comment">//</span>
     <span class="comment">// As per https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">lex_slash_token</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">start</span>: <span class="ident">Position</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Token</span>, <span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">lex_slash_token</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">start</span>: <span class="ident">Position</span>,
+        <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Token</span>, <span class="ident">Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">R</span>: <span class="ident">Read</span>,
     {
@@ -452,11 +481,11 @@
             <span class="kw">match</span> <span class="ident">c</span> {
                 <span class="string">b&#39;/&#39;</span> =&gt; {
                     <span class="self">self</span>.<span class="ident">cursor</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;/ token vanished&quot;</span>); <span class="comment">// Consume the &#39;/&#39;</span>
-                    <span class="ident">SingleLineComment</span>.<span class="ident">lex</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>)
+                    <span class="ident">SingleLineComment</span>.<span class="ident">lex</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>, <span class="ident">interner</span>)
                 }
                 <span class="string">b&#39;*&#39;</span> =&gt; {
                     <span class="self">self</span>.<span class="ident">cursor</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;* token vanished&quot;</span>); <span class="comment">// Consume the &#39;*&#39;</span>
-                    <span class="ident">MultiLineComment</span>.<span class="ident">lex</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>)
+                    <span class="ident">MultiLineComment</span>.<span class="ident">lex</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>, <span class="ident">interner</span>)
                 }
                 <span class="ident">ch</span> =&gt; {
                     <span class="kw">match</span> <span class="self">self</span>.<span class="ident">get_goal</span>() {
@@ -479,7 +508,7 @@
                         }
                         <span class="ident">InputElement::RegExp</span> =&gt; {
                             <span class="comment">// Can be a regular expression.</span>
-                            <span class="ident">RegexLiteral</span>.<span class="ident">lex</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>)
+                            <span class="ident">RegexLiteral</span>.<span class="ident">lex</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>, <span class="ident">interner</span>)
                         }
                     }
                 }
@@ -495,7 +524,7 @@
     <span class="doccomment">/// Retrieves the next token from the lexer.</span>
     <span class="comment">// We intentionally don&#39;t implement Iterator trait as Result&lt;Option&gt; is cleaner to handle.</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::should_implement_trait</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">R</span>: <span class="ident">Read</span>,
     {
@@ -518,8 +547,8 @@
         <span class="kw">if</span> <span class="ident">start</span>.<span class="ident">column_number</span>() <span class="op">==</span> <span class="number">1</span> <span class="op">&amp;&amp;</span> <span class="ident">start</span>.<span class="ident">line_number</span>() <span class="op">==</span> <span class="number">1</span> <span class="op">&amp;&amp;</span> <span class="ident">next_ch</span> <span class="op">==</span> <span class="number">0x23</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">hashbang_peek</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">cursor</span>.<span class="ident">peek</span>()<span class="question-mark">?</span> {
                 <span class="kw">if</span> <span class="ident">hashbang_peek</span> <span class="op">==</span> <span class="number">0x21</span> {
-                    <span class="kw">let</span> <span class="ident">_token</span> <span class="op">=</span> <span class="ident">HashbangComment</span>.<span class="ident">lex</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>);
-                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">next</span>();
+                    <span class="kw">let</span> <span class="ident">_token</span> <span class="op">=</span> <span class="ident">HashbangComment</span>.<span class="ident">lex</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>, <span class="ident">interner</span>);
+                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">next</span>(<span class="ident">interner</span>);
                 }
             }
         };
@@ -530,8 +559,8 @@
                     <span class="ident">TokenKind::LineTerminator</span>,
                     <span class="ident">Span::new</span>(<span class="ident">start</span>, <span class="self">self</span>.<span class="ident">cursor</span>.<span class="ident">pos</span>()),
                 )),
-                <span class="string">&#39;&quot;&#39;</span> <span class="op">|</span> <span class="string">&#39;\&#39;&#39;</span> =&gt; <span class="ident">StringLiteral::new</span>(<span class="ident">c</span>).<span class="ident">lex</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>),
-                <span class="string">&#39;`&#39;</span> =&gt; <span class="ident">TemplateLiteral</span>.<span class="ident">lex</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>),
+                <span class="string">&#39;&quot;&#39;</span> <span class="op">|</span> <span class="string">&#39;\&#39;&#39;</span> =&gt; <span class="ident">StringLiteral::new</span>(<span class="ident">c</span>).<span class="ident">lex</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>, <span class="ident">interner</span>),
+                <span class="string">&#39;`&#39;</span> =&gt; <span class="ident">TemplateLiteral</span>.<span class="ident">lex</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>, <span class="ident">interner</span>),
                 <span class="string">&#39;;&#39;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Token::new</span>(
                     <span class="ident">Punctuator::Semicolon</span>.<span class="ident">into</span>(),
                     <span class="ident">Span::new</span>(<span class="ident">start</span>, <span class="self">self</span>.<span class="ident">cursor</span>.<span class="ident">pos</span>()),
@@ -542,9 +571,9 @@
                 )),
                 <span class="string">&#39;.&#39;</span> =&gt; {
                     <span class="kw">if</span> <span class="self">self</span>.<span class="ident">cursor</span>.<span class="ident">peek</span>()<span class="question-mark">?</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> (<span class="string">b&#39;0&#39;</span>..<span class="op">=</span><span class="string">b&#39;9&#39;</span>).<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">c</span>)) <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
-                        <span class="ident">NumberLiteral::new</span>(<span class="ident">next_ch</span> <span class="kw">as</span> <span class="ident">u8</span>).<span class="ident">lex</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>)
+                        <span class="ident">NumberLiteral::new</span>(<span class="ident">next_ch</span> <span class="kw">as</span> <span class="ident">u8</span>).<span class="ident">lex</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>, <span class="ident">interner</span>)
                     } <span class="kw">else</span> {
-                        <span class="ident">SpreadLiteral::new</span>().<span class="ident">lex</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>)
+                        <span class="ident">SpreadLiteral::new</span>().<span class="ident">lex</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>, <span class="ident">interner</span>)
                     }
                 }
                 <span class="string">&#39;(&#39;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Token::new</span>(
@@ -575,18 +604,18 @@
                     <span class="ident">Punctuator::CloseBracket</span>.<span class="ident">into</span>(),
                     <span class="ident">Span::new</span>(<span class="ident">start</span>, <span class="self">self</span>.<span class="ident">cursor</span>.<span class="ident">pos</span>()),
                 )),
-                <span class="string">&#39;/&#39;</span> =&gt; <span class="self">self</span>.<span class="ident">lex_slash_token</span>(<span class="ident">start</span>),
+                <span class="string">&#39;/&#39;</span> =&gt; <span class="self">self</span>.<span class="ident">lex_slash_token</span>(<span class="ident">start</span>, <span class="ident">interner</span>),
                 <span class="string">&#39;=&#39;</span> <span class="op">|</span> <span class="string">&#39;*&#39;</span> <span class="op">|</span> <span class="string">&#39;+&#39;</span> <span class="op">|</span> <span class="string">&#39;-&#39;</span> <span class="op">|</span> <span class="string">&#39;%&#39;</span> <span class="op">|</span> <span class="string">&#39;|&#39;</span> <span class="op">|</span> <span class="string">&#39;&amp;&#39;</span> <span class="op">|</span> <span class="string">&#39;^&#39;</span> <span class="op">|</span> <span class="string">&#39;&lt;&#39;</span> <span class="op">|</span> <span class="string">&#39;&gt;&#39;</span> <span class="op">|</span> <span class="string">&#39;!&#39;</span> <span class="op">|</span> <span class="string">&#39;~&#39;</span> <span class="op">|</span> <span class="string">&#39;?&#39;</span> =&gt; {
-                    <span class="ident">Operator::new</span>(<span class="ident">next_ch</span> <span class="kw">as</span> <span class="ident">u8</span>).<span class="ident">lex</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>)
+                    <span class="ident">Operator::new</span>(<span class="ident">next_ch</span> <span class="kw">as</span> <span class="ident">u8</span>).<span class="ident">lex</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>, <span class="ident">interner</span>)
                 }
                 <span class="string">&#39;\\&#39;</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">cursor</span>.<span class="ident">peek</span>()<span class="question-mark">?</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="string">b&#39;u&#39;</span>) =&gt; {
-                    <span class="ident">Identifier::new</span>(<span class="ident">c</span>).<span class="ident">lex</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>)
+                    <span class="ident">Identifier::new</span>(<span class="ident">c</span>).<span class="ident">lex</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>, <span class="ident">interner</span>)
                 }
                 <span class="kw">_</span> <span class="kw">if</span> <span class="ident">Identifier::is_identifier_start</span>(<span class="ident">c</span> <span class="kw">as</span> <span class="ident">u32</span>) =&gt; {
-                    <span class="ident">Identifier::new</span>(<span class="ident">c</span>).<span class="ident">lex</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>)
+                    <span class="ident">Identifier::new</span>(<span class="ident">c</span>).<span class="ident">lex</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>, <span class="ident">interner</span>)
                 }
                 <span class="kw">_</span> <span class="kw">if</span> <span class="ident">c</span>.<span class="ident">is_digit</span>(<span class="number">10</span>) =&gt; {
-                    <span class="ident">NumberLiteral::new</span>(<span class="ident">next_ch</span> <span class="kw">as</span> <span class="ident">u8</span>).<span class="ident">lex</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>)
+                    <span class="ident">NumberLiteral::new</span>(<span class="ident">next_ch</span> <span class="kw">as</span> <span class="ident">u8</span>).<span class="ident">lex</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>, <span class="ident">interner</span>)
                 }
                 <span class="kw">_</span> =&gt; {
                     <span class="kw">let</span> <span class="ident">details</span> <span class="op">=</span> <span class="macro">format!</span>(
@@ -601,7 +630,7 @@
 
             <span class="kw">if</span> <span class="ident">token</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Comment</span> {
                 <span class="comment">// Skip comment</span>
-                <span class="self">self</span>.<span class="ident">next</span>()
+                <span class="self">self</span>.<span class="ident">next</span>(<span class="ident">interner</span>)
             } <span class="kw">else</span> {
                 <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">token</span>))
             }
@@ -618,11 +647,16 @@
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">lex_template</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">start</span>: <span class="ident">Position</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Token</span>, <span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="doccomment">/// Performs the lexing of a template literal.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">lex_template</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">start</span>: <span class="ident">Position</span>,
+        <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Token</span>, <span class="ident">Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">R</span>: <span class="ident">Read</span>,
     {
-        <span class="ident">TemplateLiteral</span>.<span class="ident">lex</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>)
+        <span class="ident">TemplateLiteral</span>.<span class="ident">lex</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>, <span class="ident">interner</span>)
     }
 }
 

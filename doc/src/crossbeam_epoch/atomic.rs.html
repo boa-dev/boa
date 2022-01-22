@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;crossbeam-epoch-0.9.5&#x2F;src&#x2F;atomic.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>atomic.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;crossbeam-epoch-0.9.6&#x2F;src&#x2F;atomic.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>atomic.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../crossbeam_epoch/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -1558,6 +1558,65 @@
 <span id="1557">1557</span>
 <span id="1558">1558</span>
 <span id="1559">1559</span>
+<span id="1560">1560</span>
+<span id="1561">1561</span>
+<span id="1562">1562</span>
+<span id="1563">1563</span>
+<span id="1564">1564</span>
+<span id="1565">1565</span>
+<span id="1566">1566</span>
+<span id="1567">1567</span>
+<span id="1568">1568</span>
+<span id="1569">1569</span>
+<span id="1570">1570</span>
+<span id="1571">1571</span>
+<span id="1572">1572</span>
+<span id="1573">1573</span>
+<span id="1574">1574</span>
+<span id="1575">1575</span>
+<span id="1576">1576</span>
+<span id="1577">1577</span>
+<span id="1578">1578</span>
+<span id="1579">1579</span>
+<span id="1580">1580</span>
+<span id="1581">1581</span>
+<span id="1582">1582</span>
+<span id="1583">1583</span>
+<span id="1584">1584</span>
+<span id="1585">1585</span>
+<span id="1586">1586</span>
+<span id="1587">1587</span>
+<span id="1588">1588</span>
+<span id="1589">1589</span>
+<span id="1590">1590</span>
+<span id="1591">1591</span>
+<span id="1592">1592</span>
+<span id="1593">1593</span>
+<span id="1594">1594</span>
+<span id="1595">1595</span>
+<span id="1596">1596</span>
+<span id="1597">1597</span>
+<span id="1598">1598</span>
+<span id="1599">1599</span>
+<span id="1600">1600</span>
+<span id="1601">1601</span>
+<span id="1602">1602</span>
+<span id="1603">1603</span>
+<span id="1604">1604</span>
+<span id="1605">1605</span>
+<span id="1606">1606</span>
+<span id="1607">1607</span>
+<span id="1608">1608</span>
+<span id="1609">1609</span>
+<span id="1610">1610</span>
+<span id="1611">1611</span>
+<span id="1612">1612</span>
+<span id="1613">1613</span>
+<span id="1614">1614</span>
+<span id="1615">1615</span>
+<span id="1616">1616</span>
+<span id="1617">1617</span>
+<span id="1618">1618</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">core::borrow</span>::{<span class="ident">Borrow</span>, <span class="ident">BorrowMut</span>};
 <span class="kw">use</span> <span class="ident">core::cmp</span>;
 <span class="kw">use</span> <span class="ident">core::fmt</span>;
@@ -2120,6 +2179,65 @@
                     <span class="ident">new</span>: <span class="ident">P::from_usize</span>(<span class="ident">new</span>),
                 }
             })
+    }
+
+    <span class="doccomment">/// Fetches the pointer, and then applies a function to it that returns a new value.</span>
+    <span class="doccomment">/// Returns a `Result` of `Ok(previous_value)` if the function returned `Some`, else `Err(_)`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Note that the given function may be called multiple times if the value has been changed by</span>
+    <span class="doccomment">/// other threads in the meantime, as long as the function returns `Some(_)`, but the function</span>
+    <span class="doccomment">/// will have been applied only once to the stored value.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// `fetch_update` takes two [`Ordering`] arguments to describe the memory</span>
+    <span class="doccomment">/// ordering of this operation. The first describes the required ordering for</span>
+    <span class="doccomment">/// when the operation finally succeeds while the second describes the</span>
+    <span class="doccomment">/// required ordering for loads. These correspond to the success and failure</span>
+    <span class="doccomment">/// orderings of [`Atomic::compare_exchange`] respectively.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Using [`Acquire`] as success ordering makes the store part of this</span>
+    <span class="doccomment">/// operation [`Relaxed`], and using [`Release`] makes the final successful</span>
+    <span class="doccomment">/// load [`Relaxed`]. The (failed) load ordering can only be [`SeqCst`],</span>
+    <span class="doccomment">/// [`Acquire`] or [`Relaxed`] and must be equivalent to or weaker than the</span>
+    <span class="doccomment">/// success ordering.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [`Relaxed`]: Ordering::Relaxed</span>
+    <span class="doccomment">/// [`Acquire`]: Ordering::Acquire</span>
+    <span class="doccomment">/// [`Release`]: Ordering::Release</span>
+    <span class="doccomment">/// [`SeqCst`]: Ordering::SeqCst</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use crossbeam_epoch::{self as epoch, Atomic};</span>
+    <span class="doccomment">/// use std::sync::atomic::Ordering::SeqCst;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let a = Atomic::new(1234);</span>
+    <span class="doccomment">/// let guard = &amp;epoch::pin();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let res1 = a.fetch_update(SeqCst, SeqCst, guard, |x| Some(x.with_tag(1)));</span>
+    <span class="doccomment">/// assert!(res1.is_ok());</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let res2 = a.fetch_update(SeqCst, SeqCst, guard, |x| None);</span>
+    <span class="doccomment">/// assert!(res2.is_err());</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fetch_update</span><span class="op">&lt;</span><span class="lifetime">&#39;g</span>, <span class="ident">F</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">set_order</span>: <span class="ident">Ordering</span>,
+        <span class="ident">fail_order</span>: <span class="ident">Ordering</span>,
+        <span class="ident">guard</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;g</span> <span class="ident">Guard</span>,
+        <span class="kw-2">mut</span> <span class="ident">func</span>: <span class="ident">F</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Shared</span><span class="op">&lt;</span><span class="lifetime">&#39;g</span>, <span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Shared</span><span class="op">&lt;</span><span class="lifetime">&#39;g</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">Shared</span><span class="op">&lt;</span><span class="lifetime">&#39;g</span>, <span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Shared</span><span class="op">&lt;</span><span class="lifetime">&#39;g</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">load</span>(<span class="ident">fail_order</span>, <span class="ident">guard</span>);
+        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">next</span>) <span class="op">=</span> <span class="ident">func</span>(<span class="ident">prev</span>) {
+            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">compare_exchange_weak</span>(<span class="ident">prev</span>, <span class="ident">next</span>, <span class="ident">set_order</span>, <span class="ident">fail_order</span>, <span class="ident">guard</span>) {
+                <span class="prelude-val">Ok</span>(<span class="ident">shared</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">shared</span>),
+                <span class="prelude-val">Err</span>(<span class="ident">next_prev</span>) =&gt; <span class="ident">prev</span> <span class="op">=</span> <span class="ident">next_prev</span>.<span class="ident">current</span>,
+            }
+        }
+        <span class="prelude-val">Err</span>(<span class="ident">prev</span>)
     }
 
     <span class="doccomment">/// Stores the pointer `new` (either `Shared` or `Owned`) into the atomic pointer if the current</span>

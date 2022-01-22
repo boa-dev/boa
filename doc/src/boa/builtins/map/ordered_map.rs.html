@@ -384,7 +384,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Computes in **O(1)** time (average).</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">V</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">get</span>(<span class="ident">key</span>).<span class="ident">map</span>(<span class="ident">Option::as_ref</span>).<span class="ident">flatten</span>()
+        <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">get</span>(<span class="ident">key</span>).<span class="ident">and_then</span>(<span class="ident">Option::as_ref</span>)
     }
 
     <span class="doccomment">/// Get a key-value pair by index.</span>

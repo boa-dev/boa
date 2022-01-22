@@ -3376,7 +3376,6 @@
 <span id="3375">3375</span>
 <span id="3376">3376</span>
 <span id="3377">3377</span>
-<span id="3378">3378</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `TypedArray` objects.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! A `TypedArray` object describes an array-like view of an underlying binary data buffer.</span>
@@ -6173,12 +6172,11 @@
         <span class="comment">// 6. Return name.</span>
         <span class="prelude-val">Ok</span>(<span class="ident">this</span>
             .<span class="ident">as_object</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> {
+            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> {
                 <span class="ident">obj</span>.<span class="ident">borrow</span>()
                     .<span class="ident">as_typed_array</span>()
                     .<span class="ident">map</span>(<span class="op">|</span><span class="ident">o</span><span class="op">|</span> <span class="ident">o</span>.<span class="ident">typed_array_name</span>().<span class="ident">name</span>().<span class="ident">into</span>())
             })
-            .<span class="ident">flatten</span>()
             .<span class="ident">unwrap_or</span>(<span class="ident">JsValue::Undefined</span>))
     }
 

@@ -186,10 +186,23 @@
 <span id="185">185</span>
 <span id="186">186</span>
 <span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Error and result implementation for the parser.</span>
 
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast::Span</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast</span>::{<span class="ident">position::Position</span>, <span class="ident">Node</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::lexer</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">LexError</span>, <span class="ident">Token</span>, <span class="ident">TokenKind</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::lexer::Error</span> <span class="kw">as</span> <span class="ident">LexError</span>;
 <span class="kw">use</span> <span class="ident">std::fmt</span>;
 
 <span class="doccomment">/// Result of a parsing operation.</span>
@@ -216,13 +229,15 @@
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ParseError</span> {
     <span class="doccomment">/// When it expected a certain kind of token, but got another as part of something</span>
     <span class="ident">Expected</span> {
-        <span class="ident">expected</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">TokenKind</span>]<span class="op">&gt;</span>,
-        <span class="ident">found</span>: <span class="ident">Token</span>,
+        <span class="ident">expected</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">String</span>]<span class="op">&gt;</span>,
+        <span class="ident">found</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
+        <span class="ident">span</span>: <span class="ident">Span</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
     },
     <span class="doccomment">/// When a token is unexpected</span>
     <span class="ident">Unexpected</span> {
-        <span class="ident">found</span>: <span class="ident">Token</span>,
+        <span class="ident">found</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
+        <span class="ident">span</span>: <span class="ident">Span</span>,
         <span class="ident">message</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span>,
     },
     <span class="doccomment">/// When there is an abrupt end to the parsing</span>
@@ -246,31 +261,38 @@
     <span class="kw">fn</span> <span class="ident">context</span>(<span class="self">self</span>, <span class="ident">new_context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident"><span class="self">Self</span>::Expected</span> {
-                <span class="ident">expected</span>, <span class="ident">found</span>, ..
-            } =&gt; <span class="ident"><span class="self">Self</span>::expected</span>(<span class="ident">expected</span>, <span class="ident">found</span>, <span class="ident">new_context</span>),
+                <span class="ident">expected</span>,
+                <span class="ident">found</span>,
+                <span class="ident">span</span>,
+                ..
+            } =&gt; <span class="ident"><span class="self">Self</span>::expected</span>(<span class="ident">expected</span>, <span class="ident">found</span>, <span class="ident">span</span>, <span class="ident">new_context</span>),
             <span class="ident">e</span> =&gt; <span class="ident">e</span>,
         }
     }
 
     <span class="doccomment">/// Creates an `Expected` parsing error.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">expected</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">expected</span>: <span class="ident">E</span>, <span class="ident">found</span>: <span class="ident">Token</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">expected</span><span class="op">&lt;</span><span class="ident">E</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">expected</span>: <span class="ident">E</span>, <span class="ident">found</span>: <span class="ident">F</span>, <span class="ident">span</span>: <span class="ident">Span</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">TokenKind</span>]<span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">String</span>]<span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">F</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="ident"><span class="self">Self</span>::Expected</span> {
             <span class="ident">expected</span>: <span class="ident">expected</span>.<span class="ident">into</span>(),
-            <span class="ident">found</span>,
+            <span class="ident">found</span>: <span class="ident">found</span>.<span class="ident">into</span>(),
+            <span class="ident">span</span>,
             <span class="ident">context</span>,
         }
     }
 
     <span class="doccomment">/// Creates an `Expected` parsing error.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">unexpected</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="ident">found</span>: <span class="ident">Token</span>, <span class="ident">message</span>: <span class="ident">C</span>) -&gt; <span class="self">Self</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">unexpected</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">C</span><span class="op">&gt;</span>(<span class="ident">found</span>: <span class="ident">F</span>, <span class="ident">span</span>: <span class="ident">Span</span>, <span class="ident">message</span>: <span class="ident">C</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
+        <span class="ident">F</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">C</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="ident"><span class="self">Self</span>::Unexpected</span> {
-            <span class="ident">found</span>,
+            <span class="ident">found</span>: <span class="ident">found</span>.<span class="ident">into</span>(),
+            <span class="ident">span</span>,
             <span class="ident">message</span>: <span class="ident">message</span>.<span class="ident">into</span>(),
         }
     }
@@ -306,15 +328,13 @@
             <span class="ident"><span class="self">Self</span>::Expected</span> {
                 <span class="ident">expected</span>,
                 <span class="ident">found</span>,
+                <span class="ident">span</span>,
                 <span class="ident">context</span>,
             } =&gt; <span class="macro">write!</span>(
                 <span class="ident">f</span>,
                 <span class="string">&quot;expected {}, got &#39;{}&#39; in {} at line {}, col {}&quot;</span>,
                 <span class="kw">if</span> <span class="ident">expected</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
-                    <span class="macro">format!</span>(
-                        <span class="string">&quot;token &#39;{}&#39;&quot;</span>,
-                        <span class="ident">expected</span>.<span class="ident">first</span>().<span class="ident">map</span>(<span class="ident">TokenKind::to_string</span>).<span class="ident">unwrap</span>()
-                    )
+                    <span class="macro">format!</span>(<span class="string">&quot;token &#39;{}&#39;&quot;</span>, <span class="ident">expected</span>.<span class="ident">first</span>().<span class="ident">unwrap</span>())
                 } <span class="kw">else</span> {
                     <span class="macro">format!</span>(
                         <span class="string">&quot;one of {}&quot;</span>,
@@ -339,10 +359,14 @@
                 },
                 <span class="ident">found</span>,
                 <span class="ident">context</span>,
-                <span class="ident">found</span>.<span class="ident">span</span>().<span class="ident">start</span>().<span class="ident">line_number</span>(),
-                <span class="ident">found</span>.<span class="ident">span</span>().<span class="ident">start</span>().<span class="ident">column_number</span>()
+                <span class="ident">span</span>.<span class="ident">start</span>().<span class="ident">line_number</span>(),
+                <span class="ident">span</span>.<span class="ident">start</span>().<span class="ident">column_number</span>()
             ),
-            <span class="ident"><span class="self">Self</span>::Unexpected</span> { <span class="ident">found</span>, <span class="ident">message</span> } =&gt; <span class="macro">write!</span>(
+            <span class="ident"><span class="self">Self</span>::Unexpected</span> {
+                <span class="ident">found</span>,
+                <span class="ident">span</span>,
+                <span class="ident">message</span>,
+            } =&gt; <span class="macro">write!</span>(
                 <span class="ident">f</span>,
                 <span class="string">&quot;unexpected token &#39;{}&#39;{} at line {}, col {}&quot;</span>,
                 <span class="ident">found</span>,
@@ -351,8 +375,8 @@
                 } <span class="kw">else</span> {
                     <span class="ident">String::new</span>()
                 },
-                <span class="ident">found</span>.<span class="ident">span</span>().<span class="ident">start</span>().<span class="ident">line_number</span>(),
-                <span class="ident">found</span>.<span class="ident">span</span>().<span class="ident">start</span>().<span class="ident">column_number</span>()
+                <span class="ident">span</span>.<span class="ident">start</span>().<span class="ident">line_number</span>(),
+                <span class="ident">span</span>.<span class="ident">start</span>().<span class="ident">column_number</span>()
             ),
             <span class="ident"><span class="self">Self</span>::AbruptEnd</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;abrupt end&quot;</span>),
             <span class="ident"><span class="self">Self</span>::General</span> { <span class="ident">message</span>, <span class="ident">position</span> } =&gt; <span class="macro">write!</span>(

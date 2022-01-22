@@ -204,6 +204,25 @@
 <span id="203">203</span>
 <span id="204">204</span>
 <span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Primary expression parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -242,6 +261,7 @@
             <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
         },
     },
+    <span class="ident">Interner</span>,
 };
 <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">use</span> <span class="ident">object_initializer::Initializer</span>;
 
@@ -281,55 +301,59 @@
 {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Node</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) -&gt; <span class="ident">ParseResult</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;PrimaryExpression&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
         <span class="comment">// TODO: tok currently consumes the token instead of peeking, so the token</span>
         <span class="comment">// isn&#39;t passed and consumed by parsers according to spec (EX: GeneratorExpression)</span>
-        <span class="kw">let</span> <span class="ident">tok</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>()<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">tok</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
 
         <span class="kw">match</span> <span class="ident">tok</span>.<span class="ident">kind</span>() {
             <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::This</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Node::This</span>),
             <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Function</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">next_token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">next_token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
                 <span class="kw">if</span> <span class="ident">next_token</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Mul</span>) {
-                    <span class="ident">GeneratorExpression</span>.<span class="ident">parse</span>(<span class="ident">cursor</span>).<span class="ident">map</span>(<span class="ident">Node::from</span>)
+                    <span class="ident">GeneratorExpression</span>.<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>).<span class="ident">map</span>(<span class="ident">Node::from</span>)
                 } <span class="kw">else</span> {
-                    <span class="ident">FunctionExpression</span>.<span class="ident">parse</span>(<span class="ident">cursor</span>).<span class="ident">map</span>(<span class="ident">Node::from</span>)
+                    <span class="ident">FunctionExpression</span>.<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>).<span class="ident">map</span>(<span class="ident">Node::from</span>)
                 }
             }
             <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Async</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">mul_peek</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">1</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">mul_peek</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">1</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
                 <span class="kw">if</span> <span class="ident">mul_peek</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Mul</span>) {
-                    <span class="ident">AsyncGeneratorExpression</span>.<span class="ident">parse</span>(<span class="ident">cursor</span>).<span class="ident">map</span>(<span class="ident">Node::from</span>)
+                    <span class="ident">AsyncGeneratorExpression</span>
+                        .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
+                        .<span class="ident">map</span>(<span class="ident">Node::from</span>)
                 } <span class="kw">else</span> {
                     <span class="ident">AsyncFunctionExpression::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>)
-                        .<span class="ident">parse</span>(<span class="ident">cursor</span>)
+                        .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
                         .<span class="ident">map</span>(<span class="ident">Node::from</span>)
                 }
             }
             <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenParen</span>) =&gt; {
                 <span class="ident">cursor</span>.<span class="ident">set_goal</span>(<span class="ident">InputElement::RegExp</span>);
-                <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span>
-                    <span class="ident">Expression::new</span>(<span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>;
-                <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Punctuator::CloseParen</span>, <span class="string">&quot;primary expression&quot;</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="ident">Expression::new</span>(<span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+                <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Punctuator::CloseParen</span>, <span class="string">&quot;primary expression&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(<span class="ident">expr</span>)
             }
             <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenBracket</span>) =&gt; {
                 <span class="ident">cursor</span>.<span class="ident">set_goal</span>(<span class="ident">InputElement::RegExp</span>);
                 <span class="ident">ArrayLiteral::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                    .<span class="ident">parse</span>(<span class="ident">cursor</span>)
+                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
                     .<span class="ident">map</span>(<span class="ident">Node::ArrayDecl</span>)
             }
             <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenBlock</span>) =&gt; {
                 <span class="ident">cursor</span>.<span class="ident">set_goal</span>(<span class="ident">InputElement::RegExp</span>);
                 <span class="prelude-val">Ok</span>(<span class="ident">ObjectLiteral::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                    .<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>
+                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
                     .<span class="ident">into</span>())
             }
             <span class="ident">TokenKind::BooleanLiteral</span>(<span class="ident">boolean</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Const::from</span>(<span class="kw-2">*</span><span class="ident">boolean</span>).<span class="ident">into</span>()),
             <span class="ident">TokenKind::NullLiteral</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Const::Null</span>.<span class="ident">into</span>()),
-            <span class="ident">TokenKind::Identifier</span>(<span class="ident">ident</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Identifier::from</span>(<span class="ident">ident</span>.<span class="ident">as_ref</span>()).<span class="ident">into</span>()),
+            <span class="ident">TokenKind::Identifier</span>(<span class="ident">ident</span>) =&gt; {
+                <span class="prelude-val">Ok</span>(<span class="ident">Identifier::from</span>(<span class="ident">interner</span>.<span class="ident">resolve</span>(<span class="kw-2">*</span><span class="ident">ident</span>).<span class="ident">expect</span>(<span class="string">&quot;string disappeared&quot;</span>)).<span class="ident">into</span>())
+            }
             <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Yield</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">allow_yield</span>.<span class="number">0</span> =&gt; {
                 <span class="comment">// Early Error: It is a Syntax Error if this production has a [Yield] parameter and StringValue of Identifier is &quot;yield&quot;.</span>
                 <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
@@ -362,10 +386,15 @@
                 }
                 <span class="prelude-val">Ok</span>(<span class="ident">Identifier::from</span>(<span class="string">&quot;await&quot;</span>).<span class="ident">into</span>())
             }
-            <span class="ident">TokenKind::StringLiteral</span>(<span class="ident">s</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Const::from</span>(<span class="ident">s</span>.<span class="ident">as_ref</span>()).<span class="ident">into</span>()),
-            <span class="ident">TokenKind::TemplateNoSubstitution</span>(<span class="ident">template_string</span>) =&gt; {
-                <span class="prelude-val">Ok</span>(<span class="ident">Const::from</span>(<span class="ident">template_string</span>.<span class="ident">to_owned_cooked</span>().<span class="ident">map_err</span>(<span class="ident">ParseError::lex</span>)<span class="question-mark">?</span>).<span class="ident">into</span>())
+            <span class="ident">TokenKind::StringLiteral</span>(<span class="ident">lit</span>) =&gt; {
+                <span class="prelude-val">Ok</span>(<span class="ident">Const::from</span>(<span class="ident">interner</span>.<span class="ident">resolve</span>(<span class="kw-2">*</span><span class="ident">lit</span>).<span class="ident">expect</span>(<span class="string">&quot;string disappeared&quot;</span>)).<span class="ident">into</span>())
             }
+            <span class="ident">TokenKind::TemplateNoSubstitution</span>(<span class="ident">template_string</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Const::from</span>(
+                <span class="ident">template_string</span>
+                    .<span class="ident">to_owned_cooked</span>(<span class="ident">interner</span>)
+                    .<span class="ident">map_err</span>(<span class="ident">ParseError::lex</span>)<span class="question-mark">?</span>,
+            )
+            .<span class="ident">into</span>()),
             <span class="ident">TokenKind::NumericLiteral</span>(<span class="ident">Numeric::Integer</span>(<span class="ident">num</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Const::from</span>(<span class="kw-2">*</span><span class="ident">num</span>).<span class="ident">into</span>()),
             <span class="ident">TokenKind::NumericLiteral</span>(<span class="ident">Numeric::Rational</span>(<span class="ident">num</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Const::from</span>(<span class="kw-2">*</span><span class="ident">num</span>).<span class="ident">into</span>()),
             <span class="ident">TokenKind::NumericLiteral</span>(<span class="ident">Numeric::BigInt</span>(<span class="ident">num</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Const::from</span>(<span class="ident">num</span>.<span class="ident">clone</span>()).<span class="ident">into</span>()),
@@ -373,25 +402,30 @@
                 <span class="prelude-val">Ok</span>(<span class="ident">Node::from</span>(<span class="ident">New::from</span>(<span class="ident">Call::new</span>(
                     <span class="ident">Identifier::from</span>(<span class="string">&quot;RegExp&quot;</span>),
                     <span class="macro">vec!</span>[
-                        <span class="ident">Const::from</span>(<span class="ident">body</span>.<span class="ident">as_ref</span>()).<span class="ident">into</span>(),
+                        <span class="ident">Const::from</span>(<span class="ident">interner</span>.<span class="ident">resolve</span>(<span class="kw-2">*</span><span class="ident">body</span>).<span class="ident">expect</span>(<span class="string">&quot;string disappeared&quot;</span>)).<span class="ident">into</span>(),
                         <span class="ident">Const::from</span>(<span class="ident">flags</span>.<span class="ident">to_string</span>()).<span class="ident">into</span>(),
                     ],
                 ))))
             }
             <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Div</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">tok</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">lex_regex</span>(<span class="ident">tok</span>.<span class="ident">span</span>().<span class="ident">start</span>())<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">tok</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">lex_regex</span>(<span class="ident">tok</span>.<span class="ident">span</span>().<span class="ident">start</span>(), <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
                 <span class="kw">if</span> <span class="kw">let</span> <span class="ident">TokenKind::RegularExpressionLiteral</span>(<span class="ident">body</span>, <span class="ident">flags</span>) <span class="op">=</span> <span class="ident">tok</span>.<span class="ident">kind</span>() {
                     <span class="prelude-val">Ok</span>(<span class="ident">Node::from</span>(<span class="ident">New::from</span>(<span class="ident">Call::new</span>(
                         <span class="ident">Identifier::from</span>(<span class="string">&quot;RegExp&quot;</span>),
                         <span class="macro">vec!</span>[
-                            <span class="ident">Const::from</span>(<span class="ident">body</span>.<span class="ident">as_ref</span>()).<span class="ident">into</span>(),
+                            <span class="ident">Const::from</span>(<span class="ident">interner</span>.<span class="ident">resolve</span>(<span class="kw-2">*</span><span class="ident">body</span>).<span class="ident">expect</span>(<span class="string">&quot;string disappeared&quot;</span>))
+                                .<span class="ident">into</span>(),
                             <span class="ident">Const::from</span>(<span class="ident">flags</span>.<span class="ident">to_string</span>()).<span class="ident">into</span>(),
                         ],
                     ))))
                 } <span class="kw">else</span> {
                     <span class="comment">// A regex was expected and nothing else.</span>
-                    <span class="prelude-val">Err</span>(<span class="ident">ParseError::unexpected</span>(<span class="ident">tok</span>, <span class="string">&quot;regular expression literal&quot;</span>))
+                    <span class="prelude-val">Err</span>(<span class="ident">ParseError::unexpected</span>(
+                        <span class="ident">tok</span>.<span class="ident">to_string</span>(<span class="ident">interner</span>),
+                        <span class="ident">tok</span>.<span class="ident">span</span>(),
+                        <span class="string">&quot;regular expression literal&quot;</span>,
+                    ))
                 }
             }
             <span class="ident">TokenKind::TemplateMiddle</span>(<span class="ident">template_string</span>) =&gt; <span class="ident">TemplateLiteral::new</span>(
@@ -399,13 +433,17 @@
                 <span class="self">self</span>.<span class="ident">allow_await</span>,
                 <span class="ident">tok</span>.<span class="ident">span</span>().<span class="ident">start</span>(),
                 <span class="ident">template_string</span>
-                    .<span class="ident">to_owned_cooked</span>()
+                    .<span class="ident">to_owned_cooked</span>(<span class="ident">interner</span>)
                     .<span class="ident">map_err</span>(<span class="ident">ParseError::lex</span>)<span class="question-mark">?</span>
                     .<span class="ident">as_ref</span>(),
             )
-            .<span class="ident">parse</span>(<span class="ident">cursor</span>)
+            .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
             .<span class="ident">map</span>(<span class="ident">Node::TemplateLit</span>),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ParseError::unexpected</span>(<span class="ident">tok</span>.<span class="ident">clone</span>(), <span class="string">&quot;primary expression&quot;</span>)),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ParseError::unexpected</span>(
+                <span class="ident">tok</span>.<span class="ident">to_string</span>(<span class="ident">interner</span>),
+                <span class="ident">tok</span>.<span class="ident">span</span>(),
+                <span class="string">&quot;primary expression&quot;</span>,
+            )),
         }
     }
 }

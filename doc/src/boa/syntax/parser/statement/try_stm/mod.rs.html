@@ -101,6 +101,12 @@
 <span id="100">100</span>
 <span id="101">101</span>
 <span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
 </pre><pre class="rust"><code><span class="kw">mod</span> <span class="ident">catch</span>;
 <span class="kw">mod</span> <span class="ident">finally</span>;
 
@@ -111,6 +117,7 @@
 <span class="kw">use</span> <span class="ident"><span class="self">self</span>::finally::Finally</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::block::Block</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::lexer::TokenKind</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Interner</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">syntax</span>::{
         <span class="ident">ast</span>::{<span class="ident">node::Try</span>, <span class="ident">Keyword</span>},
@@ -158,41 +165,46 @@
 {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Try</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Try</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(
+        <span class="self">self</span>,
+        <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
+        <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;TryStatement&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
         <span class="comment">// TRY</span>
-        <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Keyword::Try</span>, <span class="string">&quot;try statement&quot;</span>)<span class="question-mark">?</span>;
+        <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Keyword::Try</span>, <span class="string">&quot;try statement&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">try_clause</span> <span class="op">=</span>
-            <span class="ident">Block::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="self">self</span>.<span class="ident">allow_return</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">try_clause</span> <span class="op">=</span> <span class="ident">Block::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="self">self</span>.<span class="ident">allow_return</span>)
+            .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">next_token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">next_token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
 
         <span class="kw">if</span> <span class="ident">next_token</span>.<span class="ident">kind</span>() <span class="op">!</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Catch</span>)
             <span class="op">&amp;&amp;</span> <span class="ident">next_token</span>.<span class="ident">kind</span>() <span class="op">!</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Finally</span>)
         {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::expected</span>(
-                <span class="macro">vec!</span>[
-                    <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Catch</span>),
-                    <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Finally</span>),
-                ],
-                <span class="ident">next_token</span>.<span class="ident">clone</span>(),
+                [<span class="string">&quot;catch&quot;</span>.<span class="ident">to_owned</span>(), <span class="string">&quot;finally&quot;</span>.<span class="ident">to_owned</span>()],
+                <span class="ident">next_token</span>.<span class="ident">to_string</span>(<span class="ident">interner</span>),
+                <span class="ident">next_token</span>.<span class="ident">span</span>(),
                 <span class="string">&quot;try statement&quot;</span>,
             ));
         }
 
         <span class="kw">let</span> <span class="ident">catch</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">next_token</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Catch</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">Catch::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="self">self</span>.<span class="ident">allow_return</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>)
+            <span class="prelude-val">Some</span>(
+                <span class="ident">Catch::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="self">self</span>.<span class="ident">allow_return</span>)
+                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
+            )
         } <span class="kw">else</span> {
             <span class="prelude-val">None</span>
         };
 
-        <span class="kw">let</span> <span class="ident">next_token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">next_token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">finally_block</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">token</span>) <span class="op">=</span> <span class="ident">next_token</span> {
             <span class="kw">match</span> <span class="ident">token</span>.<span class="ident">kind</span>() {
                 <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Finally</span>) =&gt; <span class="prelude-val">Some</span>(
                     <span class="ident">Finally::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="self">self</span>.<span class="ident">allow_return</span>)
-                        .<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>,
+                        .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
                 ),
                 <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
             }
