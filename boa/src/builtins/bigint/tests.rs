@@ -2,7 +2,7 @@ use crate::{forward, Context};
 
 #[test]
 fn equality() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(forward(&mut context, "0n == 0n"), "true");
     assert_eq!(forward(&mut context, "1n == 0n"), "false");
@@ -55,7 +55,7 @@ fn equality() {
 
 #[test]
 fn bigint_function_conversion_from_integer() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(forward(&mut context, "BigInt(1000)"), "1000n");
     assert_eq!(
@@ -70,7 +70,7 @@ fn bigint_function_conversion_from_integer() {
 
 #[test]
 fn bigint_function_conversion_from_rational() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(forward(&mut context, "BigInt(0.0)"), "0n");
     assert_eq!(forward(&mut context, "BigInt(1.0)"), "1n");
@@ -79,7 +79,7 @@ fn bigint_function_conversion_from_rational() {
 
 #[test]
 fn bigint_function_conversion_from_rational_with_fractional_part() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let scenario = r#"
         try {
@@ -96,7 +96,7 @@ fn bigint_function_conversion_from_rational_with_fractional_part() {
 
 #[test]
 fn bigint_function_conversion_from_null() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let scenario = r#"
         try {
@@ -113,7 +113,7 @@ fn bigint_function_conversion_from_null() {
 
 #[test]
 fn bigint_function_conversion_from_undefined() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let scenario = r#"
         try {
@@ -130,7 +130,7 @@ fn bigint_function_conversion_from_undefined() {
 
 #[test]
 fn bigint_function_conversion_from_string() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(forward(&mut context, "BigInt('')"), "0n");
     assert_eq!(forward(&mut context, "BigInt('   ')"), "0n");
@@ -149,21 +149,21 @@ fn bigint_function_conversion_from_string() {
 
 #[test]
 fn add() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(forward(&mut context, "10000n + 1000n"), "11000n");
 }
 
 #[test]
 fn sub() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(forward(&mut context, "10000n - 1000n"), "9000n");
 }
 
 #[test]
 fn mul() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(
         forward(&mut context, "123456789n * 102030n"),
@@ -173,28 +173,28 @@ fn mul() {
 
 #[test]
 fn div() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(forward(&mut context, "15000n / 50n"), "300n");
 }
 
 #[test]
 fn div_with_truncation() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(forward(&mut context, "15001n / 50n"), "300n");
 }
 
 #[test]
 fn r#mod() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(forward(&mut context, "15007n % 10n"), "7n");
 }
 
 #[test]
 fn pow() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(
         forward(&mut context, "100n ** 10n"),
@@ -204,42 +204,42 @@ fn pow() {
 
 #[test]
 fn pow_negative_exponent() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_throws(&mut context, "10n ** (-10n)", "RangeError");
 }
 
 #[test]
 fn shl() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(forward(&mut context, "8n << 2n"), "32n");
 }
 
 #[test]
 fn shl_out_of_range() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_throws(&mut context, "1000n << 1000000000000000n", "RangeError");
 }
 
 #[test]
 fn shr() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(forward(&mut context, "8n >> 2n"), "2n");
 }
 
 #[test]
 fn shr_out_of_range() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_throws(&mut context, "1000n >> 1000000000000000n", "RangeError");
 }
 
 #[test]
 fn to_string() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(forward(&mut context, "1000n.toString()"), "\"1000\"");
     assert_eq!(forward(&mut context, "1000n.toString(2)"), "\"1111101000\"");
@@ -249,7 +249,7 @@ fn to_string() {
 
 #[test]
 fn to_string_invalid_radix() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_throws(&mut context, "10n.toString(null)", "RangeError");
     assert_throws(&mut context, "10n.toString(-1)", "RangeError");
@@ -258,7 +258,7 @@ fn to_string_invalid_radix() {
 
 #[test]
 fn as_int_n() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(forward(&mut context, "BigInt.asIntN(0, 1n)"), "0n");
     assert_eq!(forward(&mut context, "BigInt.asIntN(1, 1n)"), "-1n");
@@ -318,7 +318,7 @@ fn as_int_n() {
 
 #[test]
 fn as_int_n_errors() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_throws(&mut context, "BigInt.asIntN(-1, 0n)", "RangeError");
     assert_throws(&mut context, "BigInt.asIntN(-2.5, 0n)", "RangeError");
@@ -332,7 +332,7 @@ fn as_int_n_errors() {
 
 #[test]
 fn as_uint_n() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(forward(&mut context, "BigInt.asUintN(0, -2n)"), "0n");
     assert_eq!(forward(&mut context, "BigInt.asUintN(0, -1n)"), "0n");
@@ -383,7 +383,7 @@ fn as_uint_n() {
 
 #[test]
 fn as_uint_n_errors() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_throws(&mut context, "BigInt.asUintN(-1, 0n)", "RangeError");
     assert_throws(&mut context, "BigInt.asUintN(-2.5, 0n)", "RangeError");
@@ -402,12 +402,12 @@ fn assert_throws(context: &mut Context, src: &str, error_type: &str) {
 
 #[test]
 fn division_by_zero() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     assert_throws(&mut context, "1n/0n", "RangeError");
 }
 
 #[test]
 fn remainder_by_zero() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     assert_throws(&mut context, "1n % 0n", "RangeError");
 }

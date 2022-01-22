@@ -25,7 +25,7 @@ use crate::{
             AllowAwait, AllowIn, AllowYield, Cursor, TokenParser,
         },
     },
-    BoaProfiler,
+    BoaProfiler, Interner,
 };
 
 use std::io::Read;
@@ -71,44 +71,52 @@ where
 {
     type Output = ArrowFunctionDecl;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ArrowFunction", "Parsing");
-        let next_token = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
+        let next_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
 
-        let (params, params_start_position) = if let TokenKind::Punctuator(Punctuator::OpenParen) =
-            &next_token.kind()
-        {
-            // CoverParenthesizedExpressionAndArrowParameterList
-            let params_start_position = cursor
-                .expect(Punctuator::OpenParen, "arrow function")?
-                .span()
-                .end();
+        let (params, params_start_position) =
+            if let TokenKind::Punctuator(Punctuator::OpenParen) = &next_token.kind() {
+                // CoverParenthesizedExpressionAndArrowParameterList
+                let params_start_position = cursor
+                    .expect(Punctuator::OpenParen, "arrow function", interner)?
+                    .span()
+                    .end();
 
-            let params = FormalParameters::new(self.allow_yield, self.allow_await).parse(cursor)?;
-            cursor.expect(Punctuator::CloseParen, "arrow function")?;
-            (params, params_start_position)
-        } else {
-            let params_start_position = next_token.span().start();
-            let param = BindingIdentifier::new(self.allow_yield, self.allow_await)
-                .parse(cursor)
-                .context("arrow function")?;
-            (
-                FormalParameterList {
-                    parameters: Box::new([FormalParameter::new(
-                        Declaration::new_with_identifier(param, None),
-                        false,
-                    )]),
-                    is_simple: true,
-                    has_duplicates: false,
-                },
-                params_start_position,
-            )
-        };
+                let params = FormalParameters::new(self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)?;
+                cursor.expect(Punctuator::CloseParen, "arrow function", interner)?;
+                (params, params_start_position)
+            } else {
+                let params_start_position = next_token.span().start();
+                let param = BindingIdentifier::new(self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)
+                    .context("arrow function")?;
+                (
+                    FormalParameterList {
+                        parameters: Box::new([FormalParameter::new(
+                            Declaration::new_with_identifier(param, None),
+                            false,
+                        )]),
+                        is_simple: true,
+                        has_duplicates: false,
+                    },
+                    params_start_position,
+                )
+            };
 
-        cursor.peek_expect_no_lineterminator(0, "arrow function")?;
+        cursor.peek_expect_no_lineterminator(0, "arrow function", interner)?;
 
-        cursor.expect(TokenKind::Punctuator(Punctuator::Arrow), "arrow function")?;
-        let body = ConciseBody::new(self.allow_in).parse(cursor)?;
+        cursor.expect(
+            TokenKind::Punctuator(Punctuator::Arrow),
+            "arrow function",
+            interner,
+        )?;
+        let body = ConciseBody::new(self.allow_in).parse(cursor, interner)?;
 
         // Early Error: ArrowFormalParameters are UniqueFormalParameters.
         if params.has_duplicates {
@@ -137,7 +145,7 @@ where
                     if lexically_declared_names.contains(param_name) {
                         return Err(ParseError::lex(LexError::Syntax(
                             format!("Redeclaration of formal parameter `{}`", param_name).into(),
-                            match cursor.peek(0)? {
+                            match cursor.peek(0, interner)? {
                                 Some(token) => token.span().end(),
                                 None => Position::new(1, 1),
                             },
@@ -175,16 +183,24 @@ where
 {
     type Output = StatementList;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
-        match cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind() {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> Result<Self::Output, ParseError> {
+        match cursor
+            .peek(0, interner)?
+            .ok_or(ParseError::AbruptEnd)?
+            .kind()
+        {
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                let _ = cursor.next();
-                let body = FunctionBody::new(false, false).parse(cursor)?;
-                cursor.expect(Punctuator::CloseBlock, "arrow function")?;
+                let _ = cursor.next(interner)?;
+                let body = FunctionBody::new(false, false).parse(cursor, interner)?;
+                cursor.expect(Punctuator::CloseBlock, "arrow function", interner)?;
                 Ok(body)
             }
             _ => Ok(StatementList::from(vec![Return::new(
-                ExpressionBody::new(self.allow_in, false).parse(cursor)?,
+                ExpressionBody::new(self.allow_in, false).parse(cursor, interner)?,
                 None,
             )
             .into()])),
@@ -219,7 +235,7 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
-        AssignmentExpression::new(self.allow_in, false, self.allow_await).parse(cursor)
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
+        AssignmentExpression::new(self.allow_in, false, self.allow_await).parse(cursor, interner)
     }
 }

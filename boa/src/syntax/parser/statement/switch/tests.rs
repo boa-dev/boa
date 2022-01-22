@@ -1,12 +1,15 @@
-use crate::syntax::{
-    ast::{
-        node::{
-            Break, Call, Case, Declaration, DeclarationList, GetConstField, Identifier, Node,
-            Switch,
+use crate::{
+    syntax::{
+        ast::{
+            node::{
+                Break, Call, Case, Declaration, DeclarationList, GetConstField, Identifier, Node,
+                Switch,
+            },
+            Const,
         },
-        Const,
+        parser::tests::{check_invalid, check_parser},
     },
-    parser::tests::{check_invalid, check_parser},
+    Interner,
 };
 
 /// Checks parsing malformed switch with no closeblock.
@@ -148,6 +151,7 @@ fn check_seperated_switch() {
         }
         "#;
 
+    let mut interner = Interner::new();
     check_parser(
         s,
         vec![
@@ -193,5 +197,6 @@ fn check_seperated_switch() {
             )
             .into(),
         ],
+        &mut interner,
     );
 }

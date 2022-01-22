@@ -125,7 +125,7 @@ impl Class for Person {
 
 fn main() {
     // First we need to create a Javascript context.
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     // Then we need to register the global class `Person` inside `context`.
     context.register_global_class::<Person>().unwrap();

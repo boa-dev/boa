@@ -16,7 +16,7 @@ use crate::{
             Cursor, ParseError, TokenParser,
         },
     },
-    BoaProfiler,
+    BoaProfiler, Interner,
 };
 use std::io::Read;
 
@@ -61,46 +61,52 @@ where
 {
     type Output = DoWhileLoop;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("DoWhileStatement", "Parsing");
 
         let position = cursor
-            .expect(Keyword::Do, "do while statement")?
+            .expect(Keyword::Do, "do while statement", interner)?
             .span()
             .end();
 
-        let body =
-            Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
+        let body = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
+            .parse(cursor, interner)?;
 
         // Early Error: It is a Syntax Error if IsLabelledFunction(Statement) is true.
         if let Node::FunctionDecl(_) = body {
             return Err(ParseError::wrong_function_declaration_non_strict(position));
         }
 
-        let next_token = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
+        let next_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
 
         if next_token.kind() != &TokenKind::Keyword(Keyword::While) {
             return Err(ParseError::expected(
-                vec![TokenKind::Keyword(Keyword::While)],
-                next_token.clone(),
+                ["while".to_owned()],
+                next_token.to_string(interner),
+                next_token.span(),
                 "do while statement",
             ));
         }
 
-        cursor.expect(Keyword::While, "do while statement")?;
+        cursor.expect(Keyword::While, "do while statement", interner)?;
 
-        cursor.expect(Punctuator::OpenParen, "do while statement")?;
+        cursor.expect(Punctuator::OpenParen, "do while statement", interner)?;
 
-        let cond = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+        let cond =
+            Expression::new(true, self.allow_yield, self.allow_await).parse(cursor, interner)?;
 
-        cursor.expect(Punctuator::CloseParen, "do while statement")?;
+        cursor.expect(Punctuator::CloseParen, "do while statement", interner)?;
 
         // Here, we only care to read the next token if it's a semicolon. If it's not, we
         // automatically "enter" or assume a semicolon, since we have just read the `)` token:
         // https://tc39.es/ecma262/#sec-automatic-semicolon-insertion
-        if let Some(tok) = cursor.peek(0)? {
+        if let Some(tok) = cursor.peek(0, interner)? {
             if let TokenKind::Punctuator(Punctuator::Semicolon) = *tok.kind() {
-                cursor.next()?;
+                cursor.next(interner)?;
             }
         }
 

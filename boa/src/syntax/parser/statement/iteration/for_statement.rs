@@ -21,7 +21,7 @@ use crate::{
             AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser,
         },
     },
-    BoaProfiler,
+    BoaProfiler, Interner,
 };
 use std::io::Read;
 
@@ -66,45 +66,57 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ForStatement", "Parsing");
-        cursor.expect(Keyword::For, "for statement")?;
+        cursor.expect(Keyword::For, "for statement", interner)?;
         let init_position = cursor
-            .expect(Punctuator::OpenParen, "for statement")?
+            .expect(Punctuator::OpenParen, "for statement", interner)?
             .span()
             .end();
 
-        let init = match cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind() {
+        let init = match cursor
+            .peek(0, interner)?
+            .ok_or(ParseError::AbruptEnd)?
+            .kind()
+        {
             TokenKind::Keyword(Keyword::Var) => {
-                let _ = cursor.next()?;
+                let _ = cursor.next(interner)?;
                 Some(
                     VariableDeclarationList::new(false, self.allow_yield, self.allow_await)
-                        .parse(cursor)
+                        .parse(cursor, interner)
                         .map(Node::from)?,
                 )
             }
-            TokenKind::Keyword(Keyword::Let) | TokenKind::Keyword(Keyword::Const) => {
-                Some(Declaration::new(self.allow_yield, self.allow_await, false).parse(cursor)?)
-            }
+            TokenKind::Keyword(Keyword::Let) | TokenKind::Keyword(Keyword::Const) => Some(
+                Declaration::new(self.allow_yield, self.allow_await, false)
+                    .parse(cursor, interner)?,
+            ),
             TokenKind::Punctuator(Punctuator::Semicolon) => None,
-            _ => Some(Expression::new(false, self.allow_yield, self.allow_await).parse(cursor)?),
+            _ => Some(
+                Expression::new(false, self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)?,
+            ),
         };
 
-        match cursor.peek(0)? {
+        match cursor.peek(0, interner)? {
             Some(tok) if tok.kind() == &TokenKind::Keyword(Keyword::In) && init.is_some() => {
                 let init = node_to_iterable_loop_initializer(&init.unwrap(), init_position)?;
 
-                let _ = cursor.next();
-                let expr =
-                    Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+                let _ = cursor.next(interner)?;
+                let expr = Expression::new(true, self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)?;
 
                 let position = cursor
-                    .expect(Punctuator::CloseParen, "for in statement")?
+                    .expect(Punctuator::CloseParen, "for in statement", interner)?
                     .span()
                     .end();
 
                 let body = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
-                    .parse(cursor)?;
+                    .parse(cursor, interner)?;
 
                 // Early Error: It is a Syntax Error if IsLabelledFunction(the first Statement) is true.
                 if let Node::FunctionDecl(_) = body {
@@ -116,17 +128,17 @@ where
             Some(tok) if tok.kind() == &TokenKind::Keyword(Keyword::Of) && init.is_some() => {
                 let init = node_to_iterable_loop_initializer(&init.unwrap(), init_position)?;
 
-                let _ = cursor.next();
-                let iterable =
-                    Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+                let _ = cursor.next(interner)?;
+                let iterable = Expression::new(true, self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)?;
 
                 let position = cursor
-                    .expect(Punctuator::CloseParen, "for of statement")?
+                    .expect(Punctuator::CloseParen, "for of statement", interner)?
                     .span()
                     .end();
 
                 let body = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
-                    .parse(cursor)?;
+                    .parse(cursor, interner)?;
 
                 // Early Error: It is a Syntax Error if IsLabelledFunction(the first Statement) is true.
                 if let Node::FunctionDecl(_) = body {
@@ -138,31 +150,38 @@ where
             _ => {}
         }
 
-        cursor.expect(Punctuator::Semicolon, "for statement")?;
+        cursor.expect(Punctuator::Semicolon, "for statement", interner)?;
 
-        let cond = if cursor.next_if(Punctuator::Semicolon)?.is_some() {
+        let cond = if cursor.next_if(Punctuator::Semicolon, interner)?.is_some() {
             Const::from(true).into()
         } else {
-            let step = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
-            cursor.expect(Punctuator::Semicolon, "for statement")?;
+            let step = Expression::new(true, self.allow_yield, self.allow_await)
+                .parse(cursor, interner)?;
+            cursor.expect(Punctuator::Semicolon, "for statement", interner)?;
             step
         };
 
-        let step = if cursor.next_if(Punctuator::CloseParen)?.is_some() {
+        let step = if cursor.next_if(Punctuator::CloseParen, interner)?.is_some() {
             None
         } else {
-            let step = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+            let step = Expression::new(true, self.allow_yield, self.allow_await)
+                .parse(cursor, interner)?;
             cursor.expect(
                 TokenKind::Punctuator(Punctuator::CloseParen),
                 "for statement",
+                interner,
             )?;
             Some(step)
         };
 
-        let position = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.span().start();
+        let position = cursor
+            .peek(0, interner)?
+            .ok_or(ParseError::AbruptEnd)?
+            .span()
+            .start();
 
-        let body =
-            Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
+        let body = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
+            .parse(cursor, interner)?;
 
         // Early Error: It is a Syntax Error if IsLabelledFunction(the first Statement) is true.
         if let Node::FunctionDecl(_) = body {

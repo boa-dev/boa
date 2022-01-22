@@ -2,7 +2,7 @@ use crate::{forward, Context};
 
 #[test]
 fn construct_empty() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var empty = new Set();
         "#;
@@ -13,7 +13,7 @@ fn construct_empty() {
 
 #[test]
 fn construct_from_array() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         let set = new Set(["one", "two"]);
         "#;
@@ -24,7 +24,7 @@ fn construct_from_array() {
 
 #[test]
 fn clone() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         let original = new Set(["one", "two"]);
         let clone = new Set(original);
@@ -45,7 +45,7 @@ fn clone() {
 
 #[test]
 fn symbol_iterator() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         const set1 = new Set();
         set1.add('foo');
@@ -72,7 +72,7 @@ fn symbol_iterator() {
 
 #[test]
 fn entries() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         const set1 = new Set();
         set1.add('foo');
@@ -107,7 +107,7 @@ fn entries() {
 
 #[test]
 fn merge() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         let first = new Set(["one", "two"]);
         let second = new Set(["three", "four"]);
@@ -124,7 +124,7 @@ fn merge() {
 
 #[test]
 fn clear() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         let set = new Set(["one", "two"]);
         set.clear();
@@ -136,7 +136,7 @@ fn clear() {
 
 #[test]
 fn delete() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         let set = new Set(["one", "two"]);
         "#;
@@ -151,7 +151,7 @@ fn delete() {
 
 #[test]
 fn has() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         let set = new Set(["one", "two"]);
         "#;
@@ -168,7 +168,7 @@ fn has() {
 
 #[test]
 fn values_and_keys() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         const set1 = new Set();
         set1.add('foo');
@@ -197,7 +197,7 @@ fn values_and_keys() {
 
 #[test]
 fn for_each() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         let set = new Set([5, 10, 15]);
         let value1Sum = 0;
@@ -218,7 +218,7 @@ fn for_each() {
 
 #[test]
 fn recursive_display() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         let set = new Set();
         let array = new Array([set]);
@@ -233,7 +233,7 @@ fn recursive_display() {
 
 #[test]
 fn not_a_function() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r"
         try {
             let set = Set()

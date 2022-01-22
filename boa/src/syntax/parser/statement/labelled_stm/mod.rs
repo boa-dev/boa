@@ -14,7 +14,7 @@ use crate::{
             AllowYield, TokenParser,
         },
     },
-    BoaProfiler,
+    BoaProfiler, Interner,
 };
 /// Labelled Statement Parsing
 ///
@@ -52,15 +52,20 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Label", "Parsing");
 
-        let name = LabelIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        let name =
+            LabelIdentifier::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
 
-        cursor.expect(Punctuator::Colon, "Labelled Statement")?;
+        cursor.expect(Punctuator::Colon, "Labelled Statement", interner)?;
 
         let strict = cursor.strict_mode();
-        let next_token = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
+        let next_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
         let mut node = match next_token.kind() {
             // Early Error: It is a Syntax Error if any strict mode source code matches this rule.
             // https://tc39.es/ecma262/#sec-labelled-statements-static-semantics-early-errors
@@ -73,10 +78,10 @@ where
             }
             TokenKind::Keyword(Keyword::Function) => {
                 FunctionDeclaration::new(self.allow_yield, self.allow_await, false)
-                .parse(cursor)?
+                .parse(cursor, interner)?
                 .into()
             }
-            _ => Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?
+            _ => Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor, interner)?
         };
 
         set_label_for_node(&mut node, name);

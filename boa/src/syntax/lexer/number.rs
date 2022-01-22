@@ -7,7 +7,7 @@ use crate::{
         ast::{Position, Span},
         lexer::{token::Numeric, Token},
     },
-    JsBigInt,
+    Interner, JsBigInt,
 };
 use std::io::Read;
 use std::str;
@@ -178,7 +178,12 @@ where
 }
 
 impl<R> Tokenizer<R> for NumberLiteral {
-    fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position) -> Result<Token, Error>
+    fn lex(
+        &mut self,
+        cursor: &mut Cursor<R>,
+        start_pos: Position,
+        _interner: &mut Interner,
+    ) -> Result<Token, Error>
     where
         R: Read,
     {

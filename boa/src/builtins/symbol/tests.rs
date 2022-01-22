@@ -2,7 +2,7 @@ use crate::{check_output, forward, forward_val, Context, TestAction};
 
 #[test]
 fn call_symbol_and_check_return_type() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var sym = Symbol();
         "#;
@@ -13,7 +13,7 @@ fn call_symbol_and_check_return_type() {
 
 #[test]
 fn print_symbol_expect_description() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var sym = Symbol("Hello");
         "#;

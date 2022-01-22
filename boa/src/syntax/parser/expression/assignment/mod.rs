@@ -15,6 +15,7 @@ mod r#yield;
 use self::r#yield::YieldExpression;
 use self::{arrow_function::ArrowFunction, conditional::ConditionalExpression};
 use crate::syntax::lexer::{Error as LexError, InputElement, TokenKind};
+use crate::Interner;
 use crate::{
     syntax::{
         ast::{
@@ -80,46 +81,53 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("AssignmentExpression", "Parsing");
         cursor.set_goal(InputElement::Div);
 
-        match cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind() {
+        match cursor
+            .peek(0, interner)?
+            .ok_or(ParseError::AbruptEnd)?
+            .kind()
+        {
             // [+Yield]YieldExpression[?In, ?Await]
             TokenKind::Keyword(Keyword::Yield) if self.allow_yield.0 => {
-                return YieldExpression::new(self.allow_in, self.allow_await).parse(cursor)
+                return YieldExpression::new(self.allow_in, self.allow_await)
+                    .parse(cursor, interner)
             }
             // ArrowFunction[?In, ?Yield, ?Await] -> ArrowParameters[?Yield, ?Await] -> BindingIdentifier[?Yield, ?Await]
             TokenKind::Identifier(_)
             | TokenKind::Keyword(Keyword::Yield)
             | TokenKind::Keyword(Keyword::Await) => {
-                if let Ok(tok) = cursor.peek_expect_no_lineterminator(1, "assignment expression") {
+                if let Ok(tok) =
+                    cursor.peek_expect_no_lineterminator(1, "assignment expression", interner)
+                {
                     if tok.kind() == &TokenKind::Punctuator(Punctuator::Arrow) {
                         return ArrowFunction::new(
                             self.allow_in,
                             self.allow_yield,
                             self.allow_await,
                         )
-                        .parse(cursor)
+                        .parse(cursor, interner)
                         .map(Node::ArrowFunctionDecl);
                     }
                 }
             }
             // ArrowFunction[?In, ?Yield, ?Await] -> ArrowParameters[?Yield, ?Await] -> CoverParenthesizedExpressionAndArrowParameterList[?Yield, ?Await]
             TokenKind::Punctuator(Punctuator::OpenParen) => {
-                if let Some(next_token) = cursor.peek(1)? {
+                if let Some(next_token) = cursor.peek(1, interner)? {
                     match *next_token.kind() {
                         TokenKind::Punctuator(Punctuator::CloseParen) => {
                             // Need to check if the token after the close paren is an arrow, if so then this is an ArrowFunction
                             // otherwise it is an expression of the form (b).
-                            if let Some(t) = cursor.peek(2)? {
+                            if let Some(t) = cursor.peek(2, interner)? {
                                 if t.kind() == &TokenKind::Punctuator(Punctuator::Arrow) {
                                     return ArrowFunction::new(
                                         self.allow_in,
                                         self.allow_yield,
                                         self.allow_await,
                                     )
-                                    .parse(cursor)
+                                    .parse(cursor, interner)
                                     .map(Node::ArrowFunctionDecl);
                                 }
                             }
@@ -130,11 +138,11 @@ where
                                 self.allow_yield,
                                 self.allow_await,
                             )
-                            .parse(cursor)
+                            .parse(cursor, interner)
                             .map(Node::ArrowFunctionDecl);
                         }
                         TokenKind::Identifier(_) => {
-                            if let Some(t) = cursor.peek(2)? {
+                            if let Some(t) = cursor.peek(2, interner)? {
                                 match *t.kind() {
                                     TokenKind::Punctuator(Punctuator::Comma) => {
                                         // This must be an argument list and therefore (a, b) => {}
@@ -143,13 +151,13 @@ where
                                             self.allow_yield,
                                             self.allow_await,
                                         )
-                                        .parse(cursor)
+                                        .parse(cursor, interner)
                                         .map(Node::ArrowFunctionDecl);
                                     }
                                     TokenKind::Punctuator(Punctuator::CloseParen) => {
                                         // Need to check if the token after the close paren is an arrow, if so then this is an ArrowFunction
                                         // otherwise it is an expression of the form (b).
-                                        if let Some(t) = cursor.peek(3)? {
+                                        if let Some(t) = cursor.peek(3, interner)? {
                                             if t.kind() == &TokenKind::Punctuator(Punctuator::Arrow)
                                             {
                                                 return ArrowFunction::new(
@@ -157,7 +165,7 @@ where
                                                     self.allow_yield,
                                                     self.allow_await,
                                                 )
-                                                .parse(cursor)
+                                                .parse(cursor, interner)
                                                 .map(Node::ArrowFunctionDecl);
                                             }
                                         }
@@ -177,16 +185,16 @@ where
         cursor.set_goal(InputElement::Div);
 
         let mut lhs = ConditionalExpression::new(self.allow_in, self.allow_yield, self.allow_await)
-            .parse(cursor)?;
+            .parse(cursor, interner)?;
 
         // Review if we are trying to assign to an invalid left hand side expression.
         // TODO: can we avoid cloning?
-        if let Some(tok) = cursor.peek(0)?.cloned() {
+        if let Some(tok) = cursor.peek(0, interner)?.cloned() {
             match tok.kind() {
                 TokenKind::Punctuator(Punctuator::Assign) => {
-                    cursor.next()?.expect("= token vanished"); // Consume the token.
+                    cursor.next(interner)?.expect("= token vanished"); // Consume the token.
                     if is_assignable(&lhs) {
-                        lhs = Assign::new(lhs, self.parse(cursor)?).into();
+                        lhs = Assign::new(lhs, self.parse(cursor, interner)?).into();
                     } else {
                         return Err(ParseError::lex(LexError::Syntax(
                             "Invalid left-hand side in assignment".into(),
@@ -195,10 +203,10 @@ where
                     }
                 }
                 TokenKind::Punctuator(p) if p.as_binop().is_some() && p != &Punctuator::Comma => {
-                    cursor.next()?.expect("token vanished"); // Consume the token.
+                    cursor.next(interner)?.expect("token vanished"); // Consume the token.
                     if is_assignable(&lhs) {
                         let binop = p.as_binop().expect("binop disappeared");
-                        let expr = self.parse(cursor)?;
+                        let expr = self.parse(cursor, interner)?;
 
                         lhs = BinOp::new(binop, lhs, expr).into();
                     } else {

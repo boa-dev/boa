@@ -2,7 +2,7 @@ use crate::{check_output, forward, Context, JsValue, TestAction};
 
 #[test]
 fn object_create_with_regular_object() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let init = r#"
         const foo = { a: 5 };
@@ -17,7 +17,7 @@ fn object_create_with_regular_object() {
 
 #[test]
 fn object_create_with_undefined() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let init = r#"
         try {
@@ -36,7 +36,7 @@ fn object_create_with_undefined() {
 
 #[test]
 fn object_create_with_number() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let init = r#"
         try {
@@ -57,7 +57,7 @@ fn object_create_with_number() {
 #[ignore]
 // TODO: to test on __proto__ somehow. __proto__ getter is not working as expected currently
 fn object_create_with_function() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let init = r#"
         const x = function (){};
@@ -71,7 +71,7 @@ fn object_create_with_function() {
 
 #[test]
 fn object_is() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let init = r#"
         var foo = { a: 1};
@@ -152,7 +152,7 @@ fn object_has_own() {
 
 #[test]
 fn object_property_is_enumerable() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         let x = { enumerableProp: 'yes' };
     "#;
@@ -177,7 +177,7 @@ fn object_property_is_enumerable() {
 
 #[test]
 fn object_to_string() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         let u = undefined;
         let n = null;
@@ -230,7 +230,7 @@ fn object_to_string() {
 
 #[test]
 fn define_symbol_property() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let init = r#"
         let obj = {};
@@ -244,7 +244,7 @@ fn define_symbol_property() {
 
 #[test]
 fn get_own_property_descriptor_1_arg_returns_undefined() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let code = r#"
         let obj = {a: 2};
         Object.getOwnPropertyDescriptor(obj)
@@ -254,7 +254,7 @@ fn get_own_property_descriptor_1_arg_returns_undefined() {
 
 #[test]
 fn get_own_property_descriptor() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     forward(
         &mut context,
         r#"
@@ -271,7 +271,7 @@ fn get_own_property_descriptor() {
 
 #[test]
 fn get_own_property_descriptors() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     forward(
         &mut context,
         r#"
@@ -293,7 +293,7 @@ fn get_own_property_descriptors() {
 
 #[test]
 fn object_define_properties() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let init = r#"
         const obj = {};
@@ -312,7 +312,7 @@ fn object_define_properties() {
 
 #[test]
 fn object_is_prototype_of() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let init = r#"
         Object.prototype.isPrototypeOf(String.prototype)

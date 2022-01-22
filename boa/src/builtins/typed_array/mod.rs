@@ -2794,12 +2794,11 @@ impl TypedArray {
         // 6. Return name.
         Ok(this
             .as_object()
-            .map(|obj| {
+            .and_then(|obj| {
                 obj.borrow()
                     .as_typed_array()
                     .map(|o| o.typed_array_name().name().into())
             })
-            .flatten()
             .unwrap_or(JsValue::Undefined))
     }
 

@@ -2,7 +2,7 @@ use crate::{forward, forward_val, Context};
 
 #[test]
 fn json_sanity() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     assert_eq!(
         forward(&mut context, r#"JSON.parse('{"aaa":"bbb"}').aaa == 'bbb'"#),
         "true"
@@ -18,7 +18,7 @@ fn json_sanity() {
 
 #[test]
 fn json_stringify_remove_undefined_values_from_objects() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let actual = forward(
         &mut context,
@@ -31,7 +31,7 @@ fn json_stringify_remove_undefined_values_from_objects() {
 
 #[test]
 fn json_stringify_remove_function_values_from_objects() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let actual = forward(
         &mut context,
@@ -44,7 +44,7 @@ fn json_stringify_remove_function_values_from_objects() {
 
 #[test]
 fn json_stringify_remove_symbols_from_objects() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let actual = forward(
         &mut context,
@@ -57,7 +57,7 @@ fn json_stringify_remove_symbols_from_objects() {
 
 #[test]
 fn json_stringify_replacer_array_strings() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let actual = forward(
         &mut context,
         r#"JSON.stringify({aaa: 'bbb', bbb: 'ccc', ccc: 'ddd'}, ['aaa', 'bbb'])"#,
@@ -68,7 +68,7 @@ fn json_stringify_replacer_array_strings() {
 
 #[test]
 fn json_stringify_replacer_array_numbers() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let actual = forward(
         &mut context,
         r#"JSON.stringify({ 0: 'aaa', 1: 'bbb', 2: 'ccc'}, [1, 2])"#,
@@ -79,7 +79,7 @@ fn json_stringify_replacer_array_numbers() {
 
 #[test]
 fn json_stringify_replacer_function() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let actual = forward(
         &mut context,
         r#"JSON.stringify({ aaa: 1, bbb: 2}, (key, value) => {
@@ -96,7 +96,7 @@ fn json_stringify_replacer_function() {
 
 #[test]
 fn json_stringify_arrays() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let actual = forward(&mut context, r#"JSON.stringify(['a', 'b'])"#);
     let expected = forward(&mut context, r#"'["a","b"]'"#);
 
@@ -105,7 +105,7 @@ fn json_stringify_arrays() {
 
 #[test]
 fn json_stringify_object_array() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let actual = forward(&mut context, r#"JSON.stringify([{a: 'b'}, {b: 'c'}])"#);
     let expected = forward(&mut context, r#"'[{"a":"b"},{"b":"c"}]'"#);
 
@@ -114,7 +114,7 @@ fn json_stringify_object_array() {
 
 #[test]
 fn json_stringify_array_converts_undefined_to_null() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let actual = forward(&mut context, r#"JSON.stringify([undefined])"#);
     let expected = forward(&mut context, r#"'[null]'"#);
 
@@ -123,7 +123,7 @@ fn json_stringify_array_converts_undefined_to_null() {
 
 #[test]
 fn json_stringify_array_converts_function_to_null() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let actual = forward(&mut context, r#"JSON.stringify([() => {}])"#);
     let expected = forward(&mut context, r#"'[null]'"#);
 
@@ -132,7 +132,7 @@ fn json_stringify_array_converts_function_to_null() {
 
 #[test]
 fn json_stringify_array_converts_symbol_to_null() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let actual = forward(&mut context, r#"JSON.stringify([Symbol()])"#);
     let expected = forward(&mut context, r#"'[null]'"#);
 
@@ -140,7 +140,7 @@ fn json_stringify_array_converts_symbol_to_null() {
 }
 #[test]
 fn json_stringify_function_replacer_propogate_error() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let actual = forward(
         &mut context,
@@ -161,7 +161,7 @@ fn json_stringify_function_replacer_propogate_error() {
 
 #[test]
 fn json_stringify_function() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let actual_function = forward(&mut context, r#"JSON.stringify(() => {})"#);
     let expected = forward(&mut context, r#"undefined"#);
@@ -171,7 +171,7 @@ fn json_stringify_function() {
 
 #[test]
 fn json_stringify_undefined() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let actual_undefined = forward(&mut context, r#"JSON.stringify(undefined)"#);
     let expected = forward(&mut context, r#"undefined"#);
 
@@ -180,7 +180,7 @@ fn json_stringify_undefined() {
 
 #[test]
 fn json_stringify_symbol() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let actual_symbol = forward(&mut context, r#"JSON.stringify(Symbol())"#);
     let expected = forward(&mut context, r#"undefined"#);
@@ -190,7 +190,7 @@ fn json_stringify_symbol() {
 
 #[test]
 fn json_stringify_no_args() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let actual_no_args = forward(&mut context, r#"JSON.stringify()"#);
     let expected = forward(&mut context, r#"undefined"#);
@@ -200,7 +200,7 @@ fn json_stringify_no_args() {
 
 #[test]
 fn json_stringify_fractional_numbers() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let actual = forward(&mut context, r#"JSON.stringify(Math.round(1.0))"#);
     let expected = forward(&mut context, r#""1""#);
@@ -209,7 +209,7 @@ fn json_stringify_fractional_numbers() {
 
 #[test]
 fn json_stringify_pretty_print() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let actual = forward(
         &mut context,
@@ -227,7 +227,7 @@ fn json_stringify_pretty_print() {
 
 #[test]
 fn json_stringify_pretty_print_four_spaces() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let actual = forward(
         &mut context,
@@ -245,7 +245,7 @@ fn json_stringify_pretty_print_four_spaces() {
 
 #[test]
 fn json_stringify_pretty_print_twenty_spaces() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let actual = forward(
         &mut context,
@@ -263,7 +263,7 @@ fn json_stringify_pretty_print_twenty_spaces() {
 
 #[test]
 fn json_stringify_pretty_print_with_number_object() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let actual = forward(
         &mut context,
@@ -281,7 +281,7 @@ fn json_stringify_pretty_print_with_number_object() {
 
 #[test]
 fn json_stringify_pretty_print_bad_space_argument() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let actual = forward(
         &mut context,
@@ -293,7 +293,7 @@ fn json_stringify_pretty_print_bad_space_argument() {
 
 #[test]
 fn json_stringify_pretty_print_with_too_long_string() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let actual = forward(
         &mut context,
@@ -311,7 +311,7 @@ fn json_stringify_pretty_print_with_too_long_string() {
 
 #[test]
 fn json_stringify_pretty_print_with_string_object() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let actual = forward(
         &mut context,
@@ -329,7 +329,7 @@ fn json_stringify_pretty_print_with_string_object() {
 
 #[test]
 fn json_parse_array_with_reviver() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let result = forward_val(
         &mut context,
         r#"JSON.parse('[1,2,3,4]', function(k, v){
@@ -377,7 +377,7 @@ fn json_parse_array_with_reviver() {
 
 #[test]
 fn json_parse_object_with_reviver() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let result = forward(
         &mut context,
         r#"
@@ -403,7 +403,7 @@ fn json_parse_object_with_reviver() {
 
 #[test]
 fn json_parse_sets_prototypes() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         const jsonString = "{\"ob\":{\"ject\":1},\"arr\": [0,1]}";
         const jsonObj = JSON.parse(jsonString);
@@ -433,7 +433,7 @@ fn json_parse_sets_prototypes() {
 
 #[test]
 fn json_fields_should_be_enumerable() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let actual_object = forward(
         &mut context,
         r#"
@@ -456,7 +456,7 @@ fn json_fields_should_be_enumerable() {
 
 #[test]
 fn json_parse_with_no_args_throws_syntax_error() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let result = forward(&mut context, "JSON.parse();");
     assert!(result.contains("SyntaxError"));
 }

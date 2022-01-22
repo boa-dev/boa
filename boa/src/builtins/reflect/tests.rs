@@ -2,7 +2,7 @@ use crate::{forward, Context};
 
 #[test]
 fn apply() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let init = r#"
         var called = {};
@@ -17,7 +17,7 @@ fn apply() {
 
 #[test]
 fn construct() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let init = r#"
         var called = {};
@@ -32,7 +32,7 @@ fn construct() {
 
 #[test]
 fn define_property() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let init = r#"
         let obj = {};
@@ -46,7 +46,7 @@ fn define_property() {
 
 #[test]
 fn delete_property() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let init = r#"
         let obj = { p: 42 };
@@ -61,7 +61,7 @@ fn delete_property() {
 
 #[test]
 fn get() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let init = r#"
         let obj = { p: 42 }
@@ -75,7 +75,7 @@ fn get() {
 
 #[test]
 fn get_own_property_descriptor() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let init = r#"
         let obj = { p: 42 };
@@ -89,7 +89,7 @@ fn get_own_property_descriptor() {
 
 #[test]
 fn get_prototype_of() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let init = r#"
         function F() { this.p = 42 };
@@ -104,7 +104,7 @@ fn get_prototype_of() {
 
 #[test]
 fn has() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let init = r#"
         let obj = { p: 42 };
@@ -120,7 +120,7 @@ fn has() {
 
 #[test]
 fn is_extensible() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let init = r#"
         let obj = { p: 42 };
@@ -134,7 +134,7 @@ fn is_extensible() {
 
 #[test]
 fn own_keys() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let init = r#"
         let obj = { p: 42 };
@@ -148,7 +148,7 @@ fn own_keys() {
 
 #[test]
 fn prevent_extensions() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let init = r#"
         let obj = { p: 42 };
@@ -162,7 +162,7 @@ fn prevent_extensions() {
 
 #[test]
 fn set() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let init = r#"
         let obj = {};
@@ -176,7 +176,7 @@ fn set() {
 
 #[test]
 fn set_prototype_of() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let init = r#"
         function F() { this.p = 42 };

@@ -781,7 +781,7 @@ mod in_operator {
     #[test]
     fn new_instance_should_point_to_prototype() {
         // A new instance should point to a prototype object created with the constructor function
-        let mut context = Context::new();
+        let mut context = Context::default();
 
         let scenario = r#"
             function Foo() {}
@@ -913,7 +913,7 @@ fn function_decl_hoisting() {
 
 #[test]
 fn to_bigint() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert!(JsValue::null().to_bigint(&mut context).is_err());
     assert!(JsValue::undefined().to_bigint(&mut context).is_err());
@@ -924,7 +924,7 @@ fn to_bigint() {
 
 #[test]
 fn to_index() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(JsValue::undefined().to_index(&mut context).unwrap(), 0);
     assert!(JsValue::new(-1).to_index(&mut context).is_err());
@@ -932,7 +932,7 @@ fn to_index() {
 
 #[test]
 fn to_integer() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert!(Number::equal(
         JsValue::nan().to_integer(&mut context).unwrap(),
@@ -969,7 +969,7 @@ fn to_integer() {
 
 #[test]
 fn to_length() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(JsValue::new(f64::NAN).to_length(&mut context).unwrap(), 0);
     assert_eq!(
@@ -1000,7 +1000,7 @@ fn to_length() {
 
 #[test]
 fn to_int32() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     macro_rules! check_to_int32 {
         ($from:expr => $to:expr) => {
@@ -1113,7 +1113,7 @@ fn to_int32() {
 
 #[test]
 fn to_string() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(JsValue::null().to_string(&mut context).unwrap(), "null");
     assert_eq!(
@@ -1130,7 +1130,7 @@ fn to_string() {
 
 #[test]
 fn calling_function_with_unspecified_arguments() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let scenario = r#"
         function test(a, b) {
             return b;
@@ -1144,7 +1144,7 @@ fn calling_function_with_unspecified_arguments() {
 
 #[test]
 fn to_object() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert!(JsValue::undefined()
         .to_object(&mut context)
@@ -1158,7 +1158,7 @@ fn to_object() {
 
 #[test]
 fn check_this_binding_in_object_literal() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var foo = {
             a: 3,
@@ -1173,7 +1173,7 @@ fn check_this_binding_in_object_literal() {
 
 #[test]
 fn array_creation_benchmark() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         (function(){
             let testArr = [];
@@ -1190,7 +1190,7 @@ fn array_creation_benchmark() {
 
 #[test]
 fn array_pop_benchmark() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
     (function(){
         let testArray = [83, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32,
@@ -1223,7 +1223,7 @@ fn array_pop_benchmark() {
 
 #[test]
 fn number_object_access_benchmark() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
     new Number(
         new Number(
@@ -1296,7 +1296,7 @@ fn comma_operator() {
 fn assignment_to_non_assignable() {
     // Relates to the behaviour described at
     // https://tc39.es/ecma262/#sec-assignment-operators-static-semantics-early-errors
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     // Tests all assignment operators as per [spec] and [mdn]
     //
@@ -1318,7 +1318,7 @@ fn assignment_to_non_assignable() {
 fn multicharacter_assignment_to_non_assignable() {
     // Relates to the behaviour described at
     // https://tc39.es/ecma262/#sec-assignment-operators-static-semantics-early-errors
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let test_cases = ["3 **= 5", "3 <<= 5", "3 >>= 5"];
 
@@ -1333,7 +1333,7 @@ fn multicharacter_assignment_to_non_assignable() {
 #[test]
 #[ignore]
 fn multicharacter_bitwise_assignment_to_non_assignable() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     // Disabled - awaiting implementation.
     let test_cases = ["3 >>>= 5", "3 &&= 5", "3 ||= 5", "3 ??= 5"];
@@ -1358,7 +1358,7 @@ fn assign_to_array_decl() {
 
 #[test]
 fn assign_to_object_decl() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     const ERR_MSG: &str =
         "Uncaught \"SyntaxError\": \"unexpected token '=', primary expression at line 1, col 8\"";
@@ -1479,7 +1479,7 @@ fn test_strict_mode_reserved_name() {
     ];
 
     for case in test_cases.iter() {
-        let mut context = Context::new();
+        let mut context = Context::default();
         let scenario = format!("'use strict'; \n {}", case);
 
         let string = dbg!(forward(&mut context, &scenario));

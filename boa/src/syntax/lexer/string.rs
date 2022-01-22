@@ -7,6 +7,7 @@ use crate::{
         ast::{Position, Span},
         lexer::{Token, TokenKind},
     },
+    Interner,
 };
 use std::{
     io::{self, ErrorKind, Read},
@@ -77,7 +78,12 @@ impl UTF16CodeUnitsBuffer for Vec<u16> {
 }
 
 impl<R> Tokenizer<R> for StringLiteral {
-    fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position) -> Result<Token, Error>
+    fn lex(
+        &mut self,
+        cursor: &mut Cursor<R>,
+        start_pos: Position,
+        interner: &mut Interner,
+    ) -> Result<Token, Error>
     where
         R: Read,
     {
@@ -86,7 +92,10 @@ impl<R> Tokenizer<R> for StringLiteral {
         let (lit, span) =
             Self::take_string_characters(cursor, start_pos, self.terminator, cursor.strict_mode())?;
 
-        Ok(Token::new(TokenKind::string_literal(lit), span))
+        Ok(Token::new(
+            TokenKind::string_literal(interner.get_or_intern(lit)),
+            span,
+        ))
     }
 }
 

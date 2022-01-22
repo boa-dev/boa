@@ -1,12 +1,10 @@
-/*!
-This is an experimental Javascript lexer, parser and compiler written in Rust. Currently, it has support for some of the language.
-
-# Crate Features
- - **serde** - Enables serialization and deserialization of the AST (Abstract Syntax Tree).
- - **console** - Enables `boa`s WHATWG `console` object implementation.
- - **profiler** - Enables profiling with measureme (this is mostly internal).
-
-**/
+//! This is an experimental Javascript lexer, parser and compiler written in Rust. Currently, it
+//! has support for some of the language.
+//!
+//! # Crate Features
+//!  - **serde** - Enables serialization and deserialization of the AST (Abstract Syntax Tree).
+//!  - **console** - Enables `boa`s WHATWG `console` object implementation.
+//!  - **profiler** - Enables profiling with measureme (this is mostly internal).
 
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
@@ -66,9 +64,9 @@ pub mod prelude {
     pub use crate::{object::JsObject, Context, JsBigInt, JsResult, JsString, JsValue};
 }
 
-use std::result::Result as StdResult;
-
 pub(crate) use crate::profiler::BoaProfiler;
+pub use boa_interner::{Interner, Sym};
+use std::result::Result as StdResult;
 
 // Export things to root level
 #[doc(inline)]
@@ -76,32 +74,19 @@ pub use crate::{
     bigint::JsBigInt, context::Context, string::JsString, symbol::JsSymbol, value::JsValue,
 };
 
-use crate::syntax::{
-    ast::node::StatementList,
-    parser::{ParseError, Parser},
-};
-
 /// The result of a Javascript expression is represented like this so it can succeed (`Ok`) or fail (`Err`)
 #[must_use]
 pub type JsResult<T> = StdResult<T, JsValue>;
 
-/// Parses the given source code.
+/// Execute the code using an existing `Context`.
 ///
-/// It will return either the statement list AST node for the code, or a parsing error if something
-/// goes wrong.
-#[inline]
-pub fn parse<T: AsRef<[u8]>>(src: T, strict_mode: bool) -> StdResult<StatementList, ParseError> {
-    let src_bytes: &[u8] = src.as_ref();
-    Parser::new(src_bytes, strict_mode).parse_all()
-}
-
-/// Execute the code using an existing Context
-/// The str is consumed and the state of the Context is changed
+/// The state of the `Context` is changed, and a string representation of the result is returned.
 #[cfg(test)]
-#[allow(clippy::let_and_return)]
-pub(crate) fn forward<T: AsRef<[u8]>>(context: &mut Context, src: T) -> String {
-    let src_bytes: &[u8] = src.as_ref();
-    context.eval(src_bytes).map_or_else(
+pub(crate) fn forward<S>(context: &mut Context, src: S) -> String
+where
+    S: AsRef<[u8]>,
+{
+    context.eval(src.as_ref()).map_or_else(
         |e| format!("Uncaught {}", e.display()),
         |v| v.display().to_string(),
     )
@@ -131,7 +116,7 @@ pub(crate) fn forward_val<T: AsRef<[u8]>>(context: &mut Context, src: T) -> JsRe
 pub(crate) fn exec<T: AsRef<[u8]>>(src: T) -> String {
     let src_bytes: &[u8] = src.as_ref();
 
-    match Context::new().eval(src_bytes) {
+    match Context::default().eval(src_bytes) {
         Ok(value) => value.display().to_string(),
         Err(error) => error.display().to_string(),
     }
@@ -150,7 +135,7 @@ pub(crate) enum TestAction {
 #[cfg(test)]
 #[track_caller]
 pub(crate) fn check_output(actions: &[TestAction]) {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let mut i = 1;
     for action in actions {

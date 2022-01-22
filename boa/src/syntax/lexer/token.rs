@@ -10,9 +10,8 @@ use super::regex::RegExpFlags;
 use crate::{
     syntax::ast::{Keyword, Punctuator, Span},
     syntax::lexer::template::TemplateString,
-    JsBigInt,
+    Interner, JsBigInt, Sym,
 };
-use std::fmt::{self, Debug, Display, Formatter};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -50,11 +49,10 @@ impl Token {
     pub fn span(&self) -> Span {
         self.span
     }
-}
 
-impl Display for Token {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.kind)
+    /// Converts the token to a `String`.
+    pub(crate) fn to_string(&self, interner: &Interner) -> String {
+        self.kind.to_string(interner)
     }
 }
 
@@ -104,7 +102,7 @@ pub enum TokenKind {
     EOF,
 
     /// An identifier.
-    Identifier(Box<str>),
+    Identifier(Sym),
 
     /// A keyword.
     Keyword(Keyword),
@@ -119,7 +117,7 @@ pub enum TokenKind {
     Punctuator(Punctuator),
 
     /// A string literal.
-    StringLiteral(Box<str>),
+    StringLiteral(Sym),
 
     /// A part of a template literal without substitution.
     TemplateNoSubstitution(TemplateString),
@@ -128,7 +126,7 @@ pub enum TokenKind {
     TemplateMiddle(TemplateString),
 
     /// A regular expression, consisting of body and flags.
-    RegularExpressionLiteral(Box<str>, RegExpFlags),
+    RegularExpressionLiteral(Sym, RegExpFlags),
 
     /// Indicates the end of a line (`\n`).
     LineTerminator,
@@ -173,11 +171,8 @@ impl TokenKind {
     }
 
     /// Creates an `Identifier` token type.
-    pub fn identifier<I>(ident: I) -> Self
-    where
-        I: Into<Box<str>>,
-    {
-        Self::Identifier(ident.into())
+    pub fn identifier(ident: Sym) -> Self {
+        Self::Identifier(ident)
     }
 
     /// Creates a `Keyword` token kind.
@@ -199,11 +194,8 @@ impl TokenKind {
     }
 
     /// Creates a `StringLiteral` token type.
-    pub fn string_literal<S>(lit: S) -> Self
-    where
-        S: Into<Box<str>>,
-    {
-        Self::StringLiteral(lit.into())
+    pub fn string_literal(lit: Sym) -> Self {
+        Self::StringLiteral(lit)
     }
 
     pub fn template_middle(template_string: TemplateString) -> Self {
@@ -215,12 +207,11 @@ impl TokenKind {
     }
 
     /// Creates a `RegularExpressionLiteral` token kind.
-    pub fn regular_expression_literal<B, R>(body: B, flags: R) -> Self
+    pub fn regular_expression_literal<R>(body: Sym, flags: R) -> Self
     where
-        B: Into<Box<str>>,
         R: Into<RegExpFlags>,
     {
-        Self::RegularExpressionLiteral(body.into(), flags.into())
+        Self::RegularExpressionLiteral(body, flags.into())
     }
 
     /// Creates a `LineTerminator` token kind.
@@ -232,26 +223,43 @@ impl TokenKind {
     pub fn comment() -> Self {
         Self::Comment
     }
-}
 
-impl Display for TokenKind {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    /// Implements the `ToString` functionality for the `TokenKind`.
+    pub fn to_string(&self, interner: &Interner) -> String {
         match *self {
-            Self::BooleanLiteral(ref val) => write!(f, "{}", val),
-            Self::EOF => write!(f, "end of file"),
-            Self::Identifier(ref ident) => write!(f, "{}", ident),
-            Self::Keyword(ref word) => write!(f, "{}", word),
-            Self::NullLiteral => write!(f, "null"),
-            Self::NumericLiteral(Numeric::Rational(num)) => write!(f, "{}", num),
-            Self::NumericLiteral(Numeric::Integer(num)) => write!(f, "{}", num),
-            Self::NumericLiteral(Numeric::BigInt(ref num)) => write!(f, "{}n", num),
-            Self::Punctuator(ref punc) => write!(f, "{}", punc),
-            Self::StringLiteral(ref lit) => write!(f, "{}", lit),
-            Self::TemplateNoSubstitution(ref ts) => write!(f, "{}", ts.as_raw()),
-            Self::TemplateMiddle(ref ts) => write!(f, "{}", ts.as_raw()),
-            Self::RegularExpressionLiteral(ref body, ref flags) => write!(f, "/{}/{}", body, flags),
-            Self::LineTerminator => write!(f, "line terminator"),
-            Self::Comment => write!(f, "comment"),
+            Self::BooleanLiteral(ref val) => val.to_string(),
+            Self::EOF => "end of file".to_owned(),
+            Self::Identifier(ident) => interner
+                .resolve(ident)
+                .expect("string disappeared")
+                .to_owned(),
+            Self::Keyword(ref word) => word.to_string(),
+            Self::NullLiteral => "null".to_owned(),
+            Self::NumericLiteral(Numeric::Rational(num)) => num.to_string(),
+            Self::NumericLiteral(Numeric::Integer(num)) => num.to_string(),
+            Self::NumericLiteral(Numeric::BigInt(ref num)) => format!("{}n", num),
+            Self::Punctuator(ref punc) => punc.to_string(),
+            Self::StringLiteral(lit) => interner
+                .resolve(lit)
+                .expect("string disappeared")
+                .to_owned(),
+            Self::TemplateNoSubstitution(ref ts) => interner
+                .resolve(ts.as_raw())
+                .expect("string disappeared")
+                .to_owned(),
+            Self::TemplateMiddle(ref ts) => interner
+                .resolve(ts.as_raw())
+                .expect("string disappeared")
+                .to_owned(),
+            Self::RegularExpressionLiteral(body, ref flags) => {
+                format!(
+                    "/{}/{}",
+                    interner.resolve(body).expect("string disappeared"),
+                    flags
+                )
+            }
+            Self::LineTerminator => "line terminator".to_owned(),
+            Self::Comment => "comment".to_owned(),
         }
     }
 }

@@ -4,7 +4,7 @@ use crate::{forward, Context, JsValue};
 
 #[test]
 fn is_array() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var empty = [];
         var new_arr = new Array();
@@ -70,7 +70,7 @@ fn is_array() {
 
 #[test]
 fn of() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     assert_eq!(
         context
             .eval("Array.of(1, 2, 3)")
@@ -120,7 +120,7 @@ fn of() {
 #[ignore]
 #[test]
 fn concat() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
     var empty = [];
     var one = [1];
@@ -158,7 +158,7 @@ fn concat() {
 
 #[test]
 fn copy_within() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let target = forward(&mut context, "[1,2,3,4,5].copyWithin(-2).join('.')");
     assert_eq!(target, String::from("\"1.2.3.1.2\""));
@@ -175,7 +175,7 @@ fn copy_within() {
 
 #[test]
 fn join() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var empty = [ ];
         var one = ["a"];
@@ -195,7 +195,7 @@ fn join() {
 
 #[test]
 fn to_string() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var empty = [ ];
         var one = ["a"];
@@ -215,7 +215,7 @@ fn to_string() {
 
 #[test]
 fn every() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     // taken from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/every
     let init = r#"
         var empty = [];
@@ -259,7 +259,7 @@ fn every() {
 
 #[test]
 fn find() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         function comp(a) {
             return a == "a";
@@ -273,7 +273,7 @@ fn find() {
 
 #[test]
 fn find_index() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let code = r#"
         function comp(item) {
@@ -298,7 +298,7 @@ fn find_index() {
 
 #[test]
 fn flat() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let code = r#"
         var depth1 = ['a', ['b', 'c']];
@@ -323,7 +323,7 @@ fn flat() {
 
 #[test]
 fn flat_empty() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let code = r#"
         var empty = [[]];
@@ -336,7 +336,7 @@ fn flat_empty() {
 
 #[test]
 fn flat_infinity() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let code = r#"
         var arr = [[[[[['a']]]]]];
@@ -350,7 +350,7 @@ fn flat_infinity() {
 
 #[test]
 fn flat_map() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let code = r#"
         var double = [1, 2, 3];
@@ -375,7 +375,7 @@ fn flat_map() {
 
 #[test]
 fn flat_map_with_hole() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let code = r#"
         var arr = [0, 1, 2];
@@ -391,7 +391,7 @@ fn flat_map_with_hole() {
 
 #[test]
 fn flat_map_not_callable() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let code = r#"
         try {
@@ -407,7 +407,7 @@ fn flat_map_not_callable() {
 
 #[test]
 fn push() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var arr = [1, 2];
         "#;
@@ -421,7 +421,7 @@ fn push() {
 
 #[test]
 fn pop() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var empty = [ ];
         var one = [1];
@@ -442,7 +442,7 @@ fn pop() {
 
 #[test]
 fn shift() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var empty = [ ];
         var one = [1];
@@ -463,7 +463,7 @@ fn shift() {
 
 #[test]
 fn unshift() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var arr = [3, 4];
         "#;
@@ -477,7 +477,7 @@ fn unshift() {
 
 #[test]
 fn reverse() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var arr = [1, 2];
         var reversed = arr.reverse();
@@ -491,7 +491,7 @@ fn reverse() {
 
 #[test]
 fn index_of() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var empty = [ ];
         var one = ["a"];
@@ -554,7 +554,7 @@ fn index_of() {
 
 #[test]
 fn last_index_of() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var empty = [ ];
         var one = ["a"];
@@ -617,7 +617,7 @@ fn last_index_of() {
 
 #[test]
 fn fill_obj_ref() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     // test object reference
     forward(&mut context, "a = (new Array(3)).fill({});");
@@ -627,7 +627,7 @@ fn fill_obj_ref() {
 
 #[test]
 fn fill() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     forward(&mut context, "var a = [1, 2, 3];");
     assert_eq!(
@@ -722,7 +722,7 @@ fn fill() {
 
 #[test]
 fn includes_value() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var empty = [ ];
         var one = ["a"];
@@ -760,7 +760,7 @@ fn includes_value() {
 
 #[test]
 fn map() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let js = r#"
         var empty = [];
@@ -824,7 +824,7 @@ fn map() {
 
 #[test]
 fn slice() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var empty = [ ].slice();
         var one = ["a"].slice();
@@ -847,7 +847,7 @@ fn slice() {
 
 #[test]
 fn for_each() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var a = [2, 3, 4, 5];
         var sum = 0;
@@ -869,7 +869,7 @@ fn for_each() {
 
 #[test]
 fn for_each_push_value() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var a = [1, 2, 3, 4];
         function callingCallback(item, index, list) {
@@ -889,7 +889,7 @@ fn for_each_push_value() {
 
 #[test]
 fn filter() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let js = r#"
         var empty = [];
@@ -958,7 +958,7 @@ fn filter() {
 
 #[test]
 fn some() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var empty = [];
 
@@ -1006,7 +1006,7 @@ fn some() {
 
 #[test]
 fn reduce() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let init = r#"
         var arr = [1, 2, 3, 4];
@@ -1118,7 +1118,7 @@ fn reduce() {
 
 #[test]
 fn reduce_right() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let init = r#"
         var arr = [1, 2, 3, 4];
@@ -1243,7 +1243,7 @@ fn reduce_right() {
 
 #[test]
 fn call_array_constructor_with_one_argument() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var empty = new Array(0);
 
@@ -1264,7 +1264,7 @@ fn call_array_constructor_with_one_argument() {
 
 #[test]
 fn array_values_simple() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var iterator = [1, 2, 3].values();
         var next = iterator.next();
@@ -1285,7 +1285,7 @@ fn array_values_simple() {
 
 #[test]
 fn array_keys_simple() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var iterator = [1, 2, 3].keys();
         var next = iterator.next();
@@ -1306,7 +1306,7 @@ fn array_keys_simple() {
 
 #[test]
 fn array_entries_simple() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var iterator = [1, 2, 3].entries();
         var next = iterator.next();
@@ -1327,7 +1327,7 @@ fn array_entries_simple() {
 
 #[test]
 fn array_values_empty() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var iterator = [].values();
         var next = iterator.next();
@@ -1339,7 +1339,7 @@ fn array_values_empty() {
 
 #[test]
 fn array_values_sparse() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var array = Array();
         array[3] = 5;
@@ -1365,7 +1365,7 @@ fn array_values_sparse() {
 
 #[test]
 fn array_symbol_iterator() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var iterator = [1, 2, 3][Symbol.iterator]();
         var next = iterator.next();
@@ -1386,7 +1386,7 @@ fn array_symbol_iterator() {
 
 #[test]
 fn array_values_symbol_iterator() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var iterator = [1, 2, 3].values();
         iterator === iterator[Symbol.iterator]();
@@ -1396,7 +1396,7 @@ fn array_values_symbol_iterator() {
 
 #[test]
 fn array_spread_arrays() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         const array1 = [2, 3];
         const array2 = [1, ...array1];
@@ -1407,7 +1407,7 @@ fn array_spread_arrays() {
 
 #[test]
 fn array_spread_non_iterable() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         try {
             const array2 = [...5];
@@ -1420,7 +1420,7 @@ fn array_spread_non_iterable() {
 
 #[test]
 fn get_relative_start() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(Array::get_relative_start(&mut context, None, 10), Ok(0));
     assert_eq!(
@@ -1481,7 +1481,7 @@ fn get_relative_start() {
 
 #[test]
 fn get_relative_end() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(Array::get_relative_end(&mut context, None, 10), Ok(10));
     assert_eq!(
@@ -1542,7 +1542,7 @@ fn get_relative_end() {
 
 #[test]
 fn array_length_is_not_enumerable() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let array = Array::new_array(&mut context);
     let desc = array.get_property("length").unwrap();
@@ -1551,7 +1551,7 @@ fn array_length_is_not_enumerable() {
 
 #[test]
 fn array_sort() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         let arr = ['80', '9', '700', 40, 1, 5, 200];
 

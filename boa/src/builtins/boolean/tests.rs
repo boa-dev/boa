@@ -4,7 +4,7 @@ use crate::{forward, forward_val, Context};
 #[allow(clippy::unwrap_used)]
 #[test]
 fn construct_and_call() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var one = new Boolean(1);
         var zero = Boolean(0);
@@ -19,7 +19,7 @@ fn construct_and_call() {
 
 #[test]
 fn constructor_gives_true_instance() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var trueVal = new Boolean(true);
         var trueNum = new Boolean(1);
@@ -48,7 +48,7 @@ fn constructor_gives_true_instance() {
 
 #[test]
 fn instances_have_correct_proto_set() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var boolInstance = new Boolean(true);
         var boolProto = Boolean.prototype;

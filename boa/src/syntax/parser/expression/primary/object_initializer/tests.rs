@@ -1,12 +1,15 @@
-use crate::syntax::{
-    ast::{
-        node::{
-            Declaration, DeclarationList, FormalParameter, FunctionExpr, Identifier,
-            MethodDefinitionKind, Object, PropertyDefinition,
+use crate::{
+    syntax::{
+        ast::{
+            node::{
+                Declaration, DeclarationList, FormalParameter, FunctionExpr, Identifier,
+                MethodDefinitionKind, Object, PropertyDefinition,
+            },
+            Const,
         },
-        Const,
+        parser::tests::{check_invalid, check_parser},
     },
-    parser::tests::{check_invalid, check_parser},
+    Interner,
 };
 
 /// Checks object literal parsing.
@@ -17,6 +20,7 @@ fn check_object_literal() {
         PropertyDefinition::property("b", Const::from(false)),
     ];
 
+    let mut interner = Interner::new();
     check_parser(
         "const x = {
             a: true,
@@ -31,6 +35,7 @@ fn check_object_literal() {
             .into(),
         )
         .into()],
+        &mut interner,
     );
 }
 
@@ -46,6 +51,7 @@ fn check_object_short_function() {
         ),
     ];
 
+    let mut interner = Interner::new();
     check_parser(
         "const x = {
             a: true,
@@ -60,6 +66,7 @@ fn check_object_short_function() {
             .into(),
         )
         .into()],
+        &mut interner,
     );
 }
 
@@ -82,6 +89,7 @@ fn check_object_short_function_arguments() {
         ),
     ];
 
+    let mut interner = Interner::new();
     check_parser(
         "const x = {
             a: true,
@@ -96,6 +104,7 @@ fn check_object_short_function_arguments() {
             .into(),
         )
         .into()],
+        &mut interner,
     );
 }
 
@@ -110,6 +119,7 @@ fn check_object_getter() {
         ),
     ];
 
+    let mut interner = Interner::new();
     check_parser(
         "const x = {
             a: true,
@@ -124,6 +134,7 @@ fn check_object_getter() {
             .into(),
         )
         .into()],
+        &mut interner,
     );
 }
 
@@ -145,6 +156,7 @@ fn check_object_setter() {
         ),
     ];
 
+    let mut interner = Interner::new();
     check_parser(
         "const x = {
             a: true,
@@ -159,6 +171,7 @@ fn check_object_setter() {
             .into(),
         )
         .into()],
+        &mut interner,
     );
 }
 
@@ -170,6 +183,7 @@ fn check_object_short_function_get() {
         FunctionExpr::new(None, vec![], vec![]),
     )];
 
+    let mut interner = Interner::new();
     check_parser(
         "const x = {
             get() {}
@@ -183,6 +197,7 @@ fn check_object_short_function_get() {
             .into(),
         )
         .into()],
+        &mut interner,
     );
 }
 
@@ -194,6 +209,7 @@ fn check_object_short_function_set() {
         FunctionExpr::new(None, vec![], vec![]),
     )];
 
+    let mut interner = Interner::new();
     check_parser(
         "const x = {
             set() {}
@@ -207,6 +223,7 @@ fn check_object_short_function_set() {
             .into(),
         )
         .into()],
+        &mut interner,
     );
 }
 
@@ -214,6 +231,7 @@ fn check_object_short_function_set() {
 fn check_object_shorthand_property_names() {
     let object_properties = vec![PropertyDefinition::property("a", Identifier::from("a"))];
 
+    let mut interner = Interner::new();
     check_parser(
         "const a = true;
             const x = { a };
@@ -236,6 +254,7 @@ fn check_object_shorthand_property_names() {
             )
             .into(),
         ],
+        &mut interner,
     );
 }
 
@@ -246,6 +265,7 @@ fn check_object_shorthand_multiple_properties() {
         PropertyDefinition::property("b", Identifier::from("b")),
     ];
 
+    let mut interner = Interner::new();
     check_parser(
         "const a = true;
             const b = false;
@@ -277,6 +297,7 @@ fn check_object_shorthand_multiple_properties() {
             )
             .into(),
         ],
+        &mut interner,
     );
 }
 
@@ -287,6 +308,7 @@ fn check_object_spread() {
         PropertyDefinition::spread_object(Identifier::from("b")),
     ];
 
+    let mut interner = Interner::new();
     check_parser(
         "const x = { a: 1, ...b };
         ",
@@ -298,6 +320,7 @@ fn check_object_spread() {
             .into(),
         )
         .into()],
+        &mut interner,
     );
 }
 
@@ -309,6 +332,7 @@ fn check_async_method() {
         FunctionExpr::new(None, vec![], vec![]),
     )];
 
+    let mut interner = Interner::new();
     check_parser(
         "const x = {
             async dive() {}
@@ -322,6 +346,7 @@ fn check_async_method() {
             .into(),
         )
         .into()],
+        &mut interner,
     );
 }
 
@@ -333,6 +358,7 @@ fn check_async_generator_method() {
         FunctionExpr::new(None, vec![], vec![]),
     )];
 
+    let mut interner = Interner::new();
     check_parser(
         "const x = {
             async* vroom() {}
@@ -346,6 +372,7 @@ fn check_async_generator_method() {
             .into(),
         )
         .into()],
+        &mut interner,
     );
 }
 

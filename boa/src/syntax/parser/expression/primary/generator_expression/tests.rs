@@ -1,13 +1,17 @@
-use crate::syntax::{
-    ast::{
-        node::{Declaration, DeclarationList, GeneratorExpr, StatementList, Yield},
-        Const,
+use crate::{
+    syntax::{
+        ast::{
+            node::{Declaration, DeclarationList, GeneratorExpr, StatementList, Yield},
+            Const,
+        },
+        parser::tests::check_parser,
     },
-    parser::tests::check_parser,
+    Interner,
 };
 
 #[test]
 fn check_generator_function_expression() {
+    let mut interner = Interner::new();
     check_parser(
         "const gen = function*() {
             yield 1;
@@ -28,11 +32,13 @@ fn check_generator_function_expression() {
             .into(),
         )
         .into()],
+        &mut interner,
     );
 }
 
 #[test]
 fn check_generator_function_delegate_yield_expression() {
+    let mut interner = Interner::new();
     check_parser(
         "const gen = function*() {
             yield* 1;
@@ -53,5 +59,6 @@ fn check_generator_function_delegate_yield_expression() {
             .into(),
         )
         .into()],
+        &mut interner,
     );
 }

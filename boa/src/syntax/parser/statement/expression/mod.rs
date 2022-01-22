@@ -5,7 +5,7 @@ use crate::{
         lexer::TokenKind,
         parser::{AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
     },
-    BoaProfiler,
+    BoaProfiler, Interner,
 };
 use std::io::Read;
 
@@ -41,10 +41,10 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("ExpressionStatement", "Parsing");
 
-        let next_token = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
+        let next_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
         match next_token.kind() {
             TokenKind::Keyword(Keyword::Function) | TokenKind::Keyword(Keyword::Class) => {
                 return Err(ParseError::general(
@@ -53,7 +53,7 @@ where
                 ));
             }
             TokenKind::Keyword(Keyword::Async) => {
-                let next_token = cursor.peek(1)?.ok_or(ParseError::AbruptEnd)?;
+                let next_token = cursor.peek(1, interner)?.ok_or(ParseError::AbruptEnd)?;
                 if next_token.kind() == &TokenKind::Keyword(Keyword::Function) {
                     return Err(ParseError::general(
                         "expected statement",
@@ -62,7 +62,7 @@ where
                 }
             }
             TokenKind::Keyword(Keyword::Let) => {
-                let next_token = cursor.peek(1)?.ok_or(ParseError::AbruptEnd)?;
+                let next_token = cursor.peek(1, interner)?.ok_or(ParseError::AbruptEnd)?;
                 if next_token.kind() == &TokenKind::Punctuator(Punctuator::OpenBracket) {
                     return Err(ParseError::general(
                         "expected statement",
@@ -73,9 +73,10 @@ where
             _ => {}
         }
 
-        let expr = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+        let expr =
+            Expression::new(true, self.allow_yield, self.allow_await).parse(cursor, interner)?;
 
-        cursor.expect_semicolon("expression statement")?;
+        cursor.expect_semicolon("expression statement", interner)?;
 
         Ok(expr)
     }

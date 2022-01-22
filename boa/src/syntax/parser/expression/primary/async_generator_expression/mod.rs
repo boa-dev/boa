@@ -20,7 +20,7 @@ use crate::{
             Cursor, ParseError, TokenParser,
         },
     },
-    BoaProfiler,
+    BoaProfiler, Interner,
 };
 
 use std::io::Read;
@@ -41,20 +41,25 @@ where
     //The below needs to be implemented in ast::node
     type Output = AsyncGeneratorExpr;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("AsyncGeneratorExpression", "Parsing");
 
-        cursor.peek_expect_no_lineterminator(0, "async generator expression")?;
-        cursor.expect(Keyword::Function, "async generator expression")?;
+        cursor.peek_expect_no_lineterminator(0, "async generator expression", interner)?;
+        cursor.expect(Keyword::Function, "async generator expression", interner)?;
         cursor.expect(
             TokenKind::Punctuator(Punctuator::Mul),
             "async generator expression",
+            interner,
         )?;
 
-        let name = if let Some(token) = cursor.peek(0)? {
+        let name = if let Some(token) = cursor.peek(0, interner)? {
             match token.kind() {
                 TokenKind::Punctuator(Punctuator::OpenParen) => None,
-                _ => Some(BindingIdentifier::new(true, true).parse(cursor)?),
+                _ => Some(BindingIdentifier::new(true, true).parse(cursor, interner)?),
             }
         } else {
             return Err(ParseError::AbruptEnd);
@@ -66,7 +71,7 @@ where
             if cursor.strict_mode() && ["eval", "arguments"].contains(&name.as_ref()) {
                 return Err(ParseError::lex(LexError::Syntax(
                     "Unexpected eval or arguments in strict mode".into(),
-                    match cursor.peek(0)? {
+                    match cursor.peek(0, interner)? {
                         Some(token) => token.span().end(),
                         None => Position::new(1, 1),
                     },
@@ -75,18 +80,34 @@ where
         }
 
         let params_start_position = cursor
-            .expect(Punctuator::OpenParen, "async generator expression")?
+            .expect(
+                Punctuator::OpenParen,
+                "async generator expression",
+                interner,
+            )?
             .span()
             .end();
 
-        let params = FormalParameters::new(true, true).parse(cursor)?;
+        let params = FormalParameters::new(true, true).parse(cursor, interner)?;
 
-        cursor.expect(Punctuator::CloseParen, "async generator expression")?;
-        cursor.expect(Punctuator::OpenBlock, "async generator expression")?;
+        cursor.expect(
+            Punctuator::CloseParen,
+            "async generator expression",
+            interner,
+        )?;
+        cursor.expect(
+            Punctuator::OpenBlock,
+            "async generator expression",
+            interner,
+        )?;
 
-        let body = FunctionBody::new(true, true).parse(cursor)?;
+        let body = FunctionBody::new(true, true).parse(cursor, interner)?;
 
-        cursor.expect(Punctuator::CloseBlock, "async generator expression")?;
+        cursor.expect(
+            Punctuator::CloseBlock,
+            "async generator expression",
+            interner,
+        )?;
 
         // Early Error: If the source code matching FormalParameters is strict mode code,
         // the Early Error rules for UniqueFormalParameters : FormalParameters are applied.
@@ -115,7 +136,7 @@ where
                     if lexically_declared_names.contains(param_name) {
                         return Err(ParseError::lex(LexError::Syntax(
                             format!("Redeclaration of formal parameter `{}`", param_name).into(),
-                            match cursor.peek(0)? {
+                            match cursor.peek(0, interner)? {
                                 Some(token) => token.span().end(),
                                 None => Position::new(1, 1),
                             },

@@ -21,7 +21,7 @@ use crate::{
             TokenParser,
         },
     },
-    BoaProfiler,
+    BoaProfiler, Interner,
 };
 
 use std::io::Read;
@@ -60,33 +60,40 @@ where
 {
     type Output = ArrayDecl;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ArrayLiteral", "Parsing");
         let mut elements = Vec::new();
 
         loop {
             // TODO: Support all features.
-            while cursor.next_if(Punctuator::Comma)?.is_some() {
+            while cursor.next_if(Punctuator::Comma, interner)?.is_some() {
                 elements.push(Node::Const(Const::Undefined));
             }
 
-            if cursor.next_if(Punctuator::CloseBracket)?.is_some() {
+            if cursor
+                .next_if(Punctuator::CloseBracket, interner)?
+                .is_some()
+            {
                 break;
             }
 
-            let _ = cursor.peek(0)?.ok_or(ParseError::AbruptEnd); // Check that there are more tokens to read.
+            let _ = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd); // Check that there are more tokens to read.
 
-            if cursor.next_if(Punctuator::Spread)?.is_some() {
+            if cursor.next_if(Punctuator::Spread, interner)?.is_some() {
                 let node = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                    .parse(cursor)?;
+                    .parse(cursor, interner)?;
                 elements.push(Spread::new(node).into());
             } else {
                 elements.push(
                     AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                        .parse(cursor)?,
+                        .parse(cursor, interner)?,
                 );
             }
-            cursor.next_if(Punctuator::Comma)?;
+            cursor.next_if(Punctuator::Comma, interner)?;
         }
 
         Ok(elements.into())

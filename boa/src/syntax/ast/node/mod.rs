@@ -667,6 +667,8 @@ unsafe impl Trace for PropertyName {
 /// level.
 #[cfg(test)]
 fn test_formatting(source: &'static str) {
+    use crate::{syntax::Parser, Interner};
+
     // Remove preceding newline.
     let source = &source[1..];
 
@@ -680,7 +682,13 @@ fn test_formatting(source: &'static str) {
         .map(|l| &l[characters_to_remove..]) // Remove preceding whitespace from each line
         .collect::<Vec<&'static str>>()
         .join("\n");
-    let result = format!("{}", crate::parse(&scenario, false).unwrap());
+    let mut interner = Interner::new();
+    let result = format!(
+        "{}",
+        Parser::new(scenario.as_bytes(), false)
+            .parse_all(&mut interner)
+            .expect("parsing failed")
+    );
     if scenario != result {
         eprint!("========= Expected:\n{}", scenario);
         eprint!("========= Got:\n{}", result);

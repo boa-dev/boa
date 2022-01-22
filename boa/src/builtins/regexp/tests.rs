@@ -2,7 +2,7 @@ use crate::{forward, Context};
 
 #[test]
 fn constructors() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var constructed = new RegExp("[0-9]+(\\.[0-9]+)?");
         var literal = /[0-9]+(\.[0-9]+)?/;
@@ -17,7 +17,7 @@ fn constructors() {
 
 #[test]
 fn species() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let init = r#"
         var descriptor = Object.getOwnPropertyDescriptor(RegExp, Symbol.species);
@@ -63,7 +63,7 @@ fn species() {
 
 //    #[test]
 //    fn flags() {
-//        let mut context = Context::new();
+//        let mut context = Context::default();
 //        let init = r#"
 //                var re_gi = /test/gi;
 //                var re_sm = /test/sm;
@@ -89,7 +89,7 @@ fn species() {
 
 #[test]
 fn last_index() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var regex = /[0-9]+(\.[0-9]+)?/g;
         "#;
@@ -104,7 +104,7 @@ fn last_index() {
 
 #[test]
 fn exec() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var re = /quick\s(brown).+?(jumps)/ig;
         var result = re.exec('The Quick Brown Fox Jumps Over The Lazy Dog');
@@ -126,7 +126,7 @@ fn exec() {
 
 #[test]
 fn to_string() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(
         forward(&mut context, "(new RegExp('a+b+c')).toString()"),
@@ -145,7 +145,7 @@ fn to_string() {
 
 #[test]
 fn no_panic_on_invalid_character_escape() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     // This used to panic, we now return an error
     // The line below should not cause Boa to panic
@@ -154,7 +154,7 @@ fn no_panic_on_invalid_character_escape() {
 
 #[test]
 fn search() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     // coerce-string
     assert_eq!(

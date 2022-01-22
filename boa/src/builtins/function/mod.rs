@@ -346,7 +346,7 @@ impl BuiltInFunctionObject {
         })?;
 
         let this_arg = args.get_or_undefined(0).clone();
-        let bound_args = args.get(1..).unwrap_or_else(|| &[]).to_vec();
+        let bound_args = args.get(1..).unwrap_or(&[]).to_vec();
         let arg_count = bound_args.len() as i64;
 
         // 3. Let F be ? BoundFunctionCreate(Target, thisArg, args).

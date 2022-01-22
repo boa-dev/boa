@@ -4,7 +4,7 @@ use crate::{builtins::Number, forward, forward_val, value::AbstractRelation, Con
 
 #[test]
 fn integer_number_primitive_to_number_object() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let scenario = r#"
         (100).toString() === "100"
@@ -15,7 +15,7 @@ fn integer_number_primitive_to_number_object() {
 
 #[test]
 fn call_number() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var default_zero = Number();
         var int_one = Number(1);
@@ -49,7 +49,7 @@ fn call_number() {
 
 #[test]
 fn to_exponential() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var default_exp = Number().toExponential();
         var int_exp = Number(5).toExponential();
@@ -77,7 +77,7 @@ fn to_exponential() {
 
 #[test]
 fn to_fixed() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var default_fixed = Number().toFixed();
         var pos_fixed = Number("3.456e+4").toFixed();
@@ -102,7 +102,7 @@ fn to_fixed() {
 
 #[test]
 fn to_locale_string() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var default_locale = Number().toLocaleString();
         var small_locale = Number(5).toLocaleString();
@@ -127,7 +127,7 @@ fn to_locale_string() {
 
 #[test]
 fn to_precision() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         var infinity = (1/0).toPrecision(3);
         var default_precision = Number().toPrecision();
@@ -185,7 +185,7 @@ fn to_precision() {
 
 #[test]
 fn to_string() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!("\"NaN\"", &forward(&mut context, "Number(NaN).toString()"));
     assert_eq!(
@@ -369,7 +369,7 @@ fn to_string() {
 
 #[test]
 fn num_to_string_exponential() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!("\"0\"", forward(&mut context, "(0).toString()"));
     assert_eq!("\"0\"", forward(&mut context, "(-0).toString()"));
@@ -407,7 +407,7 @@ fn num_to_string_exponential() {
 
 #[test]
 fn value_of() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     // TODO: In addition to parsing numbers from strings, parse them bare As of October 2019
     // the parser does not understand scientific e.g., Xe+Y or -Xe-Y notation.
     let init = r#"
@@ -493,7 +493,7 @@ fn same_value_zero() {
 
 #[test]
 fn from_bigint() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(&forward(&mut context, "Number(0n)"), "0",);
     assert_eq!(&forward(&mut context, "Number(100000n)"), "100000",);
@@ -503,7 +503,7 @@ fn from_bigint() {
 
 #[test]
 fn number_constants() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert!(!forward_val(&mut context, "Number.EPSILON")
         .unwrap()
@@ -530,42 +530,42 @@ fn number_constants() {
 
 #[test]
 fn parse_int_simple() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(&forward(&mut context, "parseInt(\"6\")"), "6");
 }
 
 #[test]
 fn parse_int_negative() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(&forward(&mut context, "parseInt(\"-9\")"), "-9");
 }
 
 #[test]
 fn parse_int_already_int() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(&forward(&mut context, "parseInt(100)"), "100");
 }
 
 #[test]
 fn parse_int_float() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(&forward(&mut context, "parseInt(100.5)"), "100");
 }
 
 #[test]
 fn parse_int_float_str() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(&forward(&mut context, "parseInt(\"100.5\")"), "100");
 }
 
 #[test]
 fn parse_int_inferred_hex() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(&forward(&mut context, "parseInt(\"0xA\")"), "10");
 }
@@ -574,14 +574,14 @@ fn parse_int_inferred_hex() {
 /// a radix 10 if no radix is specified. Some alternative implementations default to a radix of 8.
 #[test]
 fn parse_int_zero_start() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(&forward(&mut context, "parseInt(\"018\")"), "18");
 }
 
 #[test]
 fn parse_int_varying_radix() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let base_str = "1000";
 
@@ -600,7 +600,7 @@ fn parse_int_varying_radix() {
 
 #[test]
 fn parse_int_negative_varying_radix() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let base_str = "-1000";
 
@@ -619,14 +619,14 @@ fn parse_int_negative_varying_radix() {
 
 #[test]
 fn parse_int_malformed_str() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(&forward(&mut context, "parseInt(\"hello\")"), "NaN");
 }
 
 #[test]
 fn parse_int_undefined() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(&forward(&mut context, "parseInt(undefined)"), "NaN");
 }
@@ -635,7 +635,7 @@ fn parse_int_undefined() {
 /// passed as the first argument.
 #[test]
 fn parse_int_no_args() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(&forward(&mut context, "parseInt()"), "NaN");
 }
@@ -643,56 +643,56 @@ fn parse_int_no_args() {
 /// Shows that extra arguments to parseInt are ignored.
 #[test]
 fn parse_int_too_many_args() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(&forward(&mut context, "parseInt(\"100\", 10, 10)"), "100");
 }
 
 #[test]
 fn parse_float_simple() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(&forward(&mut context, "parseFloat(\"6.5\")"), "6.5");
 }
 
 #[test]
 fn parse_float_int() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(&forward(&mut context, "parseFloat(10)"), "10");
 }
 
 #[test]
 fn parse_float_int_str() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(&forward(&mut context, "parseFloat(\"8\")"), "8");
 }
 
 #[test]
 fn parse_float_already_float() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(&forward(&mut context, "parseFloat(17.5)"), "17.5");
 }
 
 #[test]
 fn parse_float_negative() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(&forward(&mut context, "parseFloat(\"-99.7\")"), "-99.7");
 }
 
 #[test]
 fn parse_float_malformed_str() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(&forward(&mut context, "parseFloat(\"hello\")"), "NaN");
 }
 
 #[test]
 fn parse_float_undefined() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(&forward(&mut context, "parseFloat(undefined)"), "NaN");
 }
@@ -700,7 +700,7 @@ fn parse_float_undefined() {
 /// No arguments to parseFloat is treated the same as passing undefined as the first argument.
 #[test]
 fn parse_float_no_args() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(&forward(&mut context, "parseFloat()"), "NaN");
 }
@@ -708,14 +708,14 @@ fn parse_float_no_args() {
 /// Shows that the parseFloat function ignores extra arguments.
 #[test]
 fn parse_float_too_many_args() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!(&forward(&mut context, "parseFloat(\"100.5\", 10)"), "100.5");
 }
 
 #[test]
 fn global_is_finite() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!("false", &forward(&mut context, "isFinite(Infinity)"));
     assert_eq!("false", &forward(&mut context, "isFinite(NaN)"));
@@ -730,7 +730,7 @@ fn global_is_finite() {
 
 #[test]
 fn global_is_nan() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!("true", &forward(&mut context, "isNaN(NaN)"));
     assert_eq!("true", &forward(&mut context, "isNaN('NaN')"));
@@ -751,7 +751,7 @@ fn global_is_nan() {
 
 #[test]
 fn number_is_finite() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!("false", &forward(&mut context, "Number.isFinite(Infinity)"));
     assert_eq!("false", &forward(&mut context, "Number.isFinite(NaN)"));
@@ -783,7 +783,7 @@ fn number_is_finite() {
 
 #[test]
 fn number_is_integer() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!("true", &forward(&mut context, "Number.isInteger(0)"));
     assert_eq!("true", &forward(&mut context, "Number.isInteger(1)"));
@@ -833,7 +833,7 @@ fn number_is_integer() {
 
 #[test]
 fn number_is_nan() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!("true", &forward(&mut context, "Number.isNaN(NaN)"));
     assert_eq!("true", &forward(&mut context, "Number.isNaN(Number.NaN)"));
@@ -866,7 +866,7 @@ fn number_is_nan() {
 
 #[test]
 fn number_is_safe_integer() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     assert_eq!("true", &forward(&mut context, "Number.isSafeInteger(3)"));
     assert_eq!(

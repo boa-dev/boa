@@ -155,7 +155,7 @@ impl<V> OrderedMap<V> {
     ///
     /// Computes in **O(1)** time (average).
     pub fn get(&self, key: &JsValue) -> Option<&V> {
-        self.map.get(key).map(Option::as_ref).flatten()
+        self.map.get(key).and_then(Option::as_ref)
     }
 
     /// Get a key-value pair by index.
