@@ -905,7 +905,7 @@ impl Context {
         result
     }
 
-    // Compile the AST into a CodeBlock ready to execute by the VM
+    /// Compile the AST into a `CodeBlock` ready to be executed by the VM.
     #[inline]
     pub fn compile(statement_list: &StatementList) -> Gc<CodeBlock> {
         let _ = BoaProfiler::global().start_event("Compilation", "Main");
@@ -914,7 +914,12 @@ impl Context {
         Gc::new(compiler.finish())
     }
 
-    // Call the VM with the codeblock and return the result
+    /// Call the VM with the `CodeBlock` and return the result.
+    ///
+    /// Since this functions receives a `Gc<CodeBlock`, cloning the code is very cheap, since it's
+    /// just a pointer copy. Therefore, if you'd like to execute the same `CodeBlock` multiple
+    /// times, there is no need to re-compile it, and you can just call `clone()` on the
+    /// `Gc<CodeBlock>` returned by the [`Self::compile()`] function.
     #[inline]
     pub fn execute(&mut self, code_block: Gc<CodeBlock>) -> JsResult<JsValue> {
         let _ = BoaProfiler::global().start_event("Execute", "Main");
