@@ -1,8 +1,9 @@
 use crate::{Interner, Sym};
 use std::num::NonZeroUsize;
 
+#[track_caller]
 fn sym_from_usize(index: usize) -> Sym {
-    Sym::from_raw(NonZeroUsize::new(index).unwrap())
+    Sym::from_raw(NonZeroUsize::new(index).expect("Invalid NonZeroUsize"))
 }
 
 #[test]
