@@ -699,12 +699,12 @@
 <span id="698">698</span>
 <span id="699">699</span>
 <span id="700">700</span>
+<span id="701">701</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `Node` structure, which composes the AST.</span>
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">array</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">await_expr</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">block</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">break_node</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">call</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">conditional</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">declaration</span>;
@@ -727,7 +727,6 @@
     <span class="ident">array::ArrayDecl</span>,
     <span class="ident">await_expr::AwaitExpr</span>,
     <span class="ident">block::Block</span>,
-    <span class="ident">break_node::Break</span>,
     <span class="ident">call::Call</span>,
     <span class="ident">conditional</span>::{<span class="ident">ConditionalOp</span>, <span class="ident">If</span>},
     <span class="ident">declaration</span>::{
@@ -738,7 +737,7 @@
     },
     <span class="ident">field</span>::{<span class="ident">GetConstField</span>, <span class="ident">GetField</span>},
     <span class="ident">identifier::Identifier</span>,
-    <span class="ident">iteration</span>::{<span class="ident">Continue</span>, <span class="ident">DoWhileLoop</span>, <span class="ident">ForInLoop</span>, <span class="ident">ForLoop</span>, <span class="ident">ForOfLoop</span>, <span class="ident">WhileLoop</span>},
+    <span class="ident">iteration</span>::{<span class="ident">Break</span>, <span class="ident">Continue</span>, <span class="ident">DoWhileLoop</span>, <span class="ident">ForInLoop</span>, <span class="ident">ForLoop</span>, <span class="ident">ForOfLoop</span>, <span class="ident">WhileLoop</span>},
     <span class="ident">new::New</span>,
     <span class="ident">object::Object</span>,
     <span class="ident">operator</span>::{<span class="ident">Assign</span>, <span class="ident">BinOp</span>, <span class="ident">UnaryOp</span>},
@@ -753,10 +752,8 @@
 };
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::Const</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::gc</span>::{<span class="ident">empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>};
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">cmp::Ordering</span>,
-    <span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Display</span>},
-};
+<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>, <span class="ident">ToInternedString</span>};
+<span class="kw">use</span> <span class="ident">std::cmp::Ordering</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
@@ -927,12 +924,6 @@
     <span class="ident">GeneratorExpr</span>(<span class="ident">GeneratorExpr</span>),
 }
 
-<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Node</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="self">self</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="number">0</span>)
-    }
-}
-
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Const</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Node</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">c</span>: <span class="ident">Const</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::Const</span>(<span class="ident">c</span>)
@@ -956,8 +947,8 @@
         <span class="ident"><span class="self">Self</span>::This</span>
     }
 
-    <span class="doccomment">/// Displays the value of the node with the given indentation. For example, an indent</span>
-    <span class="doccomment">/// level of 2 would produce this:</span>
+    <span class="doccomment">/// Creates a string of the value of the node with the given indentation. For example, an</span>
+    <span class="doccomment">/// indent level of 2 would produce this:</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```js</span>
     <span class="doccomment">///         function hello() {</span>
@@ -966,81 +957,95 @@
     <span class="doccomment">///         hello();</span>
     <span class="doccomment">///         a = 2;</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">display</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">let</span> <span class="ident">indent</span> <span class="op">=</span> <span class="string">&quot;    &quot;</span>.<span class="ident">repeat</span>(<span class="ident">indentation</span>);
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Block</span>(<span class="kw">_</span>) =&gt; {}
-            <span class="kw">_</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">indent</span>)<span class="question-mark">?</span>,
-        }
-        <span class="self">self</span>.<span class="ident">display_no_indent</span>(<span class="ident">f</span>, <span class="ident">indentation</span>)
+    <span class="kw">fn</span> <span class="ident">to_indented_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
+            <span class="ident"><span class="self">Self</span>::Block</span>(<span class="kw">_</span>) =&gt; <span class="ident">String::new</span>(),
+            <span class="kw">_</span> =&gt; <span class="string">&quot;    &quot;</span>.<span class="ident">repeat</span>(<span class="ident">indentation</span>),
+        };
+
+        <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">to_no_indent_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>));
+
+        <span class="ident">buf</span>
     }
 
-    <span class="doccomment">/// Implements the display formatting with indentation. This will not prefix the value with</span>
-    <span class="doccomment">/// any indentation. If you want to prefix this with proper indents, use [`display`](Self::display).</span>
-    <span class="kw">fn</span> <span class="ident">display_no_indent</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) -&gt; <span class="ident">fmt::Result</span> {
+    <span class="doccomment">/// Implements the display formatting with indentation.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This will not prefix the value with any indentation. If you want to prefix this with proper</span>
+    <span class="doccomment">/// indents, use [`to_indented_string()`](Self::to_indented_string).</span>
+    <span class="kw">fn</span> <span class="ident">to_no_indent_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Call</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">expr</span>, <span class="ident">f</span>),
-            <span class="ident"><span class="self">Self</span>::Const</span>(<span class="kw-2">ref</span> <span class="ident">c</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">c</span>),
-            <span class="ident"><span class="self">Self</span>::ConditionalOp</span>(<span class="kw-2">ref</span> <span class="ident">cond_op</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">cond_op</span>, <span class="ident">f</span>),
-            <span class="ident"><span class="self">Self</span>::ForLoop</span>(<span class="kw-2">ref</span> <span class="ident">for_loop</span>) =&gt; <span class="ident">for_loop</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
-            <span class="ident"><span class="self">Self</span>::ForOfLoop</span>(<span class="kw-2">ref</span> <span class="ident">for_of</span>) =&gt; <span class="ident">for_of</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
-            <span class="ident"><span class="self">Self</span>::ForInLoop</span>(<span class="kw-2">ref</span> <span class="ident">for_in</span>) =&gt; <span class="ident">for_in</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
-            <span class="ident"><span class="self">Self</span>::This</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;this&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Try</span>(<span class="kw-2">ref</span> <span class="ident">try_catch</span>) =&gt; <span class="ident">try_catch</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
-            <span class="ident"><span class="self">Self</span>::Break</span>(<span class="kw-2">ref</span> <span class="ident">break_smt</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">break_smt</span>, <span class="ident">f</span>),
-            <span class="ident"><span class="self">Self</span>::Continue</span>(<span class="kw-2">ref</span> <span class="ident">cont</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">cont</span>, <span class="ident">f</span>),
-            <span class="ident"><span class="self">Self</span>::Spread</span>(<span class="kw-2">ref</span> <span class="ident">spread</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">spread</span>, <span class="ident">f</span>),
-            <span class="ident"><span class="self">Self</span>::Block</span>(<span class="kw-2">ref</span> <span class="ident">block</span>) =&gt; <span class="ident">block</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
-            <span class="ident"><span class="self">Self</span>::Identifier</span>(<span class="kw-2">ref</span> <span class="ident">s</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">s</span>, <span class="ident">f</span>),
-            <span class="ident"><span class="self">Self</span>::New</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">expr</span>, <span class="ident">f</span>),
-            <span class="ident"><span class="self">Self</span>::GetConstField</span>(<span class="kw-2">ref</span> <span class="ident">get_const_field</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">get_const_field</span>, <span class="ident">f</span>),
-            <span class="ident"><span class="self">Self</span>::GetField</span>(<span class="kw-2">ref</span> <span class="ident">get_field</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">get_field</span>, <span class="ident">f</span>),
-            <span class="ident"><span class="self">Self</span>::WhileLoop</span>(<span class="kw-2">ref</span> <span class="ident">while_loop</span>) =&gt; <span class="ident">while_loop</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
-            <span class="ident"><span class="self">Self</span>::DoWhileLoop</span>(<span class="kw-2">ref</span> <span class="ident">do_while</span>) =&gt; <span class="ident">do_while</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
-            <span class="ident"><span class="self">Self</span>::If</span>(<span class="kw-2">ref</span> <span class="ident">if_smt</span>) =&gt; <span class="ident">if_smt</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
-            <span class="ident"><span class="self">Self</span>::Switch</span>(<span class="kw-2">ref</span> <span class="ident">switch</span>) =&gt; <span class="ident">switch</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
-            <span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) =&gt; <span class="ident">obj</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
-            <span class="ident"><span class="self">Self</span>::ArrayDecl</span>(<span class="kw-2">ref</span> <span class="ident">arr</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">arr</span>, <span class="ident">f</span>),
-            <span class="ident"><span class="self">Self</span>::VarDeclList</span>(<span class="kw-2">ref</span> <span class="ident">list</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">list</span>, <span class="ident">f</span>),
-            <span class="ident"><span class="self">Self</span>::FunctionDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) =&gt; <span class="ident">decl</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
-            <span class="ident"><span class="self">Self</span>::FunctionExpr</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) =&gt; <span class="ident">expr</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
-            <span class="ident"><span class="self">Self</span>::ArrowFunctionDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) =&gt; <span class="ident">decl</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
-            <span class="ident"><span class="self">Self</span>::BinOp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">op</span>, <span class="ident">f</span>),
-            <span class="ident"><span class="self">Self</span>::UnaryOp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">op</span>, <span class="ident">f</span>),
-            <span class="ident"><span class="self">Self</span>::Return</span>(<span class="kw-2">ref</span> <span class="ident">ret</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">ret</span>, <span class="ident">f</span>),
-            <span class="ident"><span class="self">Self</span>::TaggedTemplate</span>(<span class="kw-2">ref</span> <span class="ident">template</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">template</span>, <span class="ident">f</span>),
-            <span class="ident"><span class="self">Self</span>::TemplateLit</span>(<span class="kw-2">ref</span> <span class="ident">template</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">template</span>, <span class="ident">f</span>),
-            <span class="ident"><span class="self">Self</span>::Throw</span>(<span class="kw-2">ref</span> <span class="ident">throw</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">throw</span>, <span class="ident">f</span>),
-            <span class="ident"><span class="self">Self</span>::Assign</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">op</span>, <span class="ident">f</span>),
-            <span class="ident"><span class="self">Self</span>::LetDeclList</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">decl</span>, <span class="ident">f</span>),
-            <span class="ident"><span class="self">Self</span>::ConstDeclList</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">decl</span>, <span class="ident">f</span>),
-            <span class="ident"><span class="self">Self</span>::AsyncFunctionDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) =&gt; <span class="ident">decl</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
-            <span class="ident"><span class="self">Self</span>::AsyncFunctionExpr</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) =&gt; <span class="ident">expr</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
-            <span class="ident"><span class="self">Self</span>::AwaitExpr</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">expr</span>, <span class="ident">f</span>),
-            <span class="ident"><span class="self">Self</span>::Empty</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;;&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Yield</span>(<span class="kw-2">ref</span> <span class="ident">y</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">y</span>, <span class="ident">f</span>),
-            <span class="ident"><span class="self">Self</span>::GeneratorDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">decl</span>, <span class="ident">f</span>),
-            <span class="ident"><span class="self">Self</span>::GeneratorExpr</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) =&gt; <span class="ident">expr</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
-            <span class="ident"><span class="self">Self</span>::AsyncGeneratorExpr</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) =&gt; <span class="ident">expr</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
-            <span class="ident"><span class="self">Self</span>::AsyncGeneratorDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) =&gt; <span class="ident">decl</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
+            <span class="ident"><span class="self">Self</span>::Call</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) =&gt; <span class="ident">expr</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
+            <span class="ident"><span class="self">Self</span>::Const</span>(<span class="kw-2">ref</span> <span class="ident">c</span>) =&gt; <span class="ident">c</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
+            <span class="ident"><span class="self">Self</span>::ConditionalOp</span>(<span class="kw-2">ref</span> <span class="ident">cond_op</span>) =&gt; <span class="ident">cond_op</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
+            <span class="ident"><span class="self">Self</span>::ForLoop</span>(<span class="kw-2">ref</span> <span class="ident">for_loop</span>) =&gt; <span class="ident">for_loop</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
+            <span class="ident"><span class="self">Self</span>::ForOfLoop</span>(<span class="kw-2">ref</span> <span class="ident">for_of</span>) =&gt; <span class="ident">for_of</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
+            <span class="ident"><span class="self">Self</span>::ForInLoop</span>(<span class="kw-2">ref</span> <span class="ident">for_in</span>) =&gt; <span class="ident">for_in</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
+            <span class="ident"><span class="self">Self</span>::This</span> =&gt; <span class="string">&quot;this&quot;</span>.<span class="ident">to_owned</span>(),
+            <span class="ident"><span class="self">Self</span>::Try</span>(<span class="kw-2">ref</span> <span class="ident">try_catch</span>) =&gt; <span class="ident">try_catch</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
+            <span class="ident"><span class="self">Self</span>::Break</span>(<span class="kw-2">ref</span> <span class="ident">break_smt</span>) =&gt; <span class="ident">break_smt</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
+            <span class="ident"><span class="self">Self</span>::Continue</span>(<span class="kw-2">ref</span> <span class="ident">cont</span>) =&gt; <span class="ident">cont</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
+            <span class="ident"><span class="self">Self</span>::Spread</span>(<span class="kw-2">ref</span> <span class="ident">spread</span>) =&gt; <span class="ident">spread</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
+            <span class="ident"><span class="self">Self</span>::Block</span>(<span class="kw-2">ref</span> <span class="ident">block</span>) =&gt; <span class="ident">block</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
+            <span class="ident"><span class="self">Self</span>::Identifier</span>(<span class="kw-2">ref</span> <span class="ident">ident</span>) =&gt; <span class="ident">ident</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
+            <span class="ident"><span class="self">Self</span>::New</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) =&gt; <span class="ident">expr</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
+            <span class="ident"><span class="self">Self</span>::GetConstField</span>(<span class="kw-2">ref</span> <span class="ident">get_const_field</span>) =&gt; {
+                <span class="ident">get_const_field</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>)
+            }
+            <span class="ident"><span class="self">Self</span>::GetField</span>(<span class="kw-2">ref</span> <span class="ident">get_field</span>) =&gt; <span class="ident">get_field</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
+            <span class="ident"><span class="self">Self</span>::WhileLoop</span>(<span class="kw-2">ref</span> <span class="ident">while_loop</span>) =&gt; <span class="ident">while_loop</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
+            <span class="ident"><span class="self">Self</span>::DoWhileLoop</span>(<span class="kw-2">ref</span> <span class="ident">do_while</span>) =&gt; <span class="ident">do_while</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
+            <span class="ident"><span class="self">Self</span>::If</span>(<span class="kw-2">ref</span> <span class="ident">if_smt</span>) =&gt; <span class="ident">if_smt</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
+            <span class="ident"><span class="self">Self</span>::Switch</span>(<span class="kw-2">ref</span> <span class="ident">switch</span>) =&gt; <span class="ident">switch</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
+            <span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) =&gt; <span class="ident">obj</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
+            <span class="ident"><span class="self">Self</span>::ArrayDecl</span>(<span class="kw-2">ref</span> <span class="ident">arr</span>) =&gt; <span class="ident">arr</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
+            <span class="ident"><span class="self">Self</span>::VarDeclList</span>(<span class="kw-2">ref</span> <span class="ident">list</span>) =&gt; <span class="ident">list</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
+            <span class="ident"><span class="self">Self</span>::FunctionDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) =&gt; <span class="ident">decl</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
+            <span class="ident"><span class="self">Self</span>::FunctionExpr</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) =&gt; <span class="ident">expr</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
+            <span class="ident"><span class="self">Self</span>::ArrowFunctionDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) =&gt; <span class="ident">decl</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
+            <span class="ident"><span class="self">Self</span>::BinOp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) =&gt; <span class="ident">op</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
+            <span class="ident"><span class="self">Self</span>::UnaryOp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) =&gt; <span class="ident">op</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
+            <span class="ident"><span class="self">Self</span>::Return</span>(<span class="kw-2">ref</span> <span class="ident">ret</span>) =&gt; <span class="ident">ret</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
+            <span class="ident"><span class="self">Self</span>::TaggedTemplate</span>(<span class="kw-2">ref</span> <span class="ident">template</span>) =&gt; <span class="ident">template</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
+            <span class="ident"><span class="self">Self</span>::TemplateLit</span>(<span class="kw-2">ref</span> <span class="ident">template</span>) =&gt; <span class="ident">template</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
+            <span class="ident"><span class="self">Self</span>::Throw</span>(<span class="kw-2">ref</span> <span class="ident">throw</span>) =&gt; <span class="ident">throw</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
+            <span class="ident"><span class="self">Self</span>::Assign</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) =&gt; <span class="ident">op</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
+            <span class="ident"><span class="self">Self</span>::LetDeclList</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) =&gt; <span class="ident">decl</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
+            <span class="ident"><span class="self">Self</span>::ConstDeclList</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) =&gt; <span class="ident">decl</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
+            <span class="ident"><span class="self">Self</span>::AsyncFunctionDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) =&gt; <span class="ident">decl</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
+            <span class="ident"><span class="self">Self</span>::AsyncFunctionExpr</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) =&gt; <span class="ident">expr</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
+            <span class="ident"><span class="self">Self</span>::AwaitExpr</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) =&gt; <span class="ident">expr</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
+            <span class="ident"><span class="self">Self</span>::Empty</span> =&gt; <span class="string">&quot;;&quot;</span>.<span class="ident">to_owned</span>(),
+            <span class="ident"><span class="self">Self</span>::Yield</span>(<span class="kw-2">ref</span> <span class="ident">y</span>) =&gt; <span class="ident">y</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
+            <span class="ident"><span class="self">Self</span>::GeneratorDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) =&gt; <span class="ident">decl</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
+            <span class="ident"><span class="self">Self</span>::GeneratorExpr</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) =&gt; <span class="ident">expr</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
+            <span class="ident"><span class="self">Self</span>::AsyncGeneratorExpr</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) =&gt; <span class="ident">expr</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
+            <span class="ident"><span class="self">Self</span>::AsyncGeneratorDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) =&gt; <span class="ident">decl</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
         }
     }
 }
 
+<span class="kw">impl</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">Node</span> {
+    <span class="kw">fn</span> <span class="ident">to_interned_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>) -&gt; <span class="ident">String</span> {
+        <span class="self">self</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="number">0</span>)
+    }
+}
+
 <span class="doccomment">/// Utility to join multiple Nodes into a single string.</span>
-<span class="kw">fn</span> <span class="ident">join_nodes</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">nodes</span>: <span class="kw-2">&amp;</span>[<span class="ident">N</span>]) -&gt; <span class="ident">fmt::Result</span>
+<span class="kw">fn</span> <span class="ident">join_nodes</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">nodes</span>: <span class="kw-2">&amp;</span>[<span class="ident">N</span>]) -&gt; <span class="ident">String</span>
 <span class="kw">where</span>
-    <span class="ident">N</span>: <span class="ident">Display</span>,
+    <span class="ident">N</span>: <span class="ident">ToInternedString</span>,
 {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">first</span> <span class="op">=</span> <span class="bool-val">true</span>;
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">String::new</span>();
     <span class="kw">for</span> <span class="ident">e</span> <span class="kw">in</span> <span class="ident">nodes</span> {
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">first</span> {
-            <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;, &quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">if</span> <span class="ident">first</span> {
+            <span class="ident">first</span> <span class="op">=</span> <span class="bool-val">false</span>;
+        } <span class="kw">else</span> {
+            <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="string">&quot;, &quot;</span>);
         }
-        <span class="ident">first</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="ident">Display::fmt</span>(<span class="ident">e</span>, <span class="ident">f</span>)<span class="question-mark">?</span>;
+        <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">e</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>))
     }
-    <span class="prelude-val">Ok</span>(())
+    <span class="ident">buf</span>
 }
 
 <span class="doccomment">/// &quot;Formal parameter&quot; is a fancy way of saying &quot;function parameter&quot;.</span>
@@ -1078,9 +1083,9 @@
     }
 
     <span class="doccomment">/// Gets the name of the formal parameter.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">names</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">names</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">declaration</span> {
-            <span class="ident">Declaration::Identifier</span> { <span class="ident">ident</span>, .. } =&gt; <span class="macro">vec!</span>[<span class="ident">ident</span>.<span class="ident">as_ref</span>()],
+            <span class="ident">Declaration::Identifier</span> { <span class="ident">ident</span>, .. } =&gt; <span class="macro">vec!</span>[<span class="ident">ident</span>.<span class="ident">sym</span>()],
             <span class="ident">Declaration::Pattern</span>(<span class="ident">pattern</span>) =&gt; <span class="kw">match</span> <span class="ident">pattern</span> {
                 <span class="ident">DeclarationPattern::Object</span>(<span class="ident">object_pattern</span>) =&gt; <span class="ident">object_pattern</span>.<span class="ident">idents</span>(),
 
@@ -1109,13 +1114,15 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">FormalParameter</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_rest_param</span> {
-            <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;...&quot;</span>)<span class="question-mark">?</span>;
-        }
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">declaration</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(())
+<span class="kw">impl</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">FormalParameter</span> {
+    <span class="kw">fn</span> <span class="ident">to_interned_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>) -&gt; <span class="ident">String</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_rest_param</span> {
+            <span class="string">&quot;...&quot;</span>.<span class="ident">to_owned</span>()
+        } <span class="kw">else</span> {
+            <span class="ident">String::new</span>()
+        };
+        <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">declaration</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>));
+        <span class="ident">buf</span>
     }
 }
 
@@ -1319,7 +1326,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-LiteralPropertyName</span>
-    <span class="ident">Literal</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>),
+    <span class="ident">Literal</span>(<span class="ident">Sym</span>),
     <span class="doccomment">/// A `Computed` property name is an expression that gets evaluated and converted into a property name.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
@@ -1329,21 +1336,18 @@
     <span class="ident">Computed</span>(<span class="ident">Node</span>),
 }
 
-<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">PropertyName</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
+<span class="kw">impl</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">PropertyName</span> {
+    <span class="kw">fn</span> <span class="ident">to_interned_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>) -&gt; <span class="ident">String</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">PropertyName::Literal</span>(<span class="ident">key</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">key</span>),
-            <span class="ident">PropertyName::Computed</span>(<span class="ident">key</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">key</span>),
+            <span class="ident">PropertyName::Literal</span>(<span class="ident">key</span>) =&gt; <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="kw-2">*</span><span class="ident">key</span>).<span class="ident">to_owned</span>(),
+            <span class="ident">PropertyName::Computed</span>(<span class="ident">key</span>) =&gt; <span class="ident">key</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyName</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-{
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">name</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Literal</span>(<span class="ident">name</span>.<span class="ident">into</span>())
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyName</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">name</span>: <span class="ident">Sym</span>) -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::Literal</span>(<span class="ident">name</span>)
     }
 }
 
@@ -1368,7 +1372,7 @@
 <span class="doccomment">/// level.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">fn</span> <span class="ident">test_formatting</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) {
-    <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">syntax::Parser</span>, <span class="ident">Interner</span>};
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::Parser</span>;
 
     <span class="comment">// Remove preceding newline.</span>
     <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">source</span>[<span class="number">1</span>..];
@@ -1383,13 +1387,11 @@
         .<span class="ident">map</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">l</span>[<span class="ident">characters_to_remove</span>..]) <span class="comment">// Remove preceding whitespace from each line</span>
         .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>()
         .<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">interner</span> <span class="op">=</span> <span class="ident">Interner::new</span>();
-    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="macro">format!</span>(
-        <span class="string">&quot;{}&quot;</span>,
-        <span class="ident">Parser::new</span>(<span class="ident">scenario</span>.<span class="ident">as_bytes</span>(), <span class="bool-val">false</span>)
-            .<span class="ident">parse_all</span>(<span class="kw-2">&amp;mut</span> <span class="ident">interner</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;parsing failed&quot;</span>)
-    );
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">interner</span> <span class="op">=</span> <span class="ident">Interner::default</span>();
+    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Parser::new</span>(<span class="ident">scenario</span>.<span class="ident">as_bytes</span>(), <span class="bool-val">false</span>)
+        .<span class="ident">parse_all</span>(<span class="kw-2">&amp;mut</span> <span class="ident">interner</span>)
+        .<span class="ident">expect</span>(<span class="string">&quot;parsing failed&quot;</span>)
+        .<span class="ident">to_interned_string</span>(<span class="kw-2">&amp;</span><span class="ident">interner</span>);
     <span class="kw">if</span> <span class="ident">scenario</span> <span class="op">!</span><span class="op">=</span> <span class="ident">result</span> {
         <span class="macro">eprint!</span>(<span class="string">&quot;========= Expected:\n{}&quot;</span>, <span class="ident">scenario</span>);
         <span class="macro">eprint!</span>(<span class="string">&quot;========= Got:\n{}&quot;</span>, <span class="ident">result</span>);

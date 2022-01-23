@@ -100,9 +100,8 @@
 <span id="99"> 99</span>
 <span id="100">100</span>
 <span id="101">101</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::io::Read</span>;
-
-<span class="kw">use</span> <span class="kw">crate</span>::{
+<span id="102">102</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">syntax</span>::{
         <span class="ident">ast</span>::{<span class="ident">Keyword</span>, <span class="ident">Node</span>, <span class="ident">Punctuator</span>},
         <span class="ident">lexer::TokenKind</span>,
@@ -116,8 +115,11 @@
             <span class="ident">AllowYield</span>, <span class="ident">TokenParser</span>,
         },
     },
-    <span class="ident">BoaProfiler</span>, <span class="ident">Interner</span>,
+    <span class="ident">BoaProfiler</span>,
 };
+<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
+<span class="kw">use</span> <span class="ident">std::io::Read</span>;
+
 <span class="doccomment">/// Labelled Statement Parsing</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// More information</span>
@@ -191,7 +193,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">set_label_for_node</span>(<span class="ident">node</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Node</span>, <span class="ident">name</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>) {
+<span class="kw">fn</span> <span class="ident">set_label_for_node</span>(<span class="ident">node</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Node</span>, <span class="ident">name</span>: <span class="ident">Sym</span>) {
     <span class="kw">match</span> <span class="ident">node</span> {
         <span class="ident">Node::ForLoop</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">for_loop</span>) =&gt; <span class="ident">for_loop</span>.<span class="ident">set_label</span>(<span class="ident">name</span>),
         <span class="ident">Node::ForOfLoop</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">for_of_loop</span>) =&gt; <span class="ident">for_of_loop</span>.<span class="ident">set_label</span>(<span class="ident">name</span>),

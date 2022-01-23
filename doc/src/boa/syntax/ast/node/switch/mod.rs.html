@@ -132,13 +132,22 @@
 <span id="131">131</span>
 <span id="132">132</span>
 <span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Switch node.</span>
 <span class="doccomment">//!</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
     <span class="ident">syntax::ast::node::Node</span>,
 };
-<span class="kw">use</span> <span class="ident">std::fmt</span>;
+<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToInternedString</span>};
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast::node::StatementList</span>;
 
@@ -234,29 +243,38 @@
     }
 
     <span class="doccomment">/// Implements the display formatting with indentation.</span>
-    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::ast::node</span>) <span class="kw">fn</span> <span class="ident">display</span>(
+    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::ast::node</span>) <span class="kw">fn</span> <span class="ident">to_indented_string</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+        <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>,
         <span class="ident">indentation</span>: <span class="ident">usize</span>,
-    ) -&gt; <span class="ident">fmt::Result</span> {
+    ) -&gt; <span class="ident">String</span> {
         <span class="kw">let</span> <span class="ident">indent</span> <span class="op">=</span> <span class="string">&quot;    &quot;</span>.<span class="ident">repeat</span>(<span class="ident">indentation</span>);
-        <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;switch ({}) {{&quot;</span>, <span class="self">self</span>.<span class="ident">val</span>())<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;switch ({}) {{\n&quot;</span>, <span class="self">self</span>.<span class="ident">val</span>().<span class="ident">to_interned_string</span>(<span class="ident">interner</span>));
         <span class="kw">for</span> <span class="ident">e</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">cases</span>().<span class="ident">iter</span>() {
-            <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{}    case {}:&quot;</span>, <span class="ident">indent</span>, <span class="ident">e</span>.<span class="ident">condition</span>())<span class="question-mark">?</span>;
-            <span class="ident">e</span>.<span class="ident">body</span>().<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span> <span class="op">+</span> <span class="number">2</span>)<span class="question-mark">?</span>;
+            <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
+                <span class="string">&quot;{}    case {}:\n{}&quot;</span>,
+                <span class="ident">indent</span>,
+                <span class="ident">e</span>.<span class="ident">condition</span>().<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
+                <span class="ident">e</span>.<span class="ident">body</span>().<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span> <span class="op">+</span> <span class="number">2</span>)
+            ));
         }
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">default</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">default</span> {
-            <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{}    default:&quot;</span>, <span class="ident">indent</span>)<span class="question-mark">?</span>;
-            <span class="ident">default</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span> <span class="op">+</span> <span class="number">2</span>)<span class="question-mark">?</span>;
+            <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
+                <span class="string">&quot;{}    default:\n{}&quot;</span>,
+                <span class="ident">indent</span>,
+                <span class="ident">default</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span> <span class="op">+</span> <span class="number">2</span>)
+            ));
         }
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}}}&quot;</span>, <span class="ident">indent</span>)
+        <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{}}}&quot;</span>, <span class="ident">indent</span>));
+
+        <span class="ident">buf</span>
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Switch</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="self">self</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="number">0</span>)
+<span class="kw">impl</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">Switch</span> {
+    <span class="kw">fn</span> <span class="ident">to_interned_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>) -&gt; <span class="ident">String</span> {
+        <span class="self">self</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="number">0</span>)
     }
 }
 

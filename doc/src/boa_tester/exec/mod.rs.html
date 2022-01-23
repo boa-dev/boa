@@ -531,7 +531,7 @@
                         <span class="self">self</span>.<span class="ident">name</span>
                     );
 
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">interner</span> <span class="op">=</span> <span class="ident">Interner::new</span>();
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">interner</span> <span class="op">=</span> <span class="ident">Interner::default</span>();
                     <span class="kw">match</span> <span class="ident">Parser::new</span>(<span class="self">self</span>.<span class="ident">content</span>.<span class="ident">as_bytes</span>(), <span class="ident">strict</span>).<span class="ident">parse_all</span>(<span class="kw-2">&amp;mut</span> <span class="ident">interner</span>) {
                         <span class="prelude-val">Ok</span>(<span class="ident">n</span>) =&gt; (<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">n</span>)),
                         <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; (<span class="bool-val">true</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {}&quot;</span>, <span class="ident">e</span>)),
@@ -545,7 +545,7 @@
                     <span class="ident">phase</span>: <span class="ident">Phase::Runtime</span>,
                     <span class="kw-2">ref</span> <span class="ident">error_type</span>,
                 } =&gt; {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">interner</span> <span class="op">=</span> <span class="ident">Interner::new</span>();
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">interner</span> <span class="op">=</span> <span class="ident">Interner::default</span>();
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span>
                         <span class="ident">Parser::new</span>(<span class="self">self</span>.<span class="ident">content</span>.<span class="ident">as_bytes</span>(), <span class="ident">strict</span>).<span class="ident">parse_all</span>(<span class="kw-2">&amp;mut</span> <span class="ident">interner</span>)
                     {

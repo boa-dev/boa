@@ -460,7 +460,7 @@
     <span class="ident">position</span>: <span class="ident">Position</span>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">IterableLoopInitializer</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
     <span class="kw">match</span> <span class="ident">node</span> {
-        <span class="ident">Node::Identifier</span>(<span class="kw-2">ref</span> <span class="ident">name</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">IterableLoopInitializer::Identifier</span>(<span class="ident">name</span>.<span class="ident">clone</span>())),
+        <span class="ident">Node::Identifier</span>(<span class="ident">name</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">IterableLoopInitializer::Identifier</span>(<span class="kw-2">*</span><span class="ident">name</span>)),
         <span class="ident">Node::VarDeclList</span>(<span class="kw-2">ref</span> <span class="ident">list</span>) =&gt; <span class="kw">match</span> <span class="ident">list</span>.<span class="ident">as_ref</span>() {
             [<span class="ident">var</span>] =&gt; {
                 <span class="kw">if</span> <span class="ident">var</span>.<span class="ident">init</span>().<span class="ident">is_some</span>() {

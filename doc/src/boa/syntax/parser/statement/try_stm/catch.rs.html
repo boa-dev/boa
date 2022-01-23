@@ -269,7 +269,7 @@
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">set</span> <span class="op">=</span> <span class="ident">FxHashSet::default</span>();
         <span class="kw">let</span> <span class="ident">idents</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">catch_param</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">node::Declaration::Identifier</span> { <span class="ident">ident</span>, .. }) =&gt; <span class="macro">vec!</span>[<span class="ident">ident</span>.<span class="ident">as_ref</span>()],
+            <span class="prelude-val">Some</span>(<span class="ident">node::Declaration::Identifier</span> { <span class="ident">ident</span>, .. }) =&gt; <span class="macro">vec!</span>[<span class="ident">ident</span>.<span class="ident">sym</span>()],
             <span class="prelude-val">Some</span>(<span class="ident">node::Declaration::Pattern</span>(<span class="ident">p</span>)) =&gt; <span class="ident">p</span>.<span class="ident">idents</span>(),
             <span class="kw">_</span> =&gt; <span class="macro">vec!</span>[],
         };
@@ -296,18 +296,18 @@
 
         <span class="comment">// FIXME: `lexically_declared_names` only holds part of LexicallyDeclaredNames of the</span>
         <span class="comment">// Block e.g. function names are *not* included but should be.</span>
-        <span class="kw">let</span> <span class="ident">lexically_declared_names</span> <span class="op">=</span> <span class="ident">catch_block</span>.<span class="ident">lexically_declared_names</span>();
+        <span class="kw">let</span> <span class="ident">lexically_declared_names</span> <span class="op">=</span> <span class="ident">catch_block</span>.<span class="ident">lexically_declared_names</span>(<span class="ident">interner</span>);
         <span class="kw">let</span> <span class="ident">var_declared_names</span> <span class="op">=</span> <span class="ident">catch_block</span>.<span class="ident">var_declared_named</span>();
 
         <span class="kw">for</span> <span class="ident">ident</span> <span class="kw">in</span> <span class="ident">set</span> {
             <span class="comment">// FIXME: pass correct position once #1295 lands</span>
-            <span class="kw">if</span> <span class="ident">lexically_declared_names</span>.<span class="ident">contains</span>(<span class="ident">ident</span>) {
+            <span class="kw">if</span> <span class="ident">lexically_declared_names</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">ident</span>) {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
                     <span class="string">&quot;identifier redeclared&quot;</span>,
                     <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
                 ));
             }
-            <span class="kw">if</span> <span class="ident">var_declared_names</span>.<span class="ident">contains</span>(<span class="ident">ident</span>) {
+            <span class="kw">if</span> <span class="ident">var_declared_names</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">ident</span>) {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
                     <span class="string">&quot;identifier redeclared&quot;</span>,
                     <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
@@ -376,7 +376,7 @@
             <span class="ident">TokenKind::Identifier</span>(<span class="kw">_</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">BindingIdentifier::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
-                    .<span class="ident">map</span>(<span class="ident">Identifier::from</span>)<span class="question-mark">?</span>;
+                    .<span class="ident">map</span>(<span class="ident">Identifier::new</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(<span class="ident">node::Declaration::new_with_identifier</span>(<span class="ident">ident</span>, <span class="prelude-val">None</span>))
             }
             <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ParseError::unexpected</span>(

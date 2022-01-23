@@ -698,6 +698,12 @@
 <span id="697">697</span>
 <span id="698">698</span>
 <span id="699">699</span>
+<span id="700">700</span>
+<span id="701">701</span>
+<span id="702">702</span>
+<span id="703">703</span>
+<span id="704">704</span>
+<span id="705">705</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Object initializer parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -709,6 +715,8 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
+<span class="kw">use</span> <span class="ident">boa_interner::Sym</span>;
+
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">syntax</span>::{
         <span class="ident">ast</span>::{
@@ -843,9 +851,7 @@
                 <span class="op">|</span> <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Comma</span>) =&gt; {
                     <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
                     <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">token</span>.<span class="ident">kind</span>() {
-                        <span class="ident">TokenKind::Identifier</span>(<span class="ident">ident</span>) =&gt; {
-                            <span class="ident">Identifier::from</span>(<span class="ident">interner</span>.<span class="ident">resolve</span>(<span class="kw-2">*</span><span class="ident">ident</span>).<span class="ident">expect</span>(<span class="string">&quot;string disappeared&quot;</span>))
-                        }
+                        <span class="ident">TokenKind::Identifier</span>(<span class="ident">ident</span>) =&gt; <span class="ident">Identifier::new</span>(<span class="kw-2">*</span><span class="ident">ident</span>),
                         <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Yield</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">allow_yield</span>.<span class="number">0</span> =&gt; {
                             <span class="comment">// Early Error: It is a Syntax Error if this production has a [Yield] parameter and StringValue of Identifier is &quot;yield&quot;.</span>
                             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
@@ -861,7 +867,7 @@
                                     <span class="ident">token</span>.<span class="ident">span</span>().<span class="ident">start</span>(),
                                 ));
                             }
-                            <span class="ident">Identifier::from</span>(<span class="string">&quot;yield&quot;</span>)
+                            <span class="ident">Identifier::new</span>(<span class="ident">Sym::YIELD</span>)
                         }
                         <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Await</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">allow_await</span>.<span class="number">0</span> =&gt; {
                             <span class="comment">// Early Error: It is a Syntax Error if this production has an [Await] parameter and StringValue of Identifier is &quot;await&quot;.</span>
@@ -878,7 +884,7 @@
                                     <span class="ident">token</span>.<span class="ident">span</span>().<span class="ident">start</span>(),
                                 ));
                             }
-                            <span class="ident">Identifier::from</span>(<span class="string">&quot;yield&quot;</span>)
+                            <span class="ident">Identifier::new</span>(<span class="ident">Sym::YIELD</span>)
                         }
                         <span class="kw">_</span> =&gt; {
                             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::unexpected</span>(
@@ -888,10 +894,7 @@
                             ));
                         }
                     };
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">node::PropertyDefinition::property</span>(
-                        <span class="ident">ident</span>.<span class="ident">clone</span>().<span class="ident">as_ref</span>(),
-                        <span class="ident">ident</span>,
-                    ));
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">node::PropertyDefinition::property</span>(<span class="ident">ident</span>.<span class="ident">sym</span>(), <span class="ident">ident</span>));
                 }
                 <span class="kw">_</span> =&gt; {}
             }
@@ -964,13 +967,16 @@
                 <span class="comment">// Early Error: It is a Syntax Error if any element of the BoundNames of UniqueFormalParameters also</span>
                 <span class="comment">// occurs in the LexicallyDeclaredNames of GeneratorBody.</span>
                 {
-                    <span class="kw">let</span> <span class="ident">lexically_declared_names</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">lexically_declared_names</span>();
+                    <span class="kw">let</span> <span class="ident">lexically_declared_names</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">lexically_declared_names</span>(<span class="ident">interner</span>);
                     <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <span class="ident">params</span>.<span class="ident">parameters</span>.<span class="ident">as_ref</span>() {
                         <span class="kw">for</span> <span class="ident">param_name</span> <span class="kw">in</span> <span class="ident">param</span>.<span class="ident">names</span>() {
-                            <span class="kw">if</span> <span class="ident">lexically_declared_names</span>.<span class="ident">contains</span>(<span class="ident">param_name</span>) {
+                            <span class="kw">if</span> <span class="ident">lexically_declared_names</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">param_name</span>) {
                                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
-                                    <span class="macro">format!</span>(<span class="string">&quot;Redeclaration of formal parameter `{}`&quot;</span>, <span class="ident">param_name</span>)
-                                        .<span class="ident">into</span>(),
+                                    <span class="macro">format!</span>(
+                                        <span class="string">&quot;Redeclaration of formal parameter `{}`&quot;</span>,
+                                        <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">param_name</span>)
+                                    )
+                                    .<span class="ident">into</span>(),
                                     <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
                                         <span class="prelude-val">Some</span>(<span class="ident">token</span>) =&gt; <span class="ident">token</span>.<span class="ident">span</span>().<span class="ident">end</span>(),
                                         <span class="prelude-val">None</span> =&gt; <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
@@ -1030,13 +1036,16 @@
                 <span class="comment">// Early Error: It is a Syntax Error if any element of the BoundNames of UniqueFormalParameters also</span>
                 <span class="comment">// occurs in the LexicallyDeclaredNames of GeneratorBody.</span>
                 {
-                    <span class="kw">let</span> <span class="ident">lexically_declared_names</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">lexically_declared_names</span>();
+                    <span class="kw">let</span> <span class="ident">lexically_declared_names</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">lexically_declared_names</span>(<span class="ident">interner</span>);
                     <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <span class="ident">params</span>.<span class="ident">parameters</span>.<span class="ident">as_ref</span>() {
                         <span class="kw">for</span> <span class="ident">param_name</span> <span class="kw">in</span> <span class="ident">param</span>.<span class="ident">names</span>() {
-                            <span class="kw">if</span> <span class="ident">lexically_declared_names</span>.<span class="ident">contains</span>(<span class="ident">param_name</span>) {
+                            <span class="kw">if</span> <span class="ident">lexically_declared_names</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">param_name</span>) {
                                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
-                                    <span class="macro">format!</span>(<span class="string">&quot;Redeclaration of formal parameter `{}`&quot;</span>, <span class="ident">param_name</span>)
-                                        .<span class="ident">into</span>(),
+                                    <span class="macro">format!</span>(
+                                        <span class="string">&quot;Redeclaration of formal parameter `{}`&quot;</span>,
+                                        <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">param_name</span>)
+                                    )
+                                    .<span class="ident">into</span>(),
                                     <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
                                         <span class="prelude-val">Some</span>(<span class="ident">token</span>) =&gt; <span class="ident">token</span>.<span class="ident">span</span>().<span class="ident">end</span>(),
                                         <span class="prelude-val">None</span> =&gt; <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
@@ -1108,13 +1117,16 @@
             <span class="comment">// Early Error: It is a Syntax Error if any element of the BoundNames of UniqueFormalParameters also</span>
             <span class="comment">// occurs in the LexicallyDeclaredNames of GeneratorBody.</span>
             {
-                <span class="kw">let</span> <span class="ident">lexically_declared_names</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">lexically_declared_names</span>();
+                <span class="kw">let</span> <span class="ident">lexically_declared_names</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">lexically_declared_names</span>(<span class="ident">interner</span>);
                 <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <span class="ident">params</span>.<span class="ident">parameters</span>.<span class="ident">as_ref</span>() {
                     <span class="kw">for</span> <span class="ident">param_name</span> <span class="kw">in</span> <span class="ident">param</span>.<span class="ident">names</span>() {
-                        <span class="kw">if</span> <span class="ident">lexically_declared_names</span>.<span class="ident">contains</span>(<span class="ident">param_name</span>) {
+                        <span class="kw">if</span> <span class="ident">lexically_declared_names</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">param_name</span>) {
                             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
-                                <span class="macro">format!</span>(<span class="string">&quot;Redeclaration of formal parameter `{}`&quot;</span>, <span class="ident">param_name</span>)
-                                    .<span class="ident">into</span>(),
+                                <span class="macro">format!</span>(
+                                    <span class="string">&quot;Redeclaration of formal parameter `{}`&quot;</span>,
+                                    <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">param_name</span>)
+                                )
+                                .<span class="ident">into</span>(),
                                 <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
                                     <span class="prelude-val">Some</span>(<span class="ident">token</span>) =&gt; <span class="ident">token</span>.<span class="ident">span</span>().<span class="ident">end</span>(),
                                     <span class="prelude-val">None</span> =&gt; <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
@@ -1150,7 +1162,7 @@
 
         <span class="kw">match</span> <span class="ident">property_name</span> {
             <span class="comment">// MethodDefinition[?Yield, ?Await] -&gt; get ClassElementName[?Yield, ?Await] ( ) { FunctionBody[~Yield, ~Await] }</span>
-            <span class="ident">node::PropertyName::Literal</span>(<span class="ident">str</span>) <span class="kw">if</span> <span class="ident">str</span>.<span class="ident">as_ref</span>() <span class="op">==</span> <span class="string">&quot;get&quot;</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">ordinary_method</span> =&gt; {
+            <span class="ident">node::PropertyName::Literal</span>(<span class="ident">str</span>) <span class="kw">if</span> <span class="ident">str</span> <span class="op">==</span> <span class="ident">Sym::GET</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">ordinary_method</span> =&gt; {
                 <span class="ident">property_name</span> <span class="op">=</span> <span class="ident">PropertyName::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
@@ -1184,7 +1196,7 @@
                 ))
             }
             <span class="comment">// MethodDefinition[?Yield, ?Await] -&gt; set ClassElementName[?Yield, ?Await] ( PropertySetParameterList ) { FunctionBody[~Yield, ~Await] }</span>
-            <span class="ident">node::PropertyName::Literal</span>(<span class="ident">str</span>) <span class="kw">if</span> <span class="ident">str</span>.<span class="ident">as_ref</span>() <span class="op">==</span> <span class="string">&quot;set&quot;</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">ordinary_method</span> =&gt; {
+            <span class="ident">node::PropertyName::Literal</span>(<span class="ident">str</span>) <span class="kw">if</span> <span class="ident">str</span> <span class="op">==</span> <span class="ident">Sym::SET</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">ordinary_method</span> =&gt; {
                 <span class="ident">property_name</span> <span class="op">=</span> <span class="ident">PropertyName::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
@@ -1345,7 +1357,7 @@
         <span class="prelude-val">Ok</span>(<span class="ident">cursor</span>
             .<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>
             .<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>
-            .<span class="ident">to_string</span>(<span class="ident">interner</span>)
+            .<span class="ident">to_sym</span>(<span class="ident">interner</span>)
             .<span class="ident">into</span>())
     }
 }

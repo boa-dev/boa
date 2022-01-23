@@ -674,7 +674,6 @@
 <span id="673">673</span>
 <span id="674">674</span>
 <span id="675">675</span>
-<span id="676">676</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the Property Descriptor.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The Property Descriptor type is used to explain the manipulation and reification of Object property attributes.</span>
@@ -692,14 +691,13 @@
 <span class="doccomment">//! [section]: https://tc39.es/ecma262/#sec-property-attributes</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
+    <span class="ident">gc</span>::{<span class="ident">empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>},
     <span class="ident">JsString</span>, <span class="ident">JsSymbol</span>, <span class="ident">JsValue</span>,
 };
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">convert::TryFrom</span>, <span class="ident">fmt</span>};
 
 <span class="kw">mod</span> <span class="ident">attribute</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">attribute::Attribute</span>;
-<span class="kw">use</span> <span class="ident">gc::unsafe_empty_trace</span>;
 
 <span class="doccomment">/// This represents a JavaScript Property AKA The Property Descriptor.</span>
 <span class="doccomment">///</span>
@@ -1349,7 +1347,7 @@
 }
 
 <span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">PropertyNameKind</span> {
-    <span class="macro">unsafe_empty_trace!</span>();
+    <span class="macro">empty_trace!</span>();
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>

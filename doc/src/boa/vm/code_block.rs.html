@@ -800,9 +800,6 @@
 <span id="799">799</span>
 <span id="800">800</span>
 <span id="801">801</span>
-<span id="802">802</span>
-<span id="803">803</span>
-<span id="804">804</span>
 </pre><pre class="rust"><code><span class="doccomment">//! CodeBlock</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This module is for the CodeBlock which implements a function representation in the VM</span>
@@ -817,15 +814,15 @@
         <span class="ident">function_environment_record</span>::{<span class="ident">BindingStatus</span>, <span class="ident">FunctionEnvironmentRecord</span>},
         <span class="ident">lexical_environment::Environment</span>,
     },
-    <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
+    <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Gc</span>, <span class="ident">Trace</span>},
     <span class="ident">object</span>::{<span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
     <span class="ident">property::PropertyDescriptor</span>,
     <span class="ident">syntax::ast::node::FormalParameter</span>,
     <span class="ident">vm</span>::{<span class="ident">call_frame::FinallyReturn</span>, <span class="ident">CallFrame</span>, <span class="ident">Opcode</span>},
     <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
 };
-<span class="kw">use</span> <span class="ident">gc::Gc</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">convert::TryInto</span>, <span class="ident">fmt::Write</span>, <span class="ident">mem::size_of</span>};
+<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>, <span class="ident">ToInternedString</span>};
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">convert::TryInto</span>, <span class="ident">mem::size_of</span>};
 
 <span class="doccomment">/// This represents whether a value can be read from [`CodeBlock`] code.</span>
 <span class="doccomment">///</span>
@@ -856,7 +853,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CodeBlock</span> {
     <span class="doccomment">/// Name of this function</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">name</span>: <span class="ident">JsString</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">name</span>: <span class="ident">Sym</span>,
 
     <span class="doccomment">/// The number of arguments expected.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">length</span>: <span class="ident">u32</span>,
@@ -891,7 +888,7 @@
 
 <span class="kw">impl</span> <span class="ident">CodeBlock</span> {
     <span class="doccomment">/// Constructs a new `CodeBlock`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">name</span>: <span class="ident">JsString</span>, <span class="ident">length</span>: <span class="ident">u32</span>, <span class="ident">strict</span>: <span class="ident">bool</span>, <span class="ident">constructor</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">name</span>: <span class="ident">Sym</span>, <span class="ident">length</span>: <span class="ident">u32</span>, <span class="ident">strict</span>: <span class="ident">bool</span>, <span class="ident">constructor</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">code</span>: <span class="ident">Vec::new</span>(),
             <span class="ident">literals</span>: <span class="ident">Vec::new</span>(),
@@ -994,7 +991,7 @@
                 <span class="kw">let</span> <span class="ident">operand</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>(<span class="kw-2">*</span><span class="ident">pc</span>);
                 <span class="kw-2">*</span><span class="ident">pc</span> <span class="op">+</span><span class="op">=</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
                 <span class="macro">format!</span>(
-                    <span class="string">&quot;{:04}: &#39;{}&#39; (length: {})&quot;</span>,
+                    <span class="string">&quot;{:04}: &#39;{:?}&#39; (length: {})&quot;</span>,
                     <span class="ident">operand</span>,
                     <span class="self">self</span>.<span class="ident">functions</span>[<span class="ident">operand</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">name</span>,
                     <span class="self">self</span>.<span class="ident">functions</span>[<span class="ident">operand</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">length</span>
@@ -1019,7 +1016,7 @@
             <span class="op">|</span> <span class="ident">Opcode::CopyDataProperties</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">operand</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>(<span class="kw-2">*</span><span class="ident">pc</span>);
                 <span class="kw-2">*</span><span class="ident">pc</span> <span class="op">+</span><span class="op">=</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
-                <span class="macro">format!</span>(<span class="string">&quot;{:04}: &#39;{}&#39;&quot;</span>, <span class="ident">operand</span>, <span class="self">self</span>.<span class="ident">variables</span>[<span class="ident">operand</span> <span class="kw">as</span> <span class="ident">usize</span>])
+                <span class="macro">format!</span>(<span class="string">&quot;{:04}: &#39;{:?}&#39;&quot;</span>, <span class="ident">operand</span>, <span class="self">self</span>.<span class="ident">variables</span>[<span class="ident">operand</span> <span class="kw">as</span> <span class="ident">usize</span>])
             }
             <span class="ident">Opcode::Pop</span>
             <span class="op">|</span> <span class="ident">Opcode::Dup</span>
@@ -1101,79 +1098,75 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">std::fmt::Display</span> <span class="kw">for</span> <span class="ident">CodeBlock</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">name</span> <span class="op">!</span><span class="op">=</span> <span class="string">&quot;&lt;main&gt;&quot;</span> {
-            <span class="ident">f</span>.<span class="ident">write_char</span>(<span class="string">&#39;\n&#39;</span>)<span class="question-mark">?</span>;
-        }
+<span class="kw">impl</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">CodeBlock</span> {
+    <span class="kw">fn</span> <span class="ident">to_interned_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>) -&gt; <span class="ident">String</span> {
+        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="self">self</span>.<span class="ident">name</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">f</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">name</span> <span class="op">==</span> <span class="ident">Sym::MAIN</span> {
+            <span class="ident">String::new</span>()
+        } <span class="kw">else</span> {
+            <span class="string">&quot;\n&quot;</span>.<span class="ident">to_owned</span>()
+        };
 
-        <span class="macro">writeln!</span>(
-            <span class="ident">f</span>,
-            <span class="string">&quot;{:-^width$}&quot;</span>,
-            <span class="macro">format!</span>(<span class="string">&quot;Compiled Output: &#39;{}&#39;&quot;</span>, <span class="self">self</span>.<span class="ident">name</span>),
+        <span class="ident">f</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
+            <span class="string">&quot;{:-^width$}\n    Location  Count   Opcode                     Operands\n\n&quot;</span>,
+            <span class="macro">format!</span>(<span class="string">&quot;Compiled Output: &#39;{}&#39;&quot;</span>, <span class="ident">name</span>),
             <span class="ident">width</span> <span class="op">=</span> <span class="number">70</span>
-        )<span class="question-mark">?</span>;
-
-        <span class="macro">writeln!</span>(
-            <span class="ident">f</span>,
-            <span class="string">&quot;    Location  Count   Opcode                     Operands&quot;</span>
-        )<span class="question-mark">?</span>;
-
-        <span class="ident">f</span>.<span class="ident">write_char</span>(<span class="string">&#39;\n&#39;</span>)<span class="question-mark">?</span>;
+        ));
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pc</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">count</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">while</span> <span class="ident">pc</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">code</span>.<span class="ident">len</span>() {
             <span class="kw">let</span> <span class="ident">opcode</span>: <span class="ident">Opcode</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">code</span>[<span class="ident">pc</span>].<span class="ident">try_into</span>().<span class="ident">unwrap</span>();
-            <span class="macro">write!</span>(
-                <span class="ident">f</span>,
-                <span class="string">&quot;    {:06}    {:04}    {:&lt;27}&quot;</span>,
+            <span class="kw">let</span> <span class="ident">operands</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">instruction_operands</span>(<span class="kw-2">&amp;mut</span> <span class="ident">pc</span>);
+            <span class="ident">f</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
+                <span class="string">&quot;    {:06}    {:04}    {:&lt;27}\n{}&quot;</span>,
                 <span class="ident">pc</span>,
                 <span class="ident">count</span>,
-                <span class="ident">opcode</span>.<span class="ident">as_str</span>()
-            )<span class="question-mark">?</span>;
-            <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">instruction_operands</span>(<span class="kw-2">&amp;mut</span> <span class="ident">pc</span>))<span class="question-mark">?</span>;
+                <span class="ident">opcode</span>.<span class="ident">as_str</span>(),
+                <span class="ident">operands</span>
+            ));
             <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         }
 
-        <span class="ident">f</span>.<span class="ident">write_char</span>(<span class="string">&#39;\n&#39;</span>)<span class="question-mark">?</span>;
+        <span class="ident">f</span>.<span class="ident">push_str</span>(<span class="string">&quot;\nLiterals:\n&quot;</span>);
 
-        <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;Literals:\n&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">literals</span>.<span class="ident">is_empty</span>() {
             <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">value</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">literals</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-                <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;    {:04}: &lt;{}&gt; {}&quot;</span>, <span class="ident">i</span>, <span class="ident">value</span>.<span class="ident">type_of</span>(), <span class="ident">value</span>.<span class="ident">display</span>())<span class="question-mark">?</span>;
+                <span class="ident">f</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
+                    <span class="string">&quot;    {:04}: &lt;{}&gt; {}\n&quot;</span>,
+                    <span class="ident">i</span>,
+                    <span class="ident">value</span>.<span class="ident">type_of</span>(),
+                    <span class="ident">value</span>.<span class="ident">display</span>()
+                ));
             }
         } <span class="kw">else</span> {
-            <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;    &lt;empty&gt;&quot;</span>)<span class="question-mark">?</span>;
+            <span class="ident">f</span>.<span class="ident">push_str</span>(<span class="string">&quot;    &lt;empty&gt;&quot;</span>);
         }
 
-        <span class="ident">f</span>.<span class="ident">write_char</span>(<span class="string">&#39;\n&#39;</span>)<span class="question-mark">?</span>;
-
-        <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;Names:\n&quot;</span>)<span class="question-mark">?</span>;
+        <span class="ident">f</span>.<span class="ident">push_str</span>(<span class="string">&quot;\nNames:\n&quot;</span>);
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">variables</span>.<span class="ident">is_empty</span>() {
             <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">value</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">variables</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-                <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;    {:04}: {}&quot;</span>, <span class="ident">i</span>, <span class="ident">value</span>)<span class="question-mark">?</span>;
+                <span class="ident">f</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;    {:04}: {}\n&quot;</span>, <span class="ident">i</span>, <span class="ident">value</span>));
             }
         } <span class="kw">else</span> {
-            <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;    &lt;empty&gt;&quot;</span>)<span class="question-mark">?</span>;
+            <span class="ident">f</span>.<span class="ident">push_str</span>(<span class="string">&quot;    &lt;empty&gt;&quot;</span>);
         }
 
-        <span class="ident">f</span>.<span class="ident">write_char</span>(<span class="string">&#39;\n&#39;</span>)<span class="question-mark">?</span>;
-
-        <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;Functions:\n&quot;</span>)<span class="question-mark">?</span>;
+        <span class="ident">f</span>.<span class="ident">push_str</span>(<span class="string">&quot;\nFunctions:\n&quot;</span>);
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">functions</span>.<span class="ident">is_empty</span>() {
             <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">code</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">functions</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-                <span class="macro">writeln!</span>(
-                    <span class="ident">f</span>,
-                    <span class="string">&quot;    {:04}: name: &#39;{}&#39; (length: {})&quot;</span>,
-                    <span class="ident">i</span>, <span class="ident">code</span>.<span class="ident">name</span>, <span class="ident">code</span>.<span class="ident">length</span>
-                )<span class="question-mark">?</span>;
+                <span class="ident">f</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
+                    <span class="string">&quot;    {:04}: name: &#39;{}&#39; (length: {})\n&quot;</span>,
+                    <span class="ident">i</span>,
+                    <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">code</span>.<span class="ident">name</span>),
+                    <span class="ident">code</span>.<span class="ident">length</span>
+                ));
             }
         } <span class="kw">else</span> {
-            <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;    &lt;empty&gt;&quot;</span>)<span class="question-mark">?</span>;
+            <span class="ident">f</span>.<span class="ident">push_str</span>(<span class="string">&quot;    &lt;empty&gt;&quot;</span>);
         }
 
-        <span class="prelude-val">Ok</span>(())
+        <span class="ident">f</span>
     }
 }
 
@@ -1189,7 +1182,7 @@
         <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">construct_object</span>();
 
         <span class="kw">let</span> <span class="ident">name_property</span> <span class="op">=</span> <span class="ident">PropertyDescriptor::builder</span>()
-            .<span class="ident">value</span>(<span class="ident">code</span>.<span class="ident">name</span>.<span class="ident">clone</span>())
+            .<span class="ident">value</span>(<span class="ident">context</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">code</span>.<span class="ident">name</span>))
             .<span class="ident">writable</span>(<span class="bool-val">false</span>)
             .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
             .<span class="ident">configurable</span>(<span class="bool-val">true</span>)
@@ -1341,10 +1334,11 @@
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">is_simple_parameter_list</span> <span class="op">=</span> <span class="bool-val">true</span>;
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">has_parameter_expressions</span> <span class="op">=</span> <span class="bool-val">false</span>;
 
+                <span class="kw">let</span> <span class="ident">arguments</span> <span class="op">=</span> <span class="ident">Sym::ARGUMENTS</span>;
                 <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">iter</span>() {
                     <span class="ident">has_parameter_expressions</span> <span class="op">=</span> <span class="ident">has_parameter_expressions</span> <span class="op">|</span><span class="op">|</span> <span class="ident">param</span>.<span class="ident">init</span>().<span class="ident">is_some</span>();
                     <span class="ident">arguments_in_parameter_names</span> <span class="op">=</span>
-                        <span class="ident">arguments_in_parameter_names</span> <span class="op">|</span><span class="op">|</span> <span class="ident">param</span>.<span class="ident">names</span>().<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="string">&quot;arguments&quot;</span>);
+                        <span class="ident">arguments_in_parameter_names</span> <span class="op">|</span><span class="op">|</span> <span class="ident">param</span>.<span class="ident">names</span>().<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">arguments</span>);
                     <span class="ident">is_simple_parameter_list</span> <span class="op">=</span> <span class="ident">is_simple_parameter_list</span>
                         <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">param</span>.<span class="ident">is_rest_param</span>()
                         <span class="op">&amp;&amp;</span> <span class="ident">param</span>.<span class="ident">is_identifier</span>()
@@ -1374,8 +1368,8 @@
                                 <span class="ident">context</span>,
                             )
                         };
-                    <span class="ident">local_env</span>.<span class="ident">create_mutable_binding</span>(<span class="string">&quot;arguments&quot;</span>, <span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-                    <span class="ident">local_env</span>.<span class="ident">initialize_binding</span>(<span class="string">&quot;arguments&quot;</span>, <span class="ident">arguments_obj</span>.<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
+                    <span class="ident">local_env</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">arguments</span>, <span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+                    <span class="ident">local_env</span>.<span class="ident">initialize_binding</span>(<span class="ident">arguments</span>, <span class="ident">arguments_obj</span>.<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
                 }
 
                 <span class="kw">let</span> <span class="ident">arg_count</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">len</span>();
@@ -1514,7 +1508,7 @@
                 <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">iter</span>() {
                     <span class="ident">has_parameter_expressions</span> <span class="op">=</span> <span class="ident">has_parameter_expressions</span> <span class="op">|</span><span class="op">|</span> <span class="ident">param</span>.<span class="ident">init</span>().<span class="ident">is_some</span>();
                     <span class="ident">arguments_in_parameter_names</span> <span class="op">=</span>
-                        <span class="ident">arguments_in_parameter_names</span> <span class="op">|</span><span class="op">|</span> <span class="ident">param</span>.<span class="ident">names</span>().<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="string">&quot;arguments&quot;</span>);
+                        <span class="ident">arguments_in_parameter_names</span> <span class="op">|</span><span class="op">|</span> <span class="ident">param</span>.<span class="ident">names</span>().<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">Sym::ARGUMENTS</span>);
                     <span class="ident">is_simple_parameter_list</span> <span class="op">=</span> <span class="ident">is_simple_parameter_list</span>
                         <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">param</span>.<span class="ident">is_rest_param</span>()
                         <span class="op">&amp;&amp;</span> <span class="ident">param</span>.<span class="ident">is_identifier</span>()
@@ -1544,8 +1538,8 @@
                                 <span class="ident">context</span>,
                             )
                         };
-                    <span class="ident">local_env</span>.<span class="ident">create_mutable_binding</span>(<span class="string">&quot;arguments&quot;</span>, <span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-                    <span class="ident">local_env</span>.<span class="ident">initialize_binding</span>(<span class="string">&quot;arguments&quot;</span>, <span class="ident">arguments_obj</span>.<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
+                    <span class="ident">local_env</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">Sym::ARGUMENTS</span>, <span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+                    <span class="ident">local_env</span>.<span class="ident">initialize_binding</span>(<span class="ident">Sym::ARGUMENTS</span>, <span class="ident">arguments_obj</span>.<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
                 }
 
                 <span class="kw">let</span> <span class="ident">arg_count</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">len</span>();

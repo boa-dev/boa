@@ -179,7 +179,6 @@
 <span id="178">178</span>
 <span id="179">179</span>
 <span id="180">180</span>
-<span id="181">181</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa parser implementation.</span>
 
 <span class="kw">mod</span> <span class="ident">cursor</span>;
@@ -321,8 +320,7 @@
                 <span class="kw">match</span> <span class="ident">tok</span>.<span class="ident">kind</span>() {
                     <span class="comment">// Set the strict mode</span>
                     <span class="ident">TokenKind::StringLiteral</span>(<span class="ident">string</span>)
-                        <span class="kw">if</span> <span class="ident">interner</span>.<span class="ident">resolve</span>(<span class="kw-2">*</span><span class="ident">string</span>).<span class="ident">expect</span>(<span class="string">&quot;string disappeared&quot;</span>)
-                            <span class="op">==</span> <span class="string">&quot;use strict&quot;</span> =&gt;
+                        <span class="kw">if</span> <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="kw-2">*</span><span class="ident">string</span>) <span class="op">==</span> <span class="string">&quot;use strict&quot;</span> =&gt;
                     {
                         <span class="ident">cursor</span>.<span class="ident">set_strict_mode</span>(<span class="bool-val">true</span>);
                         <span class="ident">strict</span> <span class="op">=</span> <span class="bool-val">true</span>;

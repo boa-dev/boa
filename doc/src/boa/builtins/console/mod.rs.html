@@ -581,6 +581,11 @@
 <span id="580">580</span>
 <span id="581">581</span>
 <span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `console` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `console` object can be accessed from any global object.</span>
@@ -887,7 +892,12 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev_frame</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">frame</span>.<span class="ident">as_ref</span>();
 
         <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">frame</span>) <span class="op">=</span> <span class="ident">prev_frame</span> {
-            <span class="ident">stack_trace</span>.<span class="ident">push</span>(<span class="ident">frame</span>.<span class="ident">code</span>.<span class="ident">name</span>.<span class="ident">to_string</span>());
+            <span class="ident">stack_trace</span>.<span class="ident">push</span>(
+                <span class="ident">context</span>
+                    .<span class="ident">interner</span>()
+                    .<span class="ident">resolve_expect</span>(<span class="ident">frame</span>.<span class="ident">code</span>.<span class="ident">name</span>)
+                    .<span class="ident">to_owned</span>(),
+            );
             <span class="ident">prev_frame</span> <span class="op">=</span> <span class="ident">frame</span>.<span class="ident">prev</span>.<span class="ident">as_ref</span>();
         }
 

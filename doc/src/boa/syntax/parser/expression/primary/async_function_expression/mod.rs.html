@@ -145,8 +145,16 @@
 <span id="144">144</span>
 <span id="145">145</span>
 <span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
 </pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
+
+<span class="kw">use</span> <span class="ident">boa_interner::Sym</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">syntax</span>::{
@@ -216,8 +224,8 @@
 
         <span class="comment">// Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict mode code,</span>
         <span class="comment">// it is a Syntax Error if the StringValue of BindingIdentifier is &quot;eval&quot; or &quot;arguments&quot;.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">name</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">name</span> {
-            <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>() <span class="op">&amp;&amp;</span> [<span class="string">&quot;eval&quot;</span>, <span class="string">&quot;arguments&quot;</span>].<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>.<span class="ident">as_ref</span>()) {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">name</span>) <span class="op">=</span> <span class="ident">name</span> {
+            <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>() <span class="op">&amp;&amp;</span> [<span class="ident">Sym::EVAL</span>, <span class="ident">Sym::ARGUMENTS</span>].<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>) {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
                     <span class="string">&quot;Unexpected eval or arguments in strict mode&quot;</span>.<span class="ident">into</span>(),
                     <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
@@ -272,12 +280,16 @@
         <span class="comment">// also occurs in the LexicallyDeclaredNames of FunctionBody.</span>
         <span class="comment">// https://tc39.es/ecma262/#sec-function-definitions-static-semantics-early-errors</span>
         {
-            <span class="kw">let</span> <span class="ident">lexically_declared_names</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">lexically_declared_names</span>();
+            <span class="kw">let</span> <span class="ident">lexically_declared_names</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">lexically_declared_names</span>(<span class="ident">interner</span>);
             <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <span class="ident">params</span>.<span class="ident">parameters</span>.<span class="ident">as_ref</span>() {
                 <span class="kw">for</span> <span class="ident">param_name</span> <span class="kw">in</span> <span class="ident">param</span>.<span class="ident">names</span>() {
-                    <span class="kw">if</span> <span class="ident">lexically_declared_names</span>.<span class="ident">contains</span>(<span class="ident">param_name</span>) {
+                    <span class="kw">if</span> <span class="ident">lexically_declared_names</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">param_name</span>) {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
-                            <span class="macro">format!</span>(<span class="string">&quot;Redeclaration of formal parameter `{}`&quot;</span>, <span class="ident">param_name</span>).<span class="ident">into</span>(),
+                            <span class="macro">format!</span>(
+                                <span class="string">&quot;Redeclaration of formal parameter `{}`&quot;</span>,
+                                <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">param_name</span>)
+                            )
+                            .<span class="ident">into</span>(),
                             <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
                                 <span class="prelude-val">Some</span>(<span class="ident">token</span>) =&gt; <span class="ident">token</span>.<span class="ident">span</span>().<span class="ident">end</span>(),
                                 <span class="prelude-val">None</span> =&gt; <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
