@@ -11,39 +11,29 @@
 //! [spec]: https://tc39.es/ecma262/#sec-function-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function
 
+use super::JsArgs;
+use crate::{
+    builtins::BuiltIn,
+    context::StandardObjects,
+    environment::lexical_environment::Environment,
+    gc::{self, Finalize, Gc, Trace},
+    object::{
+        internal_methods::get_prototype_from_constructor, JsObject, NativeObject, Object,
+        ObjectData,
+    },
+    object::{ConstructorBuilder, FunctionBuilder, Ref, RefMut},
+    property::{Attribute, PropertyDescriptor, PropertyKey},
+    symbol::WellKnownSymbols,
+    value::IntegerOrInfinity,
+    BoaProfiler, Context, JsResult, JsString, JsValue,
+};
+use dyn_clone::DynClone;
 use std::{
     any::Any,
     borrow::Cow,
     fmt,
     ops::{Deref, DerefMut},
 };
-
-use dyn_clone::DynClone;
-use gc::{Gc, GcCell};
-
-use crate::{
-    builtins::BuiltIn,
-    context::StandardObjects,
-    environment::lexical_environment::Environment,
-    gc::{Finalize, Trace},
-    object::JsObject,
-    object::{internal_methods::get_prototype_from_constructor, NativeObject, ObjectData},
-    property::Attribute,
-    property::PropertyDescriptor,
-    BoaProfiler, Context, JsResult, JsValue,
-};
-use crate::{object::Object, symbol::WellKnownSymbols};
-use crate::{
-    object::{ConstructorBuilder, FunctionBuilder},
-    property::PropertyKey,
-    JsString,
-};
-use crate::{
-    object::{Ref, RefMut},
-    value::IntegerOrInfinity,
-};
-
-use super::JsArgs;
 
 pub(crate) mod arguments;
 #[cfg(test)]
@@ -136,7 +126,7 @@ impl ConstructorKind {
 /// with `Any::downcast_ref` and `Any::downcast_mut` to recover the original
 /// type.
 #[derive(Clone, Debug, Trace, Finalize)]
-pub struct Captures(Gc<GcCell<Box<dyn NativeObject>>>);
+pub struct Captures(Gc<gc::Cell<Box<dyn NativeObject>>>);
 
 impl Captures {
     /// Creates a new capture context.
@@ -144,7 +134,7 @@ impl Captures {
     where
         T: NativeObject,
     {
-        Self(Gc::new(GcCell::new(Box::new(captures))))
+        Self(Gc::new(gc::Cell::new(Box::new(captures))))
     }
 
     /// Casts `Captures` to `Any`
@@ -152,7 +142,7 @@ impl Captures {
     /// # Panics
     ///
     /// Panics if it's already borrowed as `&mut Any`
-    pub fn as_any(&self) -> gc::GcCellRef<'_, dyn Any> {
+    pub fn as_any(&self) -> gc::Ref<'_, dyn Any> {
         Ref::map(self.0.borrow(), |data| data.deref().as_any())
     }
 
@@ -161,7 +151,7 @@ impl Captures {
     /// # Panics
     ///
     /// Panics if it's already borrowed as `&mut Any`
-    pub fn as_mut_any(&self) -> gc::GcCellRefMut<'_, Box<dyn NativeObject>, dyn Any> {
+    pub fn as_mut_any(&self) -> gc::RefMut<'_, Box<dyn NativeObject>, dyn Any> {
         RefMut::map(self.0.borrow_mut(), |data| data.deref_mut().as_mut_any())
     }
 }

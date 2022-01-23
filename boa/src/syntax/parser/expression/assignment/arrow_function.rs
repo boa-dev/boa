@@ -139,12 +139,16 @@ where
         // also occurs in the LexicallyDeclaredNames of ConciseBody.
         // https://tc39.es/ecma262/#sec-arrow-function-definitions-static-semantics-early-errors
         {
-            let lexically_declared_names = body.lexically_declared_names();
+            let lexically_declared_names = body.lexically_declared_names(interner);
             for param in params.parameters.as_ref() {
-                for param_name in param.names() {
-                    if lexically_declared_names.contains(param_name) {
+                for param_name in param.names().into_iter() {
+                    if lexically_declared_names.contains(&param_name) {
                         return Err(ParseError::lex(LexError::Syntax(
-                            format!("Redeclaration of formal parameter `{}`", param_name).into(),
+                            format!(
+                                "Redeclaration of formal parameter `{}`",
+                                interner.resolve(param_name).expect("string disappeared")
+                            )
+                            .into(),
                             match cursor.peek(0, interner)? {
                                 Some(token) => token.span().end(),
                                 None => Position::new(1, 1),

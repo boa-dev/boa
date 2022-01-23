@@ -24,6 +24,7 @@ use crate::{
     },
     BoaProfiler, Interner,
 };
+use boa_interner::Sym;
 use rustc_hash::FxHashSet;
 use std::io::Read;
 
@@ -119,7 +120,7 @@ where
                 is_simple = false;
             }
             for param_name in next_param.names() {
-                if parameter_names.contains(param_name) {
+                if parameter_names.contains(&param_name) {
                     has_duplicates = true;
                 }
                 parameter_names.insert(Box::from(param_name));
@@ -267,7 +268,7 @@ where
             Ok(Self::Output::new(declaration, true))
         } else {
             Ok(Self::Output::new(
-                Declaration::new_with_identifier("", None),
+                Declaration::new_with_identifier(Sym::EMPTY_STRING, None),
                 true,
             ))
         }
@@ -367,7 +368,7 @@ where
             Ok(Self::Output::new(declaration, false))
         } else {
             Ok(Self::Output::new(
-                Declaration::new_with_identifier("", None),
+                Declaration::new_with_identifier(Sym::EMPTY_STRING, None),
                 false,
             ))
         }

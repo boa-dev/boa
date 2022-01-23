@@ -304,7 +304,13 @@ impl Console {
         let mut prev_frame = context.vm.frame.as_ref();
 
         while let Some(frame) = prev_frame {
-            stack_trace.push(frame.code.name.to_string());
+            stack_trace.push(
+                context
+                    .interner()
+                    .resolve(frame.code.name)
+                    .expect("string disappeared")
+                    .to_owned(),
+            );
             prev_frame = frame.prev.as_ref();
         }
 

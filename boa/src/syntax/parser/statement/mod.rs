@@ -29,42 +29,33 @@ use self::{
     expression::ExpressionStatement,
     if_stm::IfStatement,
     iteration::{DoWhileStatement, ForStatement, WhileStatement},
+    labelled_stm::LabelledStatement,
     return_stm::ReturnStatement,
     switch::SwitchStatement,
     throw::ThrowStatement,
     try_stm::TryStatement,
     variable::VariableStatement,
 };
-use crate::{
-    syntax::{
-        ast::node::declaration::{
-            DeclarationPattern, DeclarationPatternArray, DeclarationPatternObject,
-        },
-        parser::expression::Initializer,
-    },
-    Interner,
-};
-
 use super::{AllowAwait, AllowIn, AllowReturn, AllowYield, Cursor, ParseError, TokenParser};
-
 use crate::{
     syntax::{
         ast::{
             node::{
                 self,
-                declaration::{BindingPatternTypeArray, BindingPatternTypeObject},
+                declaration::{
+                    BindingPatternTypeArray, BindingPatternTypeObject, DeclarationPattern,
+                    DeclarationPatternArray, DeclarationPatternObject,
+                },
             },
             Keyword, Node, Punctuator,
         },
         lexer::{Error as LexError, InputElement, Position, TokenKind},
-        parser::expression::await_expr::AwaitExpression,
+        parser::expression::{await_expr::AwaitExpression, Initializer},
     },
     BoaProfiler,
 };
-use labelled_stm::LabelledStatement;
-
-use std::io::Read;
-use std::{collections::HashSet, vec};
+use boa_interner::{Interner, Sym};
+use std::{collections::HashSet, io::Read, vec};
 
 /// Statement parsing.
 ///
@@ -322,8 +313,8 @@ where
         // Handle any redeclarations
         // https://tc39.es/ecma262/#sec-block-static-semantics-early-errors
         {
-            let mut lexically_declared_names: HashSet<&str> = HashSet::new();
-            let mut var_declared_names: HashSet<&str> = HashSet::new();
+            let mut lexically_declared_names: HashSet<Sym> = HashSet::new();
+            let mut var_declared_names: HashSet<Sym> = HashSet::new();
 
             // TODO: Use more helpful positions in errors when spans are added to Nodes
             for item in &items {
@@ -334,13 +325,15 @@ where
                             // LexicallyDeclaredNames, raise an error
                             match decl {
                                 node::Declaration::Identifier { ident, .. } => {
-                                    if var_declared_names.contains(ident.as_ref())
-                                        || !lexically_declared_names.insert(ident.as_ref())
+                                    if var_declared_names.contains(&ident.sym())
+                                        || !lexically_declared_names.insert(ident.sym())
                                     {
                                         return Err(ParseError::lex(LexError::Syntax(
                                             format!(
                                                 "Redeclaration of variable `{}`",
-                                                ident.as_ref()
+                                                interner
+                                                    .resolve(ident.sym())
+                                                    .expect("string disappeared")
                                             )
                                             .into(),
                                             match cursor.peek(0, interner)? {
@@ -352,12 +345,17 @@ where
                                 }
                                 node::Declaration::Pattern(p) => {
                                     for ident in p.idents() {
-                                        if var_declared_names.contains(ident)
-                                            || !lexically_declared_names.insert(ident.as_ref())
+                                        if var_declared_names.contains(&ident)
+                                            || !lexically_declared_names.insert(ident)
                                         {
                                             return Err(ParseError::lex(LexError::Syntax(
-                                                format!("Redeclaration of variable `{}`", ident)
-                                                    .into(),
+                                                format!(
+                                                    "Redeclaration of variable `{}`",
+                                                    interner
+                                                        .resolve(ident)
+                                                        .expect("string disappeared")
+                                                )
+                                                .into(),
                                                 match cursor.peek(0, interner)? {
                                                     Some(token) => token.span().end(),
                                                     None => Position::new(1, 1),
@@ -374,11 +372,13 @@ where
                             match decl {
                                 node::Declaration::Identifier { ident, .. } => {
                                     // if name in LexicallyDeclaredNames, raise an error
-                                    if lexically_declared_names.contains(ident.as_ref()) {
+                                    if lexically_declared_names.contains(&ident.sym()) {
                                         return Err(ParseError::lex(LexError::Syntax(
                                             format!(
                                                 "Redeclaration of variable `{}`",
-                                                ident.as_ref()
+                                                interner
+                                                    .resolve(ident.sym())
+                                                    .expect("string disappeared")
                                             )
                                             .into(),
                                             match cursor.peek(0, interner)? {
@@ -388,15 +388,20 @@ where
                                         )));
                                     }
                                     // otherwise, add to VarDeclaredNames
-                                    var_declared_names.insert(ident.as_ref());
+                                    var_declared_names.insert(ident.sym());
                                 }
                                 node::Declaration::Pattern(p) => {
                                     for ident in p.idents() {
                                         // if name in LexicallyDeclaredNames, raise an error
-                                        if lexically_declared_names.contains(ident) {
+                                        if lexically_declared_names.contains(&ident) {
                                             return Err(ParseError::lex(LexError::Syntax(
-                                                format!("Redeclaration of variable `{}`", ident)
-                                                    .into(),
+                                                format!(
+                                                    "Redeclaration of variable `{}`",
+                                                    interner
+                                                        .resolve(ident)
+                                                        .expect("string disappeared")
+                                                )
+                                                .into(),
                                                 match cursor.peek(0, interner)? {
                                                     Some(token) => token.span().end(),
                                                     None => Position::new(1, 1),
@@ -404,7 +409,7 @@ where
                                             )));
                                         }
                                         // otherwise, add to VarDeclaredNames
-                                        var_declared_names.insert(ident.as_ref());
+                                        var_declared_names.insert(ident);
                                     }
                                 }
                             }
@@ -530,7 +535,7 @@ impl<R> TokenParser<R> for BindingIdentifier
 where
     R: Read,
 {
-    type Output = Box<str>;
+    type Output = Sym;
 
     /// Strict mode parsing as per <https://tc39.es/ecma262/#sec-identifiers-static-semantics-early-errors>.
     fn parse(
@@ -543,9 +548,7 @@ where
         let next_token = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
 
         match next_token.kind() {
-            TokenKind::Identifier(ref s) => {
-                Ok(interner.resolve(*s).expect("string disappeared").into())
-            }
+            TokenKind::Identifier(ref s) => Ok(*s),
             TokenKind::Keyword(Keyword::Yield) if self.allow_yield.0 => {
                 // Early Error: It is a Syntax Error if this production has a [Yield] parameter and StringValue of Identifier is "yield".
                 Err(ParseError::general(
@@ -560,7 +563,7 @@ where
                         next_token.span().start(),
                     ))
                 } else {
-                    Ok("yield".into())
+                    Ok(Sym::YIELD)
                 }
             }
             TokenKind::Keyword(Keyword::Await) if self.allow_await.0 => {
@@ -577,7 +580,7 @@ where
                         next_token.span().start(),
                     ))
                 } else {
-                    Ok("await".into())
+                    Ok(Sym::AWAIT)
                 }
             }
             _ => Err(ParseError::expected(
@@ -677,7 +680,7 @@ where
                     .parse(cursor, interner)?,
             };
 
-            property_names.push(property_name.clone());
+            property_names.push(property_name);
 
             if let Some(peek_token) = cursor.peek(0, interner)? {
                 match peek_token.kind() {
@@ -686,7 +689,7 @@ where
                             Initializer::new(self.allow_in, self.allow_yield, self.allow_await)
                                 .parse(cursor, interner)?;
                         patterns.push(BindingPatternTypeObject::SingleName {
-                            ident: property_name.clone(),
+                            ident: property_name,
                             property_name,
                             default_init: Some(init),
                         });
@@ -831,7 +834,7 @@ where
                     }
                     _ => {
                         patterns.push(BindingPatternTypeObject::SingleName {
-                            ident: property_name.clone(),
+                            ident: property_name,
                             property_name,
                             default_init: None,
                         });

@@ -1,6 +1,8 @@
-use super::Node;
-use crate::gc::{Finalize, Trace};
-use std::fmt;
+use crate::{
+    gc::{empty_trace, Finalize, Trace},
+    syntax::ast::Node,
+};
+use boa_interner::{Interner, Sym, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -23,36 +25,38 @@ mod tests;
 /// [spec]: https://tc39.es/ecma262/#prod-BreakStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/break
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Debug, Clone, Copy, Finalize, PartialEq)]
 pub struct Break {
-    label: Option<Box<str>>,
+    label: Option<Sym>,
 }
 
 impl Break {
     /// Creates a `Break` AST node.
-    pub fn new<OL, L>(label: OL) -> Self
+    pub fn new<L>(label: L) -> Self
     where
-        L: Into<Box<str>>,
-        OL: Into<Option<L>>,
+        L: Into<Option<Sym>>,
     {
         Self {
-            label: label.into().map(L::into),
+            label: label.into(),
         }
     }
 
     /// Gets the label of the break statement, if any.
-    pub fn label(&self) -> Option<&str> {
-        self.label.as_ref().map(Box::as_ref)
+    pub fn label(&self) -> Option<Sym> {
+        self.label
     }
 }
 
-impl fmt::Display for Break {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
+unsafe impl Trace for Break {
+    empty_trace!();
+}
+
+impl ToInternedString for Break {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        format!(
             "break{}",
-            if self.label().is_some() {
-                format!(" {}", self.label().as_ref().unwrap())
+            if let Some(label) = self.label {
+                format!(" {}", interner.resolve(label).expect("string disappeared"))
             } else {
                 String::new()
             }

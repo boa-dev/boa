@@ -14,12 +14,12 @@ use crate::{
         lexical_environment::{Environment, EnvironmentType, VariableScope},
         object_environment_record::ObjectEnvironmentRecord,
     },
-    gc::{Finalize, Trace},
+    gc::{self, Finalize, Gc, Trace},
     object::JsObject,
     property::PropertyDescriptor,
     Context, JsResult, JsValue,
 };
-use gc::{Gc, GcCell};
+use boa_interner::Sym;
 use rustc_hash::FxHashSet;
 
 #[derive(Debug, Trace, Finalize, Clone)]
@@ -27,7 +27,7 @@ pub struct GlobalEnvironmentRecord {
     pub object_record: ObjectEnvironmentRecord,
     pub global_this_binding: JsObject,
     pub declarative_record: DeclarativeEnvironmentRecord,
-    pub var_names: GcCell<FxHashSet<Box<str>>>,
+    pub var_names: gc::Cell<FxHashSet<Sym>>,
 }
 
 impl GlobalEnvironmentRecord {
@@ -49,7 +49,7 @@ impl GlobalEnvironmentRecord {
             object_record: obj_rec,
             global_this_binding: this_value,
             declarative_record: dcl_rec,
-            var_names: GcCell::new(FxHashSet::default()),
+            var_names: gc::Cell::new(FxHashSet::default()),
         }
     }
 
@@ -59,11 +59,11 @@ impl GlobalEnvironmentRecord {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hasvardeclaration
-    pub fn has_var_declaration(&self, name: &str) -> bool {
+    pub fn has_var_declaration(&self, name: Sym) -> bool {
         // 1. Let varDeclaredNames be envRec.[[VarNames]].
         // 2. If varDeclaredNames contains N, return true.
         // 3. Return false.
-        self.var_names.borrow().contains(name)
+        self.var_names.borrow().contains(&name)
     }
 
     /// `9.1.1.4.13 HasLexicalDeclaration ( N )`
@@ -72,7 +72,7 @@ impl GlobalEnvironmentRecord {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-haslexicaldeclaration
-    pub fn has_lexical_declaration(&self, name: &str, context: &mut Context) -> JsResult<bool> {
+    pub fn has_lexical_declaration(&self, name: Sym, context: &mut Context) -> JsResult<bool> {
         // 1. Let DclRec be envRec.[[DeclarativeRecord]].
         // 2. Return DclRec.HasBinding(N).
         self.declarative_record.has_binding(name, context)
@@ -86,7 +86,7 @@ impl GlobalEnvironmentRecord {
     /// [spec]: https://tc39.es/ecma262/#sec-hasrestrictedglobalproperty
     pub fn has_restricted_global_property(
         &self,
-        name: &str,
+        name: Sym,
         context: &mut Context,
     ) -> JsResult<bool> {
         // 1. Let ObjRec be envRec.[[ObjectRecord]].
@@ -94,7 +94,14 @@ impl GlobalEnvironmentRecord {
         let global_object = &self.object_record.bindings;
 
         // 3. Let existingProp be ? globalObject.[[GetOwnProperty]](N).
-        let existing_prop = global_object.__get_own_property__(&name.into(), context)?;
+        let existing_prop = global_object.__get_own_property__(
+            &context
+                .interner()
+                .resolve(name)
+                .expect("string disappeared")
+                .into(),
+            context,
+        )?;
 
         if let Some(existing_prop) = existing_prop {
             // 5. If existingProp.[[Configurable]] is true, return false.
@@ -112,13 +119,18 @@ impl GlobalEnvironmentRecord {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-candeclareglobalvar
-    pub fn can_declare_global_var(&self, name: &str, context: &mut Context) -> JsResult<bool> {
+    pub fn can_declare_global_var(&self, name: Sym, context: &mut Context) -> JsResult<bool> {
         // 1. Let ObjRec be envRec.[[ObjectRecord]].
         // 2. Let globalObject be ObjRec.[[BindingObject]].
         let global_object = &self.object_record.bindings;
 
         // 3. Let hasProperty be ? HasOwnProperty(globalObject, N).
-        let has_property = global_object.has_own_property(name, context)?;
+        let key = context
+            .interner()
+            .resolve(name)
+            .expect("string disappeared")
+            .to_owned();
+        let has_property = global_object.has_own_property(key, context)?;
 
         // 4. If hasProperty is true, return true.
         if has_property {
@@ -135,13 +147,20 @@ impl GlobalEnvironmentRecord {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-candeclareglobalfunction
-    pub fn can_declare_global_function(&self, name: &str, context: &mut Context) -> JsResult<bool> {
+    pub fn can_declare_global_function(&self, name: Sym, context: &mut Context) -> JsResult<bool> {
         // 1. Let ObjRec be envRec.[[ObjectRecord]].
         // 2. Let globalObject be ObjRec.[[BindingObject]].
         let global_object = &self.object_record.bindings;
 
         // 3. Let existingProp be ? globalObject.[[GetOwnProperty]](N).
-        let existing_prop = global_object.__get_own_property__(&name.into(), context)?;
+        let existing_prop = global_object.__get_own_property__(
+            &context
+                .interner()
+                .resolve(name)
+                .expect("string disappeared")
+                .into(),
+            context,
+        )?;
 
         if let Some(existing_prop) = existing_prop {
             // 5. If existingProp.[[Configurable]] is true, return true.
@@ -175,7 +194,7 @@ impl GlobalEnvironmentRecord {
     /// [spec]: https://tc39.es/ecma262/#sec-createglobalvarbinding
     pub fn create_global_var_binding(
         &mut self,
-        name: &str,
+        name: Sym,
         deletion: bool,
         context: &mut Context,
     ) -> JsResult<()> {
@@ -184,7 +203,14 @@ impl GlobalEnvironmentRecord {
         let global_object = &self.object_record.bindings;
 
         // 3. Let hasProperty be ? HasOwnProperty(globalObject, N).
-        let has_property = global_object.has_own_property(name, context)?;
+        let has_property = global_object.has_own_property(
+            context
+                .interner()
+                .resolve(name)
+                .expect("string disappeared")
+                .to_owned(),
+            context,
+        )?;
         // 4. Let extensible be ? IsExtensible(globalObject).
         let extensible = global_object.is_extensible(context)?;
 
@@ -201,9 +227,9 @@ impl GlobalEnvironmentRecord {
         // 6. Let varDeclaredNames be envRec.[[VarNames]].
         let mut var_declared_names = self.var_names.borrow_mut();
         // 7. If varDeclaredNames does not contain N, then
-        if !var_declared_names.contains(name) {
+        if !var_declared_names.contains(&name) {
             // a. Append N to varDeclaredNames.
-            var_declared_names.insert(name.into());
+            var_declared_names.insert(name);
         }
 
         // 8. Return NormalCompletion(empty).
@@ -218,7 +244,7 @@ impl GlobalEnvironmentRecord {
     /// [spec]: https://tc39.es/ecma262/#sec-createglobalfunctionbinding
     pub fn create_global_function_binding(
         &mut self,
-        name: &str,
+        name: Sym,
         value: JsValue,
         deletion: bool,
         context: &mut Context,
@@ -228,7 +254,14 @@ impl GlobalEnvironmentRecord {
         let global_object = &self.object_record.bindings;
 
         // 3. Let existingProp be ? globalObject.[[GetOwnProperty]](N).
-        let existing_prop = global_object.__get_own_property__(&name.into(), context)?;
+        let existing_prop = global_object.__get_own_property__(
+            &context
+                .interner()
+                .resolve(name)
+                .expect("string disappeared")
+                .into(),
+            context,
+        )?;
 
         // 4. If existingProp is undefined or existingProp.[[Configurable]] is true, then
         let desc = if existing_prop
@@ -248,16 +281,22 @@ impl GlobalEnvironmentRecord {
             PropertyDescriptor::builder().value(value.clone()).build()
         };
 
+        let name_str = context
+            .interner()
+            .resolve(name)
+            .expect("string disappeared")
+            .to_owned();
+
         // 6. Perform ? DefinePropertyOrThrow(globalObject, N, desc).
-        global_object.define_property_or_throw(name, desc, context)?;
+        global_object.define_property_or_throw(name_str.as_str(), desc, context)?;
         // 7. Perform ? Set(globalObject, N, V, false).
-        global_object.set(name, value, false, context)?;
+        global_object.set(name_str, value, false, context)?;
 
         // 8. Let varDeclaredNames be envRec.[[VarNames]].
         // 9. If varDeclaredNames does not contain N, then
-        if !self.var_names.borrow().contains(name) {
+        if !self.var_names.borrow().contains(&name) {
             // a. Append N to varDeclaredNames.
-            self.var_names.borrow_mut().insert(name.into());
+            self.var_names.borrow_mut().insert(name);
         }
 
         // 10. Return NormalCompletion(empty).
@@ -272,7 +311,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-global-environment-records-hasbinding-n
-    fn has_binding(&self, name: &str, context: &mut Context) -> JsResult<bool> {
+    fn has_binding(&self, name: Sym, context: &mut Context) -> JsResult<bool> {
         // 1. Let DclRec be envRec.[[DeclarativeRecord]].
         // 2. If DclRec.HasBinding(N) is true, return true.
         if self.declarative_record.has_binding(name, context)? {
@@ -292,7 +331,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
     /// [spec]: https://tc39.es/ecma262/#sec-global-environment-records-createmutablebinding-n-d
     fn create_mutable_binding(
         &self,
-        name: &str,
+        name: Sym,
         deletion: bool,
         allow_name_reuse: bool,
         context: &mut Context,
@@ -300,7 +339,13 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
         // 1. Let DclRec be envRec.[[DeclarativeRecord]].
         // 2. If DclRec.HasBinding(N) is true, throw a TypeError exception.
         if !allow_name_reuse && self.declarative_record.has_binding(name, context)? {
-            return context.throw_type_error(format!("Binding already exists for {}", name));
+            return context.throw_type_error(format!(
+                "Binding already exists for {}",
+                context
+                    .interner()
+                    .resolve(name)
+                    .expect("string disappeared")
+            ));
         }
 
         // 3. Return DclRec.CreateMutableBinding(N, D).
@@ -316,14 +361,20 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
     /// [spec]: https://tc39.es/ecma262/#sec-global-environment-records-createimmutablebinding-n-s
     fn create_immutable_binding(
         &self,
-        name: &str,
+        name: Sym,
         strict: bool,
         context: &mut Context,
     ) -> JsResult<()> {
         // 1. Let DclRec be envRec.[[DeclarativeRecord]].
         // 2. If DclRec.HasBinding(N) is true, throw a TypeError exception.
         if self.declarative_record.has_binding(name, context)? {
-            return context.throw_type_error(format!("Binding already exists for {}", name));
+            return context.throw_type_error(format!(
+                "Binding already exists for {}",
+                context
+                    .interner()
+                    .resolve(name)
+                    .expect("string disappeared")
+            ));
         }
 
         // 3. Return DclRec.CreateImmutableBinding(N, S).
@@ -337,12 +388,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-global-environment-records-initializebinding-n-v
-    fn initialize_binding(
-        &self,
-        name: &str,
-        value: JsValue,
-        context: &mut Context,
-    ) -> JsResult<()> {
+    fn initialize_binding(&self, name: Sym, value: JsValue, context: &mut Context) -> JsResult<()> {
         // 1. Let DclRec be envRec.[[DeclarativeRecord]].
         // 2. If DclRec.HasBinding(N) is true, then
         if self.declarative_record.has_binding(name, context)? {
@@ -371,7 +417,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
     /// [spec]: https://tc39.es/ecma262/#sec-global-environment-records-setmutablebinding-n-v-s
     fn set_mutable_binding(
         &self,
-        name: &str,
+        name: Sym,
         value: JsValue,
         strict: bool,
         context: &mut Context,
@@ -399,7 +445,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
     /// [spec]: https://tc39.es/ecma262/#sec-global-environment-records-getbindingvalue-n-s
     fn get_binding_value(
         &self,
-        name: &str,
+        name: Sym,
         strict: bool,
         context: &mut Context,
     ) -> JsResult<JsValue> {
@@ -423,7 +469,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-global-environment-records-deletebinding-n
-    fn delete_binding(&self, name: &str, context: &mut Context) -> JsResult<bool> {
+    fn delete_binding(&self, name: Sym, context: &mut Context) -> JsResult<bool> {
         // 1. Let DclRec be envRec.[[DeclarativeRecord]].
         // 2. If DclRec.HasBinding(N) is true, then
         if self.declarative_record.has_binding(name, context)? {
@@ -437,7 +483,14 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
 
         // 5. Let existingProp be ? HasOwnProperty(globalObject, N).
         // 6. If existingProp is true, then
-        if global_object.has_own_property(name, context)? {
+        if global_object.has_own_property(
+            context
+                .interner()
+                .resolve(name)
+                .expect("string disappeared")
+                .to_owned(),
+            context,
+        )? {
             // a. Let status be ? ObjRec.DeleteBinding(N).
             let status = self.object_record.delete_binding(name, context)?;
 
@@ -445,7 +498,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
             if status {
                 // i. Let varNames be envRec.[[VarNames]].
                 // ii. If N is an element of varNames, remove that element from the varNames.
-                self.var_names.borrow_mut().remove(name);
+                self.var_names.borrow_mut().remove(&name);
             }
 
             // c. Return status.
@@ -519,7 +572,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
 
     fn recursive_create_mutable_binding(
         &self,
-        name: &str,
+        name: Sym,
         deletion: bool,
         _scope: VariableScope,
         context: &mut Context,
@@ -529,7 +582,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
 
     fn recursive_create_immutable_binding(
         &self,
-        name: &str,
+        name: Sym,
         deletion: bool,
         _scope: VariableScope,
         context: &mut Context,
@@ -539,7 +592,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
 
     fn recursive_set_mutable_binding(
         &self,
-        name: &str,
+        name: Sym,
         value: JsValue,
         strict: bool,
         context: &mut Context,
@@ -549,7 +602,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
 
     fn recursive_initialize_binding(
         &self,
-        name: &str,
+        name: Sym,
         value: JsValue,
         context: &mut Context,
     ) -> JsResult<()> {

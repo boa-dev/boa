@@ -94,15 +94,9 @@ where
                     let token = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
 
                     match token.kind() {
-                        TokenKind::Identifier(name) => {
-                            lhs = GetConstField::new(
-                                lhs,
-                                interner.resolve(*name).expect("string disappeared"),
-                            )
-                            .into()
-                        }
+                        TokenKind::Identifier(name) => lhs = GetConstField::new(lhs, *name).into(),
                         TokenKind::Keyword(kw) => {
-                            lhs = GetConstField::new(lhs, kw.to_string()).into()
+                            lhs = GetConstField::new(lhs, kw.to_sym(interner)).into()
                         }
                         _ => {
                             return Err(ParseError::expected(

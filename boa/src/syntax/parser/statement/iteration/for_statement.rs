@@ -199,7 +199,7 @@ fn node_to_iterable_loop_initializer(
     position: Position,
 ) -> Result<IterableLoopInitializer, ParseError> {
     match node {
-        Node::Identifier(ref name) => Ok(IterableLoopInitializer::Identifier(name.clone())),
+        Node::Identifier(name) => Ok(IterableLoopInitializer::Identifier(*name)),
         Node::VarDeclList(ref list) => match list.as_ref() {
             [var] => {
                 if var.init().is_some() {

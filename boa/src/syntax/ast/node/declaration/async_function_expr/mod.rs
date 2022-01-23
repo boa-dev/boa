@@ -1,8 +1,10 @@
 //! Async Function Expression.
 
-use crate::syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList};
-use gc::{Finalize, Trace};
-use std::fmt;
+use crate::{
+    gc::{Finalize, Trace},
+    syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
+};
+use boa_interner::{Interner, Sym, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -19,7 +21,7 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct AsyncFunctionExpr {
-    name: Option<Box<str>>,
+    name: Option<Sym>,
     parameters: Box<[FormalParameter]>,
     body: StatementList,
 }
@@ -28,7 +30,7 @@ impl AsyncFunctionExpr {
     /// Creates a new function expression
     pub(in crate::syntax) fn new<N, P, B>(name: N, parameters: P, body: B) -> Self
     where
-        N: Into<Option<Box<str>>>,
+        N: Into<Option<Sym>>,
         P: Into<Box<[FormalParameter]>>,
         B: Into<StatementList>,
     {
@@ -40,8 +42,8 @@ impl AsyncFunctionExpr {
     }
 
     /// Gets the name of the function declaration.
-    pub fn name(&self) -> Option<&str> {
-        self.name.as_ref().map(Box::as_ref)
+    pub fn name(&self) -> Option<Sym> {
+        self.name
     }
 
     /// Gets the list of parameters of the function declaration.
@@ -55,30 +57,35 @@ impl AsyncFunctionExpr {
     }
 
     /// Implements the display formatting with indentation.
-    pub(in crate::syntax::ast::node) fn display(
+    pub(in crate::syntax::ast::node) fn to_indented_string(
         &self,
-        f: &mut fmt::Formatter<'_>,
+        interner: &Interner,
         indentation: usize,
-    ) -> fmt::Result {
-        f.write_str("async function")?;
-        if let Some(ref name) = self.name {
-            write!(f, " {}", name)?;
+    ) -> String {
+        let mut buf = "async function".to_owned();
+        if let Some(name) = self.name {
+            buf.push_str(&format!(
+                " {}",
+                interner.resolve(name).expect("string disappeared")
+            ));
         }
-        f.write_str("(")?;
-        join_nodes(f, &self.parameters)?;
+        buf.push_str(&format!("({}", join_nodes(interner, &self.parameters)));
         if self.body().is_empty() {
-            f.write_str(") {}")
+            buf.push_str(") {}");
         } else {
-            f.write_str(") {\n")?;
-            self.body.display(f, indentation + 1)?;
-            write!(f, "{}}}", "    ".repeat(indentation))
+            buf.push_str(&format!(
+                ") {{\n{}{}}}",
+                self.body.to_indented_string(interner, indentation + 1),
+                "    ".repeat(indentation)
+            ));
         }
+        buf
     }
 }
 
-impl fmt::Display for AsyncFunctionExpr {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.display(f, 0)
+impl ToInternedString for AsyncFunctionExpr {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        self.to_indented_string(interner, 0)
     }
 }
 

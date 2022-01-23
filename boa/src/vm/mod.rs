@@ -14,6 +14,7 @@ use crate::{
     vm::{call_frame::CatchAddresses, code_block::Readable},
     BoaProfiler, Context, JsBigInt, JsResult, JsString, JsValue,
 };
+use boa_interner::ToInternedString;
 use std::{convert::TryInto, mem::size_of, ops::Neg, time::Instant};
 
 mod call_frame;
@@ -300,71 +301,79 @@ impl Context {
             }
             Opcode::DefInitArg => {
                 let index = self.vm.read::<u32>();
-                let name = self.vm.frame().code.variables[index as usize].clone();
+                let name_str = self.vm.frame().code.variables[index as usize].clone();
+                let name = self.interner_mut().get_or_intern(name_str);
                 let value = self.vm.pop();
                 let local_env = self.get_current_environment();
                 local_env
-                    .create_mutable_binding(name.as_ref(), false, true, self)
+                    .create_mutable_binding(name, false, true, self)
                     .expect("Failed to create argument binding");
-                self.initialize_binding(name.as_ref(), value)?;
+                self.initialize_binding(name, value)?;
             }
             Opcode::DefVar => {
                 let index = self.vm.read::<u32>();
-                let name = self.vm.frame().code.variables[index as usize].clone();
+                let name_str = self.vm.frame().code.variables[index as usize].clone();
+                let name = self.interner_mut().get_or_intern(name_str);
 
-                if !self.has_binding(name.as_ref())? {
-                    self.create_mutable_binding(name.as_ref(), false, VariableScope::Function)?;
-                    self.initialize_binding(name.as_ref(), JsValue::Undefined)?;
+                if !self.has_binding(name)? {
+                    self.create_mutable_binding(name, false, VariableScope::Function)?;
+                    self.initialize_binding(name, JsValue::Undefined)?;
                 }
             }
             Opcode::DefInitVar => {
                 let index = self.vm.read::<u32>();
-                let name = self.vm.frame().code.variables[index as usize].clone();
+                let name_str = self.vm.frame().code.variables[index as usize].clone();
+                let name = self.interner_mut().get_or_intern(name_str);
                 let value = self.vm.pop();
 
-                if self.has_binding(name.as_ref())? {
-                    self.set_mutable_binding(name.as_ref(), value, self.strict())?;
+                if self.has_binding(name)? {
+                    self.set_mutable_binding(name, value, self.strict())?;
                 } else {
-                    self.create_mutable_binding(name.as_ref(), false, VariableScope::Function)?;
-                    self.initialize_binding(name.as_ref(), value)?;
+                    self.create_mutable_binding(name, false, VariableScope::Function)?;
+                    self.initialize_binding(name, value)?;
                 }
             }
             Opcode::DefLet => {
                 let index = self.vm.read::<u32>();
-                let name = self.vm.frame().code.variables[index as usize].clone();
+                let name_str = self.vm.frame().code.variables[index as usize].clone();
+                let name = self.interner_mut().get_or_intern(name_str);
 
-                self.create_mutable_binding(name.as_ref(), false, VariableScope::Block)?;
-                self.initialize_binding(name.as_ref(), JsValue::Undefined)?;
+                self.create_mutable_binding(name, false, VariableScope::Block)?;
+                self.initialize_binding(name, JsValue::Undefined)?;
             }
             Opcode::DefInitLet => {
                 let index = self.vm.read::<u32>();
-                let name = self.vm.frame().code.variables[index as usize].clone();
+                let name_str = self.vm.frame().code.variables[index as usize].clone();
+                let name = self.interner_mut().get_or_intern(name_str);
                 let value = self.vm.pop();
 
-                self.create_mutable_binding(name.as_ref(), false, VariableScope::Block)?;
-                self.initialize_binding(name.as_ref(), value)?;
+                self.create_mutable_binding(name, false, VariableScope::Block)?;
+                self.initialize_binding(name, value)?;
             }
             Opcode::DefInitConst => {
                 let index = self.vm.read::<u32>();
-                let name = self.vm.frame().code.variables[index as usize].clone();
+                let name_str = self.vm.frame().code.variables[index as usize].clone();
+                let name = self.interner_mut().get_or_intern(name_str);
                 let value = self.vm.pop();
 
-                self.create_immutable_binding(name.as_ref(), true, VariableScope::Block)?;
-                self.initialize_binding(name.as_ref(), value)?;
+                self.create_immutable_binding(name, true, VariableScope::Block)?;
+                self.initialize_binding(name, value)?;
             }
             Opcode::GetName => {
                 let index = self.vm.read::<u32>();
-                let name = self.vm.frame().code.variables[index as usize].clone();
+                let name_str = self.vm.frame().code.variables[index as usize].clone();
+                let name = self.interner_mut().get_or_intern(name_str);
 
-                let value = self.get_binding_value(&name)?;
+                let value = self.get_binding_value(name)?;
                 self.vm.push(value);
             }
             Opcode::GetNameOrUndefined => {
                 let index = self.vm.read::<u32>();
-                let name = self.vm.frame().code.variables[index as usize].clone();
+                let name_str = self.vm.frame().code.variables[index as usize].clone();
+                let name = self.interner_mut().get_or_intern(name_str);
 
-                let value = if self.has_binding(&name)? {
-                    self.get_binding_value(&name)?
+                let value = if self.has_binding(name)? {
+                    self.get_binding_value(name)?
                 } else {
                     JsValue::Undefined
                 };
@@ -373,10 +382,11 @@ impl Context {
             Opcode::SetName => {
                 let index = self.vm.read::<u32>();
                 let value = self.vm.pop();
-                let name = self.vm.frame().code.variables[index as usize].clone();
+                let name_str = self.vm.frame().code.variables[index as usize].clone();
+                let name = self.interner_mut().get_or_intern(name_str);
 
                 self.set_mutable_binding(
-                    name.as_ref(),
+                    name,
                     value,
                     self.strict() || self.vm.frame().code.strict,
                 )?;
@@ -1121,7 +1131,10 @@ impl Context {
                 " VM Start "
             };
 
-            println!("{}\n", self.vm.frame().code);
+            println!(
+                "{}\n",
+                self.vm.frame().code.to_interned_string(self.interner())
+            );
             println!(
                 "{:-^width$}",
                 msg,

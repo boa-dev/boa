@@ -12,15 +12,15 @@ use crate::{
         function_environment_record::{BindingStatus, FunctionEnvironmentRecord},
         lexical_environment::Environment,
     },
-    gc::{Finalize, Trace},
+    gc::{Finalize, Gc, Trace},
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::PropertyDescriptor,
     syntax::ast::node::FormalParameter,
     vm::{call_frame::FinallyReturn, CallFrame, Opcode},
     Context, JsResult, JsString, JsValue,
 };
-use gc::Gc;
-use std::{convert::TryInto, fmt::Write, mem::size_of};
+use boa_interner::{Interner, Sym, ToInternedString};
+use std::{convert::TryInto, mem::size_of};
 
 /// This represents whether a value can be read from [`CodeBlock`] code.
 ///
@@ -51,7 +51,7 @@ unsafe impl Readable for f64 {}
 #[derive(Clone, Debug, Trace, Finalize)]
 pub struct CodeBlock {
     /// Name of this function
-    pub(crate) name: JsString,
+    pub(crate) name: Sym,
 
     /// The number of arguments expected.
     pub(crate) length: u32,
@@ -86,7 +86,7 @@ pub struct CodeBlock {
 
 impl CodeBlock {
     /// Constructs a new `CodeBlock`.
-    pub fn new(name: JsString, length: u32, strict: bool, constructor: bool) -> Self {
+    pub fn new(name: Sym, length: u32, strict: bool, constructor: bool) -> Self {
         Self {
             code: Vec::new(),
             literals: Vec::new(),
@@ -189,7 +189,7 @@ impl CodeBlock {
                 let operand = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
                 format!(
-                    "{:04}: '{}' (length: {})",
+                    "{:04}: '{:?}' (length: {})",
                     operand,
                     self.functions[operand as usize].name,
                     self.functions[operand as usize].length
@@ -214,7 +214,7 @@ impl CodeBlock {
             | Opcode::CopyDataProperties => {
                 let operand = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
-                format!("{:04}: '{}'", operand, self.variables[operand as usize])
+                format!("{:04}: '{:?}'", operand, self.variables[operand as usize])
             }
             Opcode::Pop
             | Opcode::Dup
@@ -296,79 +296,75 @@ impl CodeBlock {
     }
 }
 
-impl std::fmt::Display for CodeBlock {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if self.name != "<main>" {
-            f.write_char('\n')?;
-        }
+impl ToInternedString for CodeBlock {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        let name = interner.resolve(self.name).expect("string disappeared");
+        let mut f = if self.name == Sym::MAIN {
+            String::new()
+        } else {
+            "\n".to_owned()
+        };
 
-        writeln!(
-            f,
-            "{:-^width$}",
-            format!("Compiled Output: '{}'", self.name),
+        f.push_str(&format!(
+            "{:-^width$}\n    Location  Count   Opcode                     Operands\n\n",
+            format!("Compiled Output: '{}'", name),
             width = 70
-        )?;
-
-        writeln!(
-            f,
-            "    Location  Count   Opcode                     Operands"
-        )?;
-
-        f.write_char('\n')?;
+        ));
 
         let mut pc = 0;
         let mut count = 0;
         while pc < self.code.len() {
             let opcode: Opcode = self.code[pc].try_into().unwrap();
-            write!(
-                f,
-                "    {:06}    {:04}    {:<27}",
+            let operands = self.instruction_operands(&mut pc);
+            f.push_str(&format!(
+                "    {:06}    {:04}    {:<27}\n{}",
                 pc,
                 count,
-                opcode.as_str()
-            )?;
-            writeln!(f, "{}", self.instruction_operands(&mut pc))?;
+                opcode.as_str(),
+                operands
+            ));
             count += 1;
         }
 
-        f.write_char('\n')?;
+        f.push_str("\nLiterals:\n");
 
-        f.write_str("Literals:\n")?;
         if !self.literals.is_empty() {
             for (i, value) in self.literals.iter().enumerate() {
-                writeln!(f, "    {:04}: <{}> {}", i, value.type_of(), value.display())?;
+                f.push_str(&format!(
+                    "    {:04}: <{}> {}\n",
+                    i,
+                    value.type_of(),
+                    value.display()
+                ));
             }
         } else {
-            writeln!(f, "    <empty>")?;
+            f.push_str("    <empty>");
         }
 
-        f.write_char('\n')?;
-
-        f.write_str("Names:\n")?;
+        f.push_str("\nNames:\n");
         if !self.variables.is_empty() {
             for (i, value) in self.variables.iter().enumerate() {
-                writeln!(f, "    {:04}: {}", i, value)?;
+                f.push_str(&format!("    {:04}: {}\n", i, value));
             }
         } else {
-            writeln!(f, "    <empty>")?;
+            f.push_str("    <empty>");
         }
 
-        f.write_char('\n')?;
-
-        f.write_str("Functions:\n")?;
+        f.push_str("\nFunctions:\n");
         if !self.functions.is_empty() {
             for (i, code) in self.functions.iter().enumerate() {
-                writeln!(
-                    f,
-                    "    {:04}: name: '{}' (length: {})",
-                    i, code.name, code.length
-                )?;
+                f.push_str(&format!(
+                    "    {:04}: name: '{}' (length: {})\n",
+                    i,
+                    interner.resolve(code.name).expect("string disappeared"),
+                    code.length
+                ));
             }
         } else {
-            writeln!(f, "    <empty>")?;
+            f.push_str("    <empty>");
         }
 
-        Ok(())
+        f
     }
 }
 
@@ -384,7 +380,12 @@ impl JsVmFunction {
         let prototype = context.construct_object();
 
         let name_property = PropertyDescriptor::builder()
-            .value(code.name.clone())
+            .value(
+                context
+                    .interner()
+                    .resolve(code.name)
+                    .expect("string disappeared"),
+            )
             .writable(false)
             .enumerable(false)
             .configurable(true)
@@ -536,10 +537,11 @@ impl JsObject {
                 let mut is_simple_parameter_list = true;
                 let mut has_parameter_expressions = false;
 
+                let arguments = Sym::ARGUMENTS;
                 for param in code.params.iter() {
                     has_parameter_expressions = has_parameter_expressions || param.init().is_some();
                     arguments_in_parameter_names =
-                        arguments_in_parameter_names || param.names().contains(&"arguments");
+                        arguments_in_parameter_names || param.names().contains(&arguments);
                     is_simple_parameter_list = is_simple_parameter_list
                         && !param.is_rest_param()
                         && param.is_identifier()
@@ -569,8 +571,8 @@ impl JsObject {
                                 context,
                             )
                         };
-                    local_env.create_mutable_binding("arguments", false, true, context)?;
-                    local_env.initialize_binding("arguments", arguments_obj.into(), context)?;
+                    local_env.create_mutable_binding(arguments, false, true, context)?;
+                    local_env.initialize_binding(arguments, arguments_obj.into(), context)?;
                 }
 
                 let arg_count = args.len();
@@ -709,7 +711,7 @@ impl JsObject {
                 for param in code.params.iter() {
                     has_parameter_expressions = has_parameter_expressions || param.init().is_some();
                     arguments_in_parameter_names =
-                        arguments_in_parameter_names || param.names().contains(&"arguments");
+                        arguments_in_parameter_names || param.names().contains(&Sym::ARGUMENTS);
                     is_simple_parameter_list = is_simple_parameter_list
                         && !param.is_rest_param()
                         && param.is_identifier()
@@ -739,8 +741,8 @@ impl JsObject {
                                 context,
                             )
                         };
-                    local_env.create_mutable_binding("arguments", false, true, context)?;
-                    local_env.initialize_binding("arguments", arguments_obj.into(), context)?;
+                    local_env.create_mutable_binding(Sym::ARGUMENTS, false, true, context)?;
+                    local_env.initialize_binding(Sym::ARGUMENTS, arguments_obj.into(), context)?;
                 }
 
                 let arg_count = args.len();

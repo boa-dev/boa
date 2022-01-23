@@ -2,7 +2,7 @@ use crate::{
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
 };
-use std::fmt;
+use boa_interner::{Interner, Sym, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -23,7 +23,7 @@ use serde::{Deserialize, Serialize};
 pub struct WhileLoop {
     cond: Box<Node>,
     body: Box<Node>,
-    label: Option<Box<str>>,
+    label: Option<Sym>,
 }
 
 impl WhileLoop {
@@ -35,11 +35,11 @@ impl WhileLoop {
         &self.body
     }
 
-    pub fn label(&self) -> Option<&str> {
-        self.label.as_ref().map(Box::as_ref)
+    pub fn label(&self) -> Option<Sym> {
+        self.label
     }
 
-    pub fn set_label(&mut self, label: Box<str>) {
+    pub fn set_label(&mut self, label: Sym) {
         self.label = Some(label);
     }
 
@@ -56,22 +56,30 @@ impl WhileLoop {
         }
     }
 
-    pub(in crate::syntax::ast::node) fn display(
+    /// Converts the while loop to a string with the given indentation.
+    pub(in crate::syntax::ast::node) fn to_indented_string(
         &self,
-        f: &mut fmt::Formatter<'_>,
+        interner: &Interner,
         indentation: usize,
-    ) -> fmt::Result {
-        if let Some(ref label) = self.label {
-            write!(f, "{}: ", label)?;
-        }
-        write!(f, "while ({}) ", self.cond())?;
-        self.body().display(f, indentation)
+    ) -> String {
+        let mut buf = if let Some(label) = self.label {
+            format!("{}: ", interner.resolve(label).expect("string disappeared"))
+        } else {
+            String::new()
+        };
+        buf.push_str(&format!(
+            "while ({}) {}",
+            self.cond().to_interned_string(interner),
+            self.body().to_indented_string(interner, indentation)
+        ));
+
+        buf
     }
 }
 
-impl fmt::Display for WhileLoop {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.display(f, 0)
+impl ToInternedString for WhileLoop {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        self.to_indented_string(interner, 0)
     }
 }
 

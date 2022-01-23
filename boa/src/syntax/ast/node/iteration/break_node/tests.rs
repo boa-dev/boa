@@ -1,3 +1,5 @@
+use crate::syntax::ast::node::test_formatting;
+
 #[test]
 fn fmt() {
     // Blocks do not store their label, so we cannot test with
@@ -14,7 +16,7 @@ fn fmt() {
     //     skipped_call();
     // }
     // ```
-    super::super::test_formatting(
+    test_formatting(
         r#"
         {
             while (true) {

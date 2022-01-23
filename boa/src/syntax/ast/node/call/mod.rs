@@ -2,7 +2,7 @@ use crate::{
     gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, Node},
 };
-use std::fmt;
+use boa_interner::{Interner, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -55,11 +55,13 @@ impl Call {
     }
 }
 
-impl fmt::Display for Call {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}(", self.expr)?;
-        join_nodes(f, &self.args)?;
-        f.write_str(")")
+impl ToInternedString for Call {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        format!(
+            "{}({})",
+            self.expr.to_interned_string(interner),
+            join_nodes(interner, &self.args)
+        )
     }
 }
 

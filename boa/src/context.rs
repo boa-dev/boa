@@ -1,5 +1,7 @@
 //! Javascript context.
 
+use boa_interner::Sym;
+
 use crate::{
     builtins::{
         self, function::NativeFunctionSignature, intrinsics::IntrinsicObjects,
@@ -7,14 +9,14 @@ use crate::{
     },
     bytecompiler::ByteCompiler,
     class::{Class, ClassBuilder},
+    gc::Gc,
     object::{FunctionBuilder, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
     syntax::{ast::node::StatementList, parser::ParseError, Parser},
     vm::{CallFrame, CodeBlock, FinallyReturn, Vm},
-    BoaProfiler, Interner, JsResult, JsString, JsValue,
+    BoaProfiler, Interner, JsResult, JsValue,
 };
-use gc::Gc;
 
 #[cfg(feature = "console")]
 use crate::builtins::console::Console;
@@ -390,7 +392,7 @@ impl Default for Context {
     fn default() -> Self {
         let mut context = Self {
             realm: Realm::create(),
-            interner: Interner::new(),
+            interner: Interner::default(),
             #[cfg(feature = "console")]
             console: Console::default(),
             iterator_prototypes: IteratorPrototypes::default(),
@@ -895,7 +897,7 @@ impl Context {
             Err(e) => return self.throw_syntax_error(e),
         };
 
-        let code_block = Context::compile(&statement_list);
+        let code_block = self.compile(&statement_list);
         let result = self.execute(code_block);
 
         // The main_timer needs to be dropped before the BoaProfiler is.
@@ -907,9 +909,9 @@ impl Context {
 
     /// Compile the AST into a `CodeBlock` ready to be executed by the VM.
     #[inline]
-    pub fn compile(statement_list: &StatementList) -> Gc<CodeBlock> {
+    pub fn compile(&mut self, statement_list: &StatementList) -> Gc<CodeBlock> {
         let _ = BoaProfiler::global().start_event("Compilation", "Main");
-        let mut compiler = ByteCompiler::new(JsString::new("<main>"), statement_list.strict());
+        let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), &self.interner);
         compiler.compile_statement_list(statement_list, true);
         Gc::new(compiler.finish())
     }

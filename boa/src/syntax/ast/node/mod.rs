@@ -3,7 +3,6 @@
 pub mod array;
 pub mod await_expr;
 pub mod block;
-pub mod break_node;
 pub mod call;
 pub mod conditional;
 pub mod declaration;
@@ -26,7 +25,6 @@ pub use self::{
     array::ArrayDecl,
     await_expr::AwaitExpr,
     block::Block,
-    break_node::Break,
     call::Call,
     conditional::{ConditionalOp, If},
     declaration::{
@@ -37,7 +35,7 @@ pub use self::{
     },
     field::{GetConstField, GetField},
     identifier::Identifier,
-    iteration::{Continue, DoWhileLoop, ForInLoop, ForLoop, ForOfLoop, WhileLoop},
+    iteration::{Break, Continue, DoWhileLoop, ForInLoop, ForLoop, ForOfLoop, WhileLoop},
     new::New,
     object::Object,
     operator::{Assign, BinOp, UnaryOp},
@@ -52,10 +50,8 @@ pub use self::{
 };
 use super::Const;
 use crate::gc::{empty_trace, Finalize, Trace};
-use std::{
-    cmp::Ordering,
-    fmt::{self, Display},
-};
+use boa_interner::{Interner, Sym, ToInternedString};
+use std::cmp::Ordering;
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -226,12 +222,6 @@ pub enum Node {
     GeneratorExpr(GeneratorExpr),
 }
 
-impl Display for Node {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.display(f, 0)
-    }
-}
-
 impl From<Const> for Node {
     fn from(c: Const) -> Self {
         Self::Const(c)
@@ -255,8 +245,8 @@ impl Node {
         Self::This
     }
 
-    /// Displays the value of the node with the given indentation. For example, an indent
-    /// level of 2 would produce this:
+    /// Creates a string of the value of the node with the given indentation. For example, an
+    /// indent level of 2 would produce this:
     ///
     /// ```js
     ///         function hello() {
@@ -265,81 +255,95 @@ impl Node {
     ///         hello();
     ///         a = 2;
     /// ```
-    fn display(&self, f: &mut fmt::Formatter<'_>, indentation: usize) -> fmt::Result {
-        let indent = "    ".repeat(indentation);
-        match *self {
-            Self::Block(_) => {}
-            _ => write!(f, "{}", indent)?,
-        }
-        self.display_no_indent(f, indentation)
+    fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
+        let mut buf = match *self {
+            Self::Block(_) => String::new(),
+            _ => "    ".repeat(indentation),
+        };
+
+        buf.push_str(&self.to_no_indent_string(interner, indentation));
+
+        buf
     }
 
-    /// Implements the display formatting with indentation. This will not prefix the value with
-    /// any indentation. If you want to prefix this with proper indents, use [`display`](Self::display).
-    fn display_no_indent(&self, f: &mut fmt::Formatter<'_>, indentation: usize) -> fmt::Result {
+    /// Implements the display formatting with indentation.
+    ///
+    /// This will not prefix the value with any indentation. If you want to prefix this with proper
+    /// indents, use [`to_indented_string()`](Self::to_indented_string).
+    fn to_no_indent_string(&self, interner: &Interner, indentation: usize) -> String {
         match *self {
-            Self::Call(ref expr) => Display::fmt(expr, f),
-            Self::Const(ref c) => write!(f, "{}", c),
-            Self::ConditionalOp(ref cond_op) => Display::fmt(cond_op, f),
-            Self::ForLoop(ref for_loop) => for_loop.display(f, indentation),
-            Self::ForOfLoop(ref for_of) => for_of.display(f, indentation),
-            Self::ForInLoop(ref for_in) => for_in.display(f, indentation),
-            Self::This => write!(f, "this"),
-            Self::Try(ref try_catch) => try_catch.display(f, indentation),
-            Self::Break(ref break_smt) => Display::fmt(break_smt, f),
-            Self::Continue(ref cont) => Display::fmt(cont, f),
-            Self::Spread(ref spread) => Display::fmt(spread, f),
-            Self::Block(ref block) => block.display(f, indentation),
-            Self::Identifier(ref s) => Display::fmt(s, f),
-            Self::New(ref expr) => Display::fmt(expr, f),
-            Self::GetConstField(ref get_const_field) => Display::fmt(get_const_field, f),
-            Self::GetField(ref get_field) => Display::fmt(get_field, f),
-            Self::WhileLoop(ref while_loop) => while_loop.display(f, indentation),
-            Self::DoWhileLoop(ref do_while) => do_while.display(f, indentation),
-            Self::If(ref if_smt) => if_smt.display(f, indentation),
-            Self::Switch(ref switch) => switch.display(f, indentation),
-            Self::Object(ref obj) => obj.display(f, indentation),
-            Self::ArrayDecl(ref arr) => Display::fmt(arr, f),
-            Self::VarDeclList(ref list) => Display::fmt(list, f),
-            Self::FunctionDecl(ref decl) => decl.display(f, indentation),
-            Self::FunctionExpr(ref expr) => expr.display(f, indentation),
-            Self::ArrowFunctionDecl(ref decl) => decl.display(f, indentation),
-            Self::BinOp(ref op) => Display::fmt(op, f),
-            Self::UnaryOp(ref op) => Display::fmt(op, f),
-            Self::Return(ref ret) => Display::fmt(ret, f),
-            Self::TaggedTemplate(ref template) => Display::fmt(template, f),
-            Self::TemplateLit(ref template) => Display::fmt(template, f),
-            Self::Throw(ref throw) => Display::fmt(throw, f),
-            Self::Assign(ref op) => Display::fmt(op, f),
-            Self::LetDeclList(ref decl) => Display::fmt(decl, f),
-            Self::ConstDeclList(ref decl) => Display::fmt(decl, f),
-            Self::AsyncFunctionDecl(ref decl) => decl.display(f, indentation),
-            Self::AsyncFunctionExpr(ref expr) => expr.display(f, indentation),
-            Self::AwaitExpr(ref expr) => Display::fmt(expr, f),
-            Self::Empty => write!(f, ";"),
-            Self::Yield(ref y) => Display::fmt(y, f),
-            Self::GeneratorDecl(ref decl) => Display::fmt(decl, f),
-            Self::GeneratorExpr(ref expr) => expr.display(f, indentation),
-            Self::AsyncGeneratorExpr(ref expr) => expr.display(f, indentation),
-            Self::AsyncGeneratorDecl(ref decl) => decl.display(f, indentation),
+            Self::Call(ref expr) => expr.to_interned_string(interner),
+            Self::Const(ref c) => c.to_interned_string(interner),
+            Self::ConditionalOp(ref cond_op) => cond_op.to_interned_string(interner),
+            Self::ForLoop(ref for_loop) => for_loop.to_indented_string(interner, indentation),
+            Self::ForOfLoop(ref for_of) => for_of.to_indented_string(interner, indentation),
+            Self::ForInLoop(ref for_in) => for_in.to_indented_string(interner, indentation),
+            Self::This => "this".to_owned(),
+            Self::Try(ref try_catch) => try_catch.to_indented_string(interner, indentation),
+            Self::Break(ref break_smt) => break_smt.to_interned_string(interner),
+            Self::Continue(ref cont) => cont.to_interned_string(interner),
+            Self::Spread(ref spread) => spread.to_interned_string(interner),
+            Self::Block(ref block) => block.to_indented_string(interner, indentation),
+            Self::Identifier(ref ident) => ident.to_interned_string(interner),
+            Self::New(ref expr) => expr.to_interned_string(interner),
+            Self::GetConstField(ref get_const_field) => {
+                get_const_field.to_interned_string(interner)
+            }
+            Self::GetField(ref get_field) => get_field.to_interned_string(interner),
+            Self::WhileLoop(ref while_loop) => while_loop.to_indented_string(interner, indentation),
+            Self::DoWhileLoop(ref do_while) => do_while.to_indented_string(interner, indentation),
+            Self::If(ref if_smt) => if_smt.to_indented_string(interner, indentation),
+            Self::Switch(ref switch) => switch.to_indented_string(interner, indentation),
+            Self::Object(ref obj) => obj.to_indented_string(interner, indentation),
+            Self::ArrayDecl(ref arr) => arr.to_interned_string(interner),
+            Self::VarDeclList(ref list) => list.to_interned_string(interner),
+            Self::FunctionDecl(ref decl) => decl.to_indented_string(interner, indentation),
+            Self::FunctionExpr(ref expr) => expr.to_indented_string(interner, indentation),
+            Self::ArrowFunctionDecl(ref decl) => decl.to_indented_string(interner, indentation),
+            Self::BinOp(ref op) => op.to_interned_string(interner),
+            Self::UnaryOp(ref op) => op.to_interned_string(interner),
+            Self::Return(ref ret) => ret.to_interned_string(interner),
+            Self::TaggedTemplate(ref template) => template.to_interned_string(interner),
+            Self::TemplateLit(ref template) => template.to_interned_string(interner),
+            Self::Throw(ref throw) => throw.to_interned_string(interner),
+            Self::Assign(ref op) => op.to_interned_string(interner),
+            Self::LetDeclList(ref decl) => decl.to_interned_string(interner),
+            Self::ConstDeclList(ref decl) => decl.to_interned_string(interner),
+            Self::AsyncFunctionDecl(ref decl) => decl.to_indented_string(interner, indentation),
+            Self::AsyncFunctionExpr(ref expr) => expr.to_indented_string(interner, indentation),
+            Self::AwaitExpr(ref expr) => expr.to_interned_string(interner),
+            Self::Empty => ";".to_owned(),
+            Self::Yield(ref y) => y.to_interned_string(interner),
+            Self::GeneratorDecl(ref decl) => decl.to_interned_string(interner),
+            Self::GeneratorExpr(ref expr) => expr.to_indented_string(interner, indentation),
+            Self::AsyncGeneratorExpr(ref expr) => expr.to_indented_string(interner, indentation),
+            Self::AsyncGeneratorDecl(ref decl) => decl.to_indented_string(interner, indentation),
         }
     }
 }
 
+impl ToInternedString for Node {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        self.to_indented_string(interner, 0)
+    }
+}
+
 /// Utility to join multiple Nodes into a single string.
-fn join_nodes<N>(f: &mut fmt::Formatter<'_>, nodes: &[N]) -> fmt::Result
+fn join_nodes<N>(interner: &Interner, nodes: &[N]) -> String
 where
-    N: Display,
+    N: ToInternedString,
 {
     let mut first = true;
+    let mut buf = String::new();
     for e in nodes {
-        if !first {
-            f.write_str(", ")?;
+        if first {
+            first = false;
+        } else {
+            buf.push_str(", ");
         }
-        first = false;
-        Display::fmt(e, f)?;
+        buf.push_str(&e.to_interned_string(interner))
     }
-    Ok(())
+    buf
 }
 
 /// "Formal parameter" is a fancy way of saying "function parameter".
@@ -377,9 +381,9 @@ impl FormalParameter {
     }
 
     /// Gets the name of the formal parameter.
-    pub fn names(&self) -> Vec<&str> {
+    pub fn names(&self) -> Vec<Sym> {
         match &self.declaration {
-            Declaration::Identifier { ident, .. } => vec![ident.as_ref()],
+            Declaration::Identifier { ident, .. } => vec![ident.sym()],
             Declaration::Pattern(pattern) => match pattern {
                 DeclarationPattern::Object(object_pattern) => object_pattern.idents(),
 
@@ -408,13 +412,15 @@ impl FormalParameter {
     }
 }
 
-impl Display for FormalParameter {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.is_rest_param {
-            write!(f, "...")?;
-        }
-        write!(f, "{}", self.declaration)?;
-        Ok(())
+impl ToInternedString for FormalParameter {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        let mut buf = if self.is_rest_param {
+            "...".to_owned()
+        } else {
+            String::new()
+        };
+        buf.push_str(&self.declaration.to_interned_string(interner));
+        buf
     }
 }
 
@@ -618,7 +624,7 @@ pub enum PropertyName {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-LiteralPropertyName
-    Literal(Box<str>),
+    Literal(Sym),
     /// A `Computed` property name is an expression that gets evaluated and converted into a property name.
     ///
     /// More information:
@@ -628,21 +634,21 @@ pub enum PropertyName {
     Computed(Node),
 }
 
-impl Display for PropertyName {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl ToInternedString for PropertyName {
+    fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
-            PropertyName::Literal(key) => write!(f, "{}", key),
-            PropertyName::Computed(key) => write!(f, "{}", key),
+            PropertyName::Literal(key) => interner
+                .resolve(*key)
+                .expect("string disappeared")
+                .to_owned(),
+            PropertyName::Computed(key) => key.to_interned_string(interner),
         }
     }
 }
 
-impl<T> From<T> for PropertyName
-where
-    T: Into<Box<str>>,
-{
-    fn from(name: T) -> Self {
-        Self::Literal(name.into())
+impl From<Sym> for PropertyName {
+    fn from(name: Sym) -> Self {
+        Self::Literal(name)
     }
 }
 
@@ -667,7 +673,7 @@ unsafe impl Trace for PropertyName {
 /// level.
 #[cfg(test)]
 fn test_formatting(source: &'static str) {
-    use crate::{syntax::Parser, Interner};
+    use crate::syntax::Parser;
 
     // Remove preceding newline.
     let source = &source[1..];
@@ -682,13 +688,11 @@ fn test_formatting(source: &'static str) {
         .map(|l| &l[characters_to_remove..]) // Remove preceding whitespace from each line
         .collect::<Vec<&'static str>>()
         .join("\n");
-    let mut interner = Interner::new();
-    let result = format!(
-        "{}",
-        Parser::new(scenario.as_bytes(), false)
-            .parse_all(&mut interner)
-            .expect("parsing failed")
-    );
+    let mut interner = Interner::default();
+    let result = Parser::new(scenario.as_bytes(), false)
+        .parse_all(&mut interner)
+        .expect("parsing failed")
+        .to_interned_string(&interner);
     if scenario != result {
         eprint!("========= Expected:\n{}", scenario);
         eprint!("========= Got:\n{}", result);

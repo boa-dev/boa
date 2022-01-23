@@ -7,7 +7,7 @@ use crate::{
 #[test]
 fn peek_skip_accending() {
     let mut cur = BufferedLexer::from(&b"a b c d e f g h i"[..]);
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
 
     assert_eq!(
         *cur.peek(0, false, &mut interner)
@@ -56,7 +56,7 @@ fn peek_skip_accending() {
 #[test]
 fn peek_skip_next() {
     let mut cur = BufferedLexer::from(&b"a b c d e f g h i"[..]);
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
 
     assert_eq!(
         *cur.peek(0, false, &mut interner)
@@ -140,7 +140,7 @@ fn peek_skip_next() {
 #[test]
 fn peek_skip_next_alternating() {
     let mut cur = BufferedLexer::from(&b"a b c d e f g h i"[..]);
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
 
     assert_eq!(
         *cur.peek(0, false, &mut interner)
@@ -196,7 +196,7 @@ fn peek_skip_next_alternating() {
 #[test]
 fn peek_next_till_end() {
     let mut cur = BufferedLexer::from(&b"a b c d e f g h i"[..]);
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
 
     loop {
         let peek = cur.peek(0, false, &mut interner).unwrap().cloned();
@@ -213,7 +213,7 @@ fn peek_next_till_end() {
 #[test]
 fn peek_skip_next_till_end() {
     let mut cur = BufferedLexer::from(&b"a b c d e f g h i"[..]);
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
 
     let mut peeked: [Option<Token>; super::MAX_PEEK_SKIP + 1] =
         [None::<Token>, None::<Token>, None::<Token>, None::<Token>];
@@ -236,7 +236,7 @@ fn peek_skip_next_till_end() {
 #[test]
 fn skip_peeked_terminators() {
     let mut cur = BufferedLexer::from(&b"A \n B"[..]);
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
 
     assert_eq!(
         *cur.peek(0, false, &mut interner)

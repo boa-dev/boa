@@ -4,8 +4,10 @@ use crate::{
     gc::{empty_trace, Finalize, Trace},
     syntax::ast::node::{Declaration, Node},
 };
-use std::{collections::HashSet, fmt, ops::Deref, rc::Rc};
+use boa_interner::{Interner, Sym, ToInternedString};
+use std::{ops::Deref, rc::Rc};
 
+use rustc_hash::FxHashSet;
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
@@ -48,27 +50,29 @@ impl StatementList {
     }
 
     /// Implements the display formatting with indentation.
-    pub(in crate::syntax::ast::node) fn display(
+    pub(in crate::syntax::ast::node) fn to_indented_string(
         &self,
-        f: &mut fmt::Formatter<'_>,
+        interner: &Interner,
         indentation: usize,
-    ) -> fmt::Result {
+    ) -> String {
+        let mut buf = String::new();
         // Print statements
         for node in self.items.iter() {
             // We rely on the node to add the correct indent.
-            node.display(f, indentation)?;
+            buf.push_str(&node.to_indented_string(interner, indentation));
 
             match node {
                 Node::Block(_) | Node::If(_) | Node::Switch(_) | Node::WhileLoop(_) => {}
-                _ => write!(f, ";")?,
+                _ => buf.push(';'),
             }
-            writeln!(f)?;
+
+            buf.push('\n');
         }
-        Ok(())
+        buf
     }
 
-    pub fn lexically_declared_names(&self) -> HashSet<&str> {
-        let mut set = HashSet::new();
+    pub fn lexically_declared_names(&self, interner: &Interner) -> FxHashSet<Sym> {
+        let mut set = FxHashSet::default();
         for stmt in self.items() {
             if let Node::LetDeclList(decl_list) | Node::ConstDeclList(decl_list) = stmt {
                 for decl in decl_list.as_ref() {
@@ -76,14 +80,20 @@ impl StatementList {
                     // https://tc39.es/ecma262/#sec-block-static-semantics-early-errors
                     match decl {
                         Declaration::Identifier { ident, .. } => {
-                            if !set.insert(ident.as_ref()) {
-                                unreachable!("Redeclaration of {}", ident.as_ref());
+                            if !set.insert(ident.sym()) {
+                                unreachable!(
+                                    "Redeclaration of {}",
+                                    interner.resolve(ident.sym()).expect("string disappeared")
+                                );
                             }
                         }
                         Declaration::Pattern(p) => {
-                            for ident in p.idents() {
+                            for ident in p.idents().iter().copied() {
                                 if !set.insert(ident) {
-                                    unreachable!("Redeclaration of {}", ident);
+                                    unreachable!(
+                                        "Redeclaration of {}",
+                                        interner.resolve(ident).expect("string disappeared")
+                                    );
                                 }
                             }
                         }
@@ -94,8 +104,8 @@ impl StatementList {
         set
     }
 
-    pub fn function_declared_names(&self) -> HashSet<&str> {
-        let mut set = HashSet::new();
+    pub fn function_declared_names(&self) -> FxHashSet<Sym> {
+        let mut set = FxHashSet::default();
         for stmt in self.items() {
             if let Node::FunctionDecl(decl) = stmt {
                 set.insert(decl.name());
@@ -104,20 +114,16 @@ impl StatementList {
         set
     }
 
-    pub fn var_declared_names(&self) -> HashSet<&str> {
-        let mut set = HashSet::new();
+    pub fn var_declared_names(&self) -> FxHashSet<Sym> {
+        let mut set = FxHashSet::default();
         for stmt in self.items() {
             if let Node::VarDeclList(decl_list) = stmt {
                 for decl in decl_list.as_ref() {
                     match decl {
                         Declaration::Identifier { ident, .. } => {
-                            set.insert(ident.as_ref());
+                            set.insert(ident.sym());
                         }
-                        Declaration::Pattern(p) => {
-                            for ident in p.idents() {
-                                set.insert(ident.as_ref());
-                            }
-                        }
+                        Declaration::Pattern(p) => set.extend(p.idents().into_iter()),
                     }
                 }
             }
@@ -138,9 +144,9 @@ where
     }
 }
 
-impl fmt::Display for StatementList {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.display(f, 0)
+impl ToInternedString for StatementList {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        self.to_indented_string(interner, 0)
     }
 }
 

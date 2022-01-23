@@ -1,7 +1,6 @@
-use gc::Gc;
-
 use crate::{
     builtins::function::ThisMode,
+    gc::Gc,
     syntax::ast::{
         node::{
             declaration::{BindingPatternTypeArray, BindingPatternTypeObject, DeclarationPattern},
@@ -16,7 +15,9 @@ use crate::{
     vm::{CodeBlock, Opcode},
     JsBigInt, JsString, JsValue,
 };
-use std::{collections::HashMap, mem::size_of};
+use boa_interner::{Interner, Sym};
+use rustc_hash::FxHashMap;
+use std::mem::size_of;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 enum Literal {
@@ -32,7 +33,7 @@ struct Label {
 
 #[derive(Debug, Clone)]
 struct JumpControlInfo {
-    label: Option<Box<str>>,
+    label: Option<Sym>,
     start_address: u32,
     kind: JumpControlInfoKind,
     breaks: Vec<Label>,
@@ -56,24 +57,26 @@ enum Access<'a> {
 }
 
 #[derive(Debug)]
-pub struct ByteCompiler {
+pub struct ByteCompiler<'b> {
     code_block: CodeBlock,
-    literals_map: HashMap<Literal, u32>,
-    names_map: HashMap<JsString, u32>,
+    literals_map: FxHashMap<Literal, u32>,
+    names_map: FxHashMap<JsString, u32>,
     jump_info: Vec<JumpControlInfo>,
+    interner: &'b Interner,
 }
 
-impl ByteCompiler {
+impl<'b> ByteCompiler<'b> {
     /// Represents a placeholder address that will be patched later.
     const DUMMY_ADDRESS: u32 = u32::MAX;
 
     #[inline]
-    pub fn new(name: JsString, strict: bool) -> Self {
+    pub fn new(name: Sym, strict: bool, interner: &'b Interner) -> Self {
         Self {
             code_block: CodeBlock::new(name, 0, strict, false),
-            literals_map: HashMap::new(),
-            names_map: HashMap::new(),
+            literals_map: FxHashMap::default(),
+            names_map: FxHashMap::default(),
             jump_info: Vec::new(),
+            interner,
         }
     }
 
@@ -235,7 +238,7 @@ impl ByteCompiler {
     }
 
     #[inline]
-    fn push_loop_control_info(&mut self, label: Option<Box<str>>, start_address: u32) {
+    fn push_loop_control_info(&mut self, label: Option<Sym>, start_address: u32) {
         self.jump_info.push(JumpControlInfo {
             label,
             start_address,
@@ -247,11 +250,7 @@ impl ByteCompiler {
     }
 
     #[inline]
-    fn push_loop_control_info_for_of_in_loop(
-        &mut self,
-        label: Option<Box<str>>,
-        start_address: u32,
-    ) {
+    fn push_loop_control_info_for_of_in_loop(&mut self, label: Option<Sym>, start_address: u32) {
         self.jump_info.push(JumpControlInfo {
             label,
             start_address,
@@ -274,7 +273,7 @@ impl ByteCompiler {
     }
 
     #[inline]
-    fn push_switch_control_info(&mut self, label: Option<Box<str>>, start_address: u32) {
+    fn push_switch_control_info(&mut self, label: Option<Sym>, start_address: u32) {
         self.jump_info.push(JumpControlInfo {
             label,
             start_address,
@@ -354,7 +353,11 @@ impl ByteCompiler {
     fn compile_access<'a>(&mut self, node: &'a Node) -> Access<'a> {
         match node {
             Node::Identifier(name) => {
-                let index = self.get_or_insert_name(name.as_ref());
+                let index = self.get_or_insert_name(
+                    self.interner
+                        .resolve(name.sym())
+                        .expect("string disappeared"),
+                );
                 Access::Variable { index }
             }
             Node::GetConstField(node) => Access::ByName { node },
@@ -371,7 +374,11 @@ impl ByteCompiler {
                 self.emit(Opcode::GetName, &[name]);
             }
             Access::ByName { node } => {
-                let index = self.get_or_insert_name(node.field());
+                let index = self.get_or_insert_name(
+                    self.interner
+                        .resolve(node.field())
+                        .expect("string disappeared"),
+                );
                 self.compile_expr(node.obj(), true);
                 self.emit(Opcode::GetPropertyByName, &[index]);
             }
@@ -406,7 +413,11 @@ impl ByteCompiler {
             }
             Access::ByName { node } => {
                 self.compile_expr(node.obj(), true);
-                let index = self.get_or_insert_name(node.field());
+                let index = self.get_or_insert_name(
+                    self.interner
+                        .resolve(node.field())
+                        .expect("string disappeared"),
+                );
                 self.emit(Opcode::SetPropertyByName, &[index]);
             }
             Access::ByValue { node } => {
@@ -435,7 +446,12 @@ impl ByteCompiler {
         match expr {
             Node::Const(c) => {
                 match c {
-                    Const::String(v) => self.emit_push_literal(Literal::String(v.as_ref().into())),
+                    Const::String(v) => self.emit_push_literal(Literal::String(
+                        self.interner
+                            .resolve(*v)
+                            .expect("string disappeared")
+                            .into(),
+                    )),
                     Const::Int(v) => self.emit_push_integer(*v),
                     Const::Num(v) => self.emit_push_rational(*v),
                     Const::BigInt(v) => self.emit_push_literal(Literal::BigInt(v.clone())),
@@ -487,7 +503,11 @@ impl ByteCompiler {
                     }
                     UnaryOp::Delete => match unary.target() {
                         Node::GetConstField(ref get_const_field) => {
-                            let index = self.get_or_insert_name(get_const_field.field());
+                            let index = self.get_or_insert_name(
+                                self.interner
+                                    .resolve(get_const_field.field())
+                                    .expect("string disappeared"),
+                            );
                             self.compile_expr(get_const_field.obj(), true);
                             self.emit(Opcode::DeletePropertyByName, &[index]);
                             None
@@ -515,7 +535,11 @@ impl ByteCompiler {
                     UnaryOp::TypeOf => {
                         match &unary.target() {
                             Node::Identifier(identifier) => {
-                                let index = self.get_or_insert_name(identifier.as_ref());
+                                let index = self.get_or_insert_name(
+                                    self.interner
+                                        .resolve(identifier.sym())
+                                        .expect("string disappeared"),
+                                );
                                 self.emit(Opcode::GetNameOrUndefined, &[index]);
                             }
                             expr => self.compile_expr(expr, true),
@@ -680,6 +704,8 @@ impl ByteCompiler {
                             PropertyName::Literal(name) => {
                                 self.compile_stmt(node, true);
                                 self.emit_opcode(Opcode::Swap);
+                                let name =
+                                    self.interner.resolve(*name).expect("string disappeared");
                                 let index = self.get_or_insert_name(name);
                                 self.emit(Opcode::DefineOwnPropertyByName, &[index]);
                             }
@@ -695,6 +721,10 @@ impl ByteCompiler {
                                     PropertyName::Literal(name) => {
                                         self.compile_stmt(&func.clone().into(), true);
                                         self.emit_opcode(Opcode::Swap);
+                                        let name = self
+                                            .interner
+                                            .resolve(*name)
+                                            .expect("string disappeared");
                                         let index = self.get_or_insert_name(name);
                                         self.emit(Opcode::SetPropertyGetterByName, &[index]);
                                     }
@@ -708,6 +738,10 @@ impl ByteCompiler {
                                     PropertyName::Literal(name) => {
                                         self.compile_stmt(&func.clone().into(), true);
                                         self.emit_opcode(Opcode::Swap);
+                                        let name = self
+                                            .interner
+                                            .resolve(*name)
+                                            .expect("string disappeared");
                                         let index = self.get_or_insert_name(name);
                                         self.emit(Opcode::SetPropertySetterByName, &[index]);
                                     }
@@ -721,6 +755,10 @@ impl ByteCompiler {
                                     PropertyName::Literal(name) => {
                                         self.compile_stmt(&func.clone().into(), true);
                                         self.emit_opcode(Opcode::Swap);
+                                        let name = self
+                                            .interner
+                                            .resolve(*name)
+                                            .expect("string disappeared");
                                         let index = self.get_or_insert_name(name);
                                         self.emit(Opcode::DefineOwnPropertyByName, &[index]);
                                     }
@@ -736,6 +774,10 @@ impl ByteCompiler {
                                         PropertyName::Literal(name) => {
                                             self.emit_opcode(Opcode::PushUndefined);
                                             self.emit_opcode(Opcode::Swap);
+                                            let name = self
+                                                .interner
+                                                .resolve(*name)
+                                                .expect("string disappeared");
                                             let index = self.get_or_insert_name(name);
                                             self.emit(Opcode::DefineOwnPropertyByName, &[index]);
                                         }
@@ -752,6 +794,10 @@ impl ByteCompiler {
                                         PropertyName::Literal(name) => {
                                             self.emit_opcode(Opcode::PushUndefined);
                                             self.emit_opcode(Opcode::Swap);
+                                            let name = self
+                                                .interner
+                                                .resolve(*name)
+                                                .expect("string disappeared");
                                             let index = self.get_or_insert_name(name);
                                             self.emit(Opcode::DefineOwnPropertyByName, &[index])
                                         }
@@ -768,6 +814,10 @@ impl ByteCompiler {
                                         PropertyName::Literal(name) => {
                                             self.emit_opcode(Opcode::PushUndefined);
                                             self.emit_opcode(Opcode::Swap);
+                                            let name = self
+                                                .interner
+                                                .resolve(*name)
+                                                .expect("string disappeared");
                                             let index = self.get_or_insert_name(name);
                                             self.emit(Opcode::DefineOwnPropertyByName, &[index])
                                         }
@@ -794,7 +844,11 @@ impl ByteCompiler {
                 }
             }
             Node::Identifier(name) => {
-                let index = self.get_or_insert_name(name.as_ref());
+                let index = self.get_or_insert_name(
+                    self.interner
+                        .resolve(name.sym())
+                        .expect("string disappeared"),
+                );
                 let access = Access::Variable { index };
                 self.access_get(access, use_expr);
             }
@@ -858,9 +912,12 @@ impl ByteCompiler {
             Node::TemplateLit(template_literal) => {
                 for element in template_literal.elements() {
                     match element {
-                        TemplateElement::String(s) => {
-                            self.emit_push_literal(Literal::String(s.as_ref().into()))
-                        }
+                        TemplateElement::String(s) => self.emit_push_literal(Literal::String(
+                            self.interner
+                                .resolve(*s)
+                                .expect("string disappeared")
+                                .into(),
+                        )),
                         TemplateElement::Expr(expr) => {
                             self.compile_expr(expr, true);
                         }
@@ -901,7 +958,11 @@ impl ByteCompiler {
                     Node::GetConstField(field) => {
                         self.compile_expr(field.obj(), true);
                         self.emit(Opcode::Dup, &[]);
-                        let index = self.get_or_insert_name(field.field());
+                        let index = self.get_or_insert_name(
+                            self.interner
+                                .resolve(field.field())
+                                .expect("string disappeared"),
+                        );
                         self.emit(Opcode::GetPropertyByName, &[index]);
                     }
                     Node::GetField(field) => {
@@ -921,7 +982,12 @@ impl ByteCompiler {
                 self.emit_opcode(Opcode::PushNewArray);
                 for cooked in template.cookeds() {
                     if let Some(cooked) = cooked {
-                        self.emit_push_literal(Literal::String(cooked.as_ref().into()));
+                        self.emit_push_literal(Literal::String(
+                            self.interner
+                                .resolve(*cooked)
+                                .expect("string disappeared")
+                                .into(),
+                        ));
                     } else {
                         self.emit_opcode(Opcode::PushUndefined);
                     }
@@ -931,7 +997,12 @@ impl ByteCompiler {
 
                 self.emit_opcode(Opcode::PushNewArray);
                 for raw in template.raws() {
-                    self.emit_push_literal(Literal::String(raw.as_ref().into()));
+                    self.emit_push_literal(Literal::String(
+                        self.interner
+                            .resolve(*raw)
+                            .expect("string disappeared")
+                            .into(),
+                    ));
                     self.emit_opcode(Opcode::PushValueToArray);
                 }
 
@@ -956,11 +1027,15 @@ impl ByteCompiler {
                 for decl in list.as_ref() {
                     match decl {
                         Declaration::Identifier { ident, .. } => {
-                            if ident.as_ref() == "arguments" {
+                            let ident = self
+                                .interner
+                                .resolve(ident.sym())
+                                .expect("string disappeared");
+                            if ident == "arguments" {
                                 self.code_block.lexical_name_argument = true;
                             }
 
-                            let index = self.get_or_insert_name(ident.as_ref());
+                            let index = self.get_or_insert_name(ident);
 
                             if let Some(expr) = decl.init() {
                                 self.compile_expr(expr, true);
@@ -970,7 +1045,7 @@ impl ByteCompiler {
                             }
                         }
                         Declaration::Pattern(pattern) => {
-                            if pattern.idents().contains(&"arguments") {
+                            if pattern.idents().contains(&Sym::ARGUMENTS) {
                                 self.code_block.lexical_name_argument = true;
                             }
 
@@ -989,11 +1064,15 @@ impl ByteCompiler {
                 for decl in list.as_ref() {
                     match decl {
                         Declaration::Identifier { ident, .. } => {
-                            if ident.as_ref() == "arguments" {
+                            if ident.sym() == Sym::ARGUMENTS {
                                 self.code_block.lexical_name_argument = true;
                             }
 
-                            let index = self.get_or_insert_name(ident.as_ref());
+                            let index = self.get_or_insert_name(
+                                self.interner
+                                    .resolve(ident.sym())
+                                    .expect("string disappeared"),
+                            );
 
                             if let Some(expr) = decl.init() {
                                 self.compile_expr(expr, true);
@@ -1003,7 +1082,7 @@ impl ByteCompiler {
                             }
                         }
                         Declaration::Pattern(pattern) => {
-                            if pattern.idents().contains(&"arguments") {
+                            if pattern.idents().contains(&Sym::ARGUMENTS) {
                                 self.code_block.lexical_name_argument = true;
                             }
 
@@ -1022,11 +1101,15 @@ impl ByteCompiler {
                 for decl in list.as_ref() {
                     match decl {
                         Declaration::Identifier { ident, .. } => {
-                            if ident.as_ref() == "arguments" {
+                            if ident.sym() == Sym::ARGUMENTS {
                                 self.code_block.lexical_name_argument = true;
                             }
 
-                            let index = self.get_or_insert_name(ident.as_ref());
+                            let index = self.get_or_insert_name(
+                                self.interner
+                                    .resolve(ident.sym())
+                                    .expect("string disappeared"),
+                            );
                             let init = decl
                                 .init()
                                 .expect("const declaration must have initializer");
@@ -1034,7 +1117,7 @@ impl ByteCompiler {
                             self.emit(Opcode::DefInitConst, &[index]);
                         }
                         Declaration::Pattern(pattern) => {
-                            if pattern.idents().contains(&"arguments") {
+                            if pattern.idents().contains(&Sym::ARGUMENTS) {
                                 self.code_block.lexical_name_argument = true;
                             }
 
@@ -1077,7 +1160,7 @@ impl ByteCompiler {
                 let initial_jump = self.jump();
 
                 let start_address = self.next_opcode_location();
-                self.push_loop_control_info(for_loop.label().map(Into::into), start_address);
+                self.push_loop_control_info(for_loop.label(), start_address);
 
                 if let Some(final_expr) = for_loop.final_expr() {
                     self.compile_expr(final_expr, false);
@@ -1106,22 +1189,27 @@ impl ByteCompiler {
                 let early_exit = self.jump_with_custom_opcode(Opcode::ForInLoopInitIterator);
 
                 let start_address = self.next_opcode_location();
-                self.push_loop_control_info_for_of_in_loop(
-                    for_in_loop.label().map(Into::into),
-                    start_address,
-                );
+                self.push_loop_control_info_for_of_in_loop(for_in_loop.label(), start_address);
 
                 self.emit_opcode(Opcode::PushDeclarativeEnvironment);
                 let exit = self.jump_with_custom_opcode(Opcode::ForInLoopNext);
 
                 match for_in_loop.init() {
                     IterableLoopInitializer::Identifier(ref ident) => {
-                        let index = self.get_or_insert_name(ident.as_ref());
+                        let ident = self
+                            .interner
+                            .resolve(ident.sym())
+                            .expect("string disappeared");
+                        let index = self.get_or_insert_name(ident);
                         self.emit(Opcode::SetName, &[index]);
                     }
                     IterableLoopInitializer::Var(declaration) => match declaration {
                         Declaration::Identifier { ident, .. } => {
-                            let index = self.get_or_insert_name(ident.as_ref());
+                            let ident = self
+                                .interner
+                                .resolve(ident.sym())
+                                .expect("string disappeared");
+                            let index = self.get_or_insert_name(ident);
                             self.emit(Opcode::DefInitVar, &[index]);
                         }
                         Declaration::Pattern(pattern) => {
@@ -1130,7 +1218,11 @@ impl ByteCompiler {
                     },
                     IterableLoopInitializer::Let(declaration) => match declaration {
                         Declaration::Identifier { ident, .. } => {
-                            let index = self.get_or_insert_name(ident.as_ref());
+                            let ident = self
+                                .interner
+                                .resolve(ident.sym())
+                                .expect("string disappeared");
+                            let index = self.get_or_insert_name(ident);
                             self.emit(Opcode::DefInitLet, &[index]);
                         }
                         Declaration::Pattern(pattern) => {
@@ -1139,7 +1231,11 @@ impl ByteCompiler {
                     },
                     IterableLoopInitializer::Const(declaration) => match declaration {
                         Declaration::Identifier { ident, .. } => {
-                            let index = self.get_or_insert_name(ident.as_ref());
+                            let ident = self
+                                .interner
+                                .resolve(ident.sym())
+                                .expect("string disappeared");
+                            let index = self.get_or_insert_name(ident);
                             self.emit(Opcode::DefInitConst, &[index]);
                         }
                         Declaration::Pattern(pattern) => {
@@ -1165,22 +1261,27 @@ impl ByteCompiler {
                 self.emit_opcode(Opcode::InitIterator);
 
                 let start_address = self.next_opcode_location();
-                self.push_loop_control_info_for_of_in_loop(
-                    for_of_loop.label().map(Into::into),
-                    start_address,
-                );
+                self.push_loop_control_info_for_of_in_loop(for_of_loop.label(), start_address);
 
                 self.emit_opcode(Opcode::PushDeclarativeEnvironment);
                 let exit = self.jump_with_custom_opcode(Opcode::ForInLoopNext);
 
                 match for_of_loop.init() {
                     IterableLoopInitializer::Identifier(ref ident) => {
-                        let index = self.get_or_insert_name(ident.as_ref());
+                        let ident = self
+                            .interner
+                            .resolve(ident.sym())
+                            .expect("string disappeared");
+                        let index = self.get_or_insert_name(ident);
                         self.emit(Opcode::SetName, &[index]);
                     }
                     IterableLoopInitializer::Var(declaration) => match declaration {
                         Declaration::Identifier { ident, .. } => {
-                            let index = self.get_or_insert_name(ident.as_ref());
+                            let ident = self
+                                .interner
+                                .resolve(ident.sym())
+                                .expect("string disappeared");
+                            let index = self.get_or_insert_name(ident);
                             self.emit(Opcode::DefInitVar, &[index]);
                         }
                         Declaration::Pattern(pattern) => {
@@ -1189,7 +1290,11 @@ impl ByteCompiler {
                     },
                     IterableLoopInitializer::Let(declaration) => match declaration {
                         Declaration::Identifier { ident, .. } => {
-                            let index = self.get_or_insert_name(ident.as_ref());
+                            let ident = self
+                                .interner
+                                .resolve(ident.sym())
+                                .expect("string disappeared");
+                            let index = self.get_or_insert_name(ident);
                             self.emit(Opcode::DefInitLet, &[index]);
                         }
                         Declaration::Pattern(pattern) => {
@@ -1198,7 +1303,11 @@ impl ByteCompiler {
                     },
                     IterableLoopInitializer::Const(declaration) => match declaration {
                         Declaration::Identifier { ident, .. } => {
-                            let index = self.get_or_insert_name(ident.as_ref());
+                            let ident = self
+                                .interner
+                                .resolve(ident.sym())
+                                .expect("string disappeared");
+                            let index = self.get_or_insert_name(ident);
                             self.emit(Opcode::DefInitConst, &[index]);
                         }
                         Declaration::Pattern(pattern) => {
@@ -1219,7 +1328,7 @@ impl ByteCompiler {
             }
             Node::WhileLoop(while_) => {
                 let start_address = self.next_opcode_location();
-                self.push_loop_control_info(while_.label().map(Into::into), start_address);
+                self.push_loop_control_info(while_.label(), start_address);
 
                 self.compile_expr(while_.cond(), true);
                 let exit = self.jump_if_false();
@@ -1233,7 +1342,7 @@ impl ByteCompiler {
                 let initial_label = self.jump();
 
                 let start_address = self.next_opcode_location();
-                self.push_loop_control_info(do_while.label().map(Into::into), start_address);
+                self.push_loop_control_info(do_while.label(), start_address);
 
                 let condition_label_address = self.next_opcode_location();
                 self.compile_expr(do_while.cond(), true);
@@ -1271,7 +1380,7 @@ impl ByteCompiler {
                         let mut emit_for_of_in_exit = 0;
                         let mut address_info = None;
                         for info in items {
-                            if info.label.as_deref() == node.label() {
+                            if info.label == node.label() {
                                 address_info = Some(info);
                                 break;
                             }
@@ -1306,7 +1415,7 @@ impl ByteCompiler {
                     self.jump_info.last_mut().unwrap().breaks.push(label);
                 } else {
                     for info in self.jump_info.iter_mut().rev() {
-                        if info.label.as_deref() == node.label() {
+                        if info.label == node.label() {
                             info.breaks.push(label);
                             break;
                         }
@@ -1385,7 +1494,11 @@ impl ByteCompiler {
                     if let Some(decl) = catch.parameter() {
                         match decl {
                             Declaration::Identifier { ident, .. } => {
-                                let index = self.get_or_insert_name(ident.as_ref());
+                                let ident = self
+                                    .interner
+                                    .resolve(ident.sym())
+                                    .expect("string disappeared");
+                                let index = self.get_or_insert_name(ident);
                                 self.emit(Opcode::DefInitLet, &[index]);
                             }
                             Declaration::Pattern(pattern) => {
@@ -1477,7 +1590,7 @@ impl ByteCompiler {
 
         let strict = body.strict() || self.code_block.strict;
         let length = parameters.len() as u32;
-        let mut code = CodeBlock::new(name.unwrap_or("").into(), length, strict, true);
+        let mut code = CodeBlock::new(name.unwrap_or(Sym::EMPTY_STRING), length, strict, true);
 
         if let FunctionKind::Arrow = kind {
             code.constructor = false;
@@ -1486,9 +1599,10 @@ impl ByteCompiler {
 
         let mut compiler = ByteCompiler {
             code_block: code,
-            literals_map: HashMap::new(),
-            names_map: HashMap::new(),
+            literals_map: FxHashMap::default(),
+            names_map: FxHashMap::default(),
             jump_info: Vec::new(),
+            interner: self.interner,
         };
 
         let mut has_rest_parameter = false;
@@ -1503,7 +1617,11 @@ impl ByteCompiler {
 
             match parameter.declaration() {
                 Declaration::Identifier { ident, .. } => {
-                    let index = compiler.get_or_insert_name(ident.as_ref());
+                    let ident = self
+                        .interner
+                        .resolve(ident.sym())
+                        .expect("string disappeared");
+                    let index = compiler.get_or_insert_name(ident);
                     if let Some(init) = parameter.declaration().init() {
                         let skip = compiler.jump_with_custom_opcode(Opcode::JumpIfNotUndefined);
                         compiler.compile_expr(init, true);
@@ -1544,7 +1662,11 @@ impl ByteCompiler {
 
         match kind {
             FunctionKind::Declaration => {
-                let index = self.get_or_insert_name(name.unwrap());
+                let index = self.get_or_insert_name(
+                    self.interner
+                        .resolve(name.unwrap())
+                        .expect("string disappeared"),
+                );
                 self.emit(Opcode::DefInitVar, &[index]);
             }
             FunctionKind::Expression | FunctionKind::Arrow => {
@@ -1572,7 +1694,11 @@ impl ByteCompiler {
             Node::GetConstField(field) => {
                 self.compile_expr(field.obj(), true);
                 self.emit(Opcode::Dup, &[]);
-                let index = self.get_or_insert_name(field.field());
+                let index = self.get_or_insert_name(
+                    self.interner
+                        .resolve(field.field())
+                        .expect("string disappeared"),
+                );
                 self.emit(Opcode::GetPropertyByName, &[index]);
             }
             Node::GetField(field) => {
@@ -1646,7 +1772,11 @@ impl ByteCompiler {
                             default_init,
                         } => {
                             self.emit_opcode(Opcode::Dup);
-                            let index = self.get_or_insert_name(property_name);
+                            let index = self.get_or_insert_name(
+                                self.interner
+                                    .resolve(*property_name)
+                                    .expect("string disappeared"),
+                            );
                             self.emit(Opcode::GetPropertyByName, &[index]);
 
                             if let Some(init) = default_init {
@@ -1655,6 +1785,7 @@ impl ByteCompiler {
                                 self.patch_jump(skip);
                             }
 
+                            let ident = self.interner.resolve(*ident).expect("string disappeared");
                             let index = self.get_or_insert_name(ident);
                             self.emit(def, &[index]);
                         }
@@ -1667,11 +1798,14 @@ impl ByteCompiler {
                             self.emit_opcode(Opcode::PushEmptyObject);
 
                             for key in excluded_keys {
-                                self.emit_push_literal(Literal::String(key.as_ref().into()));
+                                self.emit_push_literal(Literal::String(
+                                    self.interner.resolve(*key).expect("get_or_intern").into(),
+                                ));
                             }
 
                             self.emit(Opcode::CopyDataProperties, &[excluded_keys.len() as u32]);
 
+                            let ident = self.interner.resolve(*ident).expect("string disappeared");
                             let index = self.get_or_insert_name(ident);
                             self.emit(def, &[index]);
                         }
@@ -1681,6 +1815,7 @@ impl ByteCompiler {
                             default_init,
                         } => {
                             self.emit_opcode(Opcode::Dup);
+                            let ident = self.interner.resolve(*ident).expect("string disappeared");
                             let index = self.get_or_insert_name(ident);
                             self.emit(Opcode::GetPropertyByName, &[index]);
 
@@ -1739,6 +1874,7 @@ impl ByteCompiler {
                                 self.patch_jump(skip);
                             }
 
+                            let ident = self.interner.resolve(*ident).expect("string disappeared");
                             let index = self.get_or_insert_name(ident);
                             self.emit(def, &[index]);
                         }
@@ -1751,6 +1887,7 @@ impl ByteCompiler {
                         SingleNameRest { ident } => {
                             self.emit_opcode(Opcode::IteratorToArray);
 
+                            let ident = self.interner.resolve(*ident).expect("string disappeared");
                             let index = self.get_or_insert_name(ident);
                             self.emit(def, &[index]);
                             self.emit_opcode(Opcode::PushTrue);

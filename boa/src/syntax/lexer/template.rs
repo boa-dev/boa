@@ -46,7 +46,7 @@ impl TemplateString {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-templatestrings
-    pub fn to_owned_cooked(self, interner: &Interner) -> Result<Box<str>, Error> {
+    pub fn to_owned_cooked(self, interner: &mut Interner) -> Result<Sym, Error> {
         let mut cursor = Cursor::with_position(
             interner
                 .resolve(self.raw)
@@ -83,7 +83,9 @@ impl TemplateString {
             }
         }
 
-        Ok(buf.to_string_lossy().into())
+        let str = buf.to_string_lossy();
+
+        Ok(interner.get_or_intern(&str))
     }
 }
 

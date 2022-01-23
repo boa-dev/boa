@@ -1,8 +1,10 @@
 //! Async Generator Declaration
 
-use crate::syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList};
-use gc::{Finalize, Trace};
-use std::fmt;
+use crate::{
+    gc::{Finalize, Trace},
+    syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
+};
+use boa_interner::{Interner, Sym, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -16,29 +18,28 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct AsyncGeneratorDecl {
-    name: Box<str>,
+    name: Sym,
     parameters: Box<[FormalParameter]>,
     body: StatementList,
 }
 
 impl AsyncGeneratorDecl {
     /// Creates a new async generator declaration.
-    pub(in crate::syntax) fn new<N, P, B>(name: N, parameters: P, body: B) -> Self
+    pub(in crate::syntax) fn new<P, B>(name: Sym, parameters: P, body: B) -> Self
     where
-        N: Into<Box<str>>,
         P: Into<Box<[FormalParameter]>>,
         B: Into<StatementList>,
     {
         Self {
-            name: name.into(),
+            name,
             parameters: parameters.into(),
             body: body.into(),
         }
     }
 
     /// Gets the name of the async function declaration.
-    pub fn name(&self) -> &str {
-        &self.name
+    pub fn name(&self) -> Sym {
+        self.name
     }
 
     /// Gets the list of parameters of the async function declaration.
@@ -52,20 +53,26 @@ impl AsyncGeneratorDecl {
     }
 
     /// Implements the display formatting with indentation.
-    pub(in crate::syntax::ast::node) fn display(
+    pub(in crate::syntax::ast::node) fn to_indented_string(
         &self,
-        f: &mut fmt::Formatter<'_>,
+        interner: &Interner,
         indentation: usize,
-    ) -> fmt::Result {
-        write!(f, "async function* {}(", self.name())?;
-        join_nodes(f, &self.parameters)?;
+    ) -> String {
+        let mut buf = format!(
+            "async function* {}({}",
+            interner.resolve(self.name).expect("string disappeared"),
+            join_nodes(interner, &self.parameters)
+        );
         if self.body().is_empty() {
-            f.write_str(") {}")
+            buf.push_str(") {}");
         } else {
-            f.write_str(") {\n")?;
-            self.body.display(f, indentation + 1)?;
-            write!(f, "{}}}", "    ".repeat(indentation))
+            buf.push_str(&format!(
+                ") {{\n{}{}}}",
+                self.body.to_indented_string(interner, indentation + 1),
+                "    ".repeat(indentation)
+            ));
         }
+        buf
     }
 }
 
@@ -75,8 +82,8 @@ impl From<AsyncGeneratorDecl> for Node {
     }
 }
 
-impl fmt::Display for AsyncGeneratorDecl {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.display(f, 0)
+impl ToInternedString for AsyncGeneratorDecl {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        self.to_indented_string(interner, 0)
     }
 }

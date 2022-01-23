@@ -29,8 +29,9 @@ use crate::{
             AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
         },
     },
-    BoaProfiler, Interner,
+    BoaProfiler,
 };
+use boa_interner::{Interner, Sym};
 use std::io::Read;
 
 /// Hoistable declaration parsing.
@@ -124,7 +125,7 @@ fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
     c: &C,
     cursor: &mut Cursor<R>,
     interner: &mut Interner,
-) -> Result<(Box<str>, Box<[FormalParameter]>, StatementList), ParseError> {
+) -> Result<(Sym, Box<[FormalParameter]>, StatementList), ParseError> {
     let next_token = cursor.peek(0, interner)?;
     let name = if let Some(token) = next_token {
         match token.kind() {
@@ -136,7 +137,7 @@ fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
                         c.error_context(),
                     ));
                 }
-                "default".into()
+                Sym::DEFAULT
             }
             _ => BindingIdentifier::new(c.name_allow_yield(), c.name_allow_await())
                 .parse(cursor, interner)?,
@@ -147,7 +148,7 @@ fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
 
     // Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict mode code,
     // it is a Syntax Error if the StringValue of BindingIdentifier is "eval" or "arguments".
-    if cursor.strict_mode() && ["eval", "arguments"].contains(&name.as_ref()) {
+    if cursor.strict_mode() && [Sym::EVAL, Sym::ARGUMENTS].contains(&name) {
         return Err(ParseError::lex(LexError::Syntax(
             "Unexpected eval or arguments in strict mode".into(),
             match cursor.peek(0, interner)? {
@@ -195,12 +196,16 @@ fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
     // also occurs in the LexicallyDeclaredNames of FunctionBody.
     // https://tc39.es/ecma262/#sec-function-definitions-static-semantics-early-errors
     {
-        let lexically_declared_names = body.lexically_declared_names();
+        let lexically_declared_names = body.lexically_declared_names(interner);
         for param in params.parameters.as_ref() {
             for param_name in param.names() {
-                if lexically_declared_names.contains(param_name) {
+                if lexically_declared_names.contains(&param_name) {
                     return Err(ParseError::lex(LexError::Syntax(
-                        format!("Redeclaration of formal parameter `{}`", param_name).into(),
+                        format!(
+                            "Redeclaration of formal parameter `{}`",
+                            interner.resolve(param_name).expect("string disappeared")
+                        )
+                        .into(),
                         match cursor.peek(0, interner)? {
                             Some(token) => token.span().end(),
                             None => Position::new(1, 1),

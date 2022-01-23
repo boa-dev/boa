@@ -9,6 +9,8 @@
 
 #[cfg(test)]
 mod tests;
+use boa_interner::Sym;
+
 use crate::{
     syntax::{
         ast::{
@@ -143,9 +145,7 @@ where
                 | TokenKind::Punctuator(Punctuator::Comma) => {
                     let token = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
                     let ident = match token.kind() {
-                        TokenKind::Identifier(ident) => {
-                            Identifier::from(interner.resolve(*ident).expect("string disappeared"))
-                        }
+                        TokenKind::Identifier(ident) => Identifier::new(*ident),
                         TokenKind::Keyword(Keyword::Yield) if self.allow_yield.0 => {
                             // Early Error: It is a Syntax Error if this production has a [Yield] parameter and StringValue of Identifier is "yield".
                             return Err(ParseError::general(
@@ -161,7 +161,7 @@ where
                                     token.span().start(),
                                 ));
                             }
-                            Identifier::from("yield")
+                            Identifier::new(Sym::YIELD)
                         }
                         TokenKind::Keyword(Keyword::Await) if self.allow_await.0 => {
                             // Early Error: It is a Syntax Error if this production has an [Await] parameter and StringValue of Identifier is "await".
@@ -178,7 +178,7 @@ where
                                     token.span().start(),
                                 ));
                             }
-                            Identifier::from("yield")
+                            Identifier::new(Sym::YIELD)
                         }
                         _ => {
                             return Err(ParseError::unexpected(
@@ -188,10 +188,7 @@ where
                             ));
                         }
                     };
-                    return Ok(node::PropertyDefinition::property(
-                        ident.clone().as_ref(),
-                        ident,
-                    ));
+                    return Ok(node::PropertyDefinition::property(ident.sym(), ident));
                 }
                 _ => {}
             }
@@ -264,13 +261,16 @@ where
                 // Early Error: It is a Syntax Error if any element of the BoundNames of UniqueFormalParameters also
                 // occurs in the LexicallyDeclaredNames of GeneratorBody.
                 {
-                    let lexically_declared_names = body.lexically_declared_names();
+                    let lexically_declared_names = body.lexically_declared_names(interner);
                     for param in params.parameters.as_ref() {
                         for param_name in param.names() {
-                            if lexically_declared_names.contains(param_name) {
+                            if lexically_declared_names.contains(&param_name) {
                                 return Err(ParseError::lex(LexError::Syntax(
-                                    format!("Redeclaration of formal parameter `{}`", param_name)
-                                        .into(),
+                                    format!(
+                                        "Redeclaration of formal parameter `{}`",
+                                        interner.resolve(param_name).expect("string disappeared")
+                                    )
+                                    .into(),
                                     match cursor.peek(0, interner)? {
                                         Some(token) => token.span().end(),
                                         None => Position::new(1, 1),
@@ -330,13 +330,16 @@ where
                 // Early Error: It is a Syntax Error if any element of the BoundNames of UniqueFormalParameters also
                 // occurs in the LexicallyDeclaredNames of GeneratorBody.
                 {
-                    let lexically_declared_names = body.lexically_declared_names();
+                    let lexically_declared_names = body.lexically_declared_names(interner);
                     for param in params.parameters.as_ref() {
                         for param_name in param.names() {
-                            if lexically_declared_names.contains(param_name) {
+                            if lexically_declared_names.contains(&param_name) {
                                 return Err(ParseError::lex(LexError::Syntax(
-                                    format!("Redeclaration of formal parameter `{}`", param_name)
-                                        .into(),
+                                    format!(
+                                        "Redeclaration of formal parameter `{}`",
+                                        interner.resolve(param_name).expect("string disappeared")
+                                    )
+                                    .into(),
                                     match cursor.peek(0, interner)? {
                                         Some(token) => token.span().end(),
                                         None => Position::new(1, 1),
@@ -408,13 +411,16 @@ where
             // Early Error: It is a Syntax Error if any element of the BoundNames of UniqueFormalParameters also
             // occurs in the LexicallyDeclaredNames of GeneratorBody.
             {
-                let lexically_declared_names = body.lexically_declared_names();
+                let lexically_declared_names = body.lexically_declared_names(interner);
                 for param in params.parameters.as_ref() {
                     for param_name in param.names() {
-                        if lexically_declared_names.contains(param_name) {
+                        if lexically_declared_names.contains(&param_name) {
                             return Err(ParseError::lex(LexError::Syntax(
-                                format!("Redeclaration of formal parameter `{}`", param_name)
-                                    .into(),
+                                format!(
+                                    "Redeclaration of formal parameter `{}`",
+                                    interner.resolve(param_name).expect("string disappeared")
+                                )
+                                .into(),
                                 match cursor.peek(0, interner)? {
                                     Some(token) => token.span().end(),
                                     None => Position::new(1, 1),
@@ -450,7 +456,7 @@ where
 
         match property_name {
             // MethodDefinition[?Yield, ?Await] -> get ClassElementName[?Yield, ?Await] ( ) { FunctionBody[~Yield, ~Await] }
-            node::PropertyName::Literal(str) if str.as_ref() == "get" && !ordinary_method => {
+            node::PropertyName::Literal(str) if str == Sym::GET && !ordinary_method => {
                 property_name = PropertyName::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
 
@@ -484,7 +490,7 @@ where
                 ))
             }
             // MethodDefinition[?Yield, ?Await] -> set ClassElementName[?Yield, ?Await] ( PropertySetParameterList ) { FunctionBody[~Yield, ~Await] }
-            node::PropertyName::Literal(str) if str.as_ref() == "set" && !ordinary_method => {
+            node::PropertyName::Literal(str) if str == Sym::SET && !ordinary_method => {
                 property_name = PropertyName::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
 
@@ -645,7 +651,7 @@ where
         Ok(cursor
             .next(interner)?
             .ok_or(ParseError::AbruptEnd)?
-            .to_string(interner)
+            .to_sym(interner)
             .into())
     }
 }

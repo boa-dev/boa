@@ -1,5 +1,3 @@
-use std::io::Read;
-
 use crate::{
     syntax::{
         ast::{Keyword, Node, Punctuator},
@@ -14,8 +12,11 @@ use crate::{
             AllowYield, TokenParser,
         },
     },
-    BoaProfiler, Interner,
+    BoaProfiler,
 };
+use boa_interner::{Interner, Sym};
+use std::io::Read;
+
 /// Labelled Statement Parsing
 ///
 /// More information
@@ -89,7 +90,7 @@ where
     }
 }
 
-fn set_label_for_node(node: &mut Node, name: Box<str>) {
+fn set_label_for_node(node: &mut Node, name: Sym) {
     match node {
         Node::ForLoop(ref mut for_loop) => for_loop.set_label(name),
         Node::ForOfLoop(ref mut for_of_loop) => for_of_loop.set_label(name),

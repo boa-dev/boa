@@ -2,7 +2,7 @@
 
 use super::{join_nodes, Node};
 use crate::gc::{Finalize, Trace};
-use std::fmt;
+use boa_interner::{Interner, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -48,11 +48,9 @@ where
     }
 }
 
-impl fmt::Display for ArrayDecl {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("[")?;
-        join_nodes(f, &self.arr)?;
-        f.write_str("]")
+impl ToInternedString for ArrayDecl {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        format!("[{}]", join_nodes(interner, &self.arr))
     }
 }
 

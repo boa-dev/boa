@@ -2,8 +2,9 @@
 
 use super::{Node, StatementList};
 use crate::gc::{Finalize, Trace};
-use std::{collections::HashSet, fmt};
+use boa_interner::{Interner, Sym, ToInternedString};
 
+use rustc_hash::FxHashSet;
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
@@ -39,19 +40,22 @@ impl Block {
         self.statements.items()
     }
 
-    pub(crate) fn lexically_declared_names(&self) -> HashSet<&str> {
-        self.statements.lexically_declared_names()
+    pub(crate) fn lexically_declared_names(&self, interner: &Interner) -> FxHashSet<Sym> {
+        self.statements.lexically_declared_names(interner)
     }
 
-    pub(crate) fn var_declared_named(&self) -> HashSet<&str> {
+    pub(crate) fn var_declared_named(&self) -> FxHashSet<Sym> {
         self.statements.var_declared_names()
     }
 
     /// Implements the display formatting with indentation.
-    pub(super) fn display(&self, f: &mut fmt::Formatter<'_>, indentation: usize) -> fmt::Result {
-        writeln!(f, "{{")?;
-        self.statements.display(f, indentation + 1)?;
-        write!(f, "{}}}", "    ".repeat(indentation))
+    pub(super) fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
+        format!(
+            "{{\n{}{}}}",
+            self.statements
+                .to_indented_string(interner, indentation + 1),
+            "    ".repeat(indentation)
+        )
     }
 }
 
@@ -66,9 +70,9 @@ where
     }
 }
 
-impl fmt::Display for Block {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.display(f, 0)
+impl ToInternedString for Block {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        self.to_indented_string(interner, 0)
     }
 }
 

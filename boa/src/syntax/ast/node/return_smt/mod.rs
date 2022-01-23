@@ -2,7 +2,7 @@ use crate::{
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
 };
-use std::fmt;
+use boa_interner::{Interner, Sym, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -32,12 +32,12 @@ mod tests;
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct Return {
     expr: Option<Box<Node>>,
-    label: Option<Box<str>>,
+    label: Option<Sym>,
 }
 
 impl Return {
-    pub fn label(&self) -> Option<&str> {
-        self.label.as_ref().map(Box::as_ref)
+    pub fn label(&self) -> Option<Sym> {
+        self.label
     }
 
     pub fn expr(&self) -> Option<&Node> {
@@ -49,7 +49,7 @@ impl Return {
     where
         E: Into<Node>,
         OE: Into<Option<E>>,
-        L: Into<Option<Box<str>>>,
+        L: Into<Option<Sym>>,
     {
         Self {
             expr: expr.into().map(E::into).map(Box::new),
@@ -64,11 +64,11 @@ impl From<Return> for Node {
     }
 }
 
-impl fmt::Display for Return {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl ToInternedString for Return {
+    fn to_interned_string(&self, interner: &Interner) -> String {
         match self.expr() {
-            Some(ex) => write!(f, "return {}", ex),
-            None => write!(f, "return"),
+            Some(ex) => format!("return {}", ex.to_interned_string(interner)),
+            None => "return".to_owned(),
         }
     }
 }

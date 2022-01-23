@@ -2,7 +2,7 @@ use crate::{
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
 };
-use std::fmt;
+use boa_interner::{Interner, Sym, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -23,33 +23,35 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct Continue {
-    label: Option<Box<str>>,
+    label: Option<Sym>,
 }
 
 impl Continue {
-    pub fn label(&self) -> Option<&str> {
-        self.label.as_ref().map(Box::as_ref)
-    }
-
     /// Creates a `Continue` AST node.
-    pub fn new<OL, L>(label: OL) -> Self
+    pub fn new<L>(label: L) -> Self
     where
-        L: Into<Box<str>>,
-        OL: Into<Option<L>>,
+        L: Into<Option<Sym>>,
     {
         Self {
-            label: label.into().map(L::into),
+            label: label.into(),
         }
+    }
+
+    pub fn label(&self) -> Option<Sym> {
+        self.label
     }
 }
 
-impl fmt::Display for Continue {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "continue")?;
-        if let Some(label) = self.label() {
-            write!(f, " {}", label)?;
+impl ToInternedString for Continue {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        let mut buf = "continue".to_owned();
+        if let Some(label) = self.label {
+            buf.push_str(&format!(
+                " {}",
+                interner.resolve(label).expect("string disappeared")
+            ));
         }
-        Ok(())
+        buf
     }
 }
 

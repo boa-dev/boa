@@ -61,13 +61,7 @@ where
         loop {
             match token.kind() {
                 TokenKind::TemplateMiddle(template_string) => {
-                    raws.push(
-                        interner
-                            .resolve(template_string.as_raw())
-                            .expect("string disappeared")
-                            .to_owned()
-                            .into_boxed_str(),
-                    );
+                    raws.push(template_string.as_raw());
                     cookeds.push(template_string.to_owned_cooked(interner).ok());
                     exprs.push(
                         Expression::new(true, self.allow_yield, self.allow_await)
@@ -80,13 +74,7 @@ where
                     )?;
                 }
                 TokenKind::TemplateNoSubstitution(template_string) => {
-                    raws.push(
-                        interner
-                            .resolve(template_string.as_raw())
-                            .expect("string disappeared")
-                            .to_owned()
-                            .into_boxed_str(),
-                    );
+                    raws.push(template_string.as_raw());
                     cookeds.push(template_string.to_owned_cooked(interner).ok());
                     return Ok(Node::from(TaggedTemplate::new(
                         self.tag, raws, cookeds, exprs,

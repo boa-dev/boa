@@ -38,6 +38,7 @@ use crate::{
     },
     Interner,
 };
+use boa_interner::Sym;
 pub(in crate::syntax::parser) use object_initializer::Initializer;
 
 use std::io::Read;
@@ -126,9 +127,7 @@ where
             }
             TokenKind::BooleanLiteral(boolean) => Ok(Const::from(*boolean).into()),
             TokenKind::NullLiteral => Ok(Const::Null.into()),
-            TokenKind::Identifier(ident) => {
-                Ok(Identifier::from(interner.resolve(*ident).expect("string disappeared")).into())
-            }
+            TokenKind::Identifier(ident) => Ok(Identifier::new(*ident).into()),
             TokenKind::Keyword(Keyword::Yield) if self.allow_yield.0 => {
                 // Early Error: It is a Syntax Error if this production has a [Yield] parameter and StringValue of Identifier is "yield".
                 Err(ParseError::general(
@@ -143,7 +142,7 @@ where
                         tok.span().start(),
                     ));
                 }
-                Ok(Identifier::from("yield").into())
+                Ok(Identifier::new(Sym::YIELD).into())
             }
             TokenKind::Keyword(Keyword::Await) if self.allow_await.0 => {
                 // Early Error: It is a Syntax Error if this production has an [Await] parameter and StringValue of Identifier is "await".
@@ -159,11 +158,9 @@ where
                         tok.span().start(),
                     ));
                 }
-                Ok(Identifier::from("await").into())
+                Ok(Identifier::new(Sym::AWAIT).into())
             }
-            TokenKind::StringLiteral(lit) => {
-                Ok(Const::from(interner.resolve(*lit).expect("string disappeared")).into())
-            }
+            TokenKind::StringLiteral(lit) => Ok(Const::from(*lit).into()),
             TokenKind::TemplateNoSubstitution(template_string) => Ok(Const::from(
                 template_string
                     .to_owned_cooked(interner)
@@ -175,24 +172,17 @@ where
             TokenKind::NumericLiteral(Numeric::BigInt(num)) => Ok(Const::from(num.clone()).into()),
             TokenKind::RegularExpressionLiteral(body, flags) => {
                 Ok(Node::from(New::from(Call::new(
-                    Identifier::from("RegExp"),
-                    vec![
-                        Const::from(interner.resolve(*body).expect("string disappeared")).into(),
-                        Const::from(flags.to_string()).into(),
-                    ],
+                    Identifier::new(Sym::REGEXP),
+                    vec![Const::from(*body).into(), Const::from(*flags).into()],
                 ))))
             }
             TokenKind::Punctuator(Punctuator::Div) => {
                 let tok = cursor.lex_regex(tok.span().start(), interner)?;
 
-                if let TokenKind::RegularExpressionLiteral(body, flags) = tok.kind() {
+                if let TokenKind::RegularExpressionLiteral(body, flags) = *tok.kind() {
                     Ok(Node::from(New::from(Call::new(
-                        Identifier::from("RegExp"),
-                        vec![
-                            Const::from(interner.resolve(*body).expect("string disappeared"))
-                                .into(),
-                            Const::from(flags.to_string()).into(),
-                        ],
+                        Identifier::new(Sym::REGEXP),
+                        vec![Const::from(body).into(), Const::from(flags).into()],
                     ))))
                 } else {
                     // A regex was expected and nothing else.
@@ -209,8 +199,7 @@ where
                 tok.span().start(),
                 template_string
                     .to_owned_cooked(interner)
-                    .map_err(ParseError::lex)?
-                    .as_ref(),
+                    .map_err(ParseError::lex)?,
             )
             .parse(cursor, interner)
             .map(Node::TemplateLit),

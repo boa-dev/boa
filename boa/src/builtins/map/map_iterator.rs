@@ -1,13 +1,13 @@
+use super::ordered_map::MapLock;
 use crate::{
     builtins::{function::make_builtin_fn, iterable::create_iter_result_object, Array, JsValue},
+    gc::{Finalize, Trace},
     object::{JsObject, ObjectData},
     property::{PropertyDescriptor, PropertyNameKind},
     symbol::WellKnownSymbols,
     BoaProfiler, Context, JsResult,
 };
-use gc::{Finalize, Trace};
 
-use super::ordered_map::MapLock;
 /// The Map Iterator object represents an iteration over a map. It implements the iterator protocol.
 ///
 /// More information:

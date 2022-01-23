@@ -4,7 +4,7 @@ use crate::{
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
 };
-use std::fmt;
+use boa_interner::{Interner, ToInternedString};
 
 use crate::syntax::ast::node::StatementList;
 
@@ -100,29 +100,38 @@ impl Switch {
     }
 
     /// Implements the display formatting with indentation.
-    pub(in crate::syntax::ast::node) fn display(
+    pub(in crate::syntax::ast::node) fn to_indented_string(
         &self,
-        f: &mut fmt::Formatter<'_>,
+        interner: &Interner,
         indentation: usize,
-    ) -> fmt::Result {
+    ) -> String {
         let indent = "    ".repeat(indentation);
-        writeln!(f, "switch ({}) {{", self.val())?;
+        let mut buf = format!("switch ({}) {{\n", self.val().to_interned_string(interner));
         for e in self.cases().iter() {
-            writeln!(f, "{}    case {}:", indent, e.condition())?;
-            e.body().display(f, indentation + 2)?;
+            buf.push_str(&format!(
+                "{}    case {}:\n{}",
+                indent,
+                e.condition().to_interned_string(interner),
+                e.body().to_indented_string(interner, indentation + 2)
+            ));
         }
 
         if let Some(ref default) = self.default {
-            writeln!(f, "{}    default:", indent)?;
-            default.display(f, indentation + 2)?;
+            buf.push_str(&format!(
+                "{}    default:\n{}",
+                indent,
+                default.to_indented_string(interner, indentation + 2)
+            ));
         }
-        write!(f, "{}}}", indent)
+        buf.push_str(&format!("{}}}", indent));
+
+        buf
     }
 }
 
-impl fmt::Display for Switch {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.display(f, 0)
+impl ToInternedString for Switch {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        self.to_indented_string(interner, 0)
     }
 }
 

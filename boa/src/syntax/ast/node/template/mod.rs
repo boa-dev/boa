@@ -1,11 +1,11 @@
 //! Template literal node.
 
 use super::Node;
-use gc::{Finalize, Trace};
+use crate::gc::{Finalize, Trace};
+use boa_interner::{Interner, Sym, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
-use std::fmt;
 
 #[cfg(test)]
 mod tests;
@@ -21,52 +21,66 @@ mod tests;
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct TemplateLit {
-    elements: Vec<TemplateElement>,
+    elements: Box<[TemplateElement]>,
 }
 
 impl TemplateLit {
-    pub fn new(elements: Vec<TemplateElement>) -> Self {
-        TemplateLit { elements }
+    pub fn new<E>(elements: E) -> Self
+    where
+        E: Into<Box<[TemplateElement]>>,
+    {
+        TemplateLit {
+            elements: elements.into(),
+        }
     }
 
-    pub(crate) fn elements(&self) -> &Vec<TemplateElement> {
+    pub(crate) fn elements(&self) -> &[TemplateElement] {
         &self.elements
     }
 }
 
-impl fmt::Display for TemplateLit {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "`")?;
-        for elt in &self.elements {
+impl ToInternedString for TemplateLit {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        let mut buf = "`".to_owned();
+
+        for elt in self.elements.iter() {
             match elt {
-                TemplateElement::String(s) => write!(f, "{}", s)?,
-                TemplateElement::Expr(n) => write!(f, "${{{}}}", n)?,
+                TemplateElement::String(s) => {
+                    buf.push_str(interner.resolve(*s).expect("string disappeared"))
+                }
+                TemplateElement::Expr(n) => {
+                    buf.push_str(&format!("${{{}}}", n.to_interned_string(interner)))
+                }
             }
         }
-        write!(f, "`")
+        buf.push('`');
+
+        buf
     }
 }
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct TaggedTemplate {
     tag: Box<Node>,
-    raws: Vec<Box<str>>,
-    cookeds: Vec<Option<Box<str>>>,
-    exprs: Vec<Node>,
+    raws: Box<[Sym]>,
+    cookeds: Box<[Option<Sym>]>,
+    exprs: Box<[Node]>,
 }
 
 impl TaggedTemplate {
-    pub fn new(
-        tag: Node,
-        raws: Vec<Box<str>>,
-        cookeds: Vec<Option<Box<str>>>,
-        exprs: Vec<Node>,
-    ) -> Self {
+    /// Creates a new tagged template with a tag, the list of raw strings, the cooked strings and
+    /// the expressions.
+    pub fn new<R, C, E>(tag: Node, raws: R, cookeds: C, exprs: E) -> Self
+    where
+        R: Into<Box<[Sym]>>,
+        C: Into<Box<[Option<Sym>]>>,
+        E: Into<Box<[Node]>>,
+    {
         Self {
             tag: Box::new(tag),
-            raws,
-            cookeds,
-            exprs,
+            raws: raws.into(),
+            cookeds: cookeds.into(),
+            exprs: exprs.into(),
         }
     }
 
@@ -74,26 +88,32 @@ impl TaggedTemplate {
         &self.tag
     }
 
-    pub(crate) fn raws(&self) -> &Vec<Box<str>> {
+    pub(crate) fn raws(&self) -> &[Sym] {
         &self.raws
     }
 
-    pub(crate) fn cookeds(&self) -> &Vec<Option<Box<str>>> {
+    pub(crate) fn cookeds(&self) -> &[Option<Sym>] {
         &self.cookeds
     }
 
-    pub(crate) fn exprs(&self) -> &Vec<Node> {
+    pub(crate) fn exprs(&self) -> &[Node] {
         &self.exprs
     }
 }
 
-impl fmt::Display for TaggedTemplate {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}`", self.tag)?;
-        for (raw, expr) in self.raws.iter().zip(self.exprs.iter()) {
-            write!(f, "{}${{{}}}", raw, expr)?;
+impl ToInternedString for TaggedTemplate {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        let mut buf = format!("{}`", self.tag.to_interned_string(interner));
+        for (&raw, expr) in self.raws.iter().zip(self.exprs.iter()) {
+            buf.push_str(&format!(
+                "{}${{{}}}",
+                interner.resolve(raw).expect("string disappeared"),
+                expr.to_interned_string(interner)
+            ));
         }
-        write!(f, "`")
+        buf.push('`');
+
+        buf
     }
 }
 
@@ -106,6 +126,6 @@ impl From<TaggedTemplate> for Node {
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum TemplateElement {
-    String(Box<str>),
+    String(Sym),
     Expr(Node),
 }

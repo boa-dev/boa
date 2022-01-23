@@ -2,7 +2,7 @@ use crate::{
     gc::{Finalize, Trace},
     syntax::ast::{node::Node, op},
 };
-use std::fmt;
+use boa_interner::{Interner, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -45,9 +45,9 @@ impl UnaryOp {
     }
 }
 
-impl fmt::Display for UnaryOp {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}{}", self.op, self.target)
+impl ToInternedString for UnaryOp {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        format!("{}{}", self.op, self.target.to_interned_string(interner))
     }
 }
 

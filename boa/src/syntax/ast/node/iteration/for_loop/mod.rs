@@ -2,7 +2,7 @@ use crate::{
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
 };
-use std::fmt;
+use boa_interner::{Interner, Sym, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -23,7 +23,7 @@ use serde::{Deserialize, Serialize};
 pub struct ForLoop {
     #[cfg_attr(feature = "deser", serde(flatten))]
     inner: Box<InnerForLoop>,
-    label: Option<Box<str>>,
+    label: Option<Sym>,
 }
 
 impl ForLoop {
@@ -61,42 +61,49 @@ impl ForLoop {
         self.inner.body()
     }
 
-    pub(in crate::syntax::ast::node) fn display(
+    /// Converts the for loop to a string with the given indentation.
+    pub(in crate::syntax::ast::node) fn to_indented_string(
         &self,
-        f: &mut fmt::Formatter<'_>,
+        interner: &Interner,
         indentation: usize,
-    ) -> fmt::Result {
-        if let Some(ref label) = self.label {
-            write!(f, "{}: ", label)?;
-        }
-        f.write_str("for (")?;
+    ) -> String {
+        let mut buf = if let Some(label) = self.label {
+            format!("{}: ", interner.resolve(label).expect("string disappeared"))
+        } else {
+            String::new()
+        };
+        buf.push_str("for (");
         if let Some(init) = self.init() {
-            fmt::Display::fmt(init, f)?;
+            buf.push_str(&init.to_interned_string(interner));
         }
-        f.write_str("; ")?;
+        buf.push_str("; ");
         if let Some(condition) = self.condition() {
-            fmt::Display::fmt(condition, f)?;
+            buf.push_str(&condition.to_interned_string(interner));
         }
-        f.write_str("; ")?;
+        buf.push_str("; ");
         if let Some(final_expr) = self.final_expr() {
-            fmt::Display::fmt(final_expr, f)?;
+            buf.push_str(&final_expr.to_interned_string(interner));
         }
-        write!(f, ") ")?;
-        self.inner.body().display(f, indentation)
+        buf.push_str(&format!(
+            ") {}",
+            self.inner.body().to_indented_string(interner, indentation)
+        ));
+
+        buf
     }
 
-    pub fn label(&self) -> Option<&str> {
-        self.label.as_ref().map(Box::as_ref)
+    pub fn label(&self) -> Option<Sym> {
+        self.label
     }
 
-    pub fn set_label(&mut self, label: Box<str>) {
+    pub fn set_label(&mut self, label: Sym) {
         self.label = Some(label);
     }
 }
 
-impl fmt::Display for ForLoop {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.display(f, 0)
+impl ToInternedString for ForLoop {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        self.to_indented_string(interner, 0)
     }
 }
 

@@ -6,19 +6,18 @@
 //! Property keys that are not strings in the form of an `IdentifierName` are not included in the set of bound identifiers.
 //! More info:  [Object Records](https://tc39.es/ecma262/#sec-object-environment-records)
 
-use gc::Gc;
-
 use crate::{
     environment::{
         environment_record_trait::EnvironmentRecordTrait,
         lexical_environment::{Environment, EnvironmentType},
     },
-    gc::{Finalize, Trace},
+    gc::{Finalize, Gc, Trace},
     object::JsObject,
     property::PropertyDescriptor,
     symbol::WellKnownSymbols,
     Context, JsResult, JsValue,
 };
+use boa_interner::Sym;
 
 #[derive(Debug, Trace, Finalize, Clone)]
 pub struct ObjectEnvironmentRecord {
@@ -49,11 +48,18 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object-environment-records-hasbinding-n
-    fn has_binding(&self, name: &str, context: &mut Context) -> JsResult<bool> {
+    fn has_binding(&self, name: Sym, context: &mut Context) -> JsResult<bool> {
         // 1. Let bindingObject be envRec.[[BindingObject]].
         // 2. Let foundBinding be ? HasProperty(bindingObject, N).
         // 3. If foundBinding is false, return false.
-        if !self.bindings.has_property(name, context)? {
+        if !self.bindings.has_property(
+            context
+                .interner()
+                .resolve(name)
+                .expect("string disappeared")
+                .to_owned(),
+            context,
+        )? {
             return Ok(false);
         }
 
@@ -71,7 +77,17 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         {
             // a. Let blocked be ! ToBoolean(? Get(unscopables, N)).
             // b. If blocked is true, return false.
-            if unscopables.get(name, context)?.to_boolean() {
+            if unscopables
+                .get(
+                    context
+                        .interner()
+                        .resolve(name)
+                        .expect("string disappeared")
+                        .to_owned(),
+                    context,
+                )?
+                .to_boolean()
+            {
                 return Ok(false);
             }
         }
@@ -88,7 +104,7 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
     /// [spec]: https://tc39.es/ecma262/#sec-object-environment-records-createmutablebinding-n-d
     fn create_mutable_binding(
         &self,
-        name: &str,
+        name: Sym,
         deletion: bool,
         _allow_name_reuse: bool,
         context: &mut Context,
@@ -96,7 +112,11 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         // 1. Let bindingObject be envRec.[[BindingObject]].
         // 2. Return ? DefinePropertyOrThrow(bindingObject, N, PropertyDescriptor { [[Value]]: undefined, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: D }).
         self.bindings.define_property_or_throw(
-            name,
+            context
+                .interner()
+                .resolve(name)
+                .expect("string disappeared")
+                .to_owned(),
             PropertyDescriptor::builder()
                 .value(JsValue::undefined())
                 .writable(true)
@@ -115,7 +135,7 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
     /// [spec]: https://tc39.es/ecma262/#sec-object-environment-records-createimmutablebinding-n-s
     fn create_immutable_binding(
         &self,
-        _name: &str,
+        _name: Sym,
         _strict: bool,
         _context: &mut Context,
     ) -> JsResult<()> {
@@ -128,12 +148,7 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object-environment-records-initializebinding-n-v
-    fn initialize_binding(
-        &self,
-        name: &str,
-        value: JsValue,
-        context: &mut Context,
-    ) -> JsResult<()> {
+    fn initialize_binding(&self, name: Sym, value: JsValue, context: &mut Context) -> JsResult<()> {
         // 1. Return ? envRec.SetMutableBinding(N, V, false).
         self.set_mutable_binding(name, value, false, context)
     }
@@ -146,14 +161,21 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
     /// [spec]: https://tc39.es/ecma262/#sec-object-environment-records-setmutablebinding-n-v-s
     fn set_mutable_binding(
         &self,
-        name: &str,
+        name: Sym,
         value: JsValue,
         strict: bool,
         context: &mut Context,
     ) -> JsResult<()> {
         // 1. Let bindingObject be envRec.[[BindingObject]].
         // 2. Let stillExists be ? HasProperty(bindingObject, N).
-        let still_exists = self.bindings.has_property(name, context)?;
+        let still_exists = self.bindings.has_property(
+            context
+                .interner()
+                .resolve(name)
+                .expect("string disappeared")
+                .to_owned(),
+            context,
+        )?;
 
         // 3. If stillExists is false and S is true, throw a ReferenceError exception.
         if !still_exists && strict {
@@ -161,7 +183,16 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         }
 
         // 4. Return ? Set(bindingObject, N, V, S).
-        self.bindings.set(name, value, strict, context)?;
+        self.bindings.set(
+            context
+                .interner()
+                .resolve(name)
+                .expect("string disappeared")
+                .to_owned(),
+            value,
+            strict,
+            context,
+        )?;
         Ok(())
     }
 
@@ -173,24 +204,44 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
     /// [spec]: https://tc39.es/ecma262/#sec-object-environment-records-getbindingvalue-n-s
     fn get_binding_value(
         &self,
-        name: &str,
+        name: Sym,
         strict: bool,
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let bindingObject be envRec.[[BindingObject]].
         // 2. Let value be ? HasProperty(bindingObject, N).
         // 3. If value is false, then
-        if !self.bindings.__has_property__(&name.into(), context)? {
+        if !self.bindings.__has_property__(
+            &context
+                .interner()
+                .resolve(name)
+                .expect("string disappeared")
+                .into(),
+            context,
+        )? {
             // a. If S is false, return the value undefined; otherwise throw a ReferenceError exception.
             if !strict {
                 return Ok(JsValue::undefined());
             } else {
-                return context.throw_reference_error(format!("{} has no binding", name));
+                return context.throw_reference_error(format!(
+                    "{} has no binding",
+                    context
+                        .interner()
+                        .resolve(name)
+                        .expect("string disappeared")
+                ));
             }
         }
 
         // 4. Return ? Get(bindingObject, N).
-        self.bindings.get(name, context)
+        self.bindings.get(
+            context
+                .interner()
+                .resolve(name)
+                .expect("string disappeared")
+                .to_owned(),
+            context,
+        )
     }
 
     /// `9.1.1.2.7 DeleteBinding ( N )`
@@ -199,10 +250,17 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object-environment-records-deletebinding-n
-    fn delete_binding(&self, name: &str, context: &mut Context) -> JsResult<bool> {
+    fn delete_binding(&self, name: Sym, context: &mut Context) -> JsResult<bool> {
         // 1. Let bindingObject be envRec.[[BindingObject]].
         // 2. Return ? bindingObject.[[Delete]](N).
-        self.bindings.__delete__(&name.into(), context)
+        self.bindings.__delete__(
+            &context
+                .interner()
+                .resolve(name)
+                .expect("string disappeared")
+                .into(),
+            context,
+        )
     }
 
     /// `9.1.1.2.8 HasThisBinding ( )`

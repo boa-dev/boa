@@ -2,7 +2,7 @@ use crate::{
     gc::{Finalize, Trace},
     syntax::ast::{node::Node, op},
 };
-use std::fmt;
+use boa_interner::{Interner, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -52,9 +52,14 @@ impl BinOp {
     }
 }
 
-impl fmt::Display for BinOp {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{} {} {}", self.lhs, self.op, self.rhs)
+impl ToInternedString for BinOp {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        format!(
+            "{} {} {}",
+            self.lhs.to_interned_string(interner),
+            self.op,
+            self.rhs.to_interned_string(interner)
+        )
     }
 }
 

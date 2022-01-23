@@ -13,7 +13,7 @@ use crate::{
 
 #[test]
 fn check_async_generator_expr() {
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
     check_parser(
         "const add = async function*(){
             return 1;
@@ -21,13 +21,12 @@ fn check_async_generator_expr() {
         ",
         vec![DeclarationList::Const(
             vec![Declaration::new_with_identifier(
-                "add",
+                interner.get_or_intern_static("add"),
                 Some(
-                    AsyncGeneratorExpr::new::<Option<Box<str>>, _, StatementList>(
+                    AsyncGeneratorExpr::new::<_, _, StatementList>(
                         None,
                         [],
-                        vec![Return::new::<_, _, Option<Box<str>>>(Const::from(1), None).into()]
-                            .into(),
+                        vec![Return::new(Const::from(1), None).into()].into(),
                     )
                     .into(),
                 ),
@@ -41,7 +40,7 @@ fn check_async_generator_expr() {
 
 #[test]
 fn check_nested_async_generator_expr() {
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
     check_parser(
         "const a = async function*() {
             const b = async function*() {
@@ -51,24 +50,19 @@ fn check_nested_async_generator_expr() {
         ",
         vec![DeclarationList::Const(
             vec![Declaration::new_with_identifier(
-                "a",
+                interner.get_or_intern_static("a"),
                 Some(
-                    AsyncGeneratorExpr::new::<Option<Box<str>>, _, StatementList>(
+                    AsyncGeneratorExpr::new::<_, _, StatementList>(
                         None,
                         [],
                         vec![DeclarationList::Const(
                             vec![Declaration::new_with_identifier(
-                                "b",
+                                interner.get_or_intern_static("b"),
                                 Some(
-                                    AsyncGeneratorExpr::new::<Option<Box<str>>, _, StatementList>(
+                                    AsyncGeneratorExpr::new::<_, _, StatementList>(
                                         None,
                                         [],
-                                        vec![Return::new::<_, _, Option<Box<str>>>(
-                                            Const::from(1),
-                                            None,
-                                        )
-                                        .into()]
-                                        .into(),
+                                        vec![Return::new(Const::from(1), None).into()].into(),
                                     )
                                     .into(),
                                 ),

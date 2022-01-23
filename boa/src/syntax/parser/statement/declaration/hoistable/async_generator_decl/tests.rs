@@ -5,10 +5,10 @@ use crate::{
 
 #[test]
 fn async_generator_function_declaration() {
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
     check_parser(
         "async function* gen() {}",
-        vec![AsyncGeneratorDecl::new(Box::from("gen"), vec![], vec![]).into()],
+        vec![AsyncGeneratorDecl::new(interner.get_or_intern_static("gen"), vec![], vec![]).into()],
         &mut interner,
     );
 }

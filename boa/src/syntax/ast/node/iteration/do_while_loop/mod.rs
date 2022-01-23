@@ -2,7 +2,7 @@ use crate::{
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
 };
-use std::fmt;
+use boa_interner::{Interner, Sym, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -24,7 +24,7 @@ use serde::{Deserialize, Serialize};
 pub struct DoWhileLoop {
     body: Box<Node>,
     cond: Box<Node>,
-    label: Option<Box<str>>,
+    label: Option<Sym>,
 }
 
 impl DoWhileLoop {
@@ -36,11 +36,11 @@ impl DoWhileLoop {
         &self.cond
     }
 
-    pub fn label(&self) -> Option<&str> {
-        self.label.as_ref().map(Box::as_ref)
+    pub fn label(&self) -> Option<Sym> {
+        self.label
     }
 
-    pub fn set_label(&mut self, label: Box<str>) {
+    pub fn set_label(&mut self, label: Sym) {
         self.label = Some(label);
     }
 
@@ -57,23 +57,30 @@ impl DoWhileLoop {
         }
     }
 
-    pub(in crate::syntax::ast::node) fn display(
+    /// Converts the "do while" loop to a string with the given indentation.
+    pub(in crate::syntax::ast::node) fn to_indented_string(
         &self,
-        f: &mut fmt::Formatter<'_>,
+        interner: &Interner,
         indentation: usize,
-    ) -> fmt::Result {
-        if let Some(ref label) = self.label {
-            write!(f, "{}: ", label)?;
-        }
-        write!(f, "do ")?;
-        self.body().display(f, indentation)?;
-        write!(f, " while ({})", self.cond())
+    ) -> String {
+        let mut buf = if let Some(label) = self.label {
+            format!("{}: ", interner.resolve(label).expect("string disappeared"))
+        } else {
+            String::new()
+        };
+        buf.push_str(&format!(
+            "do {} while ({})",
+            self.body().to_indented_string(interner, indentation),
+            self.cond().to_interned_string(interner)
+        ));
+
+        buf
     }
 }
 
-impl fmt::Display for DoWhileLoop {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.display(f, 0)
+impl ToInternedString for DoWhileLoop {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        self.to_indented_string(interner, 0)
     }
 }
 
