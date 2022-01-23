@@ -8,6 +8,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#Keywords
 
 use crate::syntax::ast::op::{BinOp, CompOp};
+use boa_interner::{Interner, Sym};
 use std::{convert::TryInto, error, fmt, str::FromStr};
 
 #[cfg(feature = "deser")]
@@ -535,6 +536,11 @@ impl Keyword {
             Self::With => "with",
             Self::Yield => "yield",
         }
+    }
+
+    /// Converts the keyword to a symbol in the given interner.
+    pub fn to_sym(self, interner: &mut Interner) -> Sym {
+        interner.get_or_intern_static(self.as_str())
     }
 }
 

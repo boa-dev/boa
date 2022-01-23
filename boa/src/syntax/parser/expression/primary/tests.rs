@@ -1,3 +1,5 @@
+use boa_interner::Sym;
+
 use crate::{
     syntax::{ast::Const, parser::tests::check_parser},
     Interner,
@@ -6,14 +8,18 @@ use crate::{
 #[test]
 fn check_string() {
     // Check empty string
-    let mut interner = Interner::new();
-    check_parser("\"\"", vec![Const::from("").into()], &mut interner);
+    let mut interner = Interner::default();
+    check_parser(
+        "\"\"",
+        vec![Const::from(Sym::EMPTY_STRING).into()],
+        &mut interner,
+    );
 
     // Check non-empty string
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
     check_parser(
         "\"hello\"",
-        vec![Const::from("hello").into()],
+        vec![Const::from(interner.get_or_intern_static("hello")).into()],
         &mut interner,
     );
 }

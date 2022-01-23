@@ -10,16 +10,15 @@
 use crate::{
     profiler::BoaProfiler,
     syntax::{
-        ast::node::template::{TemplateElement, TemplateLit},
-        ast::Position,
-        ast::Punctuator,
+        ast::{
+            node::template::{TemplateElement, TemplateLit},
+            Position, Punctuator,
+        },
         lexer::TokenKind,
-        parser::cursor::Cursor,
-        parser::expression::Expression,
-        parser::{AllowAwait, AllowYield, ParseError, TokenParser},
+        parser::{expression::Expression, AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
     },
-    Interner,
 };
+use boa_interner::{Interner, Sym};
 use std::io::Read;
 
 /// Parses a template literal.
@@ -35,12 +34,12 @@ pub(super) struct TemplateLiteral {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     start: Position,
-    first: String,
+    first: Sym,
 }
 
 impl TemplateLiteral {
     /// Creates a new `TemplateLiteral` parser.
-    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A, start: Position, first: &str) -> Self
+    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A, start: Position, first: Sym) -> Self
     where
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -49,7 +48,7 @@ impl TemplateLiteral {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
             start,
-            first: first.to_owned(),
+            first,
         }
     }
 }
@@ -68,7 +67,7 @@ where
         let _timer = BoaProfiler::global().start_event("TemplateLiteral", "Parsing");
 
         let mut elements = vec![
-            TemplateElement::String(self.first.into_boxed_str()),
+            TemplateElement::String(self.first),
             TemplateElement::Expr(
                 Expression::new(true, self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?,

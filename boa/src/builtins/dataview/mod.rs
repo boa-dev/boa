@@ -1,6 +1,7 @@
 use crate::{
     builtins::{array_buffer::SharedMemoryOrder, typed_array::TypedArrayName, BuiltIn, JsArgs},
     context::StandardObjects,
+    gc::{Finalize, Trace},
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
         JsObject, ObjectData,
@@ -10,7 +11,6 @@ use crate::{
     value::JsValue,
     Context, JsResult,
 };
-use gc::{Finalize, Trace};
 
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct DataView {

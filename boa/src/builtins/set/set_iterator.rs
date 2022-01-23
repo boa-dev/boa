@@ -1,13 +1,11 @@
 use crate::{
-    builtins::Array,
-    builtins::JsValue,
-    builtins::{function::make_builtin_fn, iterable::create_iter_result_object},
+    builtins::{function::make_builtin_fn, iterable::create_iter_result_object, Array, JsValue},
+    gc::{Finalize, Trace},
     object::{JsObject, ObjectData},
     property::{PropertyDescriptor, PropertyNameKind},
     symbol::WellKnownSymbols,
     BoaProfiler, Context, JsResult,
 };
-use gc::{Finalize, Trace};
 
 /// The Set Iterator object represents an iteration over a set. It implements the iterator protocol.
 ///

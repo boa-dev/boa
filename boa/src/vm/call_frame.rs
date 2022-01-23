@@ -2,8 +2,7 @@
 //! This module will provides everything needed to implement the CallFrame
 
 use super::CodeBlock;
-use crate::JsValue;
-use gc::Gc;
+use crate::{gc::Gc, JsValue};
 
 #[derive(Debug)]
 pub struct CallFrame {

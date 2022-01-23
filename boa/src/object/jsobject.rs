@@ -4,12 +4,12 @@
 
 use super::{JsPrototype, NativeObject, Object};
 use crate::{
+    gc::{self, Finalize, Gc, Trace},
     object::{ObjectData, ObjectKind},
     property::{PropertyDescriptor, PropertyKey},
     value::PreferredType,
     Context, JsResult, JsValue,
 };
-use gc::{Finalize, Gc, GcCell, GcCellRef, GcCellRefMut, Trace};
 use std::{
     cell::RefCell,
     collections::HashMap,
@@ -19,20 +19,20 @@ use std::{
 };
 
 /// A wrapper type for an immutably borrowed type T.
-pub type Ref<'a, T> = GcCellRef<'a, T>;
+pub type Ref<'a, T> = gc::Ref<'a, T>;
 
 /// A wrapper type for a mutably borrowed type T.
-pub type RefMut<'a, T, U> = GcCellRefMut<'a, T, U>;
+pub type RefMut<'a, T, U> = gc::RefMut<'a, T, U>;
 
 /// Garbage collected `Object`.
 #[derive(Trace, Finalize, Clone, Default)]
-pub struct JsObject(Gc<GcCell<Object>>);
+pub struct JsObject(Gc<gc::Cell<Object>>);
 
 impl JsObject {
     /// Create a new `JsObject` from an internal `Object`.
     #[inline]
     fn from_object(object: Object) -> Self {
-        Self(Gc::new(GcCell::new(object)))
+        Self(Gc::new(gc::Cell::new(object)))
     }
 
     /// Create a new empty `JsObject`, with `prototype` set to `JsValue::Null`
@@ -650,9 +650,9 @@ Cannot both specify accessors and a value or writable attribute",
     }
 }
 
-impl AsRef<GcCell<Object>> for JsObject {
+impl AsRef<gc::Cell<Object>> for JsObject {
     #[inline]
-    fn as_ref(&self) -> &GcCell<Object> {
+    fn as_ref(&self) -> &gc::Cell<Object> {
         &*self.0
     }
 }

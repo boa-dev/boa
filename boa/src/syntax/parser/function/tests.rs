@@ -13,16 +13,16 @@ use crate::{
 /// Checks basic function declaration parsing.
 #[test]
 fn check_basic() {
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
     check_parser(
         "function foo(a) { return a; }",
         vec![FunctionDecl::new(
-            Box::from("foo"),
+            interner.get_or_intern_static("foo"),
             vec![FormalParameter::new(
-                Declaration::new_with_identifier("a", None),
+                Declaration::new_with_identifier(interner.get_or_intern_static("a"), None),
                 false,
             )],
-            vec![Return::new(Identifier::from("a"), None).into()],
+            vec![Return::new(Identifier::new(interner.get_or_intern_static("a")), None).into()],
         )
         .into()],
         &mut interner,
@@ -32,16 +32,22 @@ fn check_basic() {
 /// Checks if duplicate parameter names are allowed with strict mode off.
 #[test]
 fn check_duplicates_strict_off() {
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
     check_parser(
         "function foo(a, a) { return a; }",
         vec![FunctionDecl::new(
-            Box::from("foo"),
+            interner.get_or_intern_static("foo"),
             vec![
-                FormalParameter::new(Declaration::new_with_identifier("a", None), false),
-                FormalParameter::new(Declaration::new_with_identifier("a", None), false),
+                FormalParameter::new(
+                    Declaration::new_with_identifier(interner.get_or_intern_static("a"), None),
+                    false,
+                ),
+                FormalParameter::new(
+                    Declaration::new_with_identifier(interner.get_or_intern_static("a"), None),
+                    false,
+                ),
             ],
-            vec![Return::new(Identifier::from("a"), None).into()],
+            vec![Return::new(Identifier::new(interner.get_or_intern_static("a")), None).into()],
         )
         .into()],
         &mut interner,
@@ -52,7 +58,7 @@ fn check_duplicates_strict_off() {
 #[test]
 fn check_duplicates_strict_on() {
     let js = "'use strict'; function foo(a, a) {}";
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
 
     let res = Parser::new(js.as_bytes(), false).parse_all(&mut interner);
     dbg!(&res);
@@ -62,16 +68,16 @@ fn check_duplicates_strict_on() {
 /// Checks basic function declaration parsing with automatic semicolon insertion.
 #[test]
 fn check_basic_semicolon_insertion() {
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
     check_parser(
         "function foo(a) { return a }",
         vec![FunctionDecl::new(
-            Box::from("foo"),
+            interner.get_or_intern_static("foo"),
             vec![FormalParameter::new(
-                Declaration::new_with_identifier("a", None),
+                Declaration::new_with_identifier(interner.get_or_intern_static("a"), None),
                 false,
             )],
-            vec![Return::new(Identifier::from("a"), None).into()],
+            vec![Return::new(Identifier::new(interner.get_or_intern_static("a")), None).into()],
         )
         .into()],
         &mut interner,
@@ -81,13 +87,13 @@ fn check_basic_semicolon_insertion() {
 /// Checks functions with empty returns.
 #[test]
 fn check_empty_return() {
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
     check_parser(
         "function foo(a) { return; }",
         vec![FunctionDecl::new(
-            Box::from("foo"),
+            interner.get_or_intern_static("foo"),
             vec![FormalParameter::new(
-                Declaration::new_with_identifier("a", None),
+                Declaration::new_with_identifier(interner.get_or_intern_static("a"), None),
                 false,
             )],
             vec![Return::new::<Node, Option<Node>, Option<_>>(None, None).into()],
@@ -100,13 +106,13 @@ fn check_empty_return() {
 /// Checks functions with empty returns without semicolon
 #[test]
 fn check_empty_return_semicolon_insertion() {
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
     check_parser(
         "function foo(a) { return }",
         vec![FunctionDecl::new(
-            Box::from("foo"),
+            interner.get_or_intern_static("foo"),
             vec![FormalParameter::new(
-                Declaration::new_with_identifier("a", None),
+                Declaration::new_with_identifier(interner.get_or_intern_static("a"), None),
                 false,
             )],
             vec![Return::new::<Node, Option<Node>, Option<_>>(None, None).into()],
@@ -119,14 +125,20 @@ fn check_empty_return_semicolon_insertion() {
 /// Checks rest operator parsing.
 #[test]
 fn check_rest_operator() {
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
     check_parser(
         "function foo(a, ...b) {}",
         vec![FunctionDecl::new(
-            Box::from("foo"),
+            interner.get_or_intern_static("foo"),
             vec![
-                FormalParameter::new(Declaration::new_with_identifier("a", None), false),
-                FormalParameter::new(Declaration::new_with_identifier("b", None), true),
+                FormalParameter::new(
+                    Declaration::new_with_identifier(interner.get_or_intern_static("a"), None),
+                    false,
+                ),
+                FormalParameter::new(
+                    Declaration::new_with_identifier(interner.get_or_intern_static("b"), None),
+                    true,
+                ),
             ],
             vec![],
         )
@@ -138,12 +150,12 @@ fn check_rest_operator() {
 /// Checks an arrow function with only a rest parameter.
 #[test]
 fn check_arrow_only_rest() {
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
     check_parser(
         "(...a) => {}",
         vec![ArrowFunctionDecl::new(
             vec![FormalParameter::new(
-                Declaration::new_with_identifier("a", None),
+                Declaration::new_with_identifier(interner.get_or_intern_static("a"), None),
                 true,
             )],
             vec![],
@@ -156,14 +168,23 @@ fn check_arrow_only_rest() {
 /// Checks an arrow function with a rest parameter.
 #[test]
 fn check_arrow_rest() {
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
     check_parser(
         "(a, b, ...c) => {}",
         vec![ArrowFunctionDecl::new(
             vec![
-                FormalParameter::new(Declaration::new_with_identifier("a", None), false),
-                FormalParameter::new(Declaration::new_with_identifier("b", None), false),
-                FormalParameter::new(Declaration::new_with_identifier("c", None), true),
+                FormalParameter::new(
+                    Declaration::new_with_identifier(interner.get_or_intern_static("a"), None),
+                    false,
+                ),
+                FormalParameter::new(
+                    Declaration::new_with_identifier(interner.get_or_intern_static("b"), None),
+                    false,
+                ),
+                FormalParameter::new(
+                    Declaration::new_with_identifier(interner.get_or_intern_static("c"), None),
+                    true,
+                ),
             ],
             vec![],
         )
@@ -175,16 +196,26 @@ fn check_arrow_rest() {
 /// Checks an arrow function with expression return.
 #[test]
 fn check_arrow() {
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
     check_parser(
         "(a, b) => { return a + b; }",
         vec![ArrowFunctionDecl::new(
             vec![
-                FormalParameter::new(Declaration::new_with_identifier("a", None), false),
-                FormalParameter::new(Declaration::new_with_identifier("b", None), false),
+                FormalParameter::new(
+                    Declaration::new_with_identifier(interner.get_or_intern_static("a"), None),
+                    false,
+                ),
+                FormalParameter::new(
+                    Declaration::new_with_identifier(interner.get_or_intern_static("b"), None),
+                    false,
+                ),
             ],
             vec![Return::new(
-                BinOp::new(NumOp::Add, Identifier::from("a"), Identifier::from("b")),
+                BinOp::new(
+                    NumOp::Add,
+                    Identifier::new(interner.get_or_intern_static("a")),
+                    Identifier::new(interner.get_or_intern_static("b")),
+                ),
                 None,
             )
             .into()],
@@ -197,16 +228,26 @@ fn check_arrow() {
 /// Checks an arrow function with expression return and automatic semicolon insertion
 #[test]
 fn check_arrow_semicolon_insertion() {
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
     check_parser(
         "(a, b) => { return a + b }",
         vec![ArrowFunctionDecl::new(
             vec![
-                FormalParameter::new(Declaration::new_with_identifier("a", None), false),
-                FormalParameter::new(Declaration::new_with_identifier("b", None), false),
+                FormalParameter::new(
+                    Declaration::new_with_identifier(interner.get_or_intern_static("a"), None),
+                    false,
+                ),
+                FormalParameter::new(
+                    Declaration::new_with_identifier(interner.get_or_intern_static("b"), None),
+                    false,
+                ),
             ],
             vec![Return::new(
-                BinOp::new(NumOp::Add, Identifier::from("a"), Identifier::from("b")),
+                BinOp::new(
+                    NumOp::Add,
+                    Identifier::new(interner.get_or_intern_static("a")),
+                    Identifier::new(interner.get_or_intern_static("b")),
+                ),
                 None,
             )
             .into()],
@@ -219,13 +260,19 @@ fn check_arrow_semicolon_insertion() {
 /// Checks arrow function with empty return
 #[test]
 fn check_arrow_epty_return() {
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
     check_parser(
         "(a, b) => { return; }",
         vec![ArrowFunctionDecl::new(
             vec![
-                FormalParameter::new(Declaration::new_with_identifier("a", None), false),
-                FormalParameter::new(Declaration::new_with_identifier("b", None), false),
+                FormalParameter::new(
+                    Declaration::new_with_identifier(interner.get_or_intern_static("a"), None),
+                    false,
+                ),
+                FormalParameter::new(
+                    Declaration::new_with_identifier(interner.get_or_intern_static("b"), None),
+                    false,
+                ),
             ],
             vec![Return::new::<Node, Option<_>, Option<_>>(None, None).into()],
         )
@@ -237,13 +284,19 @@ fn check_arrow_epty_return() {
 /// Checks an arrow function with empty return, with automatic semicolon insertion.
 #[test]
 fn check_arrow_empty_return_semicolon_insertion() {
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
     check_parser(
         "(a, b) => { return }",
         vec![ArrowFunctionDecl::new(
             vec![
-                FormalParameter::new(Declaration::new_with_identifier("a", None), false),
-                FormalParameter::new(Declaration::new_with_identifier("b", None), false),
+                FormalParameter::new(
+                    Declaration::new_with_identifier(interner.get_or_intern_static("a"), None),
+                    false,
+                ),
+                FormalParameter::new(
+                    Declaration::new_with_identifier(interner.get_or_intern_static("b"), None),
+                    false,
+                ),
             ],
             vec![Return::new::<Node, Option<_>, Option<_>>(None, None).into()],
         )
@@ -254,20 +307,23 @@ fn check_arrow_empty_return_semicolon_insertion() {
 
 #[test]
 fn check_arrow_assignment() {
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
     check_parser(
         "let foo = (a) => { return a };",
         vec![DeclarationList::Let(
             vec![Declaration::new_with_identifier(
-                Identifier::from("foo"),
+                Identifier::new(interner.get_or_intern_static("foo")),
                 Some(
                     ArrowFunctionDecl::new(
                         vec![FormalParameter::new(
-                            Declaration::new_with_identifier("a", None),
+                            Declaration::new_with_identifier(
+                                interner.get_or_intern_static("a"),
+                                None,
+                            ),
                             false,
                         )],
                         vec![Return::new::<Node, Option<_>, Option<_>>(
-                            Some(Identifier::from("a").into()),
+                            Some(Identifier::new(interner.get_or_intern_static("a")).into()),
                             None,
                         )
                         .into()],
@@ -284,20 +340,23 @@ fn check_arrow_assignment() {
 
 #[test]
 fn check_arrow_assignment_nobrackets() {
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
     check_parser(
         "let foo = (a) => a;",
         vec![DeclarationList::Let(
             vec![Declaration::new_with_identifier(
-                Identifier::from("foo"),
+                interner.get_or_intern_static("foo"),
                 Some(
                     ArrowFunctionDecl::new(
                         vec![FormalParameter::new(
-                            Declaration::new_with_identifier("a", None),
+                            Declaration::new_with_identifier(
+                                interner.get_or_intern_static("a"),
+                                None,
+                            ),
                             false,
                         )],
                         vec![Return::new::<Node, Option<_>, Option<_>>(
-                            Some(Identifier::from("a").into()),
+                            Some(Identifier::new(interner.get_or_intern_static("a")).into()),
                             None,
                         )
                         .into()],
@@ -314,20 +373,23 @@ fn check_arrow_assignment_nobrackets() {
 
 #[test]
 fn check_arrow_assignment_noparenthesis() {
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
     check_parser(
         "let foo = a => { return a };",
         vec![DeclarationList::Let(
             vec![Declaration::new_with_identifier(
-                Identifier::from("foo"),
+                interner.get_or_intern_static("foo"),
                 Some(
                     ArrowFunctionDecl::new(
                         vec![FormalParameter::new(
-                            Declaration::new_with_identifier("a", None),
+                            Declaration::new_with_identifier(
+                                interner.get_or_intern_static("a"),
+                                None,
+                            ),
                             false,
                         )],
                         vec![Return::new::<Node, Option<_>, Option<_>>(
-                            Some(Identifier::from("a").into()),
+                            Some(Identifier::new(interner.get_or_intern_static("a")).into()),
                             None,
                         )
                         .into()],
@@ -344,20 +406,23 @@ fn check_arrow_assignment_noparenthesis() {
 
 #[test]
 fn check_arrow_assignment_noparenthesis_nobrackets() {
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
     check_parser(
         "let foo = a => a;",
         vec![DeclarationList::Let(
             vec![Declaration::new_with_identifier(
-                Identifier::from("foo"),
+                Identifier::new(interner.get_or_intern_static("foo")),
                 Some(
                     ArrowFunctionDecl::new(
                         vec![FormalParameter::new(
-                            Declaration::new_with_identifier("a", None),
+                            Declaration::new_with_identifier(
+                                interner.get_or_intern_static("a"),
+                                None,
+                            ),
                             false,
                         )],
                         vec![Return::new::<Node, Option<_>, Option<_>>(
-                            Some(Identifier::from("a").into()),
+                            Some(Identifier::new(interner.get_or_intern_static("a")).into()),
                             None,
                         )
                         .into()],
@@ -374,26 +439,32 @@ fn check_arrow_assignment_noparenthesis_nobrackets() {
 
 #[test]
 fn check_arrow_assignment_2arg() {
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
     check_parser(
         "let foo = (a, b) => { return a };",
         vec![DeclarationList::Let(
             vec![Declaration::new_with_identifier(
-                Identifier::from("foo"),
+                Identifier::new(interner.get_or_intern_static("foo")),
                 Some(
                     ArrowFunctionDecl::new(
                         vec![
                             FormalParameter::new(
-                                Declaration::new_with_identifier("a", None),
+                                Declaration::new_with_identifier(
+                                    interner.get_or_intern_static("a"),
+                                    None,
+                                ),
                                 false,
                             ),
                             FormalParameter::new(
-                                Declaration::new_with_identifier("b", None),
+                                Declaration::new_with_identifier(
+                                    interner.get_or_intern_static("b"),
+                                    None,
+                                ),
                                 false,
                             ),
                         ],
                         vec![Return::new::<Node, Option<_>, Option<_>>(
-                            Some(Identifier::from("a").into()),
+                            Some(Identifier::new(interner.get_or_intern_static("a")).into()),
                             None,
                         )
                         .into()],
@@ -410,26 +481,32 @@ fn check_arrow_assignment_2arg() {
 
 #[test]
 fn check_arrow_assignment_2arg_nobrackets() {
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
     check_parser(
         "let foo = (a, b) => a;",
         vec![DeclarationList::Let(
             vec![Declaration::new_with_identifier(
-                Identifier::from("foo"),
+                Identifier::new(interner.get_or_intern_static("foo")),
                 Some(
                     ArrowFunctionDecl::new(
                         vec![
                             FormalParameter::new(
-                                Declaration::new_with_identifier("a", None),
+                                Declaration::new_with_identifier(
+                                    interner.get_or_intern_static("a"),
+                                    None,
+                                ),
                                 false,
                             ),
                             FormalParameter::new(
-                                Declaration::new_with_identifier("b", None),
+                                Declaration::new_with_identifier(
+                                    interner.get_or_intern_static("b"),
+                                    None,
+                                ),
                                 false,
                             ),
                         ],
                         vec![Return::new::<Node, Option<_>, Option<_>>(
-                            Some(Identifier::from("a").into()),
+                            Some(Identifier::new(interner.get_or_intern_static("a")).into()),
                             None,
                         )
                         .into()],
@@ -446,30 +523,39 @@ fn check_arrow_assignment_2arg_nobrackets() {
 
 #[test]
 fn check_arrow_assignment_3arg() {
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
     check_parser(
         "let foo = (a, b, c) => { return a };",
         vec![DeclarationList::Let(
             vec![Declaration::new_with_identifier(
-                Identifier::from("foo"),
+                Identifier::new(interner.get_or_intern_static("foo")),
                 Some(
                     ArrowFunctionDecl::new(
                         vec![
                             FormalParameter::new(
-                                Declaration::new_with_identifier("a", None),
+                                Declaration::new_with_identifier(
+                                    interner.get_or_intern_static("a"),
+                                    None,
+                                ),
                                 false,
                             ),
                             FormalParameter::new(
-                                Declaration::new_with_identifier("b", None),
+                                Declaration::new_with_identifier(
+                                    interner.get_or_intern_static("b"),
+                                    None,
+                                ),
                                 false,
                             ),
                             FormalParameter::new(
-                                Declaration::new_with_identifier("c", None),
+                                Declaration::new_with_identifier(
+                                    interner.get_or_intern_static("c"),
+                                    None,
+                                ),
                                 false,
                             ),
                         ],
                         vec![Return::new::<Node, Option<_>, Option<_>>(
-                            Some(Identifier::from("a").into()),
+                            Some(Identifier::new(interner.get_or_intern_static("a")).into()),
                             None,
                         )
                         .into()],
@@ -486,30 +572,39 @@ fn check_arrow_assignment_3arg() {
 
 #[test]
 fn check_arrow_assignment_3arg_nobrackets() {
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
     check_parser(
         "let foo = (a, b, c) => a;",
         vec![DeclarationList::Let(
             vec![Declaration::new_with_identifier(
-                Identifier::from("foo"),
+                Identifier::new(interner.get_or_intern_static("foo")),
                 Some(
                     ArrowFunctionDecl::new(
                         vec![
                             FormalParameter::new(
-                                Declaration::new_with_identifier("a", None),
+                                Declaration::new_with_identifier(
+                                    interner.get_or_intern_static("a"),
+                                    None,
+                                ),
                                 false,
                             ),
                             FormalParameter::new(
-                                Declaration::new_with_identifier("b", None),
+                                Declaration::new_with_identifier(
+                                    interner.get_or_intern_static("b"),
+                                    None,
+                                ),
                                 false,
                             ),
                             FormalParameter::new(
-                                Declaration::new_with_identifier("c", None),
+                                Declaration::new_with_identifier(
+                                    interner.get_or_intern_static("c"),
+                                    None,
+                                ),
                                 false,
                             ),
                         ],
                         vec![Return::new::<Node, Option<_>, Option<_>>(
-                            Some(Identifier::from("a").into()),
+                            Some(Identifier::new(interner.get_or_intern_static("a")).into()),
                             None,
                         )
                         .into()],

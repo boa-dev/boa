@@ -2,7 +2,7 @@ use crate::{
     gc::{Finalize, Trace},
     syntax::ast::node::{Call, Node},
 };
-use std::fmt;
+use boa_interner::{Interner, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -54,9 +54,9 @@ impl From<Call> for New {
     }
 }
 
-impl fmt::Display for New {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "new {}", self.call)
+impl ToInternedString for New {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        format!("new {}", self.call.to_interned_string(interner))
     }
 }
 

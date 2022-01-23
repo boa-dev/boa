@@ -2,7 +2,7 @@ use crate::{
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
 };
-use std::fmt;
+use boa_interner::{Interner, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -50,12 +50,13 @@ impl From<Yield> for Node {
     }
 }
 
-impl fmt::Display for Yield {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl ToInternedString for Yield {
+    fn to_interned_string(&self, interner: &Interner) -> String {
         let y = if self.delegate { "yield*" } else { "yield" };
-        match self.expr() {
-            Some(ex) => write!(f, "{} {}", y, ex),
-            None => write!(f, "{}", y),
+        if let Some(ex) = self.expr() {
+            format!("{} {}", y, ex.to_interned_string(interner))
+        } else {
+            y.to_owned()
         }
     }
 }

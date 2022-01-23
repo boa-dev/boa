@@ -8,10 +8,10 @@ use crate::{
     environment::{
         global_environment_record::GlobalEnvironmentRecord, lexical_environment::LexicalEnvironment,
     },
+    gc::Gc,
     object::{JsObject, ObjectData},
     BoaProfiler,
 };
-use gc::Gc;
 
 /// Representation of a Realm.
 ///

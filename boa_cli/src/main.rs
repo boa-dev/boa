@@ -135,7 +135,7 @@ where
     S: AsRef<[u8]>,
 {
     if let Some(ref arg) = args.dump_ast {
-        let mut interner = Interner::new();
+        let mut interner = Interner::default();
         let ast = parse_tokens(src, &mut interner)?;
 
         match arg {

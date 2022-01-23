@@ -2,7 +2,7 @@ use crate::{
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
 };
-use std::fmt;
+use boa_interner::{Interner, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -46,9 +46,9 @@ impl Throw {
     }
 }
 
-impl fmt::Display for Throw {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "throw {}", self.expr)
+impl ToInternedString for Throw {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        format!("throw {}", self.expr.to_interned_string(interner))
     }
 }
 

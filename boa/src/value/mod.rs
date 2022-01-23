@@ -10,12 +10,12 @@ use crate::{
         number::{f64_to_int32, f64_to_uint32},
         Number,
     },
+    gc::{Finalize, Trace},
     object::{JsObject, ObjectData},
     property::{PropertyDescriptor, PropertyKey},
     symbol::{JsSymbol, WellKnownSymbols},
     BoaProfiler, Context, JsBigInt, JsResult, JsString,
 };
-use gc::{Finalize, Trace};
 use num_bigint::BigInt;
 use num_integer::Integer;
 use num_traits::Zero;

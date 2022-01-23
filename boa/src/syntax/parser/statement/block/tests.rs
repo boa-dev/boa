@@ -25,13 +25,14 @@ where
 
 #[test]
 fn empty() {
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
     check_block("{}", vec![], &mut interner);
 }
 
 #[test]
 fn non_empty() {
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
+    let a = interner.get_or_intern_static("a");
     check_block(
         r"{
             var a = 10;
@@ -40,18 +41,20 @@ fn non_empty() {
         vec![
             DeclarationList::Var(
                 vec![Declaration::new_with_identifier(
-                    "a",
+                    a,
                     Some(Const::from(10).into()),
                 )]
                 .into(),
             )
             .into(),
-            UnaryOp::new(op::UnaryOp::IncrementPost, Identifier::from("a")).into(),
+            UnaryOp::new(op::UnaryOp::IncrementPost, Identifier::new(a)).into(),
         ],
         &mut interner,
     );
 
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
+    let hello = interner.get_or_intern_static("hello");
+    let a = interner.get_or_intern_static("a");
     check_block(
         r"{
             function hello() {
@@ -63,20 +66,20 @@ fn non_empty() {
         }",
         vec![
             FunctionDecl::new(
-                "hello".to_owned().into_boxed_str(),
+                hello,
                 vec![],
                 vec![Return::new(Const::from(10), None).into()],
             )
             .into(),
             DeclarationList::Var(
                 vec![Declaration::new_with_identifier(
-                    "a",
-                    Node::from(Call::new(Identifier::from("hello"), vec![])),
+                    a,
+                    Node::from(Call::new(Identifier::new(hello), vec![])),
                 )]
                 .into(),
             )
             .into(),
-            UnaryOp::new(op::UnaryOp::IncrementPost, Identifier::from("a")).into(),
+            UnaryOp::new(op::UnaryOp::IncrementPost, Identifier::new(a)).into(),
         ],
         &mut interner,
     );
@@ -84,7 +87,9 @@ fn non_empty() {
 
 #[test]
 fn hoisting() {
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
+    let hello = interner.get_or_intern_static("hello");
+    let a = interner.get_or_intern_static("a");
     check_block(
         r"{
             var a = hello();
@@ -94,25 +99,26 @@ fn hoisting() {
         }",
         vec![
             FunctionDecl::new(
-                "hello".to_owned().into_boxed_str(),
+                hello,
                 vec![],
                 vec![Return::new(Const::from(10), None).into()],
             )
             .into(),
             DeclarationList::Var(
                 vec![Declaration::new_with_identifier(
-                    "a",
-                    Node::from(Call::new(Identifier::from("hello"), vec![])),
+                    a,
+                    Node::from(Call::new(Identifier::new(hello), vec![])),
                 )]
                 .into(),
             )
             .into(),
-            UnaryOp::new(op::UnaryOp::IncrementPost, Identifier::from("a")).into(),
+            UnaryOp::new(op::UnaryOp::IncrementPost, Identifier::new(a)).into(),
         ],
         &mut interner,
     );
 
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
+    let a = interner.get_or_intern_static("a");
     check_block(
         r"{
             a = 10;
@@ -121,9 +127,9 @@ fn hoisting() {
             var a;
         }",
         vec![
-            Assign::new(Identifier::from("a"), Const::from(10)).into(),
-            UnaryOp::new(op::UnaryOp::IncrementPost, Identifier::from("a")).into(),
-            DeclarationList::Var(vec![Declaration::new_with_identifier("a", None)].into()).into(),
+            Assign::new(Identifier::new(a), Const::from(10)).into(),
+            UnaryOp::new(op::UnaryOp::IncrementPost, Identifier::new(a)).into(),
+            DeclarationList::Var(vec![Declaration::new_with_identifier(a, None)].into()).into(),
         ],
         &mut interner,
     );

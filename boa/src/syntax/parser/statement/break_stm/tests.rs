@@ -11,37 +11,33 @@ use crate::{
 
 #[test]
 fn inline() {
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
     check_parser(
         "while (true) break;",
-        vec![WhileLoop::new(
-            Const::from(true),
-            Node::Break(Break::new::<_, Box<str>>(None)),
-        )
-        .into()],
+        vec![WhileLoop::new(Const::from(true), Node::Break(Break::new(None))).into()],
         &mut interner,
     );
 }
 
 #[test]
 fn new_line() {
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
     check_parser(
         "while (true)
             break;",
-        vec![WhileLoop::new(Const::from(true), Break::new::<_, Box<str>>(None)).into()],
+        vec![WhileLoop::new(Const::from(true), Break::new(None)).into()],
         &mut interner,
     );
 }
 
 #[test]
 fn inline_block_semicolon_insertion() {
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
     check_parser(
         "while (true) {break}",
         vec![WhileLoop::new(
             Const::from(true),
-            Block::from(vec![Break::new::<_, Box<str>>(None).into()]),
+            Block::from(vec![Break::new(None).into()]),
         )
         .into()],
         &mut interner,
@@ -50,14 +46,16 @@ fn inline_block_semicolon_insertion() {
 
 #[test]
 fn new_line_semicolon_insertion() {
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
     check_parser(
         "while (true) {
             break test
         }",
         vec![WhileLoop::new(
             Const::from(true),
-            Block::from(vec![Break::new("test").into()]),
+            Block::from(vec![
+                Break::new(interner.get_or_intern_static("test")).into()
+            ]),
         )
         .into()],
         &mut interner,
@@ -66,12 +64,12 @@ fn new_line_semicolon_insertion() {
 
 #[test]
 fn inline_block() {
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
     check_parser(
         "while (true) {break;}",
         vec![WhileLoop::new(
             Const::from(true),
-            Block::from(vec![Break::new::<_, Box<str>>(None).into()]),
+            Block::from(vec![Break::new(None).into()]),
         )
         .into()],
         &mut interner,
@@ -80,14 +78,16 @@ fn inline_block() {
 
 #[test]
 fn new_line_block() {
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
     check_parser(
         "while (true) {
             break test;
         }",
         vec![WhileLoop::new(
             Const::from(true),
-            Block::from(vec![Break::new("test").into()]),
+            Block::from(vec![
+                Break::new(interner.get_or_intern_static("test")).into()
+            ]),
         )
         .into()],
         &mut interner,
@@ -96,27 +96,31 @@ fn new_line_block() {
 
 #[test]
 fn reserved_label() {
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
     check_parser(
         "while (true) {
             break await;
         }",
         vec![WhileLoop::new(
             Const::from(true),
-            Block::from(vec![Break::new("await").into()]),
+            Block::from(vec![
+                Break::new(interner.get_or_intern_static("await")).into()
+            ]),
         )
         .into()],
         &mut interner,
     );
 
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
     check_parser(
         "while (true) {
             break yield;
         }",
         vec![WhileLoop::new(
             Const::from(true),
-            Block::from(vec![Break::new("yield").into()]),
+            Block::from(vec![
+                Break::new(interner.get_or_intern_static("yield")).into()
+            ]),
         )
         .into()],
         &mut interner,
@@ -125,14 +129,14 @@ fn reserved_label() {
 
 #[test]
 fn new_line_block_empty() {
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
     check_parser(
         "while (true) {
             break;
         }",
         vec![WhileLoop::new(
             Const::from(true),
-            Block::from(vec![Break::new::<_, Box<str>>(None).into()]),
+            Block::from(vec![Break::new(None).into()]),
         )
         .into()],
         &mut interner,
@@ -141,14 +145,14 @@ fn new_line_block_empty() {
 
 #[test]
 fn new_line_block_empty_semicolon_insertion() {
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
     check_parser(
         "while (true) {
             break
         }",
         vec![WhileLoop::new(
             Const::from(true),
-            Block::from(vec![Break::new::<_, Box<str>>(None).into()]),
+            Block::from(vec![Break::new(None).into()]),
         )
         .into()],
         &mut interner,

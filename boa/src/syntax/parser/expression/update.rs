@@ -5,6 +5,8 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-update-expressions
 
+use boa_interner::Sym;
+
 use super::left_hand_side::LeftHandSideExpression;
 use crate::{
     profiler::BoaProfiler,
@@ -97,7 +99,7 @@ where
                     let ok = match &lhs {
                         Node::Identifier(_) if !strict => true,
                         Node::Identifier(ident)
-                            if !["eval", "arguments"].contains(&ident.as_ref()) =>
+                            if ![Sym::EVAL, Sym::ARGUMENTS].contains(&ident.sym()) =>
                         {
                             true
                         }
@@ -122,7 +124,7 @@ where
                     let ok = match &lhs {
                         Node::Identifier(_) if !strict => true,
                         Node::Identifier(ident)
-                            if !["eval", "arguments"].contains(&ident.as_ref()) =>
+                            if ![Sym::EVAL, Sym::ARGUMENTS].contains(&ident.sym()) =>
                         {
                             true
                         }

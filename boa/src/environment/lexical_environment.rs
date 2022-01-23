@@ -7,10 +7,10 @@
 
 use super::global_environment_record::GlobalEnvironmentRecord;
 use crate::{
-    environment::environment_record_trait::EnvironmentRecordTrait, object::JsObject, BoaProfiler,
-    Context, JsResult, JsValue,
+    environment::environment_record_trait::EnvironmentRecordTrait, gc::Gc, object::JsObject,
+    BoaProfiler, Context, JsResult, JsValue,
 };
-use gc::Gc;
+use boa_interner::Sym;
 use std::{collections::VecDeque, error, fmt};
 
 /// Environments are wrapped in a Box and then in a GC wrapper
@@ -100,7 +100,7 @@ impl Context {
 
     pub(crate) fn create_mutable_binding(
         &mut self,
-        name: &str,
+        name: Sym,
         deletion: bool,
         scope: VariableScope,
     ) -> JsResult<()> {
@@ -110,7 +110,7 @@ impl Context {
 
     pub(crate) fn create_immutable_binding(
         &mut self,
-        name: &str,
+        name: Sym,
         deletion: bool,
         scope: VariableScope,
     ) -> JsResult<()> {
@@ -120,7 +120,7 @@ impl Context {
 
     pub(crate) fn set_mutable_binding(
         &mut self,
-        name: &str,
+        name: Sym,
         value: JsValue,
         strict: bool,
     ) -> JsResult<()> {
@@ -128,7 +128,7 @@ impl Context {
             .recursive_set_mutable_binding(name, value, strict, self)
     }
 
-    pub(crate) fn initialize_binding(&mut self, name: &str, value: JsValue) -> JsResult<()> {
+    pub(crate) fn initialize_binding(&mut self, name: Sym, value: JsValue) -> JsResult<()> {
         let _timer =
             BoaProfiler::global().start_event("LexicalEnvironment::initialize_binding", "env");
         self.get_current_environment()
@@ -148,13 +148,13 @@ impl Context {
             .clone()
     }
 
-    pub(crate) fn has_binding(&mut self, name: &str) -> JsResult<bool> {
+    pub(crate) fn has_binding(&mut self, name: Sym) -> JsResult<bool> {
         let _timer = BoaProfiler::global().start_event("LexicalEnvironment::has_binding", "env");
         self.get_current_environment()
             .recursive_has_binding(name, self)
     }
 
-    pub(crate) fn get_binding_value(&mut self, name: &str) -> JsResult<JsValue> {
+    pub(crate) fn get_binding_value(&mut self, name: Sym) -> JsResult<JsValue> {
         let _timer =
             BoaProfiler::global().start_event("LexicalEnvironment::get_binding_value", "env");
         self.get_current_environment()

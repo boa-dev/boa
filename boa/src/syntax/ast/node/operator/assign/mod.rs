@@ -2,7 +2,7 @@ use crate::{
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
 };
-use std::fmt;
+use boa_interner::{Interner, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -49,9 +49,13 @@ impl Assign {
     }
 }
 
-impl fmt::Display for Assign {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{} = {}", self.lhs, self.rhs)
+impl ToInternedString for Assign {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        format!(
+            "{} = {}",
+            self.lhs.to_interned_string(interner),
+            self.rhs.to_interned_string(interner)
+        )
     }
 }
 

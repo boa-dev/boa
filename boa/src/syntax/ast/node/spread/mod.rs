@@ -2,7 +2,7 @@ use crate::{
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
 };
-use std::fmt;
+use boa_interner::{Interner, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -49,9 +49,9 @@ impl Spread {
     }
 }
 
-impl fmt::Display for Spread {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "...{}", self.val())
+impl ToInternedString for Spread {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        format!("...{}", self.val().to_interned_string(interner))
     }
 }
 

@@ -1,14 +1,14 @@
 //! Iteration nodes
 
 pub use self::{
-    continue_node::Continue, do_while_loop::DoWhileLoop, for_in_loop::ForInLoop, for_loop::ForLoop,
-    for_of_loop::ForOfLoop, while_loop::WhileLoop,
+    break_node::Break, continue_node::Continue, do_while_loop::DoWhileLoop, for_in_loop::ForInLoop,
+    for_loop::ForLoop, for_of_loop::ForOfLoop, while_loop::WhileLoop,
 };
 use crate::{
     gc::{Finalize, Trace},
     syntax::ast::node::{declaration::Declaration, identifier::Identifier},
 };
-use std::fmt;
+use boa_interner::{Interner, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -25,17 +25,26 @@ pub enum IterableLoopInitializer {
     Const(Declaration),
 }
 
-impl fmt::Display for IterableLoopInitializer {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl ToInternedString for IterableLoopInitializer {
+    fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
-            IterableLoopInitializer::Identifier(identifier) => write!(f, "{}", identifier),
-            IterableLoopInitializer::Var(declaration) => write!(f, "var {}", declaration),
-            IterableLoopInitializer::Let(declaration) => write!(f, "let {}", declaration),
-            IterableLoopInitializer::Const(declaration) => write!(f, "const {}", declaration),
+            IterableLoopInitializer::Identifier(identifier) => {
+                identifier.to_interned_string(interner)
+            }
+            IterableLoopInitializer::Var(declaration) => {
+                format!("var {}", declaration.to_interned_string(interner))
+            }
+            IterableLoopInitializer::Let(declaration) => {
+                format!("let {}", declaration.to_interned_string(interner))
+            }
+            IterableLoopInitializer::Const(declaration) => {
+                format!("const {}", declaration.to_interned_string(interner))
+            }
         }
     }
 }
 
+pub mod break_node;
 pub mod continue_node;
 pub mod do_while_loop;
 pub mod for_in_loop;

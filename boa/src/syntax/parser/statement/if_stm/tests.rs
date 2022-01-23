@@ -11,7 +11,7 @@ use crate::{
 
 #[test]
 fn if_without_else_block() {
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
     check_parser(
         "if (true) {}",
         vec![If::new::<_, _, Node, _>(Const::from(true), Block::from(Vec::new()), None).into()],
@@ -21,7 +21,7 @@ fn if_without_else_block() {
 
 #[test]
 fn if_without_else_block_with_trailing_newline() {
-    let mut interner = Interner::new();
+    let mut interner = Interner::default();
     check_parser(
         "if (true) {}\n",
         vec![If::new::<_, _, Node, _>(Const::from(true), Block::from(Vec::new()), None).into()],

@@ -2,9 +2,11 @@
 
 use crate::{
     gc::{Finalize, Trace},
-    syntax::ast::node::{join_nodes, MethodDefinitionKind, Node, PropertyDefinition},
+    syntax::ast::node::{
+        declaration::block_to_string, join_nodes, MethodDefinitionKind, Node, PropertyDefinition,
+    },
 };
-use std::fmt;
+use boa_interner::{Interner, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -44,51 +46,57 @@ impl Object {
     }
 
     /// Implements the display formatting with indentation.
-    pub(in crate::syntax::ast::node) fn display(
+    pub(in crate::syntax::ast::node) fn to_indented_string(
         &self,
-        f: &mut fmt::Formatter<'_>,
+        interner: &Interner,
         indent: usize,
-    ) -> fmt::Result {
-        f.write_str("{\n")?;
+    ) -> String {
+        let mut buf = "{\n".to_owned();
         let indentation = "    ".repeat(indent + 1);
         for property in self.properties().iter() {
-            match property {
+            buf.push_str(&match property {
                 PropertyDefinition::IdentifierReference(key) => {
-                    writeln!(f, "{}{},", indentation, key)?;
+                    format!("{}{},\n", indentation, key)
                 }
                 PropertyDefinition::Property(key, value) => {
-                    write!(f, "{}{}: ", indentation, key,)?;
-                    value.display_no_indent(f, indent + 1)?;
-                    writeln!(f, ",")?;
+                    format!(
+                        "{}{}: {},\n",
+                        indentation,
+                        key.to_interned_string(interner),
+                        value.to_no_indent_string(interner, indent + 1)
+                    )
                 }
                 PropertyDefinition::SpreadObject(key) => {
-                    writeln!(f, "{}...{},", indentation, key)?;
+                    format!("{}...{},\n", indentation, key.to_interned_string(interner))
                 }
                 PropertyDefinition::MethodDefinition(kind, key, node) => {
-                    write!(f, "{}", indentation)?;
-                    match &kind {
-                        MethodDefinitionKind::Get => write!(f, "get ")?,
-                        MethodDefinitionKind::Set => write!(f, "set ")?,
-                        MethodDefinitionKind::Ordinary
-                        | MethodDefinitionKind::Generator
-                        | MethodDefinitionKind::Async
-                        | MethodDefinitionKind::AsyncGenerator => (),
-                    }
-                    write!(f, "{}(", key)?;
-                    join_nodes(f, node.parameters())?;
-                    write!(f, ") ")?;
-                    node.display_block(f, indent + 1)?;
-                    writeln!(f, ",")?;
+                    format!(
+                        "{}{}{}({}) {},\n",
+                        indentation,
+                        match &kind {
+                            MethodDefinitionKind::Get => "get ",
+                            MethodDefinitionKind::Set => "set ",
+                            MethodDefinitionKind::Ordinary
+                            | MethodDefinitionKind::Generator
+                            | MethodDefinitionKind::Async
+                            | MethodDefinitionKind::AsyncGenerator => "",
+                        },
+                        key.to_interned_string(interner),
+                        join_nodes(interner, node.parameters()),
+                        block_to_string(node.body(), interner, indent + 1)
+                    )
                 }
-            }
+            });
         }
-        write!(f, "{}}}", "    ".repeat(indent))
+        buf.push_str(&format!("{}}}", "    ".repeat(indent)));
+
+        buf
     }
 }
 
-impl fmt::Display for Object {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.display(f, 0)
+impl ToInternedString for Object {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        self.to_indented_string(interner, 0)
     }
 }
 

@@ -117,7 +117,6 @@ fn of() {
     assert_eq!(context.eval("a.length").unwrap(), JsValue::new(3));
 }
 
-#[ignore]
 #[test]
 fn concat() {
     let mut context = Context::default();

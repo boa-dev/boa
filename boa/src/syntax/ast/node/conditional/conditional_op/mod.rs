@@ -2,7 +2,7 @@ use crate::{
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
 };
-use std::fmt;
+use boa_interner::{Interner, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -57,14 +57,13 @@ impl ConditionalOp {
     }
 }
 
-impl fmt::Display for ConditionalOp {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
+impl ToInternedString for ConditionalOp {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        format!(
             "{} ? {} : {}",
-            self.cond(),
-            self.if_true(),
-            self.if_false()
+            self.cond().to_interned_string(interner),
+            self.if_true().to_interned_string(interner),
+            self.if_false().to_interned_string(interner)
         )
     }
 }

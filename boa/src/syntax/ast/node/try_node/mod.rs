@@ -2,7 +2,7 @@ use crate::{
     gc::{Finalize, Trace},
     syntax::ast::node::{Block, Declaration, Node},
 };
-use std::fmt;
+use boa_interner::{Interner, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -69,28 +69,31 @@ impl Try {
     }
 
     /// Implements the display formatting with indentation.
-    pub(in crate::syntax::ast::node) fn display(
+    pub(in crate::syntax::ast::node) fn to_indented_string(
         &self,
-        f: &mut fmt::Formatter<'_>,
+        interner: &Interner,
         indentation: usize,
-    ) -> fmt::Result {
-        write!(f, "{}try ", "    ".repeat(indentation))?;
-        self.block.display(f, indentation)?;
+    ) -> String {
+        let mut buf = format!(
+            "{}try {}",
+            "    ".repeat(indentation),
+            self.block.to_indented_string(interner, indentation)
+        );
 
         if let Some(ref catch) = self.catch {
-            catch.display(f, indentation)?;
+            buf.push_str(&catch.to_indented_string(interner, indentation));
         }
 
         if let Some(ref finally) = self.finally {
-            finally.display(f, indentation)?;
+            buf.push_str(&finally.to_indented_string(interner, indentation));
         }
-        Ok(())
+        buf
     }
 }
 
-impl fmt::Display for Try {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.display(f, 0)
+impl ToInternedString for Try {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        self.to_indented_string(interner, 0)
     }
 }
 
@@ -133,19 +136,23 @@ impl Catch {
     }
 
     /// Implements the display formatting with indentation.
-    pub(super) fn display(&self, f: &mut fmt::Formatter<'_>, indentation: usize) -> fmt::Result {
-        f.write_str(" catch")?;
+    pub(super) fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
+        let mut buf = " catch".to_owned();
         if let Some(ref param) = self.parameter {
-            write!(f, "({})", param)?;
+            buf.push_str(&format!("({})", param.to_interned_string(interner)));
         }
-        f.write_str(" ")?;
-        self.block.display(f, indentation)
+        buf.push_str(&format!(
+            " {}",
+            self.block.to_indented_string(interner, indentation)
+        ));
+
+        buf
     }
 }
 
-impl fmt::Display for Catch {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.display(f, 0)
+impl ToInternedString for Catch {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        self.to_indented_string(interner, 0)
     }
 }
 
@@ -163,9 +170,11 @@ impl Finally {
     }
 
     /// Implements the display formatting with indentation.
-    pub(super) fn display(&self, f: &mut fmt::Formatter<'_>, indentation: usize) -> fmt::Result {
-        f.write_str(" finally ")?;
-        self.block.display(f, indentation)
+    pub(super) fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
+        format!(
+            " finally {}",
+            self.block.to_indented_string(interner, indentation)
+        )
     }
 }
 

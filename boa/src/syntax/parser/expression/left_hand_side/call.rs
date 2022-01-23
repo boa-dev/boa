@@ -92,19 +92,12 @@ where
                 TokenKind::Punctuator(Punctuator::Dot) => {
                     cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?; // We move the parser forward.
 
-                    match &cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?.kind() {
+                    match cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?.kind() {
                         TokenKind::Identifier(name) => {
-                            lhs = GetConstField::new(
-                                lhs,
-                                interner
-                                    .resolve(*name)
-                                    .expect("string disappeared")
-                                    .to_owned(),
-                            )
-                            .into();
+                            lhs = GetConstField::new(lhs, *name).into();
                         }
                         TokenKind::Keyword(kw) => {
-                            lhs = GetConstField::new(lhs, kw.to_string()).into();
+                            lhs = GetConstField::new(lhs, kw.to_sym(interner)).into();
                         }
                         _ => {
                             return Err(ParseError::expected(

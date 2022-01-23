@@ -181,7 +181,7 @@ impl Test {
                         self.name
                     );
 
-                    let mut interner = Interner::new();
+                    let mut interner = Interner::default();
                     match Parser::new(self.content.as_bytes(), strict).parse_all(&mut interner) {
                         Ok(n) => (false, format!("{:?}", n)),
                         Err(e) => (true, format!("Uncaught {}", e)),
@@ -195,7 +195,7 @@ impl Test {
                     phase: Phase::Runtime,
                     ref error_type,
                 } => {
-                    let mut interner = Interner::new();
+                    let mut interner = Interner::default();
                     if let Err(e) =
                         Parser::new(self.content.as_bytes(), strict).parse_all(&mut interner)
                     {

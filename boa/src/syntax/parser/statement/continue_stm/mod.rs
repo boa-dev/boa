@@ -85,6 +85,6 @@ where
             Some(label)
         };
 
-        Ok(Continue::new::<_, Box<str>>(label))
+        Ok(Continue::new(label))
     }
 }

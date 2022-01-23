@@ -112,6 +112,7 @@ dependencies = [
 name = "boa_interner"
 version = "0.13.0"
 dependencies = [
+ "gc",
  "serde",
  "string-interner",
 ]
@@ -1273,9 +1274,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.75"
+version = "1.0.76"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c059c05b48c5c0067d4b4b2b4f0732dd65feb52daf7e0ea09cd87e7dadc1af79"
+checksum = "edde269018d33d7146dd074e5f7da6fef9b0a957507454c867caa0852c560a9a"
 dependencies = [
  "itoa 1.0.1",
  "ryu",

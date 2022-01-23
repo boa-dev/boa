@@ -1331,7 +1331,6 @@ fn multicharacter_assignment_to_non_assignable() {
 }
 
 #[test]
-#[ignore]
 fn multicharacter_bitwise_assignment_to_non_assignable() {
     let mut context = Context::default();
 

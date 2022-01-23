@@ -74,7 +74,7 @@ where
 
         let mut set = FxHashSet::default();
         let idents = match &catch_param {
-            Some(node::Declaration::Identifier { ident, .. }) => vec![ident.as_ref()],
+            Some(node::Declaration::Identifier { ident, .. }) => vec![ident.sym()],
             Some(node::Declaration::Pattern(p)) => p.idents(),
             _ => vec![],
         };
@@ -101,18 +101,18 @@ where
 
         // FIXME: `lexically_declared_names` only holds part of LexicallyDeclaredNames of the
         // Block e.g. function names are *not* included but should be.
-        let lexically_declared_names = catch_block.lexically_declared_names();
+        let lexically_declared_names = catch_block.lexically_declared_names(interner);
         let var_declared_names = catch_block.var_declared_named();
 
         for ident in set {
             // FIXME: pass correct position once #1295 lands
-            if lexically_declared_names.contains(ident) {
+            if lexically_declared_names.contains(&ident) {
                 return Err(ParseError::general(
                     "identifier redeclared",
                     Position::new(1, 1),
                 ));
             }
-            if var_declared_names.contains(ident) {
+            if var_declared_names.contains(&ident) {
                 return Err(ParseError::general(
                     "identifier redeclared",
                     Position::new(1, 1),
@@ -181,7 +181,7 @@ where
             TokenKind::Identifier(_) => {
                 let ident = BindingIdentifier::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)
-                    .map(Identifier::from)?;
+                    .map(Identifier::new)?;
                 Ok(node::Declaration::new_with_identifier(ident, None))
             }
             _ => Err(ParseError::unexpected(
