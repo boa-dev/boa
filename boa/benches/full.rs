@@ -36,7 +36,7 @@ macro_rules! full_benchmarks {
                     let statement_list = Parser::new(CODE.as_bytes(), false).parse_all( &mut interner).expect("parsing failed");
                     c.bench_function(concat!($id, " (Compiler)"), move |b| {
                         b.iter(|| {
-                            Context::compile(black_box(statement_list.clone()));
+                            Context::compile(black_box(&statement_list));
                         })
                     });
                 }
@@ -47,9 +47,9 @@ macro_rules! full_benchmarks {
                 {
                     static CODE: &str = include_str!(concat!("bench_scripts/", stringify!($name), ".js"));
                     let mut interner = Interner::new();
-                    let statement_list = Parser::new(CODE.as_bytes(), false).parse_all( &mut interner).expect("parsing failed");
-                    let code_block = Context::compile(statement_list);
-                    let mut context = Context::default();
+                    let statement_list = Parser::new(CODE.as_bytes(), false).parse_all(&mut interner).expect("parsing failed");
+                    let mut context = Context::new(interner);
+                    let code_block = Context::compile(&statement_list);
                     c.bench_function(concat!($id, " (Execution)"), move |b| {
                         b.iter(|| {
                             context.execute(black_box(code_block.clone())).unwrap();

@@ -895,7 +895,7 @@ impl Context {
             Err(e) => return self.throw_syntax_error(e),
         };
 
-        let code_block = Context::compile(statement_list);
+        let code_block = Context::compile(&statement_list);
         let result = self.execute(code_block);
 
         // The main_timer needs to be dropped before the BoaProfiler is.
@@ -905,24 +905,29 @@ impl Context {
         result
     }
 
-    // Compile the AST into a CodeBlock ready to execute by the VM
+    /// Compile the AST into a `CodeBlock` ready to be executed by the VM.
     #[inline]
-    pub fn compile(statement_list: StatementList) -> CodeBlock {
+    pub fn compile(statement_list: &StatementList) -> Gc<CodeBlock> {
         let _ = BoaProfiler::global().start_event("Compilation", "Main");
         let mut compiler = ByteCompiler::new(JsString::new("<main>"), statement_list.strict());
-        compiler.compile_statement_list(&statement_list, true);
-        compiler.finish()
+        compiler.compile_statement_list(statement_list, true);
+        Gc::new(compiler.finish())
     }
 
-    // Call the VM with the codeblock and return the result
+    /// Call the VM with a `CodeBlock` and return the result.
+    ///
+    /// Since this function receives a `Gc<CodeBlock>`, cloning the code is very cheap, since it's
+    /// just a pointer copy. Therefore, if you'd like to execute the same `CodeBlock` multiple
+    /// times, there is no need to re-compile it, and you can just call `clone()` on the
+    /// `Gc<CodeBlock>` returned by the [`Self::compile()`] function.
     #[inline]
-    pub fn execute(&mut self, code_block: CodeBlock) -> JsResult<JsValue> {
+    pub fn execute(&mut self, code_block: Gc<CodeBlock>) -> JsResult<JsValue> {
         let _ = BoaProfiler::global().start_event("Execute", "Main");
         let global_object = self.global_object().into();
 
         self.vm.push_frame(CallFrame {
             prev: None,
-            code: Gc::new(code_block),
+            code: code_block,
             this: global_object,
             pc: 0,
             catch: Vec::new(),
