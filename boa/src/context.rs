@@ -914,9 +914,9 @@ impl Context {
         Gc::new(compiler.finish())
     }
 
-    /// Call the VM with the `CodeBlock` and return the result.
+    /// Call the VM with a `CodeBlock` and return the result.
     ///
-    /// Since this functions receives a `Gc<CodeBlock`, cloning the code is very cheap, since it's
+    /// Since this function receives a `Gc<CodeBlock>`, cloning the code is very cheap, since it's
     /// just a pointer copy. Therefore, if you'd like to execute the same `CodeBlock` multiple
     /// times, there is no need to re-compile it, and you can just call `clone()` on the
     /// `Gc<CodeBlock>` returned by the [`Self::compile()`] function.
