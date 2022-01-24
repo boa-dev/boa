@@ -13,7 +13,7 @@ rust-version = "1.56"
 
 [dependencies]
 Boa = { path = "../boa", features = ["console"] }
-wasm-bindgen = "=0.2.78"
+wasm-bindgen = "=0.2.79"
 getrandom = { version = "0.2.3", features = ["js"] }
 
 [lib]
