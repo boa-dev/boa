@@ -439,11 +439,7 @@ impl Context {
                 };
 
                 let name = self.vm.frame().code.variables[index as usize];
-                let name: PropertyKey = self
-                    .interner()
-                    .resolve(name)
-                    .expect("string disappeared")
-                    .into();
+                let name: PropertyKey = self.interner().resolve_expect(name).into();
                 let result = object.get(name, self)?;
 
                 self.vm.push(result)
@@ -474,11 +470,7 @@ impl Context {
                 };
 
                 let name = self.vm.frame().code.variables[index as usize];
-                let name: PropertyKey = self
-                    .interner()
-                    .resolve(name)
-                    .expect("string disappeared")
-                    .into();
+                let name: PropertyKey = self.interner().resolve_expect(name).into();
 
                 object.set(
                     name,
@@ -499,7 +491,7 @@ impl Context {
                 };
 
                 let name = self.vm.frame().code.variables[index as usize];
-                let name = self.interner().resolve(name).expect("string disappeared");
+                let name = self.interner().resolve_expect(name);
 
                 object.__define_own_property__(
                     name.into(),
@@ -560,11 +552,7 @@ impl Context {
                 let object = object.to_object(self)?;
 
                 let name = self.vm.frame().code.variables[index as usize];
-                let name = self
-                    .interner()
-                    .resolve(name)
-                    .expect("string disappeared")
-                    .into();
+                let name = self.interner().resolve_expect(name).into();
                 let set = object
                     .__get_own_property__(&name, self)?
                     .as_ref()
@@ -609,11 +597,7 @@ impl Context {
                 let value = self.vm.pop();
                 let object = object.to_object(self)?;
                 let name = self.vm.frame().code.variables[index as usize];
-                let name = self
-                    .interner()
-                    .resolve(name)
-                    .expect("string disappeared")
-                    .into();
+                let name = self.interner().resolve_expect(name).into();
                 let get = object
                     .__get_own_property__(&name, self)?
                     .as_ref()
@@ -655,11 +639,7 @@ impl Context {
             Opcode::DeletePropertyByName => {
                 let index = self.vm.read::<u32>();
                 let key = self.vm.frame().code.variables[index as usize];
-                let key = self
-                    .interner()
-                    .resolve(key)
-                    .expect("string disappeared")
-                    .into();
+                let key = self.interner().resolve_expect(key).into();
                 let object = self.vm.pop();
                 let result = object.to_object(self)?.__delete__(&key, self)?;
                 if !result && self.strict() || self.vm.frame().code.strict {

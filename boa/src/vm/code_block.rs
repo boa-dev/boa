@@ -347,7 +347,7 @@ impl ToInternedString for CodeBlock {
                 f.push_str(&format!(
                     "    {:04}: {}\n",
                     i,
-                    interner.resolve(*value).expect("string disappeared")
+                    interner.resolve_expect(*value)
                 ));
             }
         } else {
