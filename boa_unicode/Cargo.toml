@@ -12,4 +12,4 @@ edition = "2021"
 rust-version = "1.56"
 
 [dependencies]
-unicode-general-category = "0.4.0"
+unicode-general-category = "0.5.1"
