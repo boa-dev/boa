@@ -3,7 +3,7 @@ use std::num::NonZeroUsize;
 
 #[track_caller]
 fn sym_from_usize(index: usize) -> Sym {
-    Sym::from_raw(NonZeroUsize::new(index).expect("Invalid NonZeroUsize"))
+    Sym::from_raw(NonZeroUsize::new(index).expect("invalid NonZeroUsize"))
 }
 
 #[test]
@@ -28,6 +28,7 @@ fn check_constants() {
     assert_eq!(Sym::GET, sym_from_usize(9));
     assert_eq!(Sym::SET, sym_from_usize(10));
     assert_eq!(Sym::MAIN, sym_from_usize(11));
+    assert_eq!(Sym::RAW, sym_from_usize(12));
 }
 
 #[test]

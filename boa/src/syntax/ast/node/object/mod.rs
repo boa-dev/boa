@@ -56,7 +56,7 @@ impl Object {
         for property in self.properties().iter() {
             buf.push_str(&match property {
                 PropertyDefinition::IdentifierReference(key) => {
-                    format!("{}{},\n", indentation, key)
+                    format!("{}{},\n", indentation, interner.resolve_expect(*key))
                 }
                 PropertyDefinition::Property(key, value) => {
                     format!(

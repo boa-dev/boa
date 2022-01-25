@@ -911,7 +911,8 @@ impl Context {
     #[inline]
     pub fn compile(&mut self, statement_list: &StatementList) -> Gc<CodeBlock> {
         let _ = BoaProfiler::global().start_event("Compilation", "Main");
-        let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), &self.interner);
+        let mut compiler =
+            ByteCompiler::new(Sym::MAIN, statement_list.strict(), &mut self.interner);
         compiler.compile_statement_list(statement_list, true);
         Gc::new(compiler.finish())
     }
