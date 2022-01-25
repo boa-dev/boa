@@ -60,7 +60,7 @@ enum Access<'a> {
 pub struct ByteCompiler<'b> {
     code_block: CodeBlock,
     literals_map: FxHashMap<Literal, u32>,
-    names_map: FxHashMap<JsString, u32>, // TODO: Sym
+    names_map: FxHashMap<Sym, u32>,
     jump_info: Vec<JumpControlInfo>,
     interner: &'b mut Interner,
 }
@@ -98,15 +98,14 @@ impl<'b> ByteCompiler<'b> {
     }
 
     #[inline]
-    fn get_or_insert_name(&mut self, name_sym: Sym) -> u32 {
-        let name = self.interner.resolve_expect(name_sym);
-        if let Some(index) = self.names_map.get(name) {
+    fn get_or_insert_name(&mut self, name: Sym) -> u32 {
+        if let Some(index) = self.names_map.get(&name) {
             return *index;
         }
 
         let index = self.code_block.variables.len() as u32;
-        self.code_block.variables.push(name_sym);
-        self.names_map.insert(JsString::new(name), index);
+        self.code_block.variables.push(name);
+        self.names_map.insert(name, index);
         index
     }
 
