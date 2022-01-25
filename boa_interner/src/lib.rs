@@ -304,7 +304,7 @@ where
     T: Display,
 {
     fn to_interned_string(&self, _interner: &Interner) -> String {
-        format!("{}", self)
+        self.to_string()
     }
 }
 

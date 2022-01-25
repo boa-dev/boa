@@ -1544,7 +1544,8 @@ impl<'b> ByteCompiler<'b> {
 
         match kind {
             FunctionKind::Declaration => {
-                let index = self.get_or_insert_name(name.unwrap());
+                let index =
+                    self.get_or_insert_name(name.expect("empty name for a declaration function"));
                 self.emit(Opcode::DefInitVar, &[index]);
             }
             FunctionKind::Expression | FunctionKind::Arrow => {
