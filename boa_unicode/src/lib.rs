@@ -40,11 +40,13 @@
 )]
 
 mod tables;
+#[cfg(test)]
+mod tests;
 
 use unicode_general_category::{get_general_category, GeneralCategory};
 
 /// The version of Unicode.
-pub const UNICODE_VERSION: (u64, u64, u64) = unicode_general_category::UNICODE_VERSION;
+pub const UNICODE_VERSION: (u64, u64, u64) = (14, 0, 0);
 
 /// Extend a type of code point to query if a value belongs to a particular Unicode property.
 ///
