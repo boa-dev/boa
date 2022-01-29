@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;libc-0.2.113&#x2F;src&#x2F;unix&#x2F;linux_like&#x2F;mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;libc-0.2.116&#x2F;src&#x2F;unix&#x2F;linux_like&#x2F;mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../libc/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -1703,6 +1703,124 @@
 <span id="1702">1702</span>
 <span id="1703">1703</span>
 <span id="1704">1704</span>
+<span id="1705">1705</span>
+<span id="1706">1706</span>
+<span id="1707">1707</span>
+<span id="1708">1708</span>
+<span id="1709">1709</span>
+<span id="1710">1710</span>
+<span id="1711">1711</span>
+<span id="1712">1712</span>
+<span id="1713">1713</span>
+<span id="1714">1714</span>
+<span id="1715">1715</span>
+<span id="1716">1716</span>
+<span id="1717">1717</span>
+<span id="1718">1718</span>
+<span id="1719">1719</span>
+<span id="1720">1720</span>
+<span id="1721">1721</span>
+<span id="1722">1722</span>
+<span id="1723">1723</span>
+<span id="1724">1724</span>
+<span id="1725">1725</span>
+<span id="1726">1726</span>
+<span id="1727">1727</span>
+<span id="1728">1728</span>
+<span id="1729">1729</span>
+<span id="1730">1730</span>
+<span id="1731">1731</span>
+<span id="1732">1732</span>
+<span id="1733">1733</span>
+<span id="1734">1734</span>
+<span id="1735">1735</span>
+<span id="1736">1736</span>
+<span id="1737">1737</span>
+<span id="1738">1738</span>
+<span id="1739">1739</span>
+<span id="1740">1740</span>
+<span id="1741">1741</span>
+<span id="1742">1742</span>
+<span id="1743">1743</span>
+<span id="1744">1744</span>
+<span id="1745">1745</span>
+<span id="1746">1746</span>
+<span id="1747">1747</span>
+<span id="1748">1748</span>
+<span id="1749">1749</span>
+<span id="1750">1750</span>
+<span id="1751">1751</span>
+<span id="1752">1752</span>
+<span id="1753">1753</span>
+<span id="1754">1754</span>
+<span id="1755">1755</span>
+<span id="1756">1756</span>
+<span id="1757">1757</span>
+<span id="1758">1758</span>
+<span id="1759">1759</span>
+<span id="1760">1760</span>
+<span id="1761">1761</span>
+<span id="1762">1762</span>
+<span id="1763">1763</span>
+<span id="1764">1764</span>
+<span id="1765">1765</span>
+<span id="1766">1766</span>
+<span id="1767">1767</span>
+<span id="1768">1768</span>
+<span id="1769">1769</span>
+<span id="1770">1770</span>
+<span id="1771">1771</span>
+<span id="1772">1772</span>
+<span id="1773">1773</span>
+<span id="1774">1774</span>
+<span id="1775">1775</span>
+<span id="1776">1776</span>
+<span id="1777">1777</span>
+<span id="1778">1778</span>
+<span id="1779">1779</span>
+<span id="1780">1780</span>
+<span id="1781">1781</span>
+<span id="1782">1782</span>
+<span id="1783">1783</span>
+<span id="1784">1784</span>
+<span id="1785">1785</span>
+<span id="1786">1786</span>
+<span id="1787">1787</span>
+<span id="1788">1788</span>
+<span id="1789">1789</span>
+<span id="1790">1790</span>
+<span id="1791">1791</span>
+<span id="1792">1792</span>
+<span id="1793">1793</span>
+<span id="1794">1794</span>
+<span id="1795">1795</span>
+<span id="1796">1796</span>
+<span id="1797">1797</span>
+<span id="1798">1798</span>
+<span id="1799">1799</span>
+<span id="1800">1800</span>
+<span id="1801">1801</span>
+<span id="1802">1802</span>
+<span id="1803">1803</span>
+<span id="1804">1804</span>
+<span id="1805">1805</span>
+<span id="1806">1806</span>
+<span id="1807">1807</span>
+<span id="1808">1808</span>
+<span id="1809">1809</span>
+<span id="1810">1810</span>
+<span id="1811">1811</span>
+<span id="1812">1812</span>
+<span id="1813">1813</span>
+<span id="1814">1814</span>
+<span id="1815">1815</span>
+<span id="1816">1816</span>
+<span id="1817">1817</span>
+<span id="1818">1818</span>
+<span id="1819">1819</span>
+<span id="1820">1820</span>
+<span id="1821">1821</span>
+<span id="1822">1822</span>
 </pre><pre class="rust"><code><span class="kw">pub</span> <span class="kw">type</span> <span class="ident">sa_family_t</span> <span class="op">=</span> <span class="ident">u16</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">speed_t</span> <span class="op">=</span> <span class="ident">::c_uint</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">tcflag_t</span> <span class="op">=</span> <span class="ident">::c_uint</span>;
@@ -1728,6 +1846,12 @@
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ip_mreq</span> {
         <span class="kw">pub</span> <span class="ident">imr_multiaddr</span>: <span class="ident">in_addr</span>,
         <span class="kw">pub</span> <span class="ident">imr_interface</span>: <span class="ident">in_addr</span>,
+    }
+
+    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ip_mreqn</span> {
+        <span class="kw">pub</span> <span class="ident">imr_multiaddr</span>: <span class="ident">in_addr</span>,
+        <span class="kw">pub</span> <span class="ident">imr_address</span>: <span class="ident">in_addr</span>,
+        <span class="kw">pub</span> <span class="ident">imr_ifindex</span>: <span class="ident">::c_int</span>,
     }
 
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ip_mreq_source</span> {
@@ -3069,6 +3193,118 @@
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ARPHRD_VOID</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="number">0xFFFF</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ARPHRD_NONE</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="number">0xFFFE</span>;
+
+<span class="macro">cfg_if!</span> {
+    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>)]</span> {
+        <span class="comment">// Emscripten does not define any `*_SUPER_MAGIC` constants.</span>
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;s390x&quot;</span>))]</span> {
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ADFS_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x0000adf5</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">AFFS_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x0000adff</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">AFS_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x5346414f</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">AUTOFS_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x0187</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_FS_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0xcafe4a11</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BTRFS_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x9123683e</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CGROUP2_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x63677270</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CGROUP_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x27e0eb</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CODA_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x73757245</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CRAMFS_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x28cd3d45</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DEBUGFS_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x64626720</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DEVPTS_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x1cd1</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ECRYPTFS_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0xf15f</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EFS_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x00414a53</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EXT2_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x0000ef53</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EXT3_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x0000ef53</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EXT4_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x0000ef53</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">F2FS_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0xf2f52010</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FUSE_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x65735546</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FUTEXFS_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0xbad1dea</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">HOSTFS_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x00c0ffee</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">HPFS_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0xf995e849</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">HUGETLBFS_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x958458f6</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ISOFS_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x00009660</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">JFFS2_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x000072b6</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MINIX2_SUPER_MAGIC2</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x00002478</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MINIX2_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x00002468</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MINIX3_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x4d5a</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MINIX_SUPER_MAGIC2</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x0000138f</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MINIX_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x0000137f</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MSDOS_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x00004d44</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCP_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x0000564c</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFS_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x00006969</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NILFS_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x3434</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">OCFS2_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x7461636f</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">OPENPROM_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x00009fa1</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">OVERLAYFS_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x794c7630</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PROC_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x00009fa0</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">QNX4_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x0000002f</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">QNX6_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x68191122</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RDTGROUP_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x7655821</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">REISERFS_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x52654973</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SECURITYFS_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x73636673</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SELINUX_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0xf97cff8c</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SMACK_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x43415d53</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SMB_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x0000517b</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYSFS_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x62656572</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TMPFS_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x01021994</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TRACEFS_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x74726163</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">UDF_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x15013346</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">USBDEVICE_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0x00009fa2</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">XENFS_SUPER_MAGIC</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0xabba1974</span>;
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;s390x&quot;</span>)]</span> {
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ADFS_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x0000adf5</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">AFFS_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x0000adff</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">AFS_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x5346414f</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">AUTOFS_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x0187</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BPF_FS_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0xcafe4a11</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BTRFS_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x9123683e</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CGROUP2_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x63677270</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CGROUP_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x27e0eb</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CODA_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x73757245</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CRAMFS_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x28cd3d45</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DEBUGFS_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x64626720</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DEVPTS_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x1cd1</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ECRYPTFS_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0xf15f</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EFS_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x00414a53</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EXT2_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x0000ef53</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EXT3_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x0000ef53</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EXT4_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x0000ef53</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">F2FS_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0xf2f52010</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FUSE_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x65735546</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FUTEXFS_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0xbad1dea</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">HOSTFS_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x00c0ffee</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">HPFS_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0xf995e849</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">HUGETLBFS_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x958458f6</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ISOFS_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x00009660</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">JFFS2_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x000072b6</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MINIX2_SUPER_MAGIC2</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x00002478</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MINIX2_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x00002468</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MINIX3_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x4d5a</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MINIX_SUPER_MAGIC2</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x0000138f</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MINIX_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x0000137f</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MSDOS_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x00004d44</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCP_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x0000564c</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFS_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x00006969</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NILFS_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x3434</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">OCFS2_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x7461636f</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">OPENPROM_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x00009fa1</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">OVERLAYFS_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x794c7630</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PROC_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x00009fa0</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">QNX4_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x0000002f</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">QNX6_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x68191122</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RDTGROUP_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x7655821</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">REISERFS_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x52654973</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SECURITYFS_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x73636673</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SELINUX_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0xf97cff8c</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SMACK_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x43415d53</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SMB_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x0000517b</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYSFS_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x62656572</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TMPFS_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x01021994</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TRACEFS_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x74726163</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">UDF_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x15013346</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">USBDEVICE_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0x00009fa2</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">XENFS_SUPER_MAGIC</span>: <span class="ident">::c_uint</span> <span class="op">=</span> <span class="number">0xabba1974</span>;
+    }
+}
 
 <span class="macro">const_fn!</span> {
     {<span class="kw">const</span>} <span class="kw">fn</span> <span class="ident">CMSG_ALIGN</span>(<span class="ident">len</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span> {
