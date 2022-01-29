@@ -174,8 +174,8 @@
         <span class="kw">let</span> <span class="ident">indentation</span> <span class="op">=</span> <span class="string">&quot;    &quot;</span>.<span class="ident">repeat</span>(<span class="ident">indent</span> <span class="op">+</span> <span class="number">1</span>);
         <span class="kw">for</span> <span class="ident">property</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">properties</span>().<span class="ident">iter</span>() {
             <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="kw">match</span> <span class="ident">property</span> {
-                <span class="ident">PropertyDefinition::IdentifierReference</span>(<span class="ident">key</span>) =&gt; {
-                    <span class="macro">format!</span>(<span class="string">&quot;{}{},\n&quot;</span>, <span class="ident">indentation</span>, <span class="ident">key</span>)
+                <span class="ident">PropertyDefinition::IdentifierReference</span>(<span class="ident">ident</span>) =&gt; {
+                    <span class="macro">format!</span>(<span class="string">&quot;{}{},\n&quot;</span>, <span class="ident">indentation</span>, <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="kw-2">*</span><span class="ident">ident</span>))
                 }
                 <span class="ident">PropertyDefinition::Property</span>(<span class="ident">key</span>, <span class="ident">value</span>) =&gt; {
                     <span class="macro">format!</span>(

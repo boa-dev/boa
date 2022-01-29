@@ -1773,40 +1773,6 @@
 <span id="1772">1772</span>
 <span id="1773">1773</span>
 <span id="1774">1774</span>
-<span id="1775">1775</span>
-<span id="1776">1776</span>
-<span id="1777">1777</span>
-<span id="1778">1778</span>
-<span id="1779">1779</span>
-<span id="1780">1780</span>
-<span id="1781">1781</span>
-<span id="1782">1782</span>
-<span id="1783">1783</span>
-<span id="1784">1784</span>
-<span id="1785">1785</span>
-<span id="1786">1786</span>
-<span id="1787">1787</span>
-<span id="1788">1788</span>
-<span id="1789">1789</span>
-<span id="1790">1790</span>
-<span id="1791">1791</span>
-<span id="1792">1792</span>
-<span id="1793">1793</span>
-<span id="1794">1794</span>
-<span id="1795">1795</span>
-<span id="1796">1796</span>
-<span id="1797">1797</span>
-<span id="1798">1798</span>
-<span id="1799">1799</span>
-<span id="1800">1800</span>
-<span id="1801">1801</span>
-<span id="1802">1802</span>
-<span id="1803">1803</span>
-<span id="1804">1804</span>
-<span id="1805">1805</span>
-<span id="1806">1806</span>
-<span id="1807">1807</span>
-<span id="1808">1808</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::function::ThisMode</span>,
     <span class="ident">gc::Gc</span>,
@@ -1869,7 +1835,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ByteCompiler</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
     <span class="ident">code_block</span>: <span class="ident">CodeBlock</span>,
     <span class="ident">literals_map</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">Literal</span>, <span class="ident">u32</span><span class="op">&gt;</span>,
-    <span class="ident">names_map</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">JsString</span>, <span class="ident">u32</span><span class="op">&gt;</span>,
+    <span class="ident">names_map</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">Sym</span>, <span class="ident">u32</span><span class="op">&gt;</span>,
     <span class="ident">jump_info</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JumpControlInfo</span><span class="op">&gt;</span>,
     <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">Interner</span>,
 }
@@ -1907,14 +1873,13 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">get_or_insert_name</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">u32</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">names_map</span>.<span class="ident">get</span>(<span class="ident">name</span>) {
+    <span class="kw">fn</span> <span class="ident">get_or_insert_name</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="ident">Sym</span>) -&gt; <span class="ident">u32</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">names_map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>) {
             <span class="kw">return</span> <span class="kw-2">*</span><span class="ident">index</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">JsString::new</span>(<span class="ident">name</span>);
         <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">code_block</span>.<span class="ident">variables</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>;
-        <span class="self">self</span>.<span class="ident">code_block</span>.<span class="ident">variables</span>.<span class="ident">push</span>(<span class="ident">name</span>.<span class="ident">clone</span>());
+        <span class="self">self</span>.<span class="ident">code_block</span>.<span class="ident">variables</span>.<span class="ident">push</span>(<span class="ident">name</span>);
         <span class="self">self</span>.<span class="ident">names_map</span>.<span class="ident">insert</span>(<span class="ident">name</span>, <span class="ident">index</span>);
         <span class="ident">index</span>
     }
@@ -2162,7 +2127,7 @@
     <span class="kw">fn</span> <span class="ident">compile_access</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Node</span>) -&gt; <span class="ident">Access</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">node</span> {
             <span class="ident">Node::Identifier</span>(<span class="ident">name</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">name</span>.<span class="ident">sym</span>()));
+                <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">name</span>.<span class="ident">sym</span>());
                 <span class="ident">Access::Variable</span> { <span class="ident">index</span> }
             }
             <span class="ident">Node::GetConstField</span>(<span class="ident">node</span>) =&gt; <span class="ident">Access::ByName</span> { <span class="ident">node</span> },
@@ -2179,7 +2144,7 @@
                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetName</span>, <span class="kw-2">&amp;</span>[<span class="ident">name</span>]);
             }
             <span class="ident">Access::ByName</span> { <span class="ident">node</span> } =&gt; {
-                <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">node</span>.<span class="ident">field</span>()));
+                <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">node</span>.<span class="ident">field</span>());
                 <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">node</span>.<span class="ident">obj</span>(), <span class="bool-val">true</span>);
                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
             }
@@ -2214,7 +2179,7 @@
             }
             <span class="ident">Access::ByName</span> { <span class="ident">node</span> } =&gt; {
                 <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">node</span>.<span class="ident">obj</span>(), <span class="bool-val">true</span>);
-                <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">node</span>.<span class="ident">field</span>()));
+                <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">node</span>.<span class="ident">field</span>());
                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::SetPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
             }
             <span class="ident">Access::ByValue</span> { <span class="ident">node</span> } =&gt; {
@@ -2297,9 +2262,7 @@
                     }
                     <span class="ident">UnaryOp::Delete</span> =&gt; <span class="kw">match</span> <span class="ident">unary</span>.<span class="ident">target</span>() {
                         <span class="ident">Node::GetConstField</span>(<span class="kw-2">ref</span> <span class="ident">get_const_field</span>) =&gt; {
-                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(
-                                <span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">get_const_field</span>.<span class="ident">field</span>()),
-                            );
+                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">get_const_field</span>.<span class="ident">field</span>());
                             <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">get_const_field</span>.<span class="ident">obj</span>(), <span class="bool-val">true</span>);
                             <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DeletePropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                             <span class="prelude-val">None</span>
@@ -2327,9 +2290,7 @@
                     <span class="ident">UnaryOp::TypeOf</span> =&gt; {
                         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">unary</span>.<span class="ident">target</span>() {
                             <span class="ident">Node::Identifier</span>(<span class="ident">identifier</span>) =&gt; {
-                                <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(
-                                    <span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">identifier</span>.<span class="ident">sym</span>()),
-                                );
+                                <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">identifier</span>.<span class="ident">sym</span>());
                                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetNameOrUndefined</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                             }
                             <span class="ident">expr</span> =&gt; <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">expr</span>, <span class="bool-val">true</span>),
@@ -2486,16 +2447,15 @@
                 <span class="kw">for</span> <span class="ident">property</span> <span class="kw">in</span> <span class="ident">object</span>.<span class="ident">properties</span>() {
                     <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Dup</span>);
                     <span class="kw">match</span> <span class="ident">property</span> {
-                        <span class="ident">PropertyDefinition::IdentifierReference</span>(<span class="ident">identifier_reference</span>) =&gt; {
-                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">identifier_reference</span>);
+                        <span class="ident">PropertyDefinition::IdentifierReference</span>(<span class="ident">ident</span>) =&gt; {
+                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="kw-2">*</span><span class="ident">ident</span>);
                             <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefineOwnPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                         }
                         <span class="ident">PropertyDefinition::Property</span>(<span class="ident">name</span>, <span class="ident">node</span>) =&gt; <span class="kw">match</span> <span class="ident">name</span> {
                             <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
                                 <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">node</span>, <span class="bool-val">true</span>);
                                 <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
-                                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="kw-2">*</span><span class="ident">name</span>);
-                                <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">name</span>);
+                                <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="kw-2">*</span><span class="ident">name</span>);
                                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefineOwnPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                             }
                             <span class="ident">PropertyName::Computed</span>(<span class="ident">name_node</span>) =&gt; {
@@ -2510,8 +2470,7 @@
                                     <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
                                         <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="kw-2">&amp;</span><span class="ident">func</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="bool-val">true</span>);
                                         <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
-                                        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="kw-2">*</span><span class="ident">name</span>);
-                                        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">name</span>);
+                                        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="kw-2">*</span><span class="ident">name</span>);
                                         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::SetPropertyGetterByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                                     }
                                     <span class="ident">PropertyName::Computed</span>(<span class="ident">name_node</span>) =&gt; {
@@ -2524,8 +2483,7 @@
                                     <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
                                         <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="kw-2">&amp;</span><span class="ident">func</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="bool-val">true</span>);
                                         <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
-                                        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="kw-2">*</span><span class="ident">name</span>);
-                                        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">name</span>);
+                                        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="kw-2">*</span><span class="ident">name</span>);
                                         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::SetPropertySetterByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                                     }
                                     <span class="ident">PropertyName::Computed</span>(<span class="ident">name_node</span>) =&gt; {
@@ -2538,8 +2496,7 @@
                                     <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
                                         <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="kw-2">&amp;</span><span class="ident">func</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="bool-val">true</span>);
                                         <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
-                                        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="kw-2">*</span><span class="ident">name</span>);
-                                        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">name</span>);
+                                        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="kw-2">*</span><span class="ident">name</span>);
                                         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefineOwnPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                                     }
                                     <span class="ident">PropertyName::Computed</span>(<span class="ident">name_node</span>) =&gt; {
@@ -2554,8 +2511,7 @@
                                         <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
                                             <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushUndefined</span>);
                                             <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
-                                            <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="kw-2">*</span><span class="ident">name</span>);
-                                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">name</span>);
+                                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="kw-2">*</span><span class="ident">name</span>);
                                             <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefineOwnPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                                         }
                                         <span class="ident">PropertyName::Computed</span>(<span class="ident">name_node</span>) =&gt; {
@@ -2571,8 +2527,7 @@
                                         <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
                                             <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushUndefined</span>);
                                             <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
-                                            <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="kw-2">*</span><span class="ident">name</span>);
-                                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">name</span>);
+                                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="kw-2">*</span><span class="ident">name</span>);
                                             <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefineOwnPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>])
                                         }
                                         <span class="ident">PropertyName::Computed</span>(<span class="ident">name_node</span>) =&gt; {
@@ -2588,8 +2543,7 @@
                                         <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
                                             <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushUndefined</span>);
                                             <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
-                                            <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="kw-2">*</span><span class="ident">name</span>);
-                                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">name</span>);
+                                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="kw-2">*</span><span class="ident">name</span>);
                                             <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefineOwnPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>])
                                         }
                                         <span class="ident">PropertyName::Computed</span>(<span class="ident">name_node</span>) =&gt; {
@@ -2615,7 +2569,7 @@
                 }
             }
             <span class="ident">Node::Identifier</span>(<span class="ident">name</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">name</span>.<span class="ident">sym</span>()));
+                <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">name</span>.<span class="ident">sym</span>());
                 <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident">Access::Variable</span> { <span class="ident">index</span> };
                 <span class="self">self</span>.<span class="ident">access_get</span>(<span class="ident">access</span>, <span class="ident">use_expr</span>);
             }
@@ -2722,8 +2676,7 @@
                     <span class="ident">Node::GetConstField</span>(<span class="ident">field</span>) =&gt; {
                         <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">field</span>.<span class="ident">obj</span>(), <span class="bool-val">true</span>);
                         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Dup</span>, <span class="kw-2">&amp;</span>[]);
-                        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span>
-                            <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">field</span>.<span class="ident">field</span>()));
+                        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">field</span>.<span class="ident">field</span>());
                         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                     }
                     <span class="ident">Node::GetField</span>(<span class="ident">field</span>) =&gt; {
@@ -2762,7 +2715,7 @@
                 }
 
                 <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
-                <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="string">&quot;raw&quot;</span>);
+                <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">Sym::RAW</span>);
                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::SetPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
 
                 <span class="kw">for</span> <span class="ident">expr</span> <span class="kw">in</span> <span class="ident">template</span>.<span class="ident">exprs</span>() {
@@ -2782,8 +2735,8 @@
                 <span class="kw">for</span> <span class="ident">decl</span> <span class="kw">in</span> <span class="ident">list</span>.<span class="ident">as_ref</span>() {
                     <span class="kw">match</span> <span class="ident">decl</span> {
                         <span class="ident">Declaration::Identifier</span> { <span class="ident">ident</span>, .. } =&gt; {
-                            <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">ident</span>.<span class="ident">sym</span>());
-                            <span class="kw">if</span> <span class="ident">ident</span> <span class="op">==</span> <span class="string">&quot;arguments&quot;</span> {
+                            <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">ident</span>.<span class="ident">sym</span>();
+                            <span class="kw">if</span> <span class="ident">ident</span> <span class="op">==</span> <span class="ident">Sym::ARGUMENTS</span> {
                                 <span class="self">self</span>.<span class="ident">code_block</span>.<span class="ident">lexical_name_argument</span> <span class="op">=</span> <span class="bool-val">true</span>;
                             }
 
@@ -2820,8 +2773,7 @@
                                 <span class="self">self</span>.<span class="ident">code_block</span>.<span class="ident">lexical_name_argument</span> <span class="op">=</span> <span class="bool-val">true</span>;
                             }
 
-                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span>
-                                <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">ident</span>.<span class="ident">sym</span>()));
+                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">ident</span>.<span class="ident">sym</span>());
 
                             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">expr</span>) <span class="op">=</span> <span class="ident">decl</span>.<span class="ident">init</span>() {
                                 <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">expr</span>, <span class="bool-val">true</span>);
@@ -2854,8 +2806,7 @@
                                 <span class="self">self</span>.<span class="ident">code_block</span>.<span class="ident">lexical_name_argument</span> <span class="op">=</span> <span class="bool-val">true</span>;
                             }
 
-                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span>
-                                <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">ident</span>.<span class="ident">sym</span>()));
+                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">ident</span>.<span class="ident">sym</span>());
                             <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">decl</span>
                                 .<span class="ident">init</span>()
                                 .<span class="ident">expect</span>(<span class="string">&quot;const declaration must have initializer&quot;</span>);
@@ -2942,14 +2893,12 @@
 
                 <span class="kw">match</span> <span class="ident">for_in_loop</span>.<span class="ident">init</span>() {
                     <span class="ident">IterableLoopInitializer::Identifier</span>(<span class="kw-2">ref</span> <span class="ident">ident</span>) =&gt; {
-                        <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">ident</span>.<span class="ident">sym</span>());
-                        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">ident</span>);
+                        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">ident</span>.<span class="ident">sym</span>());
                         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::SetName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                     }
                     <span class="ident">IterableLoopInitializer::Var</span>(<span class="ident">declaration</span>) =&gt; <span class="kw">match</span> <span class="ident">declaration</span> {
                         <span class="ident">Declaration::Identifier</span> { <span class="ident">ident</span>, .. } =&gt; {
-                            <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">ident</span>.<span class="ident">sym</span>());
-                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">ident</span>);
+                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">ident</span>.<span class="ident">sym</span>());
                             <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefInitVar</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                         }
                         <span class="ident">Declaration::Pattern</span>(<span class="ident">pattern</span>) =&gt; {
@@ -2958,8 +2907,7 @@
                     },
                     <span class="ident">IterableLoopInitializer::Let</span>(<span class="ident">declaration</span>) =&gt; <span class="kw">match</span> <span class="ident">declaration</span> {
                         <span class="ident">Declaration::Identifier</span> { <span class="ident">ident</span>, .. } =&gt; {
-                            <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">ident</span>.<span class="ident">sym</span>());
-                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">ident</span>);
+                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">ident</span>.<span class="ident">sym</span>());
                             <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefInitLet</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                         }
                         <span class="ident">Declaration::Pattern</span>(<span class="ident">pattern</span>) =&gt; {
@@ -2968,8 +2916,7 @@
                     },
                     <span class="ident">IterableLoopInitializer::Const</span>(<span class="ident">declaration</span>) =&gt; <span class="kw">match</span> <span class="ident">declaration</span> {
                         <span class="ident">Declaration::Identifier</span> { <span class="ident">ident</span>, .. } =&gt; {
-                            <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">ident</span>.<span class="ident">sym</span>());
-                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">ident</span>);
+                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">ident</span>.<span class="ident">sym</span>());
                             <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefInitConst</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                         }
                         <span class="ident">Declaration::Pattern</span>(<span class="ident">pattern</span>) =&gt; {
@@ -3002,14 +2949,12 @@
 
                 <span class="kw">match</span> <span class="ident">for_of_loop</span>.<span class="ident">init</span>() {
                     <span class="ident">IterableLoopInitializer::Identifier</span>(<span class="kw-2">ref</span> <span class="ident">ident</span>) =&gt; {
-                        <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">ident</span>.<span class="ident">sym</span>());
-                        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">ident</span>);
+                        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">ident</span>.<span class="ident">sym</span>());
                         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::SetName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                     }
                     <span class="ident">IterableLoopInitializer::Var</span>(<span class="ident">declaration</span>) =&gt; <span class="kw">match</span> <span class="ident">declaration</span> {
                         <span class="ident">Declaration::Identifier</span> { <span class="ident">ident</span>, .. } =&gt; {
-                            <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">ident</span>.<span class="ident">sym</span>());
-                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">ident</span>);
+                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">ident</span>.<span class="ident">sym</span>());
                             <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefInitVar</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                         }
                         <span class="ident">Declaration::Pattern</span>(<span class="ident">pattern</span>) =&gt; {
@@ -3018,8 +2963,7 @@
                     },
                     <span class="ident">IterableLoopInitializer::Let</span>(<span class="ident">declaration</span>) =&gt; <span class="kw">match</span> <span class="ident">declaration</span> {
                         <span class="ident">Declaration::Identifier</span> { <span class="ident">ident</span>, .. } =&gt; {
-                            <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">ident</span>.<span class="ident">sym</span>());
-                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">ident</span>);
+                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">ident</span>.<span class="ident">sym</span>());
                             <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefInitLet</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                         }
                         <span class="ident">Declaration::Pattern</span>(<span class="ident">pattern</span>) =&gt; {
@@ -3028,8 +2972,7 @@
                     },
                     <span class="ident">IterableLoopInitializer::Const</span>(<span class="ident">declaration</span>) =&gt; <span class="kw">match</span> <span class="ident">declaration</span> {
                         <span class="ident">Declaration::Identifier</span> { <span class="ident">ident</span>, .. } =&gt; {
-                            <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">ident</span>.<span class="ident">sym</span>());
-                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">ident</span>);
+                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">ident</span>.<span class="ident">sym</span>());
                             <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefInitConst</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                         }
                         <span class="ident">Declaration::Pattern</span>(<span class="ident">pattern</span>) =&gt; {
@@ -3216,8 +3159,7 @@
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">decl</span>) <span class="op">=</span> <span class="ident">catch</span>.<span class="ident">parameter</span>() {
                         <span class="kw">match</span> <span class="ident">decl</span> {
                             <span class="ident">Declaration::Identifier</span> { <span class="ident">ident</span>, .. } =&gt; {
-                                <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">ident</span>.<span class="ident">sym</span>());
-                                <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">ident</span>);
+                                <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">ident</span>.<span class="ident">sym</span>());
                                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefInitLet</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                             }
                             <span class="ident">Declaration::Pattern</span>(<span class="ident">pattern</span>) =&gt; {
@@ -3336,8 +3278,7 @@
 
             <span class="kw">match</span> <span class="ident">parameter</span>.<span class="ident">declaration</span>() {
                 <span class="ident">Declaration::Identifier</span> { <span class="ident">ident</span>, .. } =&gt; {
-                    <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">ident</span>.<span class="ident">sym</span>());
-                    <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">compiler</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">ident</span>);
+                    <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">compiler</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">ident</span>.<span class="ident">sym</span>());
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">init</span>) <span class="op">=</span> <span class="ident">parameter</span>.<span class="ident">declaration</span>().<span class="ident">init</span>() {
                         <span class="kw">let</span> <span class="ident">skip</span> <span class="op">=</span> <span class="ident">compiler</span>.<span class="ident">jump_with_custom_opcode</span>(<span class="ident">Opcode::JumpIfNotUndefined</span>);
                         <span class="ident">compiler</span>.<span class="ident">compile_expr</span>(<span class="ident">init</span>, <span class="bool-val">true</span>);
@@ -3378,7 +3319,8 @@
 
         <span class="kw">match</span> <span class="ident">kind</span> {
             <span class="ident">FunctionKind::Declaration</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">name</span>.<span class="ident">unwrap</span>()));
+                <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span>
+                    <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">name</span>.<span class="ident">expect</span>(<span class="string">&quot;empty name for a declaration function&quot;</span>));
                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefInitVar</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
             }
             <span class="ident">FunctionKind::Expression</span> <span class="op">|</span> <span class="ident">FunctionKind::Arrow</span> =&gt; {
@@ -3406,7 +3348,7 @@
             <span class="ident">Node::GetConstField</span>(<span class="ident">field</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">field</span>.<span class="ident">obj</span>(), <span class="bool-val">true</span>);
                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Dup</span>, <span class="kw-2">&amp;</span>[]);
-                <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">field</span>.<span class="ident">field</span>()));
+                <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">field</span>.<span class="ident">field</span>());
                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
             }
             <span class="ident">Node::GetField</span>(<span class="ident">field</span>) =&gt; {
@@ -3480,8 +3422,7 @@
                             <span class="ident">default_init</span>,
                         } =&gt; {
                             <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Dup</span>);
-                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>
-                                .<span class="ident">get_or_insert_name</span>(<span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="kw-2">*</span><span class="ident">property_name</span>));
+                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="kw-2">*</span><span class="ident">property_name</span>);
                             <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
 
                             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">init</span>) <span class="op">=</span> <span class="ident">default_init</span> {
@@ -3489,9 +3430,7 @@
                                 <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">init</span>, <span class="bool-val">true</span>);
                                 <span class="self">self</span>.<span class="ident">patch_jump</span>(<span class="ident">skip</span>);
                             }
-
-                            <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="kw-2">*</span><span class="ident">ident</span>);
-                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">ident</span>);
+                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="kw-2">*</span><span class="ident">ident</span>);
                             <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">def</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                         }
                         <span class="comment">//  BindingRestProperty : ... BindingIdentifier</span>
@@ -3509,9 +3448,7 @@
                             }
 
                             <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::CopyDataProperties</span>, <span class="kw-2">&amp;</span>[<span class="ident">excluded_keys</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>]);
-
-                            <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="kw-2">*</span><span class="ident">ident</span>);
-                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">ident</span>);
+                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="kw-2">*</span><span class="ident">ident</span>);
                             <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">def</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                         }
                         <span class="ident">BindingPattern</span> {
@@ -3520,8 +3457,7 @@
                             <span class="ident">default_init</span>,
                         } =&gt; {
                             <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Dup</span>);
-                            <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="kw-2">*</span><span class="ident">ident</span>);
-                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">ident</span>);
+                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="kw-2">*</span><span class="ident">ident</span>);
                             <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
 
                             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">init</span>) <span class="op">=</span> <span class="ident">default_init</span> {
@@ -3578,9 +3514,7 @@
                                 <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">init</span>, <span class="bool-val">true</span>);
                                 <span class="self">self</span>.<span class="ident">patch_jump</span>(<span class="ident">skip</span>);
                             }
-
-                            <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="kw-2">*</span><span class="ident">ident</span>);
-                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">ident</span>);
+                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="kw-2">*</span><span class="ident">ident</span>);
                             <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">def</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                         }
                         <span class="comment">// BindingElement : BindingPattern Initializer[opt]</span>
@@ -3591,9 +3525,7 @@
                         <span class="comment">// BindingRestElement : ... BindingIdentifier</span>
                         <span class="ident">SingleNameRest</span> { <span class="ident">ident</span> } =&gt; {
                             <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::IteratorToArray</span>);
-
-                            <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="kw-2">*</span><span class="ident">ident</span>);
-                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">ident</span>);
+                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="kw-2">*</span><span class="ident">ident</span>);
                             <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">def</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                             <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushTrue</span>);
                         }

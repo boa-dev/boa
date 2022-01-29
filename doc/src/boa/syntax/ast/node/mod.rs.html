@@ -697,9 +697,6 @@
 <span id="696">696</span>
 <span id="697">697</span>
 <span id="698">698</span>
-<span id="699">699</span>
-<span id="700">700</span>
-<span id="701">701</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `Node` structure, which composes the AST.</span>
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">array</span>;
@@ -1150,7 +1147,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-IdentifierReference</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Property_definitions</span>
-    <span class="ident">IdentifierReference</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>),
+    <span class="ident">IdentifierReference</span>(<span class="ident">Sym</span>),
 
     <span class="doccomment">/// Binds a property name to a JavaScript value.</span>
     <span class="doccomment">///</span>
@@ -1188,11 +1185,8 @@
 
 <span class="kw">impl</span> <span class="ident">PropertyDefinition</span> {
     <span class="doccomment">/// Creates an `IdentifierReference` property definition.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">identifier_reference</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">ident</span>: <span class="ident">I</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    {
-        <span class="ident"><span class="self">Self</span>::IdentifierReference</span>(<span class="ident">ident</span>.<span class="ident">into</span>())
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">identifier_reference</span>(<span class="ident">ident</span>: <span class="ident">Sym</span>) -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::IdentifierReference</span>(<span class="ident">ident</span>)
     }
 
     <span class="doccomment">/// Creates a `Property` definition.</span>

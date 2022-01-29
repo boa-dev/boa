@@ -1249,13 +1249,6 @@
 <span id="1248">1248</span>
 <span id="1249">1249</span>
 <span id="1250">1250</span>
-<span id="1251">1251</span>
-<span id="1252">1252</span>
-<span id="1253">1253</span>
-<span id="1254">1254</span>
-<span id="1255">1255</span>
-<span id="1256">1256</span>
-<span id="1257">1257</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The Virtual Machine (VM) handles generating instructions, then executing them.</span>
 <span class="doccomment">//! This module will provide an instruction set for the AST to use, various traits,</span>
 <span class="doccomment">//! plus an interpreter to execute those instructions</span>
@@ -1267,7 +1260,7 @@
         <span class="ident">function_environment_record</span>::{<span class="ident">BindingStatus</span>, <span class="ident">FunctionEnvironmentRecord</span>},
         <span class="ident">lexical_environment</span>::{<span class="ident">Environment</span>, <span class="ident">VariableScope</span>},
     },
-    <span class="ident">property::PropertyDescriptor</span>,
+    <span class="ident">property</span>::{<span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
     <span class="ident">value::Numeric</span>,
     <span class="ident">vm</span>::{<span class="ident">call_frame::CatchAddresses</span>, <span class="ident">code_block::Readable</span>},
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
@@ -1559,8 +1552,7 @@
             }
             <span class="ident">Opcode::DefInitArg</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
-                <span class="kw">let</span> <span class="ident">name_str</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">variables</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">clone</span>();
-                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner_mut</span>().<span class="ident">get_or_intern</span>(<span class="ident">name_str</span>);
+                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">variables</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>];
                 <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
                 <span class="kw">let</span> <span class="ident">local_env</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_current_environment</span>();
                 <span class="ident">local_env</span>
@@ -1570,8 +1562,7 @@
             }
             <span class="ident">Opcode::DefVar</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
-                <span class="kw">let</span> <span class="ident">name_str</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">variables</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">clone</span>();
-                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner_mut</span>().<span class="ident">get_or_intern</span>(<span class="ident">name_str</span>);
+                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">variables</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>];
 
                 <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">has_binding</span>(<span class="ident">name</span>)<span class="question-mark">?</span> {
                     <span class="self">self</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">name</span>, <span class="bool-val">false</span>, <span class="ident">VariableScope::Function</span>)<span class="question-mark">?</span>;
@@ -1580,8 +1571,7 @@
             }
             <span class="ident">Opcode::DefInitVar</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
-                <span class="kw">let</span> <span class="ident">name_str</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">variables</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">clone</span>();
-                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner_mut</span>().<span class="ident">get_or_intern</span>(<span class="ident">name_str</span>);
+                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">variables</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>];
                 <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
 
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_binding</span>(<span class="ident">name</span>)<span class="question-mark">?</span> {
@@ -1593,16 +1583,14 @@
             }
             <span class="ident">Opcode::DefLet</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
-                <span class="kw">let</span> <span class="ident">name_str</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">variables</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">clone</span>();
-                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner_mut</span>().<span class="ident">get_or_intern</span>(<span class="ident">name_str</span>);
+                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">variables</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>];
 
                 <span class="self">self</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">name</span>, <span class="bool-val">false</span>, <span class="ident">VariableScope::Block</span>)<span class="question-mark">?</span>;
                 <span class="self">self</span>.<span class="ident">initialize_binding</span>(<span class="ident">name</span>, <span class="ident">JsValue::Undefined</span>)<span class="question-mark">?</span>;
             }
             <span class="ident">Opcode::DefInitLet</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
-                <span class="kw">let</span> <span class="ident">name_str</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">variables</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">clone</span>();
-                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner_mut</span>().<span class="ident">get_or_intern</span>(<span class="ident">name_str</span>);
+                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">variables</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>];
                 <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
 
                 <span class="self">self</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">name</span>, <span class="bool-val">false</span>, <span class="ident">VariableScope::Block</span>)<span class="question-mark">?</span>;
@@ -1610,8 +1598,7 @@
             }
             <span class="ident">Opcode::DefInitConst</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
-                <span class="kw">let</span> <span class="ident">name_str</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">variables</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">clone</span>();
-                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner_mut</span>().<span class="ident">get_or_intern</span>(<span class="ident">name_str</span>);
+                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">variables</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>];
                 <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
 
                 <span class="self">self</span>.<span class="ident">create_immutable_binding</span>(<span class="ident">name</span>, <span class="bool-val">true</span>, <span class="ident">VariableScope::Block</span>)<span class="question-mark">?</span>;
@@ -1619,16 +1606,14 @@
             }
             <span class="ident">Opcode::GetName</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
-                <span class="kw">let</span> <span class="ident">name_str</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">variables</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">clone</span>();
-                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner_mut</span>().<span class="ident">get_or_intern</span>(<span class="ident">name_str</span>);
+                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">variables</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>];
 
                 <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_binding_value</span>(<span class="ident">name</span>)<span class="question-mark">?</span>;
                 <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">value</span>);
             }
             <span class="ident">Opcode::GetNameOrUndefined</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
-                <span class="kw">let</span> <span class="ident">name_str</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">variables</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">clone</span>();
-                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner_mut</span>().<span class="ident">get_or_intern</span>(<span class="ident">name_str</span>);
+                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">variables</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>];
 
                 <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_binding</span>(<span class="ident">name</span>)<span class="question-mark">?</span> {
                     <span class="self">self</span>.<span class="ident">get_binding_value</span>(<span class="ident">name</span>)<span class="question-mark">?</span>
@@ -1640,8 +1625,7 @@
             <span class="ident">Opcode::SetName</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
                 <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-                <span class="kw">let</span> <span class="ident">name_str</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">variables</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">clone</span>();
-                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner_mut</span>().<span class="ident">get_or_intern</span>(<span class="ident">name_str</span>);
+                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">variables</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>];
 
                 <span class="self">self</span>.<span class="ident">set_mutable_binding</span>(
                     <span class="ident">name</span>,
@@ -1705,7 +1689,8 @@
                     <span class="ident">value</span>.<span class="ident">to_object</span>(<span class="self">self</span>)<span class="question-mark">?</span>
                 };
 
-                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">variables</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">clone</span>();
+                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">variables</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>];
+                <span class="kw">let</span> <span class="ident">name</span>: <span class="ident">PropertyKey</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">name</span>).<span class="ident">into</span>();
                 <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">get</span>(<span class="ident">name</span>, <span class="self">self</span>)<span class="question-mark">?</span>;
 
                 <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">result</span>)
@@ -1735,7 +1720,8 @@
                     <span class="ident">object</span>.<span class="ident">to_object</span>(<span class="self">self</span>)<span class="question-mark">?</span>
                 };
 
-                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">variables</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">clone</span>();
+                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">variables</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>];
+                <span class="kw">let</span> <span class="ident">name</span>: <span class="ident">PropertyKey</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">name</span>).<span class="ident">into</span>();
 
                 <span class="ident">object</span>.<span class="ident">set</span>(
                     <span class="ident">name</span>,
@@ -1755,7 +1741,8 @@
                     <span class="ident">object</span>.<span class="ident">to_object</span>(<span class="self">self</span>)<span class="question-mark">?</span>
                 };
 
-                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">variables</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">clone</span>();
+                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">variables</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>];
+                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">name</span>);
 
                 <span class="ident">object</span>.<span class="ident">__define_own_property__</span>(
                     <span class="ident">name</span>.<span class="ident">into</span>(),
@@ -1815,9 +1802,8 @@
                 <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
                 <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">to_object</span>(<span class="self">self</span>)<span class="question-mark">?</span>;
 
-                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">variables</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>]
-                    .<span class="ident">clone</span>()
-                    .<span class="ident">into</span>();
+                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">variables</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>];
+                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">name</span>).<span class="ident">into</span>();
                 <span class="kw">let</span> <span class="ident">set</span> <span class="op">=</span> <span class="ident">object</span>
                     .<span class="ident">__get_own_property__</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>, <span class="self">self</span>)<span class="question-mark">?</span>
                     .<span class="ident">as_ref</span>()
@@ -1861,9 +1847,8 @@
                 <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
                 <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
                 <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">to_object</span>(<span class="self">self</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">variables</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>]
-                    .<span class="ident">clone</span>()
-                    .<span class="ident">into</span>();
+                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">variables</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>];
+                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">name</span>).<span class="ident">into</span>();
                 <span class="kw">let</span> <span class="ident">get</span> <span class="op">=</span> <span class="ident">object</span>
                     .<span class="ident">__get_own_property__</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>, <span class="self">self</span>)<span class="question-mark">?</span>
                     .<span class="ident">as_ref</span>()
@@ -1904,9 +1889,10 @@
             }
             <span class="ident">Opcode::DeletePropertyByName</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
-                <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">variables</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">clone</span>();
+                <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">variables</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>];
+                <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">key</span>).<span class="ident">into</span>();
                 <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">to_object</span>(<span class="self">self</span>)<span class="question-mark">?</span>.<span class="ident">__delete__</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>.<span class="ident">into</span>(), <span class="self">self</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">to_object</span>(<span class="self">self</span>)<span class="question-mark">?</span>.<span class="ident">__delete__</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="self">self</span>)<span class="question-mark">?</span>;
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">result</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">strict</span>() <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">strict</span> {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Cannot delete property&quot;</span>));
                 }
