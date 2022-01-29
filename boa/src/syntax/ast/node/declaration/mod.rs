@@ -95,7 +95,7 @@ pub enum DeclarationList {
 
 impl AsRef<[Declaration]> for DeclarationList {
     fn as_ref(&self) -> &[Declaration] {
-        use DeclarationList::*;
+        use DeclarationList::{Const, Let, Var};
         match self {
             Var(list) | Const(list) | Let(list) => list,
         }
@@ -104,8 +104,10 @@ impl AsRef<[Declaration]> for DeclarationList {
 
 impl ToInternedString for DeclarationList {
     fn to_interned_string(&self, interner: &Interner) -> String {
-        if !self.as_ref().is_empty() {
-            use DeclarationList::*;
+        if self.as_ref().is_empty() {
+            String::new()
+        } else {
+            use DeclarationList::{Const, Let, Var};
             format!(
                 "{} {}",
                 match &self {
@@ -115,19 +117,17 @@ impl ToInternedString for DeclarationList {
                 },
                 join_nodes(interner, self.as_ref())
             )
-        } else {
-            String::new()
         }
     }
 }
 
 impl From<DeclarationList> for Node {
     fn from(list: DeclarationList) -> Self {
-        use DeclarationList::*;
+        use DeclarationList::{Const, Let, Var};
         match &list {
-            Let(_) => Node::LetDeclList(list),
-            Const(_) => Node::ConstDeclList(list),
-            Var(_) => Node::VarDeclList(list),
+            Let(_) => Self::LetDeclList(list),
+            Const(_) => Self::ConstDeclList(list),
+            Var(_) => Self::VarDeclList(list),
         }
     }
 }
@@ -140,9 +140,9 @@ impl From<Declaration> for Box<[Declaration]> {
 
 /// Declaration represents either an individual binding or a binding pattern.
 ///
-/// For `let` and `const` declarations this type represents a [LexicalBinding][spec1]
+/// For `let` and `const` declarations this type represents a [`LexicalBinding`][spec1]
 ///
-/// For `var` declarations this type represents a [VariableDeclaration][spec2]
+/// For `var` declarations this type represents a [`VariableDeclaration`][spec2]
 ///
 /// More information:
 ///  - [ECMAScript reference: 14.3 Declarations and the Variable Statement][spec3]
@@ -176,7 +176,7 @@ impl ToInternedString for Declaration {
 }
 
 impl Declaration {
-    /// Creates a new variable declaration with a BindingIdentifier.
+    /// Creates a new variable declaration with a `BindingIdentifier`.
     #[inline]
     pub(in crate::syntax) fn new_with_identifier<N, I>(ident: N, init: I) -> Self
     where
@@ -189,7 +189,7 @@ impl Declaration {
         }
     }
 
-    /// Creates a new variable declaration with an ObjectBindingPattern.
+    /// Creates a new variable declaration with an `ObjectBindingPattern`.
     #[inline]
     pub(in crate::syntax) fn new_with_object_pattern<I>(
         bindings: Vec<BindingPatternTypeObject>,
@@ -204,7 +204,7 @@ impl Declaration {
         )))
     }
 
-    /// Creates a new variable declaration with an ArrayBindingPattern.
+    /// Creates a new variable declaration with an `ArrayBindingPattern`.
     #[inline]
     pub(in crate::syntax) fn new_with_array_pattern<I>(
         bindings: Vec<BindingPatternTypeArray>,
@@ -229,12 +229,12 @@ impl Declaration {
     }
 }
 
-/// DeclarationPattern represents an object or array binding pattern.
+/// `DeclarationPattern` represents an object or array binding pattern.
 ///
 /// This enum mostly wraps the functionality of the specific binding pattern types.
 ///
 /// More information:
-///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - BindingPattern][spec1]
+///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - `BindingPattern`][spec1]
 ///
 /// [spec1]: https://tc39.es/ecma262/#prod-BindingPattern
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
@@ -275,12 +275,12 @@ impl DeclarationPattern {
     }
 }
 
-/// DeclarationPatternObject represents an object binding pattern.
+/// `DeclarationPatternObject` represents an object binding pattern.
 ///
 /// This struct holds a list of bindings, and an optional initializer for the binding pattern.
 ///
 /// More information:
-///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - ObjectBindingPattern][spec1]
+///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - `ObjectBindingPattern`][spec1]
 ///
 /// [spec1]: https://tc39.es/ecma262/#prod-ObjectBindingPattern
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
@@ -339,7 +339,7 @@ impl DeclarationPatternObject {
         let mut idents = Vec::new();
 
         for binding in &self.bindings {
-            use BindingPatternTypeObject::*;
+            use BindingPatternTypeObject::{BindingPattern, Empty, RestProperty, SingleName};
 
             match binding {
                 Empty => {}
@@ -372,12 +372,12 @@ impl DeclarationPatternObject {
     }
 }
 
-/// DeclarationPatternArray represents an array binding pattern.
+/// `DeclarationPatternArray` represents an array binding pattern.
 ///
 /// This struct holds a list of bindings, and an optional initializer for the binding pattern.
 ///
 /// More information:
-///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - ArrayBindingPattern][spec1]
+///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - `ArrayBindingPattern`][spec1]
 ///
 /// [spec1]: https://tc39.es/ecma262/#prod-ArrayBindingPattern
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
@@ -394,7 +394,7 @@ impl ToInternedString for DeclarationPatternArray {
             if i == self.bindings.len() - 1 {
                 match binding {
                     BindingPatternTypeArray::Elision => {
-                        buf.push_str(&format!("{}, ", binding.to_interned_string(interner)))
+                        buf.push_str(&format!("{}, ", binding.to_interned_string(interner)));
                     }
                     _ => buf.push_str(&format!("{} ", binding.to_interned_string(interner))),
                 }
@@ -438,11 +438,12 @@ impl DeclarationPatternArray {
         let mut idents = Vec::new();
 
         for binding in &self.bindings {
-            use BindingPatternTypeArray::*;
+            use BindingPatternTypeArray::{
+                BindingPattern, BindingPatternRest, Elision, Empty, SingleName, SingleNameRest,
+            };
 
             match binding {
-                Empty => {}
-                Elision => {}
+                Empty | Elision => {}
                 SingleName {
                     ident,
                     default_init: _,
@@ -451,7 +452,7 @@ impl DeclarationPatternArray {
                 }
                 BindingPattern { pattern } | BindingPatternRest { pattern } => {
                     let mut i = pattern.idents();
-                    idents.append(&mut i)
+                    idents.append(&mut i);
                 }
                 SingleNameRest { ident } => idents.push(*ident),
             }
@@ -461,10 +462,10 @@ impl DeclarationPatternArray {
     }
 }
 
-/// BindingPatternTypeObject represents the different types of bindings that an object binding pattern may contain.
+/// `BindingPatternTypeObject` represents the different types of bindings that an object binding pattern may contain.
 ///
 /// More information:
-///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - ObjectBindingPattern][spec1]
+///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - `ObjectBindingPattern`][spec1]
 ///
 /// [spec1]: https://tc39.es/ecma262/#prod-ObjectBindingPattern
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
@@ -565,10 +566,10 @@ impl ToInternedString for BindingPatternTypeObject {
     }
 }
 
-/// BindingPatternTypeArray represents the different types of bindings that an array binding pattern may contain.
+/// `BindingPatternTypeArray` represents the different types of bindings that an array binding pattern may contain.
 ///
 /// More information:
-///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - ArrayBindingPattern][spec1]
+///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - `ArrayBindingPattern`][spec1]
 ///
 /// [spec1]: https://tc39.es/ecma262/#prod-ArrayBindingPattern
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]

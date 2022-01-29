@@ -15,7 +15,7 @@ use crate::{
 
 use std::io::Read;
 
-/// The possible TokenKind which indicate the end of a case statement.
+/// The possible `TokenKind` which indicate the end of a case statement.
 const CASE_BREAK_TOKENS: [TokenKind; 3] = [
     TokenKind::Punctuator(Punctuator::CloseBlock),
     TokenKind::Keyword(Keyword::Case),

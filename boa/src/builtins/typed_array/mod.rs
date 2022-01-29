@@ -146,11 +146,7 @@ macro_rules! typed_array {
                     // ii. If firstArgument has a [[TypedArrayName]] internal slot, then
                     if first_argument.is_typed_array() {
                         // 1. Perform ? InitializeTypedArrayFromTypedArray(O, firstArgument).
-                        TypedArray::initialize_from_typed_array(
-                            &o,
-                            first_argument.clone(),
-                            context,
-                        )?;
+                        TypedArray::initialize_from_typed_array(&o, first_argument, context)?;
                     } else if first_argument.is_array_buffer() {
                         // iii. Else if firstArgument has an [[ArrayBufferData]] internal slot, then
 
@@ -185,7 +181,7 @@ macro_rules! typed_array {
                             // a. Let values be ? IterableToList(firstArgument, usingIterator).
                             let values = iterable_to_list(
                                 context,
-                                first_argument_v,
+                                &first_argument_v,
                                 Some(using_iterator.into()),
                             )?;
 
@@ -418,7 +414,7 @@ impl TypedArray {
         // 6. If usingIterator is not undefined, then
         if let Some(using_iterator) = using_iterator {
             // a. Let values be ? IterableToList(source, usingIterator).
-            let values = iterable_to_list(context, source.clone(), Some(using_iterator.into()))?;
+            let values = iterable_to_list(context, source, Some(using_iterator.into()))?;
 
             // b. Let len be the number of elements in values.
             // c. Let targetObj be ? TypedArrayCreate(C, « 𝔽(len) »).
@@ -525,6 +521,7 @@ impl TypedArray {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-%typedarray%-@@species
+    #[allow(clippy::unnecessary_wraps)]
     fn get_species(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Return the this value.
         Ok(this.clone())
@@ -600,8 +597,7 @@ impl TypedArray {
         // 5. Return buffer.
         Ok(typed_array
             .viewed_array_buffer()
-            .map(|buffer| buffer.clone().into())
-            .unwrap_or_else(JsValue::undefined))
+            .map_or_else(JsValue::undefined, |buffer| buffer.clone().into()))
     }
 
     /// `23.2.3.3 get %TypedArray%.prototype.byteLength`
@@ -810,7 +806,7 @@ impl TypedArray {
                 buffer.set_value_in_buffer(
                     to_byte_index as usize,
                     TypedArrayName::Uint8Array,
-                    value,
+                    &value,
                     SharedMemoryOrder::Unordered,
                     None,
                     context,
@@ -2071,7 +2067,7 @@ impl TypedArray {
                     .set_value_in_buffer(
                         target_byte_index,
                         TypedArrayName::Uint8Array,
-                        value,
+                        &value,
                         SharedMemoryOrder::Unordered,
                         None,
                         context,
@@ -2105,7 +2101,7 @@ impl TypedArray {
                     .set_value_in_buffer(
                         target_byte_index,
                         target_name,
-                        value,
+                        &value,
                         SharedMemoryOrder::Unordered,
                         None,
                         context,
@@ -2220,7 +2216,7 @@ impl TypedArray {
             target_buffer.set_value_in_buffer(
                 target_byte_index,
                 target_name,
-                value,
+                &value,
                 SharedMemoryOrder::Unordered,
                 None,
                 context,
@@ -2310,6 +2306,7 @@ impl TypedArray {
             // d. Let targetName be the String value of A.[[TypedArrayName]].
             // e. Let targetType be the Element Type value in Table 73 for targetName.
             // f. If srcType is different from targetType, then
+            #[allow(clippy::if_not_else)]
             if o.typed_array_name() != a_array.typed_array_name() {
                 // i. Let n be 0.
                 let mut n = 0;
@@ -2379,7 +2376,7 @@ impl TypedArray {
                     target_buffer.set_value_in_buffer(
                         target_byte_index,
                         TypedArrayName::Uint8Array,
-                        value,
+                        &value,
                         SharedMemoryOrder::Unordered,
                         None,
                         context,
@@ -2785,6 +2782,7 @@ impl TypedArray {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-%typedarray%.prototype-@@tostringtag
+    #[allow(clippy::unnecessary_wraps)]
     fn to_string_tag(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. If Type(O) is not Object, return undefined.
@@ -2947,7 +2945,7 @@ impl TypedArray {
             let o_inner = o.as_typed_array_mut().expect("expected a TypedArray");
 
             // 2. Perform ? AllocateTypedArrayBuffer(O, len).
-            TypedArray::allocate_buffer(o_inner, len, context)?;
+            Self::allocate_buffer(o_inner, len, context)?;
         }
 
         // 3. Let k be 0.
@@ -3001,7 +2999,7 @@ impl TypedArray {
         // 8. Else,
         if let Some(length) = length {
             // a. Perform ? AllocateTypedArrayBuffer(obj, length).
-            TypedArray::allocate_buffer(&mut indexed, length, context)?;
+            Self::allocate_buffer(&mut indexed, length, context)?;
         }
 
         // 2. Let obj be ! IntegerIndexedObjectCreate(proto).
@@ -3019,7 +3017,7 @@ impl TypedArray {
     /// [spec]: https://tc39.es/ecma262/#sec-initializetypedarrayfromtypedarray
     fn initialize_from_typed_array(
         o: &JsObject,
-        src_array: JsObject,
+        src_array: &JsObject,
         context: &mut Context,
     ) -> JsResult<()> {
         let o_obj = o.borrow();
@@ -3121,7 +3119,7 @@ impl TypedArray {
                 data.set_value_in_buffer(
                     target_byte_index,
                     constructor_name,
-                    value,
+                    &value,
                     SharedMemoryOrder::Unordered,
                     None,
                     context,
@@ -3268,7 +3266,7 @@ impl TypedArray {
         {
             let mut o_borrow = o.borrow_mut();
             let o = o_borrow.as_typed_array_mut().expect("Must be typed array");
-            TypedArray::allocate_buffer(o, len, context)?;
+            Self::allocate_buffer(o, len, context)?;
         }
 
         // 3. Let k be 0.
@@ -3348,7 +3346,7 @@ impl TypedArrayName {
         }
     }
 
-    pub(crate) fn is_big_int_element_type(&self) -> bool {
+    pub(crate) fn is_big_int_element_type(self) -> bool {
         matches!(
             self,
             TypedArrayName::BigUint64Array | TypedArrayName::BigInt64Array

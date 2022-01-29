@@ -1,4 +1,4 @@
-use super::*;
+use super::{JsBigInt, JsObject, JsResult, JsValue, PreferredType};
 use crate::{builtins::Number, Context};
 
 impl JsValue {
@@ -53,12 +53,8 @@ impl JsValue {
             // 4. If Type(x) is String and Type(y) is Number, return the result of the comparison ! ToNumber(x) == y.
             //
             // https://github.com/rust-lang/rust/issues/54883
-            (Self::Integer(_), Self::String(_))
-            | (Self::Rational(_), Self::String(_))
-            | (Self::String(_), Self::Integer(_))
-            | (Self::String(_), Self::Rational(_))
-            | (Self::Rational(_), Self::Boolean(_))
-            | (Self::Integer(_), Self::Boolean(_)) => {
+            (Self::Integer(_) | Self::Rational(_), Self::String(_) | Self::Boolean(_))
+            | (Self::String(_), Self::Integer(_) | Self::Rational(_)) => {
                 let x = self.to_number(context)?;
                 let y = other.to_number(context)?;
                 Number::equal(x, y)
@@ -80,10 +76,10 @@ impl JsValue {
             },
 
             // 8. If Type(x) is Boolean, return the result of the comparison ! ToNumber(x) == y.
-            (Self::Boolean(x), _) => return other.equals(&JsValue::new(*x as i32), context),
+            (Self::Boolean(x), _) => return other.equals(&Self::new(*x as i32), context),
 
             // 9. If Type(y) is Boolean, return the result of the comparison x == ! ToNumber(y).
-            (_, Self::Boolean(y)) => return self.equals(&JsValue::new(*y as i32), context),
+            (_, Self::Boolean(y)) => return self.equals(&Self::new(*y as i32), context),
 
             // 10. If Type(x) is either String, Number, BigInt, or Symbol and Type(y) is Object, return the result
             // of the comparison x == ? ToPrimitive(y).
@@ -119,7 +115,7 @@ impl JsValue {
     ///  - [ECMAScript][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-samevalue
-    pub fn same_value(x: &JsValue, y: &JsValue) -> bool {
+    pub fn same_value(x: &Self, y: &Self) -> bool {
         // 1. If Type(x) is different from Type(y), return false.
         if x.get_type() != y.get_type() {
             return false;
@@ -128,11 +124,11 @@ impl JsValue {
         match (x, y) {
             // 2. If Type(x) is Number or BigInt, then
             //    a. Return ! Type(x)::SameValue(x, y).
-            (JsValue::BigInt(x), JsValue::BigInt(y)) => JsBigInt::same_value(x, y),
-            (JsValue::Rational(x), JsValue::Rational(y)) => Number::same_value(*x, *y),
-            (JsValue::Rational(x), JsValue::Integer(y)) => Number::same_value(*x, f64::from(*y)),
-            (JsValue::Integer(x), JsValue::Rational(y)) => Number::same_value(f64::from(*x), *y),
-            (JsValue::Integer(x), JsValue::Integer(y)) => x == y,
+            (Self::BigInt(x), Self::BigInt(y)) => JsBigInt::same_value(x, y),
+            (Self::Rational(x), Self::Rational(y)) => Number::same_value(*x, *y),
+            (Self::Rational(x), Self::Integer(y)) => Number::same_value(*x, f64::from(*y)),
+            (Self::Integer(x), Self::Rational(y)) => Number::same_value(f64::from(*x), *y),
+            (Self::Integer(x), Self::Integer(y)) => x == y,
 
             // 3. Return ! SameValueNonNumeric(x, y).
             (_, _) => Self::same_value_non_numeric(x, y),
@@ -142,13 +138,13 @@ impl JsValue {
     /// The internal comparison abstract operation `SameValueZero(x, y)`,
     /// where `x` and `y` are ECMAScript language values, produces `true` or `false`.
     ///
-    /// `SameValueZero` differs from SameValue only in its treatment of `+0` and `-0`.
+    /// `SameValueZero` differs from `SameValue` only in its treatment of `+0` and `-0`.
     ///
     /// More information:
     ///  - [ECMAScript][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-samevaluezero
-    pub fn same_value_zero(x: &JsValue, y: &JsValue) -> bool {
+    pub fn same_value_zero(x: &Self, y: &Self) -> bool {
         if x.get_type() != y.get_type() {
             return false;
         }
@@ -172,7 +168,7 @@ impl JsValue {
         }
     }
 
-    fn same_value_non_numeric(x: &JsValue, y: &JsValue) -> bool {
+    fn same_value_non_numeric(x: &Self, y: &Self) -> bool {
         debug_assert!(x.get_type() == y.get_type());
         match (x, y) {
             (JsValue::Null, JsValue::Null) | (JsValue::Undefined, JsValue::Undefined) => true,

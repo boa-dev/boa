@@ -28,7 +28,7 @@ use boa_interner::Sym;
 use rustc_hash::FxHashSet;
 use std::io::Read;
 
-/// Intermediate type for a list of FormalParameters with some meta information.
+/// Intermediate type for a list of `FormalParameters` with some meta information.
 pub(in crate::syntax::parser) struct FormalParameterList {
     pub(in crate::syntax::parser) parameters: Box<[node::FormalParameter]>,
     pub(in crate::syntax::parser) is_simple: bool,
@@ -383,7 +383,7 @@ where
 /// [spec]: https://tc39.es/ecma262/#prod-FunctionBody
 pub(in crate::syntax::parser) type FunctionBody = FunctionStatementList;
 
-/// The possible TokenKind which indicate the end of a function statement.
+/// The possible `TokenKind` which indicate the end of a function statement.
 const FUNCTION_BREAK_TOKENS: [TokenKind; 1] = [TokenKind::Punctuator(Punctuator::CloseBlock)];
 
 /// A function statement list

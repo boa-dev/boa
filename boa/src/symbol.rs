@@ -120,7 +120,7 @@ impl WellKnownSymbols {
 
     /// The `Symbol.asyncIterator` well known symbol.
     ///
-    /// A method that returns the default AsyncIterator for an object.
+    /// A method that returns the default `AsyncIterator` for an object.
     /// Called by the semantics of the `for-await-of` statement.
     #[inline]
     pub fn async_iterator() -> JsSymbol {

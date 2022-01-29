@@ -25,7 +25,7 @@ pub struct MapIterator {
 impl MapIterator {
     pub(crate) const NAME: &'static str = "MapIterator";
 
-    /// Abstract operation CreateMapIterator( map, kind )
+    /// Abstract operation `CreateMapIterator( map, kind )`
     ///
     /// Creates a new iterator over the given map.
     ///
@@ -41,7 +41,7 @@ impl MapIterator {
         if let Some(map_obj) = map.as_object() {
             if let Some(map) = map_obj.borrow_mut().as_map_mut() {
                 let lock = map.lock(map_obj.clone());
-                let iter = MapIterator {
+                let iter = Self {
                     iterated_map: Some(map_obj.clone()),
                     map_next_index: 0,
                     map_iteration_kind: kind,
@@ -66,7 +66,7 @@ impl MapIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%mapiteratorprototype%.next
     pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let mut map_iterator = this.as_object().map(|obj| obj.borrow_mut());
+        let mut map_iterator = this.as_object().map(JsObject::borrow_mut);
         let map_iterator = map_iterator
             .as_mut()
             .and_then(|obj| obj.as_map_iterator_mut())
@@ -110,7 +110,7 @@ impl MapIterator {
         ))
     }
 
-    /// Create the %MapIteratorPrototype% object
+    /// Create the `%MapIteratorPrototype%` object
     ///
     /// More information:
     ///  - [ECMA reference][spec]

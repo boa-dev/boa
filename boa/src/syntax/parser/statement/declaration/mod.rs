@@ -68,19 +68,17 @@ where
         let tok = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
-            TokenKind::Keyword(Keyword::Function) | TokenKind::Keyword(Keyword::Async) => {
+            TokenKind::Keyword(Keyword::Function | Keyword::Async) => {
                 HoistableDeclaration::new(self.allow_yield, self.allow_await, false)
                     .parse(cursor, interner)
             }
-            TokenKind::Keyword(Keyword::Const) | TokenKind::Keyword(Keyword::Let) => {
-                LexicalDeclaration::new(
-                    true,
-                    self.allow_yield,
-                    self.allow_await,
-                    self.const_init_required,
-                )
-                .parse(cursor, interner)
-            }
+            TokenKind::Keyword(Keyword::Const | Keyword::Let) => LexicalDeclaration::new(
+                true,
+                self.allow_yield,
+                self.allow_await,
+                self.const_init_required,
+            )
+            .parse(cursor, interner),
             _ => unreachable!("unknown token found: {:?}", tok),
         }
     }

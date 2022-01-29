@@ -25,7 +25,7 @@ pub(crate) static INTEGER_INDEXED_EXOTIC_INTERNAL_METHODS: InternalObjectMethods
         ..ORDINARY_INTERNAL_METHODS
     };
 
-/// InternalMethod `[[GetOwnProperty]]` for Integer-Indexed exotic objects.
+/// `[[GetOwnProperty]]` internal method for Integer-Indexed exotic objects.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -58,7 +58,7 @@ pub(crate) fn integer_indexed_exotic_get_own_property(
     }
 }
 
-/// InternalMethod `[[HasProperty]]` for Integer-Indexed exotic objects.
+/// `[[HasProperty]]` internal method for Integer-Indexed exotic objects.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -81,7 +81,7 @@ pub(crate) fn integer_indexed_exotic_has_property(
     }
 }
 
-/// InternalMethod `[[DefineOwnProperty]]` for Integer-Indexed exotic objects.
+/// `[[DefineOwnProperty]]` internal method for Integer-Indexed exotic objects.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -116,7 +116,7 @@ pub(crate) fn integer_indexed_exotic_define_own_property(
 
         // vi. If Desc has a [[Value]] field, perform ? IntegerIndexedElementSet(O, numericIndex, Desc.[[Value]]).
         if let Some(value) = desc.value() {
-            integer_indexed_element_set(obj, index as usize, value, context)?
+            integer_indexed_element_set(obj, index as usize, value, context)?;
         }
 
         // vii. Return true.
@@ -212,6 +212,7 @@ pub(crate) fn integer_indexed_exotic_delete(
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects-ownpropertykeys
 #[inline]
+#[allow(clippy::unnecessary_wraps)]
 pub(crate) fn integer_indexed_exotic_own_property_keys(
     obj: &JsObject,
     _context: &mut Context,
@@ -240,7 +241,7 @@ pub(crate) fn integer_indexed_exotic_own_property_keys(
         obj.properties
             .string_property_keys()
             .cloned()
-            .map(|s| s.into()),
+            .map(Into::into),
     );
 
     // 4. For each own property key P of O such that Type(P) is Symbol, in ascending chronological order of property creation, do
@@ -249,7 +250,7 @@ pub(crate) fn integer_indexed_exotic_own_property_keys(
         obj.properties
             .symbol_property_keys()
             .cloned()
-            .map(|sym| sym.into()),
+            .map(Into::into),
     );
 
     // 5. Return keys.
@@ -375,7 +376,7 @@ fn integer_indexed_element_set(
             .set_value_in_buffer(
                 indexed_position,
                 elem_type,
-                num_value,
+                &num_value,
                 SharedMemoryOrder::Unordered,
                 None,
                 context,

@@ -36,10 +36,10 @@ pub(crate) fn f64_to_int32(number: f64) -> i32 {
         let d64 = number.to_bits();
         let significand = d64 & SIGNIFICAND_MASK;
 
-        if !is_denormal(number) {
-            significand + HIDDEN_BIT
-        } else {
+        if is_denormal(number) {
             significand
+        } else {
+            significand + HIDDEN_BIT
         }
     }
 

@@ -38,7 +38,7 @@ impl<R> Cursor<R> {
 
     #[inline]
     pub(super) fn set_strict_mode(&mut self, strict_mode: bool) {
-        self.strict_mode = strict_mode
+        self.strict_mode = strict_mode;
     }
 }
 
@@ -236,7 +236,7 @@ where
                 // Try to take a newline if it's next, for windows "\r\n" newlines
                 // Otherwise, treat as a Mac OS9 bare '\r' newline
                 if self.peek()? == Some(b'\n') {
-                    let _ = self.iter.next_byte();
+                    let _next = self.iter.next_byte();
                 }
                 self.next_line();
             }
@@ -270,12 +270,12 @@ where
                 // Try to take a newline if it's next, for windows "\r\n" newlines
                 // Otherwise, treat as a Mac OS9 bare '\r' newline
                 if self.peek()? == Some(0xA) {
-                    let _ = self.iter.next_byte();
+                    let _next = self.iter.next_byte();
                 }
                 self.next_line();
             }
             // '\n' | '\u{2028}' | '\u{2029}'
-            Some(0xA) | Some(0x2028) | Some(0x2029) => self.next_line(),
+            Some(0xA | 0x2028 | 0x2029) => self.next_line(),
             Some(_) => self.next_column(),
             _ => {}
         }
@@ -286,6 +286,7 @@ where
 
 /// Inner iterator for a cursor.
 #[derive(Debug)]
+#[allow(clippy::option_option)]
 struct InnerIter<R> {
     iter: Bytes<R>,
     num_peeked_bytes: u8,
@@ -348,7 +349,7 @@ where
             match self.iter.next().transpose()? {
                 Some(byte) => {
                     self.num_peeked_bytes = 1;
-                    self.peeked_bytes = byte as u32;
+                    self.peeked_bytes = u32::from(byte);
                     Ok(Some(byte))
                 }
                 None => Ok(None),
@@ -362,7 +363,7 @@ where
         while self.num_peeked_bytes < n && self.num_peeked_bytes < 4 {
             match self.iter.next().transpose()? {
                 Some(byte) => {
-                    self.peeked_bytes |= (byte as u32) << (self.num_peeked_bytes * 8);
+                    self.peeked_bytes |= u32::from(byte) << (self.num_peeked_bytes * 8);
                     self.num_peeked_bytes += 1;
                 }
                 None => break,
@@ -387,8 +388,8 @@ where
             // Decode UTF-8
             let x = match self.peek_byte()? {
                 Some(b) if b < 128 => {
-                    self.peeked_char = Some(Some(b as u32));
-                    return Ok(Some(b as u32));
+                    self.peeked_char = Some(Some(u32::from(b)));
+                    return Ok(Some(u32::from(b)));
                 }
                 Some(b) => b,
                 None => {
@@ -407,7 +408,7 @@ where
                 // [[x y z] w] case
                 // 5th bit in 0xE0 .. 0xEF is always clear, so `init` is still valid
                 let z = (self.peek_n_bytes(3)? >> 16) as u8;
-                let y_z = utf8_acc_cont_byte((y & CONT_MASK) as u32, z);
+                let y_z = utf8_acc_cont_byte(u32::from(y & CONT_MASK), z);
                 ch = init << 12 | y_z;
                 if x >= 0xF0 {
                     // [x y z w] case
@@ -448,7 +449,7 @@ where
 
         // Decode UTF-8
         let x = match self.next_byte()? {
-            Some(b) if b < 128 => return Ok(Some(b as u32)),
+            Some(b) if b < 128 => return Ok(Some(u32::from(b))),
             Some(b) => b,
             None => return Ok(None),
         };
@@ -463,7 +464,7 @@ where
             // [[x y z] w] case
             // 5th bit in 0xE0 .. 0xEF is always clear, so `init` is still valid
             let z = unwrap_or_0(self.next_byte()?);
-            let y_z = utf8_acc_cont_byte((y & CONT_MASK) as u32, z);
+            let y_z = utf8_acc_cont_byte(u32::from(y & CONT_MASK), z);
             ch = init << 12 | y_z;
             if x >= 0xF0 {
                 // [x y z w] case
@@ -485,13 +486,13 @@ const CONT_MASK: u8 = 0b0011_1111;
 /// for width 3, and 3 bits for width 4.
 #[inline]
 fn utf8_first_byte(byte: u8, width: u32) -> u32 {
-    (byte & (0x7F >> width)) as u32
+    u32::from(byte & (0x7F >> width))
 }
 
 /// Returns the value of `ch` updated with continuation byte `byte`.
 #[inline]
 fn utf8_acc_cont_byte(ch: u32, byte: u8) -> u32 {
-    (ch << 6) | (byte & CONT_MASK) as u32
+    (ch << 6) | u32::from(byte & CONT_MASK)
 }
 
 /// Checks whether the byte is a UTF-8 first byte (i.e., ascii byte or starts with the

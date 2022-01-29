@@ -61,7 +61,7 @@ where
             Expression::new(true, self.allow_yield, self.allow_await).parse(cursor, interner)?;
         if let Some(tok) = cursor.peek(0, interner)? {
             if tok.kind() == &TokenKind::Punctuator(Punctuator::Semicolon) {
-                let _ = cursor.next(interner).expect("token disappeared");
+                let _next = cursor.next(interner).expect("token disappeared");
             }
         }
 

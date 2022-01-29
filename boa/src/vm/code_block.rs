@@ -1,6 +1,6 @@
-//! CodeBlock
+//! `CodeBlock`
 //!
-//! This module is for the CodeBlock which implements a function representation in the VM
+//! This module is for the `CodeBlock` which implements a function representation in the VM
 
 use crate::{
     builtins::function::{
@@ -14,6 +14,7 @@ use crate::{
     },
     gc::{Finalize, Gc, Trace},
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    profiler::BoaProfiler,
     property::PropertyDescriptor,
     syntax::ast::node::FormalParameter,
     vm::{call_frame::FinallyReturn, CallFrame, Opcode},
@@ -46,8 +47,9 @@ unsafe impl Readable for f64 {}
 
 /// The internal representation of a JavaScript function.
 ///
-/// A CodeBlock is generated for each function compiled by the [ByteCompiler](crate::bytecompiler::ByteCompiler).
-/// It stores the bytecode and the other attributes of the function.
+/// A `CodeBlock` is generated for each function compiled by the
+/// [`ByteCompiler`](crate::bytecompiler::ByteCompiler). It stores the bytecode and the other
+/// attributes of the function.
 #[derive(Clone, Debug, Trace, Finalize)]
 pub struct CodeBlock {
     /// Name of this function
@@ -328,7 +330,9 @@ impl ToInternedString for CodeBlock {
 
         f.push_str("\nLiterals:\n");
 
-        if !self.literals.is_empty() {
+        if self.literals.is_empty() {
+            f.push_str("    <empty>");
+        } else {
             for (i, value) in self.literals.iter().enumerate() {
                 f.push_str(&format!(
                     "    {:04}: <{}> {}\n",
@@ -337,12 +341,12 @@ impl ToInternedString for CodeBlock {
                     value.display()
                 ));
             }
-        } else {
-            f.push_str("    <empty>");
         }
 
         f.push_str("\nNames:\n");
-        if !self.variables.is_empty() {
+        if self.variables.is_empty() {
+            f.push_str("    <empty>");
+        } else {
             for (i, value) in self.variables.iter().enumerate() {
                 f.push_str(&format!(
                     "    {:04}: {}\n",
@@ -350,12 +354,12 @@ impl ToInternedString for CodeBlock {
                     interner.resolve_expect(*value)
                 ));
             }
-        } else {
-            f.push_str("    <empty>");
         }
 
         f.push_str("\nFunctions:\n");
-        if !self.functions.is_empty() {
+        if self.functions.is_empty() {
+            f.push_str("    <empty>");
+        } else {
             for (i, code) in self.functions.iter().enumerate() {
                 f.push_str(&format!(
                     "    {:04}: name: '{}' (length: {})\n",
@@ -364,8 +368,6 @@ impl ToInternedString for CodeBlock {
                     code.length
                 ));
             }
-        } else {
-            f.push_str("    <empty>");
         }
 
         f
@@ -379,6 +381,8 @@ pub struct JsVmFunction {}
 impl JsVmFunction {
     #[allow(clippy::new_ret_no_self)]
     pub fn new(code: Gc<CodeBlock>, environment: Environment, context: &mut Context) -> JsObject {
+        let _timer = BoaProfiler::global().start_event("Identifier", "vm");
+
         let function_prototype = context.standard_objects().function_object().prototype();
 
         let prototype = context.construct_object();
@@ -510,11 +514,7 @@ impl JsObject {
                 // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
                 let local_env = FunctionEnvironmentRecord::new(
                     this_function_object.clone(),
-                    if !lexical_this_mode {
-                        Some(this.clone())
-                    } else {
-                        None
-                    },
+                    (!lexical_this_mode).then(|| this.clone()),
                     Some(environment.clone()),
                     // Arrow functions do not have a this binding https://tc39.es/ecma262/#sec-function-environment-records
                     if lexical_this_mode {
@@ -544,7 +544,7 @@ impl JsObject {
                     is_simple_parameter_list = is_simple_parameter_list
                         && !param.is_rest_param()
                         && param.is_identifier()
-                        && param.init().is_none()
+                        && param.init().is_none();
                 }
 
                 // An arguments object is added when all of the following conditions are met
@@ -586,7 +586,7 @@ impl JsObject {
                 };
 
                 for arg in args.iter().rev() {
-                    context.vm.push(arg)
+                    context.vm.push(arg);
                 }
 
                 let param_count = code.params.len();
@@ -677,7 +677,7 @@ impl JsObject {
                         StandardObjects::object_object,
                         context,
                     )?;
-                    JsObject::from_proto_and_data(prototype, ObjectData::ordinary()).into()
+                    Self::from_proto_and_data(prototype, ObjectData::ordinary()).into()
                 };
                 let lexical_this_mode = code.this_mode == ThisMode::Lexical;
 
@@ -714,7 +714,7 @@ impl JsObject {
                     is_simple_parameter_list = is_simple_parameter_list
                         && !param.is_rest_param()
                         && param.is_identifier()
-                        && param.init().is_none()
+                        && param.init().is_none();
                 }
 
                 // An arguments object is added when all of the following conditions are met
@@ -756,7 +756,7 @@ impl JsObject {
                 };
 
                 for arg in args.iter().rev() {
-                    context.vm.push(arg)
+                    context.vm.push(arg);
                 }
 
                 let param_count = code.params.len();

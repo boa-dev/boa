@@ -62,7 +62,7 @@ where
         if let SemicolonResult::Found(tok) = cursor.peek_semicolon(interner)? {
             match tok {
                 Some(tok) if tok.kind() == &TokenKind::Punctuator(Punctuator::Semicolon) => {
-                    let _ = cursor.next(interner)?;
+                    let _next = cursor.next(interner)?;
                 }
                 _ => {}
             }

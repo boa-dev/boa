@@ -272,13 +272,13 @@ where
 {
     type Output = node::StatementList;
 
-    /// The function parses a node::StatementList using the StatementList's
-    /// break_nodes to know when to terminate.
+    /// The function parses a `node::StatementList` using the `StatementList`'s
+    /// `break_nodes` to know when to terminate.
     ///
-    /// Returns a ParseError::AbruptEnd if end of stream is reached before a
+    /// Returns a `ParseError::AbruptEnd` if end of stream is reached before a
     /// break token.
     ///
-    /// Returns a ParseError::unexpected if an unexpected token is found.
+    /// Returns a `ParseError::unexpected` if an unexpected token is found.
     ///
     /// Note that the last token which causes the parse to finish is not
     /// consumed.
@@ -469,7 +469,7 @@ where
         let tok = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
 
         match *tok.kind() {
-            TokenKind::Keyword(Keyword::Function) | TokenKind::Keyword(Keyword::Async) => {
+            TokenKind::Keyword(Keyword::Function | Keyword::Async) => {
                 if strict_mode && self.in_block {
                     return Err(ParseError::lex(LexError::Syntax(
                         "Function declaration in blocks not allowed in strict mode".into(),
@@ -478,7 +478,7 @@ where
                 }
                 Declaration::new(self.allow_yield, self.allow_await, true).parse(cursor, interner)
             }
-            TokenKind::Keyword(Keyword::Const) | TokenKind::Keyword(Keyword::Let) => {
+            TokenKind::Keyword(Keyword::Const | Keyword::Let) => {
                 Declaration::new(self.allow_yield, self.allow_await, true).parse(cursor, interner)
             }
             _ => Statement::new(self.allow_yield, self.allow_await, self.allow_return)
@@ -585,7 +585,7 @@ where
     }
 }
 
-/// ObjectBindingPattern pattern parsing.
+/// `ObjectBindingPattern` pattern parsing.
 ///
 /// More information:
 ///  - [ECMAScript specification][spec]
@@ -696,7 +696,7 @@ where
                         if let Some(peek_token) = cursor.peek(0, interner)? {
                             match peek_token.kind() {
                                 TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                                    let bindings = ObjectBindingPattern::new(
+                                    let bindings = Self::new(
                                         self.allow_in,
                                         self.allow_yield,
                                         self.allow_await,
@@ -866,7 +866,7 @@ where
     }
 }
 
-/// ArrayBindingPattern pattern parsing.
+/// `ArrayBindingPattern` pattern parsing.
 ///
 /// More information:
 ///  - [ECMAScript specification][spec]
@@ -970,12 +970,9 @@ where
                             });
                         }
                         TokenKind::Punctuator(Punctuator::OpenBracket) => {
-                            let bindings = ArrayBindingPattern::new(
-                                self.allow_in,
-                                self.allow_yield,
-                                self.allow_await,
-                            )
-                            .parse(cursor, interner)?;
+                            let bindings =
+                                Self::new(self.allow_in, self.allow_yield, self.allow_await)
+                                    .parse(cursor, interner)?;
                             patterns.push(BindingPatternTypeArray::BindingPatternRest {
                                 pattern: DeclarationPattern::Array(DeclarationPatternArray::new(
                                     bindings, None,
@@ -1037,9 +1034,8 @@ where
                 TokenKind::Punctuator(Punctuator::OpenBracket) => {
                     last_elision_or_first = false;
 
-                    let bindings =
-                        ArrayBindingPattern::new(self.allow_in, self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?;
+                    let bindings = Self::new(self.allow_in, self.allow_yield, self.allow_await)
+                        .parse(cursor, interner)?;
 
                     match cursor
                         .peek(0, interner)?
@@ -1083,7 +1079,7 @@ where
                             patterns.push(BindingPatternTypeArray::SingleName {
                                 ident,
                                 default_init: Some(default_init),
-                            })
+                            });
                         }
                         _ => {
                             patterns.push(BindingPatternTypeArray::SingleName {

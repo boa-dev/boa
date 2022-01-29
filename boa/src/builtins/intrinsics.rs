@@ -11,7 +11,7 @@ pub struct IntrinsicObjects {
 }
 
 impl IntrinsicObjects {
-    pub fn init(context: &mut Context) -> IntrinsicObjects {
+    pub fn init(context: &mut Context) -> Self {
         Self {
             throw_type_error: create_throw_type_error(context),
         }

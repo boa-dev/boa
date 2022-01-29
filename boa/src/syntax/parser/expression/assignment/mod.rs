@@ -96,9 +96,7 @@ where
                     .parse(cursor, interner)
             }
             // ArrowFunction[?In, ?Yield, ?Await] -> ArrowParameters[?Yield, ?Await] -> BindingIdentifier[?Yield, ?Await]
-            TokenKind::Identifier(_)
-            | TokenKind::Keyword(Keyword::Yield)
-            | TokenKind::Keyword(Keyword::Await) => {
+            TokenKind::Identifier(_) | TokenKind::Keyword(Keyword::Yield | Keyword::Await) => {
                 if let Ok(tok) =
                     cursor.peek_expect_no_lineterminator(1, "assignment expression", interner)
                 {

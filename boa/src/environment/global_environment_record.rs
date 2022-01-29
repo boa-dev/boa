@@ -31,7 +31,7 @@ pub struct GlobalEnvironmentRecord {
 }
 
 impl GlobalEnvironmentRecord {
-    pub fn new(global: JsObject, this_value: JsObject) -> GlobalEnvironmentRecord {
+    pub fn new(global: JsObject, this_value: JsObject) -> Self {
         let obj_rec = ObjectEnvironmentRecord {
             bindings: global,
             outer_env: None,
@@ -45,7 +45,7 @@ impl GlobalEnvironmentRecord {
 
         let dcl_rec = DeclarativeEnvironmentRecord::new(None);
 
-        GlobalEnvironmentRecord {
+        Self {
             object_record: obj_rec,
             global_this_binding: this_value,
             declarative_record: dcl_rec,
@@ -236,10 +236,7 @@ impl GlobalEnvironmentRecord {
             .__get_own_property__(&context.interner().resolve_expect(name).into(), context)?;
 
         // 4. If existingProp is undefined or existingProp.[[Configurable]] is true, then
-        let desc = if existing_prop
-            .map(|f| f.expect_configurable())
-            .unwrap_or(true)
-        {
+        let desc = if existing_prop.map_or(true, |f| f.expect_configurable()) {
             // a. Let desc be the PropertyDescriptor { [[Value]]: V, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: D }.
             PropertyDescriptor::builder()
                 .value(value.clone())
@@ -568,7 +565,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
 }
 
 impl From<GlobalEnvironmentRecord> for Environment {
-    fn from(env: GlobalEnvironmentRecord) -> Environment {
+    fn from(env: GlobalEnvironmentRecord) -> Self {
         Gc::new(Box::new(env))
     }
 }

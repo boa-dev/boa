@@ -2,8 +2,27 @@
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
     html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
 )]
+#![warn(
+    clippy::perf,
+    clippy::single_match_else,
+    clippy::dbg_macro,
+    clippy::doc_markdown,
+    clippy::wildcard_imports,
+    clippy::struct_excessive_bools,
+    clippy::doc_markdown,
+    clippy::semicolon_if_nothing_returned,
+    clippy::pedantic
+)]
 #![deny(
     clippy::all,
+    clippy::cast_lossless,
+    clippy::redundant_closure_for_method_calls,
+    clippy::use_self,
+    clippy::unnested_or_patterns,
+    clippy::trivially_copy_pass_by_ref,
+    clippy::needless_pass_by_value,
+    clippy::match_wildcard_for_single_variants,
+    clippy::map_unwrap_or,
     unused_qualifications,
     unused_import_braces,
     unused_lifetimes,
@@ -20,8 +39,16 @@
     future_incompatible,
     nonstandard_style,
 )]
-#![warn(clippy::perf, clippy::single_match_else, clippy::dbg_macro)]
 #![allow(
+    clippy::module_name_repetitions,
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
+    clippy::cast_precision_loss,
+    clippy::cast_possible_wrap,
+    clippy::cast_ptr_alignment,
+    clippy::missing_panics_doc,
+    clippy::too_many_lines,
+    clippy::unreadable_literal,
     clippy::missing_inline_in_public_items,
     clippy::cognitive_complexity,
     clippy::must_use_candidate,
@@ -32,9 +59,9 @@
 )]
 
 use boa::{syntax::ast::node::StatementList, Context, Interner};
-use colored::*;
+use colored::{Color, Colorize};
 use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
-use std::{fs::read, path::PathBuf};
+use std::{fs::read, io, path::PathBuf};
 use structopt::{clap::arg_enum, StructOpt};
 
 mod helper;
@@ -143,7 +170,7 @@ where
                 DumpFormat::Debug => println!("{:#?}", ast),
                 DumpFormat::Json => println!("{}", serde_json::to_string(&ast).unwrap()),
                 DumpFormat::JsonPretty => {
-                    println!("{}", serde_json::to_string_pretty(&ast).unwrap())
+                    println!("{}", serde_json::to_string_pretty(&ast).unwrap());
                 }
             },
             // Default ast dumping format.
@@ -188,7 +215,10 @@ pub fn main() -> Result<(), std::io::Error> {
             .build();
 
         let mut editor = Editor::with_config(config);
-        let _ = editor.load_history(CLI_HISTORY);
+        editor.load_history(CLI_HISTORY).map_err(|err| match err {
+            ReadlineError::Io(e) => e,
+            e => io::Error::new(io::ErrorKind::Other, e),
+        })?;
         editor.set_helper(Some(helper::RLHelper::new()));
 
         let readline = ">> ".color(READLINE_COLOR).bold().to_string();
@@ -196,7 +226,7 @@ pub fn main() -> Result<(), std::io::Error> {
         loop {
             match editor.readline(&readline) {
                 Ok(line) if line == ".exit" => break,
-                Err(ReadlineError::Interrupted) | Err(ReadlineError::Eof) => break,
+                Err(ReadlineError::Interrupted | ReadlineError::Eof) => break,
 
                 Ok(line) => {
                     editor.add_history_entry(&line);
@@ -209,7 +239,11 @@ pub fn main() -> Result<(), std::io::Error> {
                         match context.eval(line.trim_end()) {
                             Ok(v) => println!("{}", v.display()),
                             Err(v) => {
-                                eprintln!("{}: {}", "Uncaught".red(), v.display().to_string().red())
+                                eprintln!(
+                                    "{}: {}",
+                                    "Uncaught".red(),
+                                    v.display().to_string().red()
+                                );
                             }
                         }
                     }

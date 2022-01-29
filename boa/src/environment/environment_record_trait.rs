@@ -60,9 +60,11 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     fn initialize_binding(&self, name: Sym, value: JsValue, context: &mut Context) -> JsResult<()>;
 
     /// Set the value of an already existing mutable binding in an Environment Record.
+    ///
     /// The String value `name` is the text of the bound name.
-    /// value is the `value` for the binding and may be a value of any ECMAScript language type. S is a Boolean flag.
-    /// If `strict` is true and the binding cannot be set throw a TypeError exception.
+    /// value is the `value` for the binding and may be a value of any ECMAScript language type.
+    /// `S` is a `Boolean` flag. If `strict` is true and the binding cannot be set throw a
+    /// `TypeError` exception.
     fn set_mutable_binding(
         &self,
         name: Sym,

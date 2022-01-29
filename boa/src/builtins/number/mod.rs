@@ -4,7 +4,7 @@
 //! A `Number` object is created using the `Number()` constructor. A primitive type object number is created using the `Number()` **function**.
 //!
 //! The JavaScript `Number` type is double-precision 64-bit binary format IEEE 754 value. In more recent implementations,
-//! JavaScript also supports integers with arbitrary precision using the BigInt type.
+//! JavaScript also supports integers with arbitrary precision using the `BigInt` type.
 //!
 //! More information:
 //!  - [ECMAScript reference][spec]
@@ -301,7 +301,7 @@ impl Number {
         Ok(JsValue::new(this_str_num))
     }
 
-    /// flt_str_to_exp - used in to_precision
+    /// `flt_str_to_exp` - used in `to_precision`
     ///
     /// This function traverses a string representing a number,
     /// returning the floored log10 of this number.
@@ -325,7 +325,7 @@ impl Number {
         (flt.len() as i32) - 1
     }
 
-    /// round_to_precision - used in to_precision
+    /// `round_to_precision` - used in `to_precision`
     ///
     /// This procedure has two roles:
     /// - If there are enough or more than enough digits in the
@@ -367,14 +367,14 @@ impl Number {
                     }
                 }
                 digits.clear();
-                let replacement = if !propagated {
+                let replacement = if propagated {
+                    replacement.as_str()
+                } else {
                     digits.push('1');
                     &replacement.as_str()[1..]
-                } else {
-                    replacement.as_str()
                 };
                 for c in replacement.chars().rev() {
-                    digits.push(c)
+                    digits.push(c);
                 }
                 !propagated
             } else {
@@ -541,7 +541,7 @@ impl Number {
         let mut fraction_cursor = 0;
         let negative = value.is_sign_negative();
         if negative {
-            value = -value
+            value = -value;
         }
         // Split the value into an integer part and a fractional part.
         // let mut integer = value.trunc();
@@ -559,15 +559,15 @@ impl Number {
             fraction_cursor += 1;
             loop {
                 // Shift up by one digit.
-                fraction *= radix as f64;
-                delta *= radix as f64;
+                fraction *= f64::from(radix);
+                delta *= f64::from(radix);
                 // Write digit.
                 let digit = fraction as u32;
                 frac_buf[fraction_cursor] =
-                    std::char::from_digit(digit, radix as u32).unwrap() as u8;
+                    std::char::from_digit(digit, u32::from(radix)).unwrap() as u8;
                 fraction_cursor += 1;
                 // Calculate remainder.
-                fraction -= digit as f64;
+                fraction -= f64::from(digit);
                 // Round to even.
                 if fraction + delta > 1.0
                     && (fraction > 0.5 || (fraction - 0.5).abs() < f64::EPSILON && digit & 1 != 0)
@@ -583,11 +583,11 @@ impl Number {
                             let c: u8 = frac_buf[fraction_cursor];
                             // Reconstruct digit.
                             let digit_0 = (c as char).to_digit(10).unwrap();
-                            if digit_0 + 1 >= radix as u32 {
+                            if digit_0 + 1 >= u32::from(radix) {
                                 continue;
                             }
                             frac_buf[fraction_cursor] =
-                                std::char::from_digit(digit_0 + 1, radix as u32).unwrap() as u8;
+                                std::char::from_digit(digit_0 + 1, u32::from(radix)).unwrap() as u8;
                             fraction_cursor += 1;
                         }
                         break;
@@ -603,15 +603,15 @@ impl Number {
         // Compute integer digits. Fill unrepresented digits with zero.
         let mut int_iter = int_buf.iter_mut().enumerate().rev(); //.rev();
         while FloatCore::integer_decode(integer / f64::from(radix)).1 > 0 {
-            integer /= radix as f64;
+            integer /= f64::from(radix);
             *int_iter.next().unwrap().1 = b'0';
         }
 
         loop {
-            let remainder = integer % (radix as f64);
+            let remainder = integer % f64::from(radix);
             *int_iter.next().unwrap().1 =
-                std::char::from_digit(remainder as u32, radix as u32).unwrap() as u8;
-            integer = (integer - remainder) / radix as f64;
+                std::char::from_digit(remainder as u32, u32::from(radix)).unwrap() as u8;
+            integer = (integer - remainder) / f64::from(radix);
             if integer <= 0f64 {
                 break;
             }
@@ -761,6 +761,7 @@ impl Number {
             let mut strip_prefix = true;
 
             // 8. If R ≠ 0, then
+            #[allow(clippy::if_not_else)]
             if var_r != 0 {
                 //     a. If R < 2 or R > 36, return NaN.
                 if !(2..=36).contains(&var_r) {
@@ -769,7 +770,7 @@ impl Number {
 
                 //     b. If R ≠ 16, set stripPrefix to false.
                 if var_r != 16 {
-                    strip_prefix = false
+                    strip_prefix = false;
                 }
             } else {
                 // 9. Else,
@@ -823,9 +824,9 @@ impl Number {
             if math_int == 0_f64 {
                 if sign == -1 {
                     return Ok(JsValue::new(-0_f64));
-                } else {
-                    return Ok(JsValue::new(0_f64));
                 }
+
+                return Ok(JsValue::new(0_f64));
             }
 
             // 16. Return 𝔽(sign × mathInt).
@@ -873,15 +874,16 @@ impl Number {
                 // Prevent fast_float from parsing "inf", "+inf" as Infinity and "-inf" as -Infinity
                 Ok(JsValue::nan())
             } else {
-                Ok(fast_float::parse_partial::<f64, _>(s)
-                    .map(|(f, len)| {
+                Ok(fast_float::parse_partial::<f64, _>(s).map_or_else(
+                    |_| JsValue::nan(),
+                    |(f, len)| {
                         if len > 0 {
                             JsValue::new(f)
                         } else {
                             JsValue::nan()
                         }
-                    })
-                    .unwrap_or_else(|_| JsValue::nan()))
+                    },
+                ))
             }
         } else {
             // Not enough arguments to parseFloat.
@@ -893,7 +895,7 @@ impl Number {
     ///
     /// Converts the argument to a number, throwing a type error if the conversion is invalid.
     ///
-    /// If the number is NaN, +∞, or -∞ false is returned.
+    /// If the number is `NaN`, `+∞`, or `-∞`, `false` is returned.
     ///
     /// Otherwise true is returned.
     ///
@@ -920,7 +922,7 @@ impl Number {
     ///
     /// Converts the argument to a number, throwing a type error if the conversion is invalid.
     ///
-    /// If the number is NaN true is returned.
+    /// If the number is `NaN`, `true` is returned.
     ///
     /// Otherwise false is returned.
     ///
@@ -947,7 +949,7 @@ impl Number {
     ///
     /// Checks if the argument is a number, returning false if it isn't.
     ///
-    /// If the number is NaN, +∞, or -∞ false is returned.
+    /// If the number is `NaN`, `+∞`, or `-∞`, `false` is returned.
     ///
     /// Otherwise true is returned.
     ///
@@ -957,6 +959,7 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-number.isfinite
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isFinite
+    #[allow(clippy::unnecessary_wraps)]
     pub(crate) fn number_is_finite(
         _: &JsValue,
         args: &[JsValue],
@@ -983,6 +986,7 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-number.isinteger
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isInteger
+    #[allow(clippy::unnecessary_wraps)]
     pub(crate) fn number_is_integer(
         _: &JsValue,
         args: &[JsValue],
@@ -995,7 +999,7 @@ impl Number {
     ///
     /// Checks if the argument is a number, returning false if it isn't.
     ///
-    /// If the number is NaN true is returned.
+    /// If the number is `NaN`, `true` is returned.
     ///
     /// Otherwise false is returned.
     ///
@@ -1005,27 +1009,26 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isnan-number
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isNaN
+    #[allow(clippy::unnecessary_wraps)]
     pub(crate) fn number_is_nan(
         _: &JsValue,
         args: &[JsValue],
         _ctx: &mut Context,
     ) -> JsResult<JsValue> {
-        Ok(JsValue::new(if let Some(val) = args.get(0) {
-            match val {
-                JsValue::Integer(_) => false,
-                JsValue::Rational(number) => number.is_nan(),
-                _ => false,
-            }
-        } else {
-            false
-        }))
+        Ok(JsValue::new(
+            if let Some(&JsValue::Rational(number)) = args.get(0) {
+                number.is_nan()
+            } else {
+                false
+            },
+        ))
     }
 
     /// `Number.isSafeInteger( number )`
     ///
     /// Checks if the argument is an integer, returning false if it isn't.
     ///
-    /// If abs(number) ≤ MAX_SAFE_INTEGER true is returned.
+    /// If `abs(number) ≤ MAX_SAFE_INTEGER`, `true` is returned.
     ///
     /// Otherwise false is returned.
     ///
@@ -1035,6 +1038,7 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isnan-number
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isNaN
+    #[allow(clippy::unnecessary_wraps)]
     pub(crate) fn is_safe_integer(
         _: &JsValue,
         args: &[JsValue],
@@ -1043,13 +1047,13 @@ impl Number {
         Ok(JsValue::new(match args.get(0) {
             Some(JsValue::Integer(_)) => true,
             Some(JsValue::Rational(number)) if Self::is_float_integer(*number) => {
-                number.abs() <= Number::MAX_SAFE_INTEGER
+                number.abs() <= Self::MAX_SAFE_INTEGER
             }
             _ => false,
         }))
     }
 
-    /// Checks if the argument is a finite integer Number value.
+    /// Checks if the argument is a finite integer number value.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -1059,7 +1063,7 @@ impl Number {
     pub(crate) fn is_integer(val: &JsValue) -> bool {
         match val {
             JsValue::Integer(_) => true,
-            JsValue::Rational(number) => Number::is_float_integer(*number),
+            JsValue::Rational(number) => Self::is_float_integer(*number),
             _ => false,
         }
     }
@@ -1071,7 +1075,7 @@ impl Number {
         number.is_finite() && number.abs().floor() == number.abs()
     }
 
-    /// The abstract operation Number::equal takes arguments
+    /// The abstract operation `Number::equal` takes arguments
     /// x (a Number) and y (a Number). It performs the following steps when called:
     ///
     /// <https://tc39.es/ecma262/#sec-numeric-types-number-equal>
@@ -1081,7 +1085,7 @@ impl Number {
         x == y
     }
 
-    /// The abstract operation Number::sameValue takes arguments
+    /// The abstract operation `Number::sameValue` takes arguments
     /// x (a Number) and y (a Number). It performs the following steps when called:
     ///
     /// <https://tc39.es/ecma262/#sec-numeric-types-number-sameValue>
@@ -1093,7 +1097,7 @@ impl Number {
         a == b && a.signum() == b.signum()
     }
 
-    /// The abstract operation Number::sameValueZero takes arguments
+    /// The abstract operation `Number::sameValueZero` takes arguments
     /// x (a Number) and y (a Number). It performs the following steps when called:
     ///
     /// <https://tc39.es/ecma262/#sec-numeric-types-number-sameValueZero>

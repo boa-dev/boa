@@ -31,12 +31,12 @@ impl Equivalent<MapKey> for JsValue {
     fn equivalent(&self, key: &MapKey) -> bool {
         match key {
             MapKey::Key(v) => v == self,
-            _ => false,
+            MapKey::Empty(_) => false,
         }
     }
 }
 
-/// A newtype wrapping indexmap::IndexMap
+/// A structure wrapping `indexmap::IndexMap`.
 #[derive(Clone)]
 pub struct OrderedMap<V, S = RandomState> {
     map: IndexMap<MapKey, Option<V>, S>,
@@ -70,7 +70,7 @@ impl<V> Default for OrderedMap<V> {
 
 impl<V> OrderedMap<V> {
     pub fn new() -> Self {
-        OrderedMap {
+        Self {
             map: IndexMap::new(),
             lock: 0,
             empty_count: 0,
@@ -78,7 +78,7 @@ impl<V> OrderedMap<V> {
     }
 
     pub fn with_capacity(capacity: usize) -> Self {
-        OrderedMap {
+        Self {
             map: IndexMap::with_capacity(capacity),
             lock: 0,
             empty_count: 0,
@@ -147,7 +147,7 @@ impl<V> OrderedMap<V> {
     pub fn clear(&mut self) {
         self.map.clear();
         self.map.shrink_to_fit();
-        self.empty_count = 0
+        self.empty_count = 0;
     }
 
     /// Return a reference to the value stored for `key`, if it is present,
@@ -160,7 +160,7 @@ impl<V> OrderedMap<V> {
 
     /// Get a key-value pair by index.
     ///
-    /// Valid indices are 0 <= index < self.full_len().
+    /// Valid indices are `0 <= index < self.full_len()`.
     ///
     /// Computes in O(1) time.
     pub fn get_index(&self, index: usize) -> Option<(&JsValue, &V)> {

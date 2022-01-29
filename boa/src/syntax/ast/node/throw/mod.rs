@@ -53,7 +53,7 @@ impl ToInternedString for Throw {
 }
 
 impl From<Throw> for Node {
-    fn from(trw: Throw) -> Node {
+    fn from(trw: Throw) -> Self {
         Self::Throw(trw)
     }
 }

@@ -46,7 +46,7 @@ where
 
         let next_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
         match next_token.kind() {
-            TokenKind::Keyword(Keyword::Function) | TokenKind::Keyword(Keyword::Class) => {
+            TokenKind::Keyword(Keyword::Function | Keyword::Class) => {
                 return Err(ParseError::general(
                     "expected statement",
                     next_token.span().start(),

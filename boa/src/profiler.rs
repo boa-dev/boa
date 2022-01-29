@@ -70,18 +70,14 @@ impl Debug for BoaProfiler {
 #[cfg(not(feature = "profiler"))]
 pub struct BoaProfiler;
 
-#[allow(clippy::unused_unit)]
+#[allow(clippy::unused_unit, clippy::unused_self)]
 #[cfg(not(feature = "profiler"))]
 impl BoaProfiler {
-    pub fn start_event(&self, _label: &str, _category: &str) -> () {
-        ()
-    }
+    pub fn start_event(&self, _label: &str, _category: &str) -> () {}
 
-    pub fn drop(&self) {
-        ()
-    }
+    pub fn drop(&self) {}
 
-    pub fn global() -> BoaProfiler {
-        BoaProfiler
+    pub fn global() -> Self {
+        Self
     }
 }

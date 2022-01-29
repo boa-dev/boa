@@ -232,7 +232,7 @@ impl Json {
             // a. If IsCallable(replacer) is true, then
             if replacer_obj.is_callable() {
                 // i. Set ReplacerFunction to replacer.
-                replacer_function = Some(replacer_obj.clone())
+                replacer_function = Some(replacer_obj.clone());
             // b. Else,
             } else {
                 // i. Let isArray be ? IsArray(replacer).
@@ -260,7 +260,7 @@ impl Json {
                         // g. If item is not undefined and item is not currently an element of PropertyList, then
                         // i. Append item to the end of PropertyList.
                         if let Some(s) = v.as_string() {
-                            property_set.insert(s.to_owned());
+                            property_set.insert(s.clone());
                         } else if v.is_number() {
                             property_set.insert(
                                 v.to_string(context)
@@ -348,7 +348,7 @@ impl Json {
         // 12. Return ? SerializeJSONProperty(state, the empty String, wrapper).
         Ok(
             Self::serialize_json_property(&mut state, JsString::new(""), &wrapper, context)?
-                .map(|s| s.into())
+                .map(Into::into)
                 .unwrap_or_default(),
         )
     }
@@ -385,7 +385,7 @@ impl Json {
         // 3. If state.[[ReplacerFunction]] is not undefined, then
         if let Some(obj) = &state.replacer_function {
             // a. Set value to ? Call(state.[[ReplacerFunction]], holder, « key, value »).
-            value = obj.call(&holder.clone().into(), &[key.into(), value], context)?
+            value = obj.call(&holder.clone().into(), &[key.into(), value], context)?;
         }
 
         // 4. If Type(value) is Object, then
@@ -403,12 +403,12 @@ impl Json {
             // c. Else if value has a [[BooleanData]] internal slot, then
             else if let Some(boolean) = obj.borrow().as_boolean() {
                 // i. Set value to value.[[BooleanData]].
-                value = boolean.into()
+                value = boolean.into();
             }
             // d. Else if value has a [[BigIntData]] internal slot, then
             else if let Some(bigint) = obj.borrow().as_bigint() {
                 // i. Set value to value.[[BigIntData]].
-                value = bigint.clone().into()
+                value = bigint.clone().into();
             }
         }
 
@@ -420,10 +420,11 @@ impl Json {
         // 6. If value is true, return "true".
         // 7. If value is false, return "false".
         if value.is_boolean() {
-            return match value.to_boolean() {
-                true => Ok(Some(JsString::new("true"))),
-                false => Ok(Some(JsString::new("false"))),
-            };
+            return Ok(Some(JsString::new(if value.to_boolean() {
+                "true"
+            } else {
+                "false"
+            })));
         }
 
         // 8. If Type(value) is String, return QuoteJSONString(value).
@@ -503,7 +504,7 @@ impl Json {
                 code_point => {
                     // i. Set product to the string-concatenation of product and ! UTF16EncodeCodePoint(C).
                     product.push(
-                        char::from_u32(code_point as u32)
+                        char::from_u32(u32::from(code_point))
                             .expect("char from code point cannot fail here"),
                     );
                 }
@@ -674,11 +675,11 @@ impl Json {
             // b. If strP is undefined, then
             if let Some(str_p) = str_p {
                 // i. Append strP to partial.
-                partial.push(str_p)
+                partial.push(str_p);
             // c. Else,
             } else {
                 // i. Append "null" to partial.
-                partial.push("null".into())
+                partial.push("null".into());
             }
 
             // d. Set index to index + 1.

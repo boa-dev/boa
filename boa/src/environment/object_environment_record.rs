@@ -27,8 +27,8 @@ pub struct ObjectEnvironmentRecord {
 }
 
 impl ObjectEnvironmentRecord {
-    pub fn new(object: JsObject, environment: Option<Environment>) -> ObjectEnvironmentRecord {
-        ObjectEnvironmentRecord {
+    pub fn new(object: JsObject, environment: Option<Environment>) -> Self {
+        Self {
             bindings: object,
             outer_env: environment,
             /// Object Environment Records created for with statements (13.11)
@@ -194,12 +194,11 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
             // a. If S is false, return the value undefined; otherwise throw a ReferenceError exception.
             if !strict {
                 return Ok(JsValue::undefined());
-            } else {
-                return context.throw_reference_error(format!(
-                    "{} has no binding",
-                    context.interner().resolve_expect(name)
-                ));
             }
+            return context.throw_reference_error(format!(
+                "{} has no binding",
+                context.interner().resolve_expect(name)
+            ));
         }
 
         // 4. Return ? Get(bindingObject, N).
@@ -276,7 +275,7 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
 }
 
 impl From<ObjectEnvironmentRecord> for Environment {
-    fn from(env: ObjectEnvironmentRecord) -> Environment {
+    fn from(env: ObjectEnvironmentRecord) -> Self {
         Gc::new(Box::new(env))
     }
 }

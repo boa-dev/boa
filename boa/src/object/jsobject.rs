@@ -2,7 +2,7 @@
 //!
 //! The `JsObject` is a garbage collected Object.
 
-use super::{JsPrototype, NativeObject, Object};
+use super::{JsPrototype, NativeObject, Object, PropertyMap};
 use crate::{
     gc::{self, Finalize, Gc, Trace},
     object::{ObjectData, ObjectKind},
@@ -46,12 +46,12 @@ impl JsObject {
     /// Create a `JsObject` and automatically set its internal methods and
     /// internal slots from the `data` provided.
     #[inline]
-    pub fn from_proto_and_data<O: Into<Option<JsObject>>>(prototype: O, data: ObjectData) -> Self {
+    pub fn from_proto_and_data<O: Into<Option<Self>>>(prototype: O, data: ObjectData) -> Self {
         Self::from_object(Object {
             data,
             prototype: prototype.into(),
             extensible: true,
-            properties: Default::default(),
+            properties: PropertyMap::default(),
         })
     }
 
@@ -245,7 +245,7 @@ impl JsObject {
     #[inline]
     #[track_caller]
     pub fn prototype(&self) -> Ref<'_, JsPrototype> {
-        Ref::map(self.borrow(), |obj| obj.prototype())
+        Ref::map(self.borrow(), Object::prototype)
     }
 
     /// Get the extensibility of the object.
@@ -549,7 +549,7 @@ Cannot both specify accessors and a value or writable attribute",
 
         // 5. Let keys be ? from.[[OwnPropertyKeys]]().
         // 6. For each element nextKey of keys, do
-        let excluded_keys: Vec<PropertyKey> = excluded_keys.into_iter().map(|e| e.into()).collect();
+        let excluded_keys: Vec<PropertyKey> = excluded_keys.into_iter().map(Into::into).collect();
         for key in from.__own_property_keys__(context)? {
             // a. Let excluded be false.
             let mut excluded = false;
@@ -617,7 +617,7 @@ Cannot both specify accessors and a value or writable attribute",
     /// It determines if Object is a callable function with a `[[Call]]` internal method.
     ///
     /// More information:
-    /// - [EcmaScript reference][spec]
+    /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iscallable
     #[inline]
@@ -629,7 +629,7 @@ Cannot both specify accessors and a value or writable attribute",
     /// It determines if Object is a function object with a `[[Construct]]` internal method.
     ///
     /// More information:
-    /// - [EcmaScript reference][spec]
+    /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isconstructor
     #[inline]
@@ -638,7 +638,7 @@ Cannot both specify accessors and a value or writable attribute",
         self.borrow().data.internal_methods.__construct__.is_some()
     }
 
-    /// Returns true if the JsObject is the global for a Realm
+    /// Returns true if the `JsObject` is the global for a Realm
     pub fn is_global(&self) -> bool {
         matches!(
             self.borrow().data,
@@ -659,7 +659,7 @@ impl AsRef<gc::Cell<Object>> for JsObject {
 
 impl PartialEq for JsObject {
     fn eq(&self, other: &Self) -> bool {
-        JsObject::equals(self, other)
+        Self::equals(self, other)
     }
 }
 

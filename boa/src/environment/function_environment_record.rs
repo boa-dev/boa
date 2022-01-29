@@ -64,8 +64,8 @@ impl FunctionEnvironmentRecord {
         binding_status: BindingStatus,
         new_target: JsValue,
         context: &mut Context,
-    ) -> JsResult<FunctionEnvironmentRecord> {
-        let mut func_env = FunctionEnvironmentRecord {
+    ) -> JsResult<Self> {
+        let mut func_env = Self {
             declarative_record: DeclarativeEnvironmentRecord::new(outer), // the outer environment will come from Environment set as a private property of F - https://tc39.es/ecma262/#sec-ecmascript-function-objects
             function: f,
             this_binding_status: binding_status,
@@ -247,7 +247,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
     }
 
     fn set_outer_environment(&mut self, env: Environment) {
-        self.declarative_record.set_outer_environment(env)
+        self.declarative_record.set_outer_environment(env);
     }
 
     fn get_environment_type(&self) -> EnvironmentType {
@@ -276,7 +276,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
 }
 
 impl From<FunctionEnvironmentRecord> for Environment {
-    fn from(env: FunctionEnvironmentRecord) -> Environment {
+    fn from(env: FunctionEnvironmentRecord) -> Self {
         Gc::new(Box::new(env))
     }
 }

@@ -1306,7 +1306,7 @@ fn assignment_to_non_assignable() {
         "3 -= 5", "3 *= 5", "3 /= 5", "3 %= 5", "3 &= 5", "3 ^= 5", "3 |= 5", "3 += 5", "3 = 5",
     ];
 
-    for case in test_cases.iter() {
+    for case in &test_cases {
         let string = forward(&mut context, case);
 
         assert!(string.starts_with("Uncaught \"SyntaxError\": "));
@@ -1322,7 +1322,7 @@ fn multicharacter_assignment_to_non_assignable() {
 
     let test_cases = ["3 **= 5", "3 <<= 5", "3 >>= 5"];
 
-    for case in test_cases.iter() {
+    for case in &test_cases {
         let string = dbg!(forward(&mut context, case));
 
         assert!(string.starts_with("Uncaught \"SyntaxError\": "));
@@ -1337,7 +1337,7 @@ fn multicharacter_bitwise_assignment_to_non_assignable() {
     // Disabled - awaiting implementation.
     let test_cases = ["3 >>>= 5", "3 &&= 5", "3 ||= 5", "3 ??= 5"];
 
-    for case in test_cases.iter() {
+    for case in &test_cases {
         let string = dbg!(forward(&mut context, case));
 
         assert!(string.starts_with("Uncaught \"SyntaxError\": "));
@@ -1357,10 +1357,10 @@ fn assign_to_array_decl() {
 
 #[test]
 fn assign_to_object_decl() {
-    let mut context = Context::default();
-
     const ERR_MSG: &str =
         "Uncaught \"SyntaxError\": \"unexpected token '=', primary expression at line 1, col 8\"";
+
+    let mut context = Context::default();
 
     assert_eq!(forward(&mut context, "{a: 3} = {a: 5};"), ERR_MSG);
 }
@@ -1477,7 +1477,7 @@ fn test_strict_mode_reserved_name() {
         "var yield = 10;",
     ];
 
-    for case in test_cases.iter() {
+    for case in &test_cases {
         let mut context = Context::default();
         let scenario = format!("'use strict'; \n {}", case);
 

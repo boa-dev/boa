@@ -1,5 +1,4 @@
-use super::*;
-
+use super::JsValue;
 use crate::builtins::Number;
 use std::hash::{Hash, Hasher};
 

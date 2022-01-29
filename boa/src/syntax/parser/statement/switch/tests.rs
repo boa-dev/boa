@@ -110,7 +110,7 @@ fn check_switch_seperated_defaults() {
     );
 }
 
-/// Example of JS code https://jsfiddle.net/zq6jx47h/4/.
+/// Example of JS code <https://jsfiddle.net/zq6jx47h/4/>.
 #[test]
 fn check_seperated_switch() {
     let s = r#"

@@ -74,7 +74,7 @@ where
     #[inline]
     pub(super) fn set_goal(&mut self, elm: InputElement) {
         let _timer = BoaProfiler::global().start_event("cursor::set_goal()", "Parsing");
-        self.lexer.set_goal(elm)
+        self.lexer.set_goal(elm);
     }
 
     /// Lexes the next tokens as a regex assuming that the starting '/' has already been consumed.
@@ -88,7 +88,7 @@ where
         self.set_goal(InputElement::RegExp);
         self.lexer
             .lex_slash_token(start, interner)
-            .map_err(|e| e.into())
+            .map_err(Into::into)
     }
 
     /// Lexes the next tokens as template middle or template tail assuming that the starting
@@ -110,7 +110,7 @@ where
 
     #[inline]
     pub(super) fn set_strict_mode(&mut self, strict_mode: bool) {
-        self.lexer.set_strict_mode(strict_mode)
+        self.lexer.set_strict_mode(strict_mode);
     }
 
     /// Fills the peeking buffer with the next token.
@@ -162,7 +162,7 @@ where
 
     /// Moves the cursor to the next token and returns the token.
     ///
-    /// If skip_line_terminators is true then line terminators will be discarded.
+    /// If `skip_line_terminators` is true then line terminators will be discarded.
     ///
     /// This follows iterator semantics in that a `peek(0, false)` followed by a `next(false)` will
     /// return the same value. Note that because a `peek(n, false)` may return a line terminator a

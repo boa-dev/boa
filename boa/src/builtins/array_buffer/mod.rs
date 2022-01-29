@@ -105,6 +105,7 @@ impl ArrayBuffer {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-arraybuffer-@@species
+    #[allow(clippy::unnecessary_wraps)]
     fn get_species(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Return the this value.
         Ok(this.clone())
@@ -116,6 +117,7 @@ impl ArrayBuffer {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-arraybuffer.isview
+    #[allow(clippy::unnecessary_wraps)]
     fn is_view(_: &JsValue, args: &[JsValue], _context: &mut Context) -> JsResult<JsValue> {
         // 1. If Type(arg) is not Object, return false.
         // 2. If arg has a [[ViewedArrayBuffer]] internal slot, return true.
@@ -320,7 +322,7 @@ impl ArrayBuffer {
 
         // 3. Set obj.[[ArrayBufferData]] to block.
         // 4. Set obj.[[ArrayBufferByteLength]] to byteLength.
-        obj.borrow_mut().data = ObjectData::array_buffer(ArrayBuffer {
+        obj.borrow_mut().data = ObjectData::array_buffer(Self {
             array_buffer_data: Some(block),
             array_buffer_byte_length: byte_length,
             array_buffer_detach_key: JsValue::Undefined,
@@ -600,7 +602,7 @@ impl ArrayBuffer {
     /// [spec]: https://tc39.es/ecma262/#sec-numerictorawbytes
     fn numeric_to_raw_bytes(
         t: TypedArrayName,
-        value: JsValue,
+        value: &JsValue,
         is_little_endian: bool,
         context: &mut Context,
     ) -> JsResult<Vec<u8>> {
@@ -696,7 +698,7 @@ impl ArrayBuffer {
         &mut self,
         byte_index: usize,
         t: TypedArrayName,
-        value: JsValue,
+        value: &JsValue,
         _order: SharedMemoryOrder,
         is_little_endian: Option<bool>,
         context: &mut Context,
@@ -804,7 +806,7 @@ fn copy_data_block_bytes(
 
 // TODO: Allow unused variants until shared array buffers are implemented.
 #[allow(dead_code)]
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub(crate) enum SharedMemoryOrder {
     Init,
     SeqCst,

@@ -23,7 +23,7 @@ use crate::{
 
 use std::io::Read;
 
-/// The possible TokenKind which indicate the end of a block statement.
+/// The possible `TokenKind` which indicate the end of a block statement.
 const BLOCK_BREAK_TOKENS: [TokenKind; 1] = [TokenKind::Punctuator(Punctuator::CloseBlock)];
 
 /// A `BlockStatement` is equivalent to a `Block`.

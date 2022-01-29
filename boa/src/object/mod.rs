@@ -416,7 +416,7 @@ impl Debug for ObjectData {
 }
 
 impl Default for Object {
-    /// Return a new ObjectData struct, with `kind` set to Ordinary
+    /// Return a new `ObjectData` struct, with `kind` set to Ordinary
     #[inline]
     fn default() -> Self {
         Self {
@@ -1144,7 +1144,7 @@ impl Object {
         K: Into<PropertyKey>,
         P: Into<PropertyDescriptor>,
     {
-        self.properties.insert(key.into(), property.into())
+        self.properties.insert(&key.into(), property.into())
     }
 
     /// Helper function for property removal.
@@ -1339,8 +1339,9 @@ impl<'context> FunctionBuilder<'context> {
     #[inline]
     pub fn constructor(&mut self, yes: bool) -> &mut Self {
         match self.function.as_mut() {
-            Some(Function::Native { constructor, .. }) => *constructor = yes,
-            Some(Function::Closure { constructor, .. }) => *constructor = yes,
+            Some(Function::Native { constructor, .. } | Function::Closure { constructor, .. }) => {
+                *constructor = yes;
+            }
             _ => unreachable!(),
         }
         self

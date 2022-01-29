@@ -140,7 +140,7 @@ impl<'b> ByteCompiler<'b> {
 
     #[inline]
     fn emit_opcode(&mut self, opcode: Opcode) {
-        self.emit_u8(opcode as u8)
+        self.emit_u8(opcode as u8);
     }
 
     #[inline]
@@ -153,11 +153,11 @@ impl<'b> ByteCompiler<'b> {
         match value {
             0 => self.emit_opcode(Opcode::PushZero),
             1 => self.emit_opcode(Opcode::PushOne),
-            x if x as i8 as i32 == x => {
+            x if i32::from(x as i8) == x => {
                 self.emit_opcode(Opcode::PushInt8);
                 self.emit_u8(x as i8 as u8);
             }
-            x if x as i16 as i32 == x => {
+            x if i32::from(x as i16) == x => {
                 self.emit_opcode(Opcode::PushInt16);
                 self.emit_u16(x as i16 as u16);
             }
@@ -180,14 +180,13 @@ impl<'b> ByteCompiler<'b> {
         if value.is_infinite() {
             if value.is_sign_positive() {
                 return self.emit_opcode(Opcode::PushPositiveInfinity);
-            } else {
-                return self.emit_opcode(Opcode::PushNegativeInfinity);
             }
+            return self.emit_opcode(Opcode::PushNegativeInfinity);
         }
 
         // Check if the f64 value can fit in an i32.
         #[allow(clippy::float_cmp)]
-        if value as i32 as f64 == value {
+        if f64::from(value as i32) == value {
             self.emit_push_integer(value as i32);
         } else {
             self.emit_opcode(Opcode::PushRational);
@@ -245,7 +244,7 @@ impl<'b> ByteCompiler<'b> {
             breaks: Vec::new(),
             try_continues: Vec::new(),
             for_of_in_loop: false,
-        })
+        });
     }
 
     #[inline]
@@ -257,7 +256,7 @@ impl<'b> ByteCompiler<'b> {
             breaks: Vec::new(),
             try_continues: Vec::new(),
             for_of_in_loop: true,
-        })
+        });
     }
 
     #[inline]
@@ -280,7 +279,7 @@ impl<'b> ByteCompiler<'b> {
             breaks: Vec::new(),
             try_continues: Vec::new(),
             for_of_in_loop: false,
-        })
+        });
     }
 
     #[inline]
@@ -306,7 +305,7 @@ impl<'b> ByteCompiler<'b> {
                 breaks: Vec::new(),
                 try_continues: Vec::new(),
                 for_of_in_loop: false,
-            })
+            });
         }
     }
 
@@ -324,7 +323,7 @@ impl<'b> ByteCompiler<'b> {
                     if label.index < finally_start_address {
                         self.patch_jump_with_target(label, finally_start_address);
                     } else {
-                        self.patch_jump_with_target(label, info.start_address)
+                        self.patch_jump_with_target(label, info.start_address);
                     }
                 }
 
@@ -730,46 +729,18 @@ impl<'b> ByteCompiler<'b> {
                                         self.emit_opcode(Opcode::DefineOwnPropertyByValue);
                                     }
                                 },
-                                MethodDefinitionKind::Generator => {
+                                MethodDefinitionKind::Generator
+                                | MethodDefinitionKind::Async
+                                | MethodDefinitionKind::AsyncGenerator => {
                                     // TODO: Implement generators
-                                    match name {
-                                        PropertyName::Literal(name) => {
-                                            self.emit_opcode(Opcode::PushUndefined);
-                                            self.emit_opcode(Opcode::Swap);
-                                            let index = self.get_or_insert_name(*name);
-                                            self.emit(Opcode::DefineOwnPropertyByName, &[index]);
-                                        }
-                                        PropertyName::Computed(name_node) => {
-                                            self.compile_stmt(name_node, true);
-                                            self.emit_opcode(Opcode::PushUndefined);
-                                            self.emit_opcode(Opcode::DefineOwnPropertyByValue);
-                                        }
-                                    }
-                                }
-                                MethodDefinitionKind::Async => {
                                     // TODO: Implement async
-                                    match name {
-                                        PropertyName::Literal(name) => {
-                                            self.emit_opcode(Opcode::PushUndefined);
-                                            self.emit_opcode(Opcode::Swap);
-                                            let index = self.get_or_insert_name(*name);
-                                            self.emit(Opcode::DefineOwnPropertyByName, &[index])
-                                        }
-                                        PropertyName::Computed(name_node) => {
-                                            self.compile_stmt(name_node, true);
-                                            self.emit_opcode(Opcode::PushUndefined);
-                                            self.emit_opcode(Opcode::DefineOwnPropertyByValue);
-                                        }
-                                    }
-                                }
-                                MethodDefinitionKind::AsyncGenerator => {
                                     // TODO: Implement async generators
                                     match name {
                                         PropertyName::Literal(name) => {
                                             self.emit_opcode(Opcode::PushUndefined);
                                             self.emit_opcode(Opcode::Swap);
                                             let index = self.get_or_insert_name(*name);
-                                            self.emit(Opcode::DefineOwnPropertyByName, &[index])
+                                            self.emit(Opcode::DefineOwnPropertyByName, &[index]);
                                         }
                                         PropertyName::Computed(name_node) => {
                                             self.compile_stmt(name_node, true);
@@ -853,8 +824,7 @@ impl<'b> ByteCompiler<'b> {
             Node::Spread(spread) => self.compile_expr(spread.val(), true),
             Node::FunctionExpr(_function) => self.function(expr, use_expr),
             Node::ArrowFunctionDecl(_function) => self.function(expr, use_expr),
-            Node::Call(_) => self.call(expr, use_expr),
-            Node::New(_) => self.call(expr, use_expr),
+            Node::Call(_) | Node::New(_) => self.call(expr, use_expr),
             Node::TemplateLit(template_literal) => {
                 for element in template_literal.elements() {
                     match element {
@@ -877,23 +847,15 @@ impl<'b> ByteCompiler<'b> {
                 }
             }
             // TODO: implement AsyncFunctionExpr
-            Node::AsyncFunctionExpr(_) => {
-                self.emit_opcode(Opcode::PushUndefined);
-            }
             // TODO: implement AwaitExpr
-            Node::AwaitExpr(_) => {
-                self.emit_opcode(Opcode::PushUndefined);
-            }
             // TODO: implement GeneratorExpr
-            Node::GeneratorExpr(_) => {
-                self.emit_opcode(Opcode::PushUndefined);
-            }
             // TODO: implement AsyncGeneratorExpr
-            Node::AsyncGeneratorExpr(_) => {
-                self.emit_opcode(Opcode::PushUndefined);
-            }
             // TODO: implement Yield
-            Node::Yield(_) => {
+            Node::AsyncFunctionExpr(_)
+            | Node::AwaitExpr(_)
+            | Node::GeneratorExpr(_)
+            | Node::AsyncGeneratorExpr(_)
+            | Node::Yield(_) => {
                 self.emit_opcode(Opcode::PushUndefined);
             }
             Node::TaggedTemplate(template) => {
@@ -1428,15 +1390,9 @@ impl<'b> ByteCompiler<'b> {
                 }
             }
             // TODO: implement AsyncFunctionDecl
-            Node::AsyncFunctionDecl(_) => {
-                self.emit_opcode(Opcode::PushUndefined);
-            }
             // TODO: implement GeneratorDecl
-            Node::GeneratorDecl(_) => {
-                self.emit_opcode(Opcode::PushUndefined);
-            }
             // TODO: implement AsyncGeneratorDecl
-            Node::AsyncGeneratorDecl(_) => {
+            Node::AsyncFunctionDecl(_) | Node::GeneratorDecl(_) | Node::AsyncGeneratorDecl(_) => {
                 self.emit_opcode(Opcode::PushUndefined);
             }
             Node::Empty => {}
@@ -1522,7 +1478,7 @@ impl<'b> ByteCompiler<'b> {
         }
 
         if has_parameter_expressions {
-            compiler.emit_opcode(Opcode::PushFunctionEnvironment)
+            compiler.emit_opcode(Opcode::PushFunctionEnvironment);
         }
 
         for node in body.items() {
@@ -1600,11 +1556,11 @@ impl<'b> ByteCompiler<'b> {
 
         match kind {
             CallKind::Call if last_is_rest_parameter => {
-                self.emit(Opcode::CallWithRest, &[call.args().len() as u32])
+                self.emit(Opcode::CallWithRest, &[call.args().len() as u32]);
             }
             CallKind::Call => self.emit(Opcode::Call, &[call.args().len() as u32]),
             CallKind::New if last_is_rest_parameter => {
-                self.emit(Opcode::NewWithRest, &[call.args().len() as u32])
+                self.emit(Opcode::NewWithRest, &[call.args().len() as u32]);
             }
             CallKind::New => self.emit(Opcode::New, &[call.args().len() as u32]),
         }
@@ -1635,7 +1591,9 @@ impl<'b> ByteCompiler<'b> {
                 self.emit_opcode(Opcode::RequireObjectCoercible);
 
                 for binding in pattern.bindings() {
-                    use BindingPatternTypeObject::*;
+                    use BindingPatternTypeObject::{
+                        BindingPattern, Empty, RestProperty, SingleName,
+                    };
 
                     match binding {
                         // ObjectBindingPattern : { }
@@ -1710,7 +1668,10 @@ impl<'b> ByteCompiler<'b> {
                 self.emit_opcode(Opcode::InitIterator);
 
                 for (i, binding) in pattern.bindings().iter().enumerate() {
-                    use BindingPatternTypeArray::*;
+                    use BindingPatternTypeArray::{
+                        BindingPattern, BindingPatternRest, Elision, Empty, SingleName,
+                        SingleNameRest,
+                    };
 
                     let next = if i == pattern.bindings().len() - 1 {
                         Opcode::IteratorNextFull
@@ -1745,7 +1706,7 @@ impl<'b> ByteCompiler<'b> {
                         // BindingElement : BindingPattern Initializer[opt]
                         BindingPattern { pattern } => {
                             self.emit_opcode(next);
-                            self.compile_declaration_pattern(pattern, def)
+                            self.compile_declaration_pattern(pattern, def);
                         }
                         // BindingRestElement : ... BindingIdentifier
                         SingleNameRest { ident } => {

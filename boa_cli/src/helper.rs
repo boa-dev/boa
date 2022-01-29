@@ -1,5 +1,5 @@
-use colored::*;
-use lazy_static::lazy_static;
+use colored::{Color, Colorize};
+use phf::{phf_set, Set};
 use regex::{Captures, Regex};
 use rustyline::{
     error::ReadlineError,
@@ -8,7 +8,6 @@ use rustyline::{
 };
 use rustyline_derive::{Completer, Helper, Hinter};
 use std::borrow::Cow;
-use std::collections::HashSet;
 
 const STRING_COLOR: Color = Color::Green;
 const KEYWORD_COLOR: Color = Color::Yellow;
@@ -86,46 +85,42 @@ impl Highlighter for RLHelper {
     }
 }
 
-lazy_static! {
-    static ref KEYWORDS: HashSet<&'static str> = {
-        let mut keywords = HashSet::new();
-        keywords.insert("break");
-        keywords.insert("case");
-        keywords.insert("catch");
-        keywords.insert("class");
-        keywords.insert("const");
-        keywords.insert("continue");
-        keywords.insert("default");
-        keywords.insert("delete");
-        keywords.insert("do");
-        keywords.insert("else");
-        keywords.insert("export");
-        keywords.insert("extends");
-        keywords.insert("finally");
-        keywords.insert("for");
-        keywords.insert("function");
-        keywords.insert("if");
-        keywords.insert("import");
-        keywords.insert("instanceof");
-        keywords.insert("new");
-        keywords.insert("return");
-        keywords.insert("super");
-        keywords.insert("switch");
-        keywords.insert("this");
-        keywords.insert("throw");
-        keywords.insert("try");
-        keywords.insert("typeof");
-        keywords.insert("var");
-        keywords.insert("void");
-        keywords.insert("while");
-        keywords.insert("with");
-        keywords.insert("yield");
-        keywords.insert("await");
-        keywords.insert("enum");
-        keywords.insert("let");
-        keywords
-    };
-}
+static KEYWORDS: Set<&'static str> = phf_set! {
+    "break",
+    "case",
+    "catch",
+    "class",
+    "const",
+    "continue",
+    "default",
+    "delete",
+    "do",
+    "else",
+    "export",
+    "extends",
+    "finally",
+    "for",
+    "function",
+    "if",
+    "import",
+    "instanceof",
+    "new",
+    "return",
+    "super",
+    "switch",
+    "this",
+    "throw",
+    "try",
+    "typeof",
+    "var",
+    "void",
+    "while",
+    "with",
+    "yield",
+    "await",
+    "enum",
+    "let",
+};
 
 struct LineHighlighter;
 

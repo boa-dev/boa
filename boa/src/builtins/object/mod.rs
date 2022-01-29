@@ -23,7 +23,7 @@ use crate::{
     property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
     symbol::WellKnownSymbols,
     value::JsValue,
-    BoaProfiler, Context, JsResult,
+    BoaProfiler, Context, JsResult, JsString,
 };
 
 use super::Array;
@@ -148,7 +148,7 @@ impl Object {
         };
 
         if !properties.is_undefined() {
-            object_define_properties(&obj, properties.clone(), context)?;
+            object_define_properties(&obj, properties, context)?;
             return Ok(obj.into());
         }
 
@@ -287,7 +287,7 @@ impl Object {
         }
     }
 
-    /// Uses the SameValue algorithm to check equality of objects
+    /// Uses the `SameValue` algorithm to check equality of objects
     pub fn is(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let x = args.get_or_undefined(0);
         let y = args.get_or_undefined(1);
@@ -441,7 +441,7 @@ impl Object {
         let arg = args.get_or_undefined(0);
         if let JsValue::Object(obj) = arg {
             let props = args.get_or_undefined(1);
-            object_define_properties(obj, props.clone(), context)?;
+            object_define_properties(obj, props, context)?;
             Ok(arg.clone())
         } else {
             context.throw_type_error("Expected an object")
@@ -517,7 +517,7 @@ impl Object {
         let tag = o.get(WellKnownSymbols::to_string_tag(), context)?;
 
         // 16. If Type(tag) is not String, set tag to builtinTag.
-        let tag_str = tag.as_string().map(|s| s.as_str()).unwrap_or(builtin_tag);
+        let tag_str = tag.as_string().map_or(builtin_tag, JsString::as_str);
 
         // 17. Return the string-concatenation of "[object ", tag, and "]".
         Ok(format!("[object {}]", tag_str).into())
@@ -951,7 +951,7 @@ impl Object {
     }
 }
 
-/// The abstract operation ObjectDefineProperties
+/// The abstract operation `ObjectDefineProperties`
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -960,7 +960,7 @@ impl Object {
 #[inline]
 fn object_define_properties(
     object: &JsObject,
-    props: JsValue,
+    props: &JsValue,
     context: &mut Context,
 ) -> JsResult<()> {
     // 1. Assert: Type(O) is Object.
@@ -1003,14 +1003,14 @@ fn object_define_properties(
     Ok(())
 }
 
-/// Type enum used in the abstract operation GetOwnPropertyKeys
+/// Type enum used in the abstract operation `GetOwnPropertyKeys`.
 #[derive(Debug, Copy, Clone)]
 enum PropertyKeyType {
     String,
     Symbol,
 }
 
-/// The abstract operation GetOwnPropertyKeys
+/// The abstract operation `GetOwnPropertyKeys`.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -1033,9 +1033,9 @@ fn get_own_property_keys(
         // a. If Type(nextKey) is Symbol and type is symbol or Type(nextKey) is String and type is string, then
         // i. Append nextKey as the last element of nameList.
         match (r#type, &next_key) {
-            (PropertyKeyType::String, PropertyKey::String(_)) => Some(next_key.into()),
+            (PropertyKeyType::String, PropertyKey::String(_))
+            | (PropertyKeyType::Symbol, PropertyKey::Symbol(_)) => Some(next_key.into()),
             (PropertyKeyType::String, PropertyKey::Index(index)) => Some(index.to_string().into()),
-            (PropertyKeyType::Symbol, PropertyKey::Symbol(_)) => Some(next_key.into()),
             _ => None,
         }
     });

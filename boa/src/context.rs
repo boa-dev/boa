@@ -397,7 +397,7 @@ impl Default for Context {
             console: Console::default(),
             iterator_prototypes: IteratorPrototypes::default(),
             typed_array_constructor: StandardConstructor::default(),
-            standard_objects: Default::default(),
+            standard_objects: StandardObjects::default(),
             intrinsic_objects: IntrinsicObjects::default(),
             strict: false,
             vm: Vm {
@@ -761,7 +761,7 @@ impl Context {
     #[inline]
     pub fn register_global_closure<F>(&mut self, name: &str, length: usize, body: F) -> JsResult<()>
     where
-        F: Fn(&JsValue, &[JsValue], &mut Context) -> JsResult<JsValue> + Copy + 'static,
+        F: Fn(&JsValue, &[JsValue], &mut Self) -> JsResult<JsValue> + Copy + 'static,
     {
         let function = FunctionBuilder::closure(self, body)
             .name(name)
@@ -886,7 +886,7 @@ impl Context {
     where
         S: AsRef<[u8]>,
     {
-        let main_timer = BoaProfiler::global().start_event("Main", "Main");
+        let main_timer = BoaProfiler::global().start_event("Evaluation", "Main");
 
         let parsing_result = Parser::new(src.as_ref(), false)
             .parse_all(&mut self.interner)
@@ -924,7 +924,7 @@ impl Context {
     /// `Gc<CodeBlock>` returned by the [`Self::compile()`] function.
     #[inline]
     pub fn execute(&mut self, code_block: Gc<CodeBlock>) -> JsResult<JsValue> {
-        let _ = BoaProfiler::global().start_event("Execute", "Main");
+        let _ = BoaProfiler::global().start_event("Execution", "Main");
         let global_object = self.global_object().into();
 
         self.vm.push_frame(CallFrame {
@@ -950,7 +950,7 @@ impl Context {
         &self.iterator_prototypes
     }
 
-    /// Return the cached TypedArray constructor.
+    /// Return the cached `TypedArray` constructor.
     #[inline]
     pub(crate) fn typed_array_constructor(&self) -> &StandardConstructor {
         &self.typed_array_constructor

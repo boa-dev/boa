@@ -70,7 +70,7 @@ where
             .kind()
             == &TokenKind::Keyword(Keyword::New)
         {
-            let _ = cursor.next(interner).expect("new keyword disappeared");
+            let _next = cursor.next(interner).expect("new keyword disappeared");
             let lhs = self.parse(cursor, interner)?;
             let args = match cursor.peek(0, interner)? {
                 Some(next) if next.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) => {
@@ -96,7 +96,7 @@ where
                     match token.kind() {
                         TokenKind::Identifier(name) => lhs = GetConstField::new(lhs, *name).into(),
                         TokenKind::Keyword(kw) => {
-                            lhs = GetConstField::new(lhs, kw.to_sym(interner)).into()
+                            lhs = GetConstField::new(lhs, kw.to_sym(interner)).into();
                         }
                         _ => {
                             return Err(ParseError::expected(

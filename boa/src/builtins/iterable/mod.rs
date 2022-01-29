@@ -75,7 +75,7 @@ impl IteratorPrototypes {
 
 /// `CreateIterResultObject( value, done )`
 ///
-/// Generates an object supporting the IteratorResult interface.
+/// Generates an object supporting the `IteratorResult` interface.
 pub fn create_iter_result_object(value: JsValue, done: bool, context: &mut Context) -> JsValue {
     // 1. Assert: Type(done) is Boolean.
     // 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%).
@@ -109,7 +109,7 @@ impl JsValue {
         &self,
         context: &mut Context,
         hint: Option<IteratorHint>,
-        method: Option<JsValue>,
+        method: Option<Self>,
     ) -> JsResult<IteratorRecord> {
         // 1. If hint is not present, set hint to sync.
         let hint = hint.unwrap_or(IteratorHint::Sync);
@@ -130,7 +130,7 @@ impl JsValue {
                     // 1. Let syncMethod be ? GetMethod(obj, @@iterator).
                     let sync_method = self
                         .get_method(WellKnownSymbols::iterator(), context)?
-                        .map_or(JsValue::Undefined, JsValue::from);
+                        .map_or(Self::Undefined, Self::from);
                     // 2. Let syncIteratorRecord be ? GetIterator(obj, sync, syncMethod).
                     let _sync_iterator_record =
                         self.get_iterator(context, Some(IteratorHint::Sync), Some(sync_method));
@@ -140,7 +140,7 @@ impl JsValue {
             } else {
                 // b. Otherwise, set method to ? GetMethod(obj, @@iterator).
                 self.get_method(WellKnownSymbols::iterator(), context)?
-                    .map_or(JsValue::Undefined, JsValue::from)
+                    .map_or(Self::Undefined, Self::from)
             }
         };
 
@@ -161,7 +161,7 @@ impl JsValue {
     }
 }
 
-/// Create the %IteratorPrototype% object
+/// Create the `%IteratorPrototype%` object
 ///
 /// More information:
 ///  - [ECMA reference][spec]
@@ -277,7 +277,7 @@ impl IteratorRecord {
 ///  [spec]: https://tc39.es/ecma262/#sec-iterabletolist
 pub(crate) fn iterable_to_list(
     context: &mut Context,
-    items: JsValue,
+    items: &JsValue,
     method: Option<JsValue>,
 ) -> JsResult<Vec<JsValue>> {
     // 1. If method is present, then
@@ -305,7 +305,7 @@ pub(crate) fn iterable_to_list(
             break;
         }
 
-        values.push(next.value)
+        values.push(next.value);
     }
 
     // 6. Return values.

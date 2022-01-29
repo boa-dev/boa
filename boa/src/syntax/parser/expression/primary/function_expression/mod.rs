@@ -53,9 +53,7 @@ where
 
         let name = if let Some(token) = cursor.peek(0, interner)? {
             match token.kind() {
-                TokenKind::Identifier(_)
-                | TokenKind::Keyword(Keyword::Yield)
-                | TokenKind::Keyword(Keyword::Await) => {
+                TokenKind::Identifier(_) | TokenKind::Keyword(Keyword::Yield | Keyword::Await) => {
                     Some(BindingIdentifier::new(false, false).parse(cursor, interner)?)
                 }
                 _ => None,

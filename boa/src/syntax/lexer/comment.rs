@@ -40,10 +40,9 @@ impl<R> Tokenizer<R> for SingleLineComment {
         while let Some(ch) = cursor.peek()? {
             if ch == b'\n' || ch == b'\r' {
                 break;
-            } else {
-                // Consume char.
-                cursor.next_byte()?.expect("Comment character vanished");
             }
+            // Consume char.
+            cursor.next_byte()?.expect("Comment character vanished");
         }
         Ok(Token::new(
             TokenKind::Comment,
@@ -91,7 +90,7 @@ impl<R> Tokenizer<R> for MultiLineComment {
                     ))
                 }
                 Ok(c) if c == '\r' || c == '\n' || c == '\u{2028}' || c == '\u{2029}' => {
-                    new_line = true
+                    new_line = true;
                 }
                 _ => {}
             };

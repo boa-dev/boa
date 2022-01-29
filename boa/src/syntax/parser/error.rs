@@ -19,8 +19,8 @@ impl<T> ErrorContext for Result<T, ParseError> {
 }
 
 impl From<LexError> for ParseError {
-    fn from(e: LexError) -> ParseError {
-        ParseError::lex(e)
+    fn from(e: LexError) -> Self {
+        Self::lex(e)
     }
 }
 

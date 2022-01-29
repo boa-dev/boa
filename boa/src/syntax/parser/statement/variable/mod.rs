@@ -130,7 +130,7 @@ where
                 SemicolonResult::NotFound(tk)
                     if tk.kind() == &TokenKind::Punctuator(Punctuator::Comma) =>
                 {
-                    let _ = cursor.next(interner).expect("token disappeared");
+                    let _next = cursor.next(interner).expect("token disappeared");
                 }
                 _ => break,
             }

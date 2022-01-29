@@ -9,8 +9,9 @@ use serde::{Deserialize, Serialize};
 ///
 /// Stores both the column number and the line number.
 ///
-/// Note that spans are of the form [begining, end) i.e. that the begining position is inclusive and the end position is exclusive.
-/// See test check_positions from syntax/lexer/tests.rs for an example.
+/// Note that spans are of the form [begining, end) i.e. that the begining position is inclusive
+/// and the end position is exclusive. See test `check_positions` from `syntax/lexer/tests.rs` for
+/// an example.
 ///
 /// ## Similar Implementations
 /// [V8: Location](https://cs.chromium.org/chromium/src/v8/src/parsing/scanner.h?type=cs&q=isValid+Location&g=0&l=216)
@@ -126,6 +127,7 @@ impl fmt::Display for Span {
 }
 
 #[cfg(test)]
+#[allow(clippy::similar_names)]
 mod tests {
     use super::{Position, Span};
 

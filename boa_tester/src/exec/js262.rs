@@ -26,6 +26,7 @@ pub(super) fn init(context: &mut Context) -> JsObject {
 ///
 /// Creates a new ECMAScript Realm, defines this API on the new realm's global object, and
 /// returns the `$262` property of the new realm's global object.
+#[allow(clippy::unnecessary_wraps)]
 fn create_realm(_this: &JsValue, _: &[JsValue], _context: &mut Context) -> JsResult<JsValue> {
     // eprintln!("called $262.createRealm()");
 
@@ -52,8 +53,7 @@ fn detach_array_buffer(
 
     let array_buffer = args
         .get(0)
-        .map(JsValue::as_object)
-        .flatten()
+        .and_then(JsValue::as_object)
         .ok_or_else(|| type_err(context))?;
     let mut array_buffer = array_buffer.borrow_mut();
     let array_buffer = array_buffer
@@ -83,7 +83,7 @@ fn detach_array_buffer(
 ///
 /// Accepts a string value as its first argument and executes it as an ECMAScript script.
 fn eval_script(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-    if let Some(source_text) = args.get(0).and_then(|val| val.as_string()) {
+    if let Some(source_text) = args.get(0).and_then(JsValue::as_string) {
         match context.parse(source_text.as_str()) {
             // TODO: check strict
             Err(e) => context.throw_type_error(format!("Uncaught Syntax Error: {}", e)),

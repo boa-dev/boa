@@ -172,7 +172,7 @@ fn object_property_is_enumerable() {
     assert_eq!(
         forward(&mut context, r#"x.propertyIsEnumerable()"#),
         "false",
-    )
+    );
 }
 
 #[test]

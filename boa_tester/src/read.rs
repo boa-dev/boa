@@ -134,7 +134,7 @@ pub(super) fn read_suite(path: &Path) -> io::Result<TestSuite> {
         } else if IGNORED.contains_file(&entry.file_name().to_string_lossy()) {
             let mut test = Test::default();
             test.set_name(entry.file_name().to_string_lossy());
-            tests.push(test)
+            tests.push(test);
         } else {
             tests.push(read_test(entry.path().as_path())?);
         }

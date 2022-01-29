@@ -140,57 +140,56 @@ where
 
         // IdentifierReference[?Yield, ?Await]
         if let Some(next_token) = cursor.peek(1, interner)? {
-            match next_token.kind() {
-                TokenKind::Punctuator(Punctuator::CloseBlock)
-                | TokenKind::Punctuator(Punctuator::Comma) => {
-                    let token = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
-                    let ident = match token.kind() {
-                        TokenKind::Identifier(ident) => Identifier::new(*ident),
-                        TokenKind::Keyword(Keyword::Yield) if self.allow_yield.0 => {
-                            // Early Error: It is a Syntax Error if this production has a [Yield] parameter and StringValue of Identifier is "yield".
+            if matches!(
+                next_token.kind(),
+                TokenKind::Punctuator(Punctuator::CloseBlock | Punctuator::Comma)
+            ) {
+                let token = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
+                let ident = match token.kind() {
+                    TokenKind::Identifier(ident) => Identifier::new(*ident),
+                    TokenKind::Keyword(Keyword::Yield) if self.allow_yield.0 => {
+                        // Early Error: It is a Syntax Error if this production has a [Yield] parameter and StringValue of Identifier is "yield".
+                        return Err(ParseError::general(
+                            "Unexpected identifier",
+                            token.span().start(),
+                        ));
+                    }
+                    TokenKind::Keyword(Keyword::Yield) if !self.allow_yield.0 => {
+                        if cursor.strict_mode() {
+                            // Early Error: It is a Syntax Error if the code matched by this production is contained in strict mode code.
                             return Err(ParseError::general(
-                                "Unexpected identifier",
+                                "Unexpected strict mode reserved word",
                                 token.span().start(),
                             ));
                         }
-                        TokenKind::Keyword(Keyword::Yield) if !self.allow_yield.0 => {
-                            if cursor.strict_mode() {
-                                // Early Error: It is a Syntax Error if the code matched by this production is contained in strict mode code.
-                                return Err(ParseError::general(
-                                    "Unexpected strict mode reserved word",
-                                    token.span().start(),
-                                ));
-                            }
-                            Identifier::new(Sym::YIELD)
-                        }
-                        TokenKind::Keyword(Keyword::Await) if self.allow_await.0 => {
-                            // Early Error: It is a Syntax Error if this production has an [Await] parameter and StringValue of Identifier is "await".
+                        Identifier::new(Sym::YIELD)
+                    }
+                    TokenKind::Keyword(Keyword::Await) if self.allow_await.0 => {
+                        // Early Error: It is a Syntax Error if this production has an [Await] parameter and StringValue of Identifier is "await".
+                        return Err(ParseError::general(
+                            "Unexpected identifier",
+                            token.span().start(),
+                        ));
+                    }
+                    TokenKind::Keyword(Keyword::Await) if !self.allow_await.0 => {
+                        if cursor.strict_mode() {
+                            // Early Error: It is a Syntax Error if the code matched by this production is contained in strict mode code.
                             return Err(ParseError::general(
-                                "Unexpected identifier",
+                                "Unexpected strict mode reserved word",
                                 token.span().start(),
                             ));
                         }
-                        TokenKind::Keyword(Keyword::Await) if !self.allow_await.0 => {
-                            if cursor.strict_mode() {
-                                // Early Error: It is a Syntax Error if the code matched by this production is contained in strict mode code.
-                                return Err(ParseError::general(
-                                    "Unexpected strict mode reserved word",
-                                    token.span().start(),
-                                ));
-                            }
-                            Identifier::new(Sym::YIELD)
-                        }
-                        _ => {
-                            return Err(ParseError::unexpected(
-                                token.to_string(interner),
-                                token.span(),
-                                "expected IdentifierReference",
-                            ));
-                        }
-                    };
-                    return Ok(node::PropertyDefinition::property(ident.sym(), ident));
-                }
-                _ => {}
+                        Identifier::new(Sym::YIELD)
+                    }
+                    _ => {
+                        return Err(ParseError::unexpected(
+                            token.to_string(interner),
+                            token.span(),
+                            "expected IdentifierReference",
+                        ));
+                    }
+                };
+                return Ok(node::PropertyDefinition::property(ident.sym(), ident));
             }
         }
 
@@ -286,75 +285,74 @@ where
                     property_name,
                     FunctionExpr::new(None, params.parameters, body),
                 ));
-            } else {
-                // MethodDefinition[?Yield, ?Await] -> AsyncMethod[?Yield, ?Await]
+            }
+            // MethodDefinition[?Yield, ?Await] -> AsyncMethod[?Yield, ?Await]
 
-                let params_start_position = cursor
-                    .expect(Punctuator::OpenParen, "async method definition", interner)?
-                    .span()
-                    .start();
-                let params = FormalParameters::new(false, true).parse(cursor, interner)?;
-                cursor.expect(Punctuator::CloseParen, "async method definition", interner)?;
+            let params_start_position = cursor
+                .expect(Punctuator::OpenParen, "async method definition", interner)?
+                .span()
+                .start();
+            let params = FormalParameters::new(false, true).parse(cursor, interner)?;
+            cursor.expect(Punctuator::CloseParen, "async method definition", interner)?;
 
-                // Early Error: UniqueFormalParameters : FormalParameters
-                // NOTE: does not appear to be in ECMAScript specs
-                if params.has_duplicates {
-                    return Err(ParseError::lex(LexError::Syntax(
-                        "Duplicate parameter name not allowed in this context".into(),
-                        params_start_position,
-                    )));
-                }
+            // Early Error: UniqueFormalParameters : FormalParameters
+            // NOTE: does not appear to be in ECMAScript specs
+            if params.has_duplicates {
+                return Err(ParseError::lex(LexError::Syntax(
+                    "Duplicate parameter name not allowed in this context".into(),
+                    params_start_position,
+                )));
+            }
 
-                cursor.expect(
-                    TokenKind::Punctuator(Punctuator::OpenBlock),
-                    "async method definition",
-                    interner,
-                )?;
-                let body = FunctionBody::new(true, true).parse(cursor, interner)?;
-                cursor.expect(
-                    TokenKind::Punctuator(Punctuator::CloseBlock),
-                    "async method definition",
-                    interner,
-                )?;
+            cursor.expect(
+                TokenKind::Punctuator(Punctuator::OpenBlock),
+                "async method definition",
+                interner,
+            )?;
+            let body = FunctionBody::new(true, true).parse(cursor, interner)?;
+            cursor.expect(
+                TokenKind::Punctuator(Punctuator::CloseBlock),
+                "async method definition",
+                interner,
+            )?;
 
-                // Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true
-                // and IsSimpleParameterList of UniqueFormalParameters is false.
-                if body.strict() && !params.is_simple {
-                    return Err(ParseError::lex(LexError::Syntax(
-                        "Illegal 'use strict' directive in function with non-simple parameter list"
-                            .into(),
-                        params_start_position,
-                    )));
-                }
+            // Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true
+            // and IsSimpleParameterList of UniqueFormalParameters is false.
+            if body.strict() && !params.is_simple {
+                return Err(ParseError::lex(LexError::Syntax(
+                    "Illegal 'use strict' directive in function with non-simple parameter list"
+                        .into(),
+                    params_start_position,
+                )));
+            }
 
-                // Early Error: It is a Syntax Error if any element of the BoundNames of UniqueFormalParameters also
-                // occurs in the LexicallyDeclaredNames of GeneratorBody.
-                {
-                    let lexically_declared_names = body.lexically_declared_names(interner);
-                    for param in params.parameters.as_ref() {
-                        for param_name in param.names() {
-                            if lexically_declared_names.contains(&param_name) {
-                                return Err(ParseError::lex(LexError::Syntax(
-                                    format!(
-                                        "Redeclaration of formal parameter `{}`",
-                                        interner.resolve_expect(param_name)
-                                    )
-                                    .into(),
-                                    match cursor.peek(0, interner)? {
-                                        Some(token) => token.span().end(),
-                                        None => Position::new(1, 1),
-                                    },
-                                )));
-                            }
+            // Early Error: It is a Syntax Error if any element of the BoundNames of UniqueFormalParameters also
+            // occurs in the LexicallyDeclaredNames of GeneratorBody.
+            {
+                let lexically_declared_names = body.lexically_declared_names(interner);
+                for param in params.parameters.as_ref() {
+                    for param_name in param.names() {
+                        if lexically_declared_names.contains(&param_name) {
+                            return Err(ParseError::lex(LexError::Syntax(
+                                format!(
+                                    "Redeclaration of formal parameter `{}`",
+                                    interner.resolve_expect(param_name)
+                                )
+                                .into(),
+                                match cursor.peek(0, interner)? {
+                                    Some(token) => token.span().end(),
+                                    None => Position::new(1, 1),
+                                },
+                            )));
                         }
                     }
                 }
-                return Ok(node::PropertyDefinition::method_definition(
-                    MethodDefinitionKind::Async,
-                    property_name,
-                    FunctionExpr::new(None, params.parameters, body),
-                ));
             }
+            return Ok(node::PropertyDefinition::method_definition(
+                MethodDefinitionKind::Async,
+                property_name,
+                FunctionExpr::new(None, params.parameters, body),
+            ));
         }
 
         // MethodDefinition[?Yield, ?Await] -> GeneratorMethod[?Yield, ?Await]

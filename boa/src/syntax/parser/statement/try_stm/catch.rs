@@ -125,7 +125,7 @@ where
     }
 }
 
-/// CatchParameter parsing
+/// `CatchParameter` parsing
 ///
 /// More information:
 ///  - [MDN documentation][mdn]

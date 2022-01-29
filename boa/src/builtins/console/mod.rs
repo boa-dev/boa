@@ -86,13 +86,13 @@ pub fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
                                 .unwrap_or_default()
                                 .to_number(context)?;
                             formatted.push_str(&format!("{number:.prec$}", number = arg, prec = 6));
-                            arg_index += 1
+                            arg_index += 1;
                         }
                         /* object, FIXME: how to render this properly? */
                         'o' | 'O' => {
                             let arg = data.get_or_undefined(arg_index);
                             formatted.push_str(&format!("{}", arg.display()));
-                            arg_index += 1
+                            arg_index += 1;
                         }
                         /* string */
                         's' => {
@@ -102,7 +102,7 @@ pub fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
                                 .unwrap_or_default()
                                 .to_string(context)?;
                             formatted.push_str(&arg);
-                            arg_index += 1
+                            arg_index += 1;
                         }
                         '%' => formatted.push('%'),
                         /* TODO: %c is not implemented */
@@ -118,7 +118,7 @@ pub fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
 
             /* unformatted data */
             for rest in data.iter().skip(arg_index) {
-                formatted.push_str(&format!(" {}", rest.to_string(context)?))
+                formatted.push_str(&format!(" {}", rest.to_string(context)?));
             }
 
             Ok(formatted)
@@ -189,7 +189,7 @@ impl Console {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let assertion = args.get(0).map(JsValue::to_boolean).unwrap_or(false);
+        let assertion = args.get(0).map_or(false, JsValue::to_boolean);
 
         if !assertion {
             let mut args: Vec<JsValue> = args.iter().skip(1).cloned().collect();
@@ -222,6 +222,7 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#clear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/clear
+    #[allow(clippy::unnecessary_wraps)]
     pub(crate) fn clear(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         context.console_mut().groups.clear();
         Ok(JsValue::undefined())
@@ -334,7 +335,7 @@ impl Console {
             );
 
             let stack_trace_dump = Self::get_stack_trace(context).join("\n");
-            logger(LogMessage::Log(stack_trace_dump), context.console())
+            logger(LogMessage::Log(stack_trace_dump), context.console());
         }
 
         Ok(JsValue::undefined())
@@ -557,6 +558,7 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#groupend
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/groupEnd
+    #[allow(clippy::unnecessary_wraps)]
     pub(crate) fn group_end(
         _: &JsValue,
         _: &[JsValue],
@@ -577,6 +579,7 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#dir
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/dir
+    #[allow(clippy::unnecessary_wraps)]
     pub(crate) fn dir(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         logger(
             LogMessage::Info(display_obj(args.get_or_undefined(0), true)),

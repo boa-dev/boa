@@ -45,8 +45,8 @@ impl Yield {
 }
 
 impl From<Yield> for Node {
-    fn from(r#yield: Yield) -> Node {
-        Node::Yield(r#yield)
+    fn from(r#yield: Yield) -> Self {
+        Self::Yield(r#yield)
     }
 }
 

@@ -105,7 +105,7 @@ fn check_identifier() {
 fn check_invalid_identifier_start() {
     let invalid_identifier_starts = ["\u{200C}", "\u{200D}", "😀"];
 
-    for s in invalid_identifier_starts.iter() {
+    for s in &invalid_identifier_starts {
         let mut lexer = Lexer::new(s.as_bytes());
         let mut interner = Interner::default();
         lexer
@@ -120,7 +120,7 @@ fn check_invalid_identifier_part() {
     let mut interner = Interner::default();
 
     let sym = interner.get_or_intern_static("x");
-    for part in invalid_identifier_parts.iter() {
+    for part in &invalid_identifier_parts {
         let s = String::from("x") + part;
         let mut lexer = Lexer::new(s.as_bytes());
         let mut interner = Interner::default();
@@ -535,7 +535,7 @@ fn numbers_with_bad_separators() {
         "0b_10", "0x_10", "10_", "1._10", "1e+_10", "1E_10", "10__00",
     ];
 
-    for n in numbers.iter() {
+    for n in &numbers {
         let mut lexer = Lexer::new(n.as_bytes());
         let mut interner = Interner::default();
         assert!(lexer.next(&mut interner).is_err());
@@ -860,7 +860,7 @@ fn illegal_following_numeric_literal() {
         .next(&mut interner)
         .expect_err("DecimalDigit following NumericLiteral not rejected as expected");
     if let Error::Syntax(_, pos) = err {
-        assert_eq!(pos, Position::new(1, 5))
+        assert_eq!(pos, Position::new(1, 5));
     } else {
         panic!("invalid error type");
     }
@@ -1001,7 +1001,7 @@ fn string_legacy_octal_escape() {
         (r#"'\101'"#, "A"),
     ];
 
-    for (s, expected) in test_cases.iter() {
+    for (s, expected) in &test_cases {
         let mut lexer = Lexer::new(s.as_bytes());
         let mut interner = Interner::default();
 
@@ -1011,7 +1011,7 @@ fn string_legacy_octal_escape() {
         expect_tokens(&mut lexer, &expected_tokens, &mut interner);
     }
 
-    for (s, _) in test_cases.iter() {
+    for (s, _) in &test_cases {
         let mut lexer = Lexer::new(s.as_bytes());
         let mut interner = Interner::default();
         lexer.set_strict_mode(true);
@@ -1031,7 +1031,7 @@ fn string_legacy_octal_escape() {
 fn string_zero_escape() {
     let test_cases = [(r#"'\0'"#, "\u{0}"), (r#"'\0A'"#, "\u{0}A")];
 
-    for (s, expected) in test_cases.iter() {
+    for (s, expected) in &test_cases {
         let mut lexer = Lexer::new(s.as_bytes());
         let mut interner = Interner::default();
 
@@ -1046,7 +1046,7 @@ fn string_zero_escape() {
 fn string_non_octal_decimal_escape() {
     let test_cases = [(r#"'\8'"#, "8"), (r#"'\9'"#, "9")];
 
-    for (s, expected) in test_cases.iter() {
+    for (s, expected) in &test_cases {
         let mut lexer = Lexer::new(s.as_bytes());
         let mut interner = Interner::default();
 
@@ -1056,7 +1056,7 @@ fn string_non_octal_decimal_escape() {
         expect_tokens(&mut lexer, &expected_tokens, &mut interner);
     }
 
-    for (s, _) in test_cases.iter() {
+    for (s, _) in &test_cases {
         let mut lexer = Lexer::new(s.as_bytes());
         let mut interner = Interner::default();
         lexer.set_strict_mode(true);

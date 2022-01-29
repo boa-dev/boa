@@ -56,14 +56,16 @@ impl IntegerIndexed {
 
     /// `IntegerIndexedObjectCreate ( prototype )`
     ///
-    /// Create a new `JsObject from a prototype and a `IntergetIndexedObject`
+    /// Create a new `JsObject` from a prototype and a `IntergetIndexedObject`
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-integerindexedobjectcreate
     pub(super) fn create(prototype: JsObject, data: Self, context: &Context) -> JsObject {
-        // 1. Let internalSlotsList be « [[Prototype]], [[Extensible]], [[ViewedArrayBuffer]], [[TypedArrayName]], [[ContentType]], [[ByteLength]], [[ByteOffset]], [[ArrayLength]] ».
+        // 1. Let internalSlotsList be « [[Prototype]], [[Extensible]], [[ViewedArrayBuffer]],
+        //    [[TypedArrayName]], [[ContentType]], [[ByteLength]], [[ByteOffset]],
+        //    [[ArrayLength]] ».
         // 2. Let A be ! MakeBasicObject(internalSlotsList).
         let a = context.construct_object();
 

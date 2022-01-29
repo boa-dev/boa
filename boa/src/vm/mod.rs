@@ -117,7 +117,7 @@ impl Context {
         match opcode {
             Opcode::Nop => {}
             Opcode::Pop => {
-                let _ = self.vm.pop();
+                let _val = self.vm.pop();
             }
             Opcode::Dup => {
                 let value = self.vm.pop();
@@ -139,11 +139,11 @@ impl Context {
             Opcode::PushOne => self.vm.push(1),
             Opcode::PushInt8 => {
                 let value = self.vm.read::<i8>();
-                self.vm.push(value as i32);
+                self.vm.push(i32::from(value));
             }
             Opcode::PushInt16 => {
                 let value = self.vm.read::<i16>();
-                self.vm.push(value as i32);
+                self.vm.push(i32::from(value));
             }
             Opcode::PushInt32 => {
                 let value = self.vm.read::<i32>();
@@ -159,7 +159,7 @@ impl Context {
             Opcode::PushLiteral => {
                 let index = self.vm.read::<u32>() as usize;
                 let value = self.vm.frame().code.literals[index].clone();
-                self.vm.push(value)
+                self.vm.push(value);
             }
             Opcode::PushEmptyObject => self.vm.push(self.construct_object()),
             Opcode::PushNewArray => {
@@ -184,9 +184,8 @@ impl Context {
 
                     if next.done {
                         break;
-                    } else {
-                        Array::add_to_array_object(&array, &[next.value], self)?;
                     }
+                    Array::add_to_array_object(&array, &[next.value], self)?;
                 }
 
                 self.vm.push(array);
@@ -251,7 +250,7 @@ impl Context {
                 self.vm.push(value);
             }
             Opcode::Void => {
-                let _ = self.vm.pop();
+                let _old = self.vm.pop();
                 self.vm.push(JsValue::undefined());
             }
             Opcode::TypeOf => {
@@ -275,7 +274,7 @@ impl Context {
                 match value.to_numeric(self)? {
                     Numeric::Number(number) => self.vm.push(number + 1f64),
                     Numeric::BigInt(bigint) => {
-                        self.vm.push(JsBigInt::add(&bigint, &JsBigInt::one()))
+                        self.vm.push(JsBigInt::add(&bigint, &JsBigInt::one()));
                     }
                 }
             }
@@ -284,7 +283,7 @@ impl Context {
                 match value.to_numeric(self)? {
                     Numeric::Number(number) => self.vm.push(number - 1f64),
                     Numeric::BigInt(bigint) => {
-                        self.vm.push(JsBigInt::sub(&bigint, &JsBigInt::one()))
+                        self.vm.push(JsBigInt::sub(&bigint, &JsBigInt::one()));
                     }
                 }
             }
@@ -369,7 +368,7 @@ impl Context {
                 } else {
                     JsValue::Undefined
                 };
-                self.vm.push(value)
+                self.vm.push(value);
             }
             Opcode::SetName => {
                 let index = self.vm.read::<u32>();
@@ -397,7 +396,7 @@ impl Context {
                 let value = self.vm.pop();
                 if !value.is_undefined() {
                     self.vm.frame_mut().pc = address as usize;
-                    self.vm.push(value)
+                    self.vm.push(value);
                 }
             }
             Opcode::LogicalAnd => {
@@ -442,7 +441,7 @@ impl Context {
                 let name: PropertyKey = self.interner().resolve_expect(name).into();
                 let result = object.get(name, self)?;
 
-                self.vm.push(result)
+                self.vm.push(result);
             }
             Opcode::GetPropertyByValue => {
                 let object = self.vm.pop();
@@ -456,7 +455,7 @@ impl Context {
                 let key = key.to_property_key(self)?;
                 let value = object.get(key, self)?;
 
-                self.vm.push(value)
+                self.vm.push(value);
             }
             Opcode::SetPropertyByName => {
                 let index = self.vm.read::<u32>();
@@ -556,7 +555,7 @@ impl Context {
                 let set = object
                     .__get_own_property__(&name, self)?
                     .as_ref()
-                    .and_then(|a| a.set())
+                    .and_then(PropertyDescriptor::set)
                     .cloned();
                 object.__define_own_property__(
                     name,
@@ -578,7 +577,7 @@ impl Context {
                 let set = object
                     .__get_own_property__(&name, self)?
                     .as_ref()
-                    .and_then(|a| a.set())
+                    .and_then(PropertyDescriptor::set)
                     .cloned();
                 object.__define_own_property__(
                     name,
@@ -601,7 +600,7 @@ impl Context {
                 let get = object
                     .__get_own_property__(&name, self)?
                     .as_ref()
-                    .and_then(|a| a.get())
+                    .and_then(PropertyDescriptor::get)
                     .cloned();
                 object.__define_own_property__(
                     name,
@@ -623,7 +622,7 @@ impl Context {
                 let get = object
                     .__get_own_property__(&name, self)?
                     .as_ref()
-                    .and_then(|a| a.get())
+                    .and_then(PropertyDescriptor::get)
                     .cloned();
                 object.__define_own_property__(
                     name,
@@ -677,7 +676,7 @@ impl Context {
             Opcode::TryStart => {
                 let next = self.vm.read::<u32>();
                 let finally = self.vm.read::<u32>();
-                let finally = if finally != 0 { Some(finally) } else { None };
+                let finally = if finally == 0 { None } else { Some(finally) };
                 self.vm
                     .frame_mut()
                     .catch
@@ -685,7 +684,7 @@ impl Context {
                 self.vm.frame_mut().finally_jump.push(None);
                 self.vm.frame_mut().finally_return = FinallyReturn::None;
             }
-            Opcode::TryEnd => {
+            Opcode::TryEnd | Opcode::CatchEnd => {
                 self.vm.frame_mut().catch.pop();
                 self.vm.frame_mut().finally_return = FinallyReturn::None;
             }
@@ -695,10 +694,6 @@ impl Context {
                     next: finally,
                     finally: Some(finally),
                 });
-            }
-            Opcode::CatchEnd => {
-                self.vm.frame_mut().catch.pop();
-                self.vm.frame_mut().finally_return = FinallyReturn::None;
             }
             Opcode::CatchEnd2 => {
                 self.vm.frame_mut().finally_return = FinallyReturn::None;
@@ -755,15 +750,15 @@ impl Context {
                 let cond = self.vm.pop();
                 let value = self.vm.pop();
 
-                if !value.strict_equals(&cond) {
-                    self.vm.push(value);
-                } else {
+                if value.strict_equals(&cond) {
                     self.vm.frame_mut().pc = address as usize;
+                } else {
+                    self.vm.push(value);
                 }
             }
             Opcode::Default => {
                 let exit = self.vm.read::<u32>();
-                let _ = self.vm.pop();
+                let _val = self.vm.pop();
                 self.vm.frame_mut().pc = exit as usize;
             }
             Opcode::GetFunction => {
@@ -938,7 +933,7 @@ impl Context {
                 self.push_environment(new_env);
             }
             Opcode::PopEnvironment => {
-                let _ = self.pop_environment();
+                let _env = self.pop_environment();
                 self.vm.frame_mut().pop_env_on_return -= 1;
             }
             Opcode::ForInLoopInitIterator => {
@@ -954,7 +949,7 @@ impl Context {
                 let next_function = iterator
                     .get_property("next")
                     .as_ref()
-                    .map(|p| p.expect_value())
+                    .map(PropertyDescriptor::expect_value)
                     .cloned()
                     .ok_or_else(|| self.construct_type_error("Could not find property `next`"))?;
 
@@ -1051,7 +1046,7 @@ impl Context {
                 }
                 strings.reverse();
                 let s = JsString::concat_array(
-                    &strings.iter().map(|s| s.as_str()).collect::<Vec<&str>>(),
+                    &strings.iter().map(JsString::as_str).collect::<Vec<&str>>(),
                 );
                 self.vm.push(s);
             }
@@ -1109,13 +1104,13 @@ impl Context {
     }
 
     pub(crate) fn run(&mut self) -> JsResult<JsValue> {
-        let _timer = BoaProfiler::global().start_event("run", "vm");
-
         const COLUMN_WIDTH: usize = 26;
         const TIME_COLUMN_WIDTH: usize = COLUMN_WIDTH / 2;
         const OPCODE_COLUMN_WIDTH: usize = COLUMN_WIDTH;
         const OPERAND_COLUMN_WIDTH: usize = COLUMN_WIDTH;
         const NUMBER_OF_COLUMNS: usize = 4;
+
+        let _timer = BoaProfiler::global().start_event("run", "vm");
 
         if self.vm.trace {
             let msg = if self.vm.frame().prev.is_some() {
@@ -1218,7 +1213,9 @@ impl Context {
 
         if self.vm.trace {
             println!("\nStack:");
-            if !self.vm.stack.is_empty() {
+            if self.vm.stack.is_empty() {
+                println!("    <empty>");
+            } else {
                 for (i, value) in self.vm.stack.iter().enumerate() {
                     println!(
                         "{:04}{:<width$} {}",
@@ -1234,8 +1231,6 @@ impl Context {
                         width = COLUMN_WIDTH / 2 - 4,
                     );
                 }
-            } else {
-                println!("    <empty>");
             }
             println!("\n");
         }

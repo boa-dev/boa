@@ -70,6 +70,7 @@ pub(crate) fn arguments_exotic_get_own_property(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-arguments-exotic-objects-defineownproperty-p-desc
+#[allow(clippy::needless_pass_by_value)]
 pub(crate) fn arguments_exotic_define_own_property(
     obj: &JsObject,
     key: PropertyKey,
@@ -130,7 +131,7 @@ pub(crate) fn arguments_exotic_define_own_property(
                 let set_status = map.set(key.clone(), value, false, context);
 
                 // 2. Assert: setStatus is true because formal parameters mapped by argument objects are always writable.
-                assert_eq!(set_status, Ok(true))
+                assert_eq!(set_status, Ok(true));
             }
 
             // ii. If Desc.[[Writable]] is present and its value is false, then
