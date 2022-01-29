@@ -222,7 +222,7 @@ impl StringLiteral {
                         start_pos,
                     ));
                 }
-                
+
                 if is_strict_mode {
                     return Err(Error::syntax(
                         "octal escape sequences are not allowed in strict mode",
