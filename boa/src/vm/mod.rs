@@ -9,7 +9,7 @@ use crate::{
         function_environment_record::{BindingStatus, FunctionEnvironmentRecord},
         lexical_environment::{Environment, VariableScope},
     },
-    property::PropertyDescriptor,
+    property::{PropertyDescriptor, PropertyKey},
     value::Numeric,
     vm::{call_frame::CatchAddresses, code_block::Readable},
     BoaProfiler, Context, JsBigInt, JsResult, JsString, JsValue,
@@ -301,8 +301,7 @@ impl Context {
             }
             Opcode::DefInitArg => {
                 let index = self.vm.read::<u32>();
-                let name_str = self.vm.frame().code.variables[index as usize].clone();
-                let name = self.interner_mut().get_or_intern(name_str);
+                let name = self.vm.frame().code.variables[index as usize];
                 let value = self.vm.pop();
                 let local_env = self.get_current_environment();
                 local_env
@@ -312,8 +311,7 @@ impl Context {
             }
             Opcode::DefVar => {
                 let index = self.vm.read::<u32>();
-                let name_str = self.vm.frame().code.variables[index as usize].clone();
-                let name = self.interner_mut().get_or_intern(name_str);
+                let name = self.vm.frame().code.variables[index as usize];
 
                 if !self.has_binding(name)? {
                     self.create_mutable_binding(name, false, VariableScope::Function)?;
@@ -322,8 +320,7 @@ impl Context {
             }
             Opcode::DefInitVar => {
                 let index = self.vm.read::<u32>();
-                let name_str = self.vm.frame().code.variables[index as usize].clone();
-                let name = self.interner_mut().get_or_intern(name_str);
+                let name = self.vm.frame().code.variables[index as usize];
                 let value = self.vm.pop();
 
                 if self.has_binding(name)? {
@@ -335,16 +332,14 @@ impl Context {
             }
             Opcode::DefLet => {
                 let index = self.vm.read::<u32>();
-                let name_str = self.vm.frame().code.variables[index as usize].clone();
-                let name = self.interner_mut().get_or_intern(name_str);
+                let name = self.vm.frame().code.variables[index as usize];
 
                 self.create_mutable_binding(name, false, VariableScope::Block)?;
                 self.initialize_binding(name, JsValue::Undefined)?;
             }
             Opcode::DefInitLet => {
                 let index = self.vm.read::<u32>();
-                let name_str = self.vm.frame().code.variables[index as usize].clone();
-                let name = self.interner_mut().get_or_intern(name_str);
+                let name = self.vm.frame().code.variables[index as usize];
                 let value = self.vm.pop();
 
                 self.create_mutable_binding(name, false, VariableScope::Block)?;
@@ -352,8 +347,7 @@ impl Context {
             }
             Opcode::DefInitConst => {
                 let index = self.vm.read::<u32>();
-                let name_str = self.vm.frame().code.variables[index as usize].clone();
-                let name = self.interner_mut().get_or_intern(name_str);
+                let name = self.vm.frame().code.variables[index as usize];
                 let value = self.vm.pop();
 
                 self.create_immutable_binding(name, true, VariableScope::Block)?;
@@ -361,16 +355,14 @@ impl Context {
             }
             Opcode::GetName => {
                 let index = self.vm.read::<u32>();
-                let name_str = self.vm.frame().code.variables[index as usize].clone();
-                let name = self.interner_mut().get_or_intern(name_str);
+                let name = self.vm.frame().code.variables[index as usize];
 
                 let value = self.get_binding_value(name)?;
                 self.vm.push(value);
             }
             Opcode::GetNameOrUndefined => {
                 let index = self.vm.read::<u32>();
-                let name_str = self.vm.frame().code.variables[index as usize].clone();
-                let name = self.interner_mut().get_or_intern(name_str);
+                let name = self.vm.frame().code.variables[index as usize];
 
                 let value = if self.has_binding(name)? {
                     self.get_binding_value(name)?
@@ -382,8 +374,7 @@ impl Context {
             Opcode::SetName => {
                 let index = self.vm.read::<u32>();
                 let value = self.vm.pop();
-                let name_str = self.vm.frame().code.variables[index as usize].clone();
-                let name = self.interner_mut().get_or_intern(name_str);
+                let name = self.vm.frame().code.variables[index as usize];
 
                 self.set_mutable_binding(
                     name,
@@ -447,7 +438,8 @@ impl Context {
                     value.to_object(self)?
                 };
 
-                let name = self.vm.frame().code.variables[index as usize].clone();
+                let name = self.vm.frame().code.variables[index as usize];
+                let name: PropertyKey = self.interner().resolve_expect(name).into();
                 let result = object.get(name, self)?;
 
                 self.vm.push(result)
@@ -477,7 +469,8 @@ impl Context {
                     object.to_object(self)?
                 };
 
-                let name = self.vm.frame().code.variables[index as usize].clone();
+                let name = self.vm.frame().code.variables[index as usize];
+                let name: PropertyKey = self.interner().resolve_expect(name).into();
 
                 object.set(
                     name,
@@ -497,7 +490,8 @@ impl Context {
                     object.to_object(self)?
                 };
 
-                let name = self.vm.frame().code.variables[index as usize].clone();
+                let name = self.vm.frame().code.variables[index as usize];
+                let name = self.interner().resolve_expect(name);
 
                 object.__define_own_property__(
                     name.into(),
@@ -557,9 +551,8 @@ impl Context {
                 let value = self.vm.pop();
                 let object = object.to_object(self)?;
 
-                let name = self.vm.frame().code.variables[index as usize]
-                    .clone()
-                    .into();
+                let name = self.vm.frame().code.variables[index as usize];
+                let name = self.interner().resolve_expect(name).into();
                 let set = object
                     .__get_own_property__(&name, self)?
                     .as_ref()
@@ -603,9 +596,8 @@ impl Context {
                 let object = self.vm.pop();
                 let value = self.vm.pop();
                 let object = object.to_object(self)?;
-                let name = self.vm.frame().code.variables[index as usize]
-                    .clone()
-                    .into();
+                let name = self.vm.frame().code.variables[index as usize];
+                let name = self.interner().resolve_expect(name).into();
                 let get = object
                     .__get_own_property__(&name, self)?
                     .as_ref()
@@ -646,9 +638,10 @@ impl Context {
             }
             Opcode::DeletePropertyByName => {
                 let index = self.vm.read::<u32>();
-                let key = self.vm.frame().code.variables[index as usize].clone();
+                let key = self.vm.frame().code.variables[index as usize];
+                let key = self.interner().resolve_expect(key).into();
                 let object = self.vm.pop();
-                let result = object.to_object(self)?.__delete__(&key.into(), self)?;
+                let result = object.to_object(self)?.__delete__(&key, self)?;
                 if !result && self.strict() || self.vm.frame().code.strict {
                     return Err(self.construct_type_error("Cannot delete property"));
                 }

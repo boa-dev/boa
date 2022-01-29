@@ -55,8 +55,8 @@ impl Object {
         let indentation = "    ".repeat(indent + 1);
         for property in self.properties().iter() {
             buf.push_str(&match property {
-                PropertyDefinition::IdentifierReference(key) => {
-                    format!("{}{},\n", indentation, key)
+                PropertyDefinition::IdentifierReference(ident) => {
+                    format!("{}{},\n", indentation, interner.resolve_expect(*ident))
                 }
                 PropertyDefinition::Property(key, value) => {
                     format!(
