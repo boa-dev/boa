@@ -88,7 +88,7 @@ impl Object {
                 }
             });
         }
-        buf.push_str(&format!("{}}}", indentation));
+        buf.push_str(&format!("{}}}", "    ".repeat(indent_n)));
 
         buf
     }
