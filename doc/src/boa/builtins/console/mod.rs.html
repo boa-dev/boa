@@ -586,6 +586,9 @@
 <span id="585">585</span>
 <span id="586">586</span>
 <span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `console` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `console` object can be accessed from any global object.</span>
@@ -674,13 +677,13 @@
                                 .<span class="ident">unwrap_or_default</span>()
                                 .<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
                             <span class="ident">formatted</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{number:.prec$}&quot;</span>, <span class="ident">number</span> <span class="op">=</span> <span class="ident">arg</span>, <span class="ident">prec</span> <span class="op">=</span> <span class="number">6</span>));
-                            <span class="ident">arg_index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>
+                            <span class="ident">arg_index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                         }
                         <span class="comment">/* object, FIXME: how to render this properly? */</span>
                         <span class="string">&#39;o&#39;</span> <span class="op">|</span> <span class="string">&#39;O&#39;</span> =&gt; {
                             <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">get_or_undefined</span>(<span class="ident">arg_index</span>);
                             <span class="ident">formatted</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">arg</span>.<span class="ident">display</span>()));
-                            <span class="ident">arg_index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>
+                            <span class="ident">arg_index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                         }
                         <span class="comment">/* string */</span>
                         <span class="string">&#39;s&#39;</span> =&gt; {
@@ -690,7 +693,7 @@
                                 .<span class="ident">unwrap_or_default</span>()
                                 .<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
                             <span class="ident">formatted</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">arg</span>);
-                            <span class="ident">arg_index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>
+                            <span class="ident">arg_index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                         }
                         <span class="string">&#39;%&#39;</span> =&gt; <span class="ident">formatted</span>.<span class="ident">push</span>(<span class="string">&#39;%&#39;</span>),
                         <span class="comment">/* TODO: %c is not implemented */</span>
@@ -706,7 +709,7 @@
 
             <span class="comment">/* unformatted data */</span>
             <span class="kw">for</span> <span class="ident">rest</span> <span class="kw">in</span> <span class="ident">data</span>.<span class="ident">iter</span>().<span class="ident">skip</span>(<span class="ident">arg_index</span>) {
-                <span class="ident">formatted</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot; {}&quot;</span>, <span class="ident">rest</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>))
+                <span class="ident">formatted</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot; {}&quot;</span>, <span class="ident">rest</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>));
             }
 
             <span class="prelude-val">Ok</span>(<span class="ident">formatted</span>)
@@ -777,7 +780,7 @@
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">assertion</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">map</span>(<span class="ident">JsValue::to_boolean</span>).<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>);
+        <span class="kw">let</span> <span class="ident">assertion</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="ident">JsValue::to_boolean</span>);
 
         <span class="kw">if</span> <span class="op">!</span><span class="ident">assertion</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">iter</span>().<span class="ident">skip</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">collect</span>();
@@ -810,6 +813,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://console.spec.whatwg.org/#clear</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/clear</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unnecessary_wraps</span>)]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">clear</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="ident">context</span>.<span class="ident">console_mut</span>().<span class="ident">groups</span>.<span class="ident">clear</span>();
         <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
@@ -922,7 +926,7 @@
             );
 
             <span class="kw">let</span> <span class="ident">stack_trace_dump</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::get_stack_trace</span>(<span class="ident">context</span>).<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>);
-            <span class="ident">logger</span>(<span class="ident">LogMessage::Log</span>(<span class="ident">stack_trace_dump</span>), <span class="ident">context</span>.<span class="ident">console</span>())
+            <span class="ident">logger</span>(<span class="ident">LogMessage::Log</span>(<span class="ident">stack_trace_dump</span>), <span class="ident">context</span>.<span class="ident">console</span>());
         }
 
         <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
@@ -1145,6 +1149,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://console.spec.whatwg.org/#groupend</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/groupEnd</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unnecessary_wraps</span>)]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">group_end</span>(
         <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
@@ -1165,6 +1170,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://console.spec.whatwg.org/#dir</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/dir</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unnecessary_wraps</span>)]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">dir</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="ident">logger</span>(
             <span class="ident">LogMessage::Info</span>(<span class="ident">display_obj</span>(<span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>), <span class="bool-val">true</span>)),

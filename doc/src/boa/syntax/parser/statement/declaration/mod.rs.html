@@ -84,8 +84,6 @@
 <span id="83">83</span>
 <span id="84">84</span>
 <span id="85">85</span>
-<span id="86">86</span>
-<span id="87">87</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Declaration parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -156,19 +154,17 @@
         <span class="kw">let</span> <span class="ident">tok</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
 
         <span class="kw">match</span> <span class="ident">tok</span>.<span class="ident">kind</span>() {
-            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Function</span>) <span class="op">|</span> <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Async</span>) =&gt; {
+            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Function</span> <span class="op">|</span> <span class="ident">Keyword::Async</span>) =&gt; {
                 <span class="ident">HoistableDeclaration::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="bool-val">false</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
             }
-            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Const</span>) <span class="op">|</span> <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Let</span>) =&gt; {
-                <span class="ident">LexicalDeclaration::new</span>(
-                    <span class="bool-val">true</span>,
-                    <span class="self">self</span>.<span class="ident">allow_yield</span>,
-                    <span class="self">self</span>.<span class="ident">allow_await</span>,
-                    <span class="self">self</span>.<span class="ident">const_init_required</span>,
-                )
-                .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
-            }
+            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Const</span> <span class="op">|</span> <span class="ident">Keyword::Let</span>) =&gt; <span class="ident">LexicalDeclaration::new</span>(
+                <span class="bool-val">true</span>,
+                <span class="self">self</span>.<span class="ident">allow_yield</span>,
+                <span class="self">self</span>.<span class="ident">allow_await</span>,
+                <span class="self">self</span>.<span class="ident">const_init_required</span>,
+            )
+            .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>),
             <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;unknown token found: {:?}&quot;</span>, <span class="ident">tok</span>),
         }
     }

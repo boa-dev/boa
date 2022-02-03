@@ -657,12 +657,18 @@
 <span id="656">656</span>
 <span id="657">657</span>
 <span id="658">658</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span id="659">659</span>
+<span id="660">660</span>
+<span id="661">661</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::{
+    <span class="ident">Context</span>, <span class="ident">FromStr</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>, <span class="ident">Numeric</span>, <span class="ident">PreferredType</span>, <span class="ident">TryFrom</span>,
+    <span class="ident">WellKnownSymbols</span>,
+};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::builtins::number</span>::{<span class="ident">f64_to_int32</span>, <span class="ident">f64_to_uint32</span>, <span class="ident">Number</span>};
 
 <span class="kw">impl</span> <span class="ident">JsValue</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
             <span class="comment">// Fast path:</span>
             (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">x</span>) <span class="op">+</span> <span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">y</span>)),
@@ -702,7 +708,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sub</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sub</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
             <span class="comment">// Fast path:</span>
             (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">x</span>) <span class="op">-</span> <span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">y</span>)),
@@ -726,7 +732,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mul</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mul</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
             <span class="comment">// Fast path:</span>
             (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">x</span>) <span class="op">*</span> <span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">y</span>)),
@@ -750,7 +756,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">div</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">div</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
             <span class="comment">// Fast path:</span>
             (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">x</span>) <span class="op">/</span> <span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">y</span>)),
@@ -784,7 +790,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rem</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rem</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
             <span class="comment">// Fast path:</span>
             (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; {
@@ -831,7 +837,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
             <span class="comment">// Fast path:</span>
             (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">x</span>).<span class="ident">powi</span>(<span class="kw-2">*</span><span class="ident">y</span>)),
@@ -857,7 +863,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bitand</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bitand</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
             <span class="comment">// Fast path:</span>
             (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span> <span class="op">&amp;</span> <span class="ident">y</span>),
@@ -887,7 +893,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bitor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bitor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
             <span class="comment">// Fast path:</span>
             (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span> <span class="op">|</span> <span class="ident">y</span>),
@@ -917,7 +923,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bitxor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bitxor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
             <span class="comment">// Fast path:</span>
             (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span> <span class="op">^</span> <span class="ident">y</span>),
@@ -947,7 +953,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
             <span class="comment">// Fast path:</span>
             (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span>.<span class="ident">wrapping_shl</span>(<span class="kw-2">*</span><span class="ident">y</span> <span class="kw">as</span> <span class="ident">u32</span>)),
@@ -981,7 +987,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
             <span class="comment">// Fast path:</span>
             (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span>.<span class="ident">wrapping_shr</span>(<span class="kw-2">*</span><span class="ident">y</span> <span class="kw">as</span> <span class="ident">u32</span>)),
@@ -1015,7 +1021,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ushr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ushr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
             <span class="comment">// Fast path:</span>
             (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>((<span class="kw-2">*</span><span class="ident">x</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">wrapping_shr</span>(<span class="kw-2">*</span><span class="ident">y</span> <span class="kw">as</span> <span class="ident">u32</span>)),
@@ -1050,11 +1056,11 @@
     <span class="doccomment">/// Abstract operation `InstanceofOperator ( V, target )`</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [EcmaScript reference][spec]</span>
+    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-instanceofoperator</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">instance_of</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">instance_of</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
         <span class="comment">// 1. If Type(target) is not Object, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="op">!</span><span class="ident">target</span>.<span class="ident">is_object</span>() {
             <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(
@@ -1074,7 +1080,7 @@
             }
             <span class="prelude-val">None</span> <span class="kw">if</span> <span class="ident">target</span>.<span class="ident">is_callable</span>() =&gt; {
                 <span class="comment">// 5. Return ? OrdinaryHasInstance(target, V).</span>
-                <span class="ident">JsValue::ordinary_has_instance</span>(<span class="ident">target</span>, <span class="self">self</span>, <span class="ident">context</span>)
+                <span class="ident"><span class="self">Self</span>::ordinary_has_instance</span>(<span class="ident">target</span>, <span class="self">self</span>, <span class="ident">context</span>)
             }
             <span class="prelude-val">None</span> =&gt; {
                 <span class="comment">// 4. If IsCallable(target) is false, throw a TypeError exception.</span>
@@ -1084,7 +1090,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">neg</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">neg</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Undefined</span> =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64::NAN</span>),
             <span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw">_</span>) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="kw">match</span> <span class="self">self</span>.<span class="ident">to_numeric_number</span>(<span class="ident">context</span>) {
@@ -1117,7 +1123,7 @@
     <span class="doccomment">/// In addition to `x` and `y` the algorithm takes a Boolean flag named `LeftFirst` as a parameter.</span>
     <span class="doccomment">/// The flag is used to control the order in which operations with potentially visible side-effects</span>
     <span class="doccomment">/// are performed upon `x` and `y`. It is necessary because ECMAScript specifies left to right evaluation</span>
-    <span class="doccomment">/// of expressions. The default value of LeftFirst is `true` and indicates that the `x` parameter</span>
+    <span class="doccomment">/// of expressions. The default value of `LeftFirst` is `true` and indicates that the `x` parameter</span>
     <span class="doccomment">/// corresponds to an expression that occurs to the left of the `y` parameter&#39;s corresponding expression.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// If `LeftFirst` is `false`, the reverse is the case and operations must be performed upon `y` before `x`.</span>
@@ -1309,9 +1315,9 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="ident">value</span> {
-            <span class="ident">AbstractRelation::True</span>
+            <span class="ident"><span class="self">Self</span>::True</span>
         } <span class="kw">else</span> {
-            <span class="ident">AbstractRelation::False</span>
+            <span class="ident"><span class="self">Self</span>::False</span>
         }
     }
 }

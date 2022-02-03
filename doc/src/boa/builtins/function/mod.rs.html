@@ -649,11 +649,12 @@
 <span id="648">648</span>
 <span id="649">649</span>
 <span id="650">650</span>
+<span id="651">651</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Function` object as well as creates Native Functions.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Objects wrap `Function`s and expose them via call/construct slots.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! `The `Function` object is used for matching text with a pattern.</span>
+<span class="doccomment">//! The `Function` object is used for matching text with a pattern.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
 <span class="doccomment">//!  - [ECMAScript reference][spec]</span>
@@ -809,7 +810,8 @@
 
 <span class="doccomment">/// Boa representation of a Function Object.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// FunctionBody is specific to this interpreter, it will either be Rust code or JavaScript code (AST Node)</span>
+<span class="doccomment">/// `FunctionBody` is specific to this interpreter, it will either be Rust code or JavaScript code</span>
+<span class="doccomment">/// (AST Node).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-ecmascript-function-objects&gt;</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
@@ -841,8 +843,7 @@
     <span class="doccomment">/// Returns true if the function object is a constructor.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_constructor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Native</span> { <span class="ident">constructor</span>, .. } =&gt; <span class="kw-2">*</span><span class="ident">constructor</span>,
-            <span class="ident"><span class="self">Self</span>::Closure</span> { <span class="ident">constructor</span>, .. } =&gt; <span class="kw-2">*</span><span class="ident">constructor</span>,
+            <span class="ident"><span class="self">Self</span>::Native</span> { <span class="ident">constructor</span>, .. } <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Closure</span> { <span class="ident">constructor</span>, .. } =&gt; <span class="kw-2">*</span><span class="ident">constructor</span>,
             <span class="ident"><span class="self">Self</span>::VmOrdinary</span> { <span class="ident">code</span>, .. } =&gt; <span class="ident">code</span>.<span class="ident">constructor</span>,
         }
     }
@@ -1128,6 +1129,7 @@
         <span class="prelude-val">Ok</span>(<span class="ident">JsValue::ordinary_has_instance</span>(<span class="ident">this</span>, <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>), <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">into</span>())
     }
 
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unnecessary_wraps</span>)]</span>
     <span class="kw">fn</span> <span class="ident">prototype</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
     }
@@ -1274,7 +1276,7 @@
         <span class="prelude-val">Ok</span>(<span class="ident">JsObject::from_proto_and_data</span>(
             <span class="ident">proto</span>,
             <span class="ident">ObjectData::bound_function</span>(
-                <span class="ident">BoundFunction</span> {
+                <span class="self">Self</span> {
                     <span class="ident">target_function</span>,
                     <span class="ident">this</span>,
                     <span class="ident">args</span>,

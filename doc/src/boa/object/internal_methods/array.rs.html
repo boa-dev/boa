@@ -310,7 +310,7 @@
 
             <span class="comment">// 5. If SameValueZero(newLen, numberLen) is false, throw a RangeError exception.</span>
             <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::float_cmp</span>)]</span>
-            <span class="kw">if</span> <span class="ident">new_len</span> <span class="kw">as</span> <span class="ident">f64</span> <span class="op">!</span><span class="op">=</span> <span class="ident">number_len</span> {
+            <span class="kw">if</span> <span class="ident">f64::from</span>(<span class="ident">new_len</span>) <span class="op">!</span><span class="op">=</span> <span class="ident">number_len</span> {
                 <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;bad length for array&quot;</span>);
             }
 

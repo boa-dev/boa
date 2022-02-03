@@ -123,10 +123,10 @@
         <span class="kw">let</span> <span class="ident">d64</span> <span class="op">=</span> <span class="ident">number</span>.<span class="ident">to_bits</span>();
         <span class="kw">let</span> <span class="ident">significand</span> <span class="op">=</span> <span class="ident">d64</span> <span class="op">&amp;</span> <span class="ident">SIGNIFICAND_MASK</span>;
 
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">is_denormal</span>(<span class="ident">number</span>) {
-            <span class="ident">significand</span> <span class="op">+</span> <span class="ident">HIDDEN_BIT</span>
-        } <span class="kw">else</span> {
+        <span class="kw">if</span> <span class="ident">is_denormal</span>(<span class="ident">number</span>) {
             <span class="ident">significand</span>
+        } <span class="kw">else</span> {
+            <span class="ident">significand</span> <span class="op">+</span> <span class="ident">HIDDEN_BIT</span>
         }
     }
 

@@ -504,7 +504,7 @@
                         ));
                     }
                 } <span class="kw">else</span> {
-                    <span class="ident">const_decls</span>.<span class="ident">push</span>(<span class="ident">decl</span>)
+                    <span class="ident">const_decls</span>.<span class="ident">push</span>(<span class="ident">decl</span>);
                 }
             } <span class="kw">else</span> {
                 <span class="ident">let_decls</span>.<span class="ident">push</span>(<span class="ident">decl</span>);
@@ -522,9 +522,9 @@
                     <span class="kw">if</span> <span class="ident">tk</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Comma</span>) =&gt;
                 {
                     <span class="comment">// We discard the comma</span>
-                    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">_comma</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>;
                 }
-                <span class="kw">_</span> =&gt; {
+                <span class="ident">SemicolonResult::NotFound</span>(<span class="kw">_</span>) =&gt; {
                     <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::expected</span>(
                         [<span class="string">&quot;;&quot;</span>.<span class="ident">to_owned</span>(), <span class="string">&quot;line terminator&quot;</span>.<span class="ident">to_owned</span>()],

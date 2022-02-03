@@ -793,7 +793,7 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `JsObject` is a garbage collected Object.</span>
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">JsPrototype</span>, <span class="ident">NativeObject</span>, <span class="ident">Object</span>};
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">JsPrototype</span>, <span class="ident">NativeObject</span>, <span class="ident">Object</span>, <span class="ident">PropertyMap</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">gc</span>::{<span class="self">self</span>, <span class="ident">Finalize</span>, <span class="ident">Gc</span>, <span class="ident">Trace</span>},
     <span class="ident">object</span>::{<span class="ident">ObjectData</span>, <span class="ident">ObjectKind</span>},
@@ -837,12 +837,12 @@
     <span class="doccomment">/// Create a `JsObject` and automatically set its internal methods and</span>
     <span class="doccomment">/// internal slots from the `data` provided.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_proto_and_data</span><span class="op">&lt;</span><span class="ident">O</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">prototype</span>: <span class="ident">O</span>, <span class="ident">data</span>: <span class="ident">ObjectData</span>) -&gt; <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_proto_and_data</span><span class="op">&lt;</span><span class="ident">O</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">prototype</span>: <span class="ident">O</span>, <span class="ident">data</span>: <span class="ident">ObjectData</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::from_object</span>(<span class="ident">Object</span> {
             <span class="ident">data</span>,
             <span class="ident">prototype</span>: <span class="ident">prototype</span>.<span class="ident">into</span>(),
             <span class="ident">extensible</span>: <span class="bool-val">true</span>,
-            <span class="ident">properties</span>: <span class="ident">Default::default</span>(),
+            <span class="ident">properties</span>: <span class="ident">PropertyMap::default</span>(),
         })
     }
 
@@ -1036,7 +1036,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prototype</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Ref</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">JsPrototype</span><span class="op">&gt;</span> {
-        <span class="ident">Ref::map</span>(<span class="self">self</span>.<span class="ident">borrow</span>(), <span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">prototype</span>())
+        <span class="ident">Ref::map</span>(<span class="self">self</span>.<span class="ident">borrow</span>(), <span class="ident">Object::prototype</span>)
     }
 
     <span class="doccomment">/// Get the extensibility of the object.</span>
@@ -1340,7 +1340,7 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
 
         <span class="comment">// 5. Let keys be ? from.[[OwnPropertyKeys]]().</span>
         <span class="comment">// 6. For each element nextKey of keys, do</span>
-        <span class="kw">let</span> <span class="ident">excluded_keys</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">excluded_keys</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">into</span>()).<span class="ident">collect</span>();
+        <span class="kw">let</span> <span class="ident">excluded_keys</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">excluded_keys</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="ident">Into::into</span>).<span class="ident">collect</span>();
         <span class="kw">for</span> <span class="ident">key</span> <span class="kw">in</span> <span class="ident">from</span>.<span class="ident">__own_property_keys__</span>(<span class="ident">context</span>)<span class="question-mark">?</span> {
             <span class="comment">// a. Let excluded be false.</span>
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">excluded</span> <span class="op">=</span> <span class="bool-val">false</span>;
@@ -1408,7 +1408,7 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
     <span class="doccomment">/// It determines if Object is a callable function with a `[[Call]]` internal method.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [EcmaScript reference][spec]</span>
+    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-iscallable</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -1420,7 +1420,7 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
     <span class="doccomment">/// It determines if Object is a function object with a `[[Construct]]` internal method.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [EcmaScript reference][spec]</span>
+    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-isconstructor</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -1429,7 +1429,7 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
         <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">data</span>.<span class="ident">internal_methods</span>.<span class="ident">__construct__</span>.<span class="ident">is_some</span>()
     }
 
-    <span class="doccomment">/// Returns true if the JsObject is the global for a Realm</span>
+    <span class="doccomment">/// Returns true if the `JsObject` is the global for a Realm</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_global</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="macro">matches!</span>(
             <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">data</span>,
@@ -1450,7 +1450,7 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
 
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">JsObject</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="ident">JsObject::equals</span>(<span class="self">self</span>, <span class="ident">other</span>)
+        <span class="ident"><span class="self">Self</span>::equals</span>(<span class="self">self</span>, <span class="ident">other</span>)
     }
 }
 

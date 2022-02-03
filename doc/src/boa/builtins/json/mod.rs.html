@@ -739,6 +739,7 @@
 <span id="738">738</span>
 <span id="739">739</span>
 <span id="740">740</span>
+<span id="741">741</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `JSON` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `JSON` object contains methods for parsing [JavaScript Object Notation (JSON)][spec]</span>
@@ -973,7 +974,7 @@
             <span class="comment">// a. If IsCallable(replacer) is true, then</span>
             <span class="kw">if</span> <span class="ident">replacer_obj</span>.<span class="ident">is_callable</span>() {
                 <span class="comment">// i. Set ReplacerFunction to replacer.</span>
-                <span class="ident">replacer_function</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">replacer_obj</span>.<span class="ident">clone</span>())
+                <span class="ident">replacer_function</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">replacer_obj</span>.<span class="ident">clone</span>());
             <span class="comment">// b. Else,</span>
             } <span class="kw">else</span> {
                 <span class="comment">// i. Let isArray be ? IsArray(replacer).</span>
@@ -1001,7 +1002,7 @@
                         <span class="comment">// g. If item is not undefined and item is not currently an element of PropertyList, then</span>
                         <span class="comment">// i. Append item to the end of PropertyList.</span>
                         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="ident">v</span>.<span class="ident">as_string</span>() {
-                            <span class="ident">property_set</span>.<span class="ident">insert</span>(<span class="ident">s</span>.<span class="ident">to_owned</span>());
+                            <span class="ident">property_set</span>.<span class="ident">insert</span>(<span class="ident">s</span>.<span class="ident">clone</span>());
                         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">v</span>.<span class="ident">is_number</span>() {
                             <span class="ident">property_set</span>.<span class="ident">insert</span>(
                                 <span class="ident">v</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)
@@ -1089,7 +1090,7 @@
         <span class="comment">// 12. Return ? SerializeJSONProperty(state, the empty String, wrapper).</span>
         <span class="prelude-val">Ok</span>(
             <span class="ident"><span class="self">Self</span>::serialize_json_property</span>(<span class="kw-2">&amp;mut</span> <span class="ident">state</span>, <span class="ident">JsString::new</span>(<span class="string">&quot;&quot;</span>), <span class="kw-2">&amp;</span><span class="ident">wrapper</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">into</span>())
+                .<span class="ident">map</span>(<span class="ident">Into::into</span>)
                 .<span class="ident">unwrap_or_default</span>(),
         )
     }
@@ -1126,7 +1127,7 @@
         <span class="comment">// 3. If state.[[ReplacerFunction]] is not undefined, then</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">state</span>.<span class="ident">replacer_function</span> {
             <span class="comment">// a. Set value to ? Call(state.[[ReplacerFunction]], holder, « key, value »).</span>
-            <span class="ident">value</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">holder</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="kw-2">&amp;</span>[<span class="ident">key</span>.<span class="ident">into</span>(), <span class="ident">value</span>], <span class="ident">context</span>)<span class="question-mark">?</span>
+            <span class="ident">value</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">holder</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="kw-2">&amp;</span>[<span class="ident">key</span>.<span class="ident">into</span>(), <span class="ident">value</span>], <span class="ident">context</span>)<span class="question-mark">?</span>;
         }
 
         <span class="comment">// 4. If Type(value) is Object, then</span>
@@ -1144,12 +1145,12 @@
             <span class="comment">// c. Else if value has a [[BooleanData]] internal slot, then</span>
             <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">boolean</span>) <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">as_boolean</span>() {
                 <span class="comment">// i. Set value to value.[[BooleanData]].</span>
-                <span class="ident">value</span> <span class="op">=</span> <span class="ident">boolean</span>.<span class="ident">into</span>()
+                <span class="ident">value</span> <span class="op">=</span> <span class="ident">boolean</span>.<span class="ident">into</span>();
             }
             <span class="comment">// d. Else if value has a [[BigIntData]] internal slot, then</span>
             <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">bigint</span>) <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">as_bigint</span>() {
                 <span class="comment">// i. Set value to value.[[BigIntData]].</span>
-                <span class="ident">value</span> <span class="op">=</span> <span class="ident">bigint</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
+                <span class="ident">value</span> <span class="op">=</span> <span class="ident">bigint</span>.<span class="ident">clone</span>().<span class="ident">into</span>();
             }
         }
 
@@ -1161,10 +1162,11 @@
         <span class="comment">// 6. If value is true, return &quot;true&quot;.</span>
         <span class="comment">// 7. If value is false, return &quot;false&quot;.</span>
         <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_boolean</span>() {
-            <span class="kw">return</span> <span class="kw">match</span> <span class="ident">value</span>.<span class="ident">to_boolean</span>() {
-                <span class="bool-val">true</span> =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">JsString::new</span>(<span class="string">&quot;true&quot;</span>))),
-                <span class="bool-val">false</span> =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">JsString::new</span>(<span class="string">&quot;false&quot;</span>))),
-            };
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">JsString::new</span>(<span class="kw">if</span> <span class="ident">value</span>.<span class="ident">to_boolean</span>() {
+                <span class="string">&quot;true&quot;</span>
+            } <span class="kw">else</span> {
+                <span class="string">&quot;false&quot;</span>
+            })));
         }
 
         <span class="comment">// 8. If Type(value) is String, return QuoteJSONString(value).</span>
@@ -1244,7 +1246,7 @@
                 <span class="ident">code_point</span> =&gt; {
                     <span class="comment">// i. Set product to the string-concatenation of product and ! UTF16EncodeCodePoint(C).</span>
                     <span class="ident">product</span>.<span class="ident">push</span>(
-                        <span class="ident">char::from_u32</span>(<span class="ident">code_point</span> <span class="kw">as</span> <span class="ident">u32</span>)
+                        <span class="ident">char::from_u32</span>(<span class="ident">u32::from</span>(<span class="ident">code_point</span>))
                             .<span class="ident">expect</span>(<span class="string">&quot;char from code point cannot fail here&quot;</span>),
                     );
                 }
@@ -1415,11 +1417,11 @@
             <span class="comment">// b. If strP is undefined, then</span>
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">str_p</span>) <span class="op">=</span> <span class="ident">str_p</span> {
                 <span class="comment">// i. Append strP to partial.</span>
-                <span class="ident">partial</span>.<span class="ident">push</span>(<span class="ident">str_p</span>)
+                <span class="ident">partial</span>.<span class="ident">push</span>(<span class="ident">str_p</span>);
             <span class="comment">// c. Else,</span>
             } <span class="kw">else</span> {
                 <span class="comment">// i. Append &quot;null&quot; to partial.</span>
-                <span class="ident">partial</span>.<span class="ident">push</span>(<span class="string">&quot;null&quot;</span>.<span class="ident">into</span>())
+                <span class="ident">partial</span>.<span class="ident">push</span>(<span class="string">&quot;null&quot;</span>.<span class="ident">into</span>());
             }
 
             <span class="comment">// d. Set index to index + 1.</span>

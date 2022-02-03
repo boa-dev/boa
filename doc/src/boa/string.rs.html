@@ -958,16 +958,16 @@
     <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="comment">// We get the layout of the `Inner` type and we extend by the size</span>
         <span class="comment">// of the string array.</span>
-        <span class="kw">let</span> <span class="ident">inner_layout</span> <span class="op">=</span> <span class="ident">Layout::new</span>::<span class="op">&lt;</span><span class="ident">Inner</span><span class="op">&gt;</span>();
+        <span class="kw">let</span> <span class="ident">inner_layout</span> <span class="op">=</span> <span class="ident">Layout::new</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>();
         <span class="kw">let</span> (<span class="ident">layout</span>, <span class="ident">offset</span>) <span class="op">=</span> <span class="ident">inner_layout</span>
             .<span class="ident">extend</span>(<span class="ident">Layout::array</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>(<span class="ident">s</span>.<span class="ident">len</span>()).<span class="ident">unwrap</span>())
             .<span class="ident">unwrap</span>();
 
         <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">alloc</span>(<span class="ident">layout</span>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">Inner</span>;
+            <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">alloc</span>(<span class="ident">layout</span>).<span class="ident">cast</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>();
 
             <span class="comment">// Write the first part, the Inner.</span>
-            <span class="ident">inner</span>.<span class="ident">write</span>(<span class="ident">Inner</span> {
+            <span class="ident">inner</span>.<span class="ident">write</span>(<span class="self">Self</span> {
                 <span class="ident">len</span>: <span class="ident">s</span>.<span class="ident">len</span>(),
                 <span class="ident">refcount</span>: <span class="ident">Cell::new</span>(<span class="number">1</span>),
                 <span class="ident">data</span>: [<span class="number">0</span>; <span class="number">0</span>],
@@ -990,7 +990,7 @@
 
     <span class="doccomment">/// Concatenate array of strings.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">concat_array</span>(<span class="ident">strings</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>]) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Inner</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">concat_array</span>(<span class="ident">strings</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>]) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">total_string_size</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">for</span> <span class="ident">string</span> <span class="kw">in</span> <span class="ident">strings</span> {
             <span class="ident">total_string_size</span> <span class="op">+</span><span class="op">=</span> <span class="ident">string</span>.<span class="ident">len</span>();
@@ -998,16 +998,16 @@
 
         <span class="comment">// We get the layout of the `Inner` type and we extend by the size</span>
         <span class="comment">// of the string array.</span>
-        <span class="kw">let</span> <span class="ident">inner_layout</span> <span class="op">=</span> <span class="ident">Layout::new</span>::<span class="op">&lt;</span><span class="ident">Inner</span><span class="op">&gt;</span>();
+        <span class="kw">let</span> <span class="ident">inner_layout</span> <span class="op">=</span> <span class="ident">Layout::new</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>();
         <span class="kw">let</span> (<span class="ident">layout</span>, <span class="ident">offset</span>) <span class="op">=</span> <span class="ident">inner_layout</span>
             .<span class="ident">extend</span>(<span class="ident">Layout::array</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>(<span class="ident">total_string_size</span>).<span class="ident">unwrap</span>())
             .<span class="ident">unwrap</span>();
 
         <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">alloc</span>(<span class="ident">layout</span>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">Inner</span>;
+            <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">alloc</span>(<span class="ident">layout</span>).<span class="ident">cast</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>();
 
             <span class="comment">// Write the first part, the Inner.</span>
-            <span class="ident">inner</span>.<span class="ident">write</span>(<span class="ident">Inner</span> {
+            <span class="ident">inner</span>.<span class="ident">write</span>(<span class="self">Self</span> {
                 <span class="ident">len</span>: <span class="ident">total_string_size</span>,
                 <span class="ident">refcount</span>: <span class="ident">Cell::new</span>(<span class="number">1</span>),
                 <span class="ident">data</span>: [<span class="number">0</span>; <span class="number">0</span>],
@@ -1034,15 +1034,15 @@
 
     <span class="doccomment">/// Deallocate inner type with string data.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">dealloc</span>(<span class="ident">x</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Inner</span><span class="op">&gt;</span>) {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">dealloc</span>(<span class="ident">x</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) {
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">x</span>.<span class="ident">as_ptr</span>()).<span class="ident">len</span>;
 
-        <span class="kw">let</span> <span class="ident">inner_layout</span> <span class="op">=</span> <span class="ident">Layout::new</span>::<span class="op">&lt;</span><span class="ident">Inner</span><span class="op">&gt;</span>();
+        <span class="kw">let</span> <span class="ident">inner_layout</span> <span class="op">=</span> <span class="ident">Layout::new</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>();
         <span class="kw">let</span> (<span class="ident">layout</span>, <span class="ident">_offset</span>) <span class="op">=</span> <span class="ident">inner_layout</span>
             .<span class="ident">extend</span>(<span class="ident">Layout::array</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>(<span class="ident">len</span>).<span class="ident">unwrap</span>())
             .<span class="ident">unwrap</span>();
 
-        <span class="ident">dealloc</span>(<span class="ident">x</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw">_</span>, <span class="ident">layout</span>);
+        <span class="ident">dealloc</span>(<span class="ident">x</span>.<span class="ident">as_ptr</span>().<span class="ident">cast</span>::<span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span>(), <span class="ident">layout</span>);
     }
 }
 
@@ -1069,7 +1069,7 @@
     <span class="doccomment">/// Create an empty string, same as calling default.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">empty</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident">JsString::default</span>()
+        <span class="ident"><span class="self">Self</span>::default</span>()
     }
 
     <span class="doccomment">/// Create a new JavaScript string.</span>
@@ -1090,7 +1090,7 @@
     }
 
     <span class="doccomment">/// Concatenate two string.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">concat</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">y</span>: <span class="ident">U</span>) -&gt; <span class="ident">JsString</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">concat</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">y</span>: <span class="ident">U</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
         <span class="ident">U</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
@@ -1113,7 +1113,7 @@
     }
 
     <span class="doccomment">/// Concatenate array of string.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">concat_array</span>(<span class="ident">strings</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>]) -&gt; <span class="ident">JsString</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">concat_array</span>(<span class="ident">strings</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>]) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="self">Self</span> {
             <span class="ident">inner</span>: <span class="ident">Inner::concat_array</span>(<span class="ident">strings</span>),
             <span class="ident">_marker</span>: <span class="ident">PhantomData</span>,
@@ -1247,7 +1247,7 @@
         <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>();
         <span class="ident">inner</span>.<span class="ident">refcount</span>.<span class="ident">set</span>(<span class="ident">inner</span>.<span class="ident">refcount</span>.<span class="ident">get</span>() <span class="op">+</span> <span class="number">1</span>);
 
-        <span class="ident">JsString</span> {
+        <span class="self">Self</span> {
             <span class="ident">inner</span>: <span class="self">self</span>.<span class="ident">inner</span>,
             <span class="ident">_marker</span>: <span class="ident">PhantomData</span>,
         }
@@ -1328,7 +1328,7 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsString</span> {
+<span class="kw">impl</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsString</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
         <span class="comment">// If they point at the same memory allocation, then they are equal.</span>
@@ -1398,7 +1398,7 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">empty</span>() {
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">JsString::new</span>(<span class="string">&quot;&quot;</span>);
+        <span class="kw">let</span> <span class="ident">_empty</span> <span class="op">=</span> <span class="ident">JsString::new</span>(<span class="string">&quot;&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>

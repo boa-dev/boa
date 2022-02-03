@@ -168,10 +168,10 @@
     <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::ast::node</span>) <span class="kw">fn</span> <span class="ident">to_indented_string</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>,
-        <span class="ident">indent</span>: <span class="ident">usize</span>,
+        <span class="ident">indent_n</span>: <span class="ident">usize</span>,
     ) -&gt; <span class="ident">String</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="string">&quot;{\n&quot;</span>.<span class="ident">to_owned</span>();
-        <span class="kw">let</span> <span class="ident">indentation</span> <span class="op">=</span> <span class="string">&quot;    &quot;</span>.<span class="ident">repeat</span>(<span class="ident">indent</span> <span class="op">+</span> <span class="number">1</span>);
+        <span class="kw">let</span> <span class="ident">indentation</span> <span class="op">=</span> <span class="string">&quot;    &quot;</span>.<span class="ident">repeat</span>(<span class="ident">indent_n</span> <span class="op">+</span> <span class="number">1</span>);
         <span class="kw">for</span> <span class="ident">property</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">properties</span>().<span class="ident">iter</span>() {
             <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="kw">match</span> <span class="ident">property</span> {
                 <span class="ident">PropertyDefinition::IdentifierReference</span>(<span class="ident">ident</span>) =&gt; {
@@ -182,7 +182,7 @@
                         <span class="string">&quot;{}{}: {},\n&quot;</span>,
                         <span class="ident">indentation</span>,
                         <span class="ident">key</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
-                        <span class="ident">value</span>.<span class="ident">to_no_indent_string</span>(<span class="ident">interner</span>, <span class="ident">indent</span> <span class="op">+</span> <span class="number">1</span>)
+                        <span class="ident">value</span>.<span class="ident">to_no_indent_string</span>(<span class="ident">interner</span>, <span class="ident">indent_n</span> <span class="op">+</span> <span class="number">1</span>)
                     )
                 }
                 <span class="ident">PropertyDefinition::SpreadObject</span>(<span class="ident">key</span>) =&gt; {
@@ -202,12 +202,12 @@
                         },
                         <span class="ident">key</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
                         <span class="ident">join_nodes</span>(<span class="ident">interner</span>, <span class="ident">node</span>.<span class="ident">parameters</span>()),
-                        <span class="ident">block_to_string</span>(<span class="ident">node</span>.<span class="ident">body</span>(), <span class="ident">interner</span>, <span class="ident">indent</span> <span class="op">+</span> <span class="number">1</span>)
+                        <span class="ident">block_to_string</span>(<span class="ident">node</span>.<span class="ident">body</span>(), <span class="ident">interner</span>, <span class="ident">indent_n</span> <span class="op">+</span> <span class="number">1</span>)
                     )
                 }
             });
         }
-        <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{}}}&quot;</span>, <span class="string">&quot;    &quot;</span>.<span class="ident">repeat</span>(<span class="ident">indent</span>)));
+        <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{}}}&quot;</span>, <span class="string">&quot;    &quot;</span>.<span class="ident">repeat</span>(<span class="ident">indent_n</span>)));
 
         <span class="ident">buf</span>
     }

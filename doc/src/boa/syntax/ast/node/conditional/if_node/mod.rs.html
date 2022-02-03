@@ -183,7 +183,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">If</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Node</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">if_stm</span>: <span class="ident">If</span>) -&gt; <span class="ident">Node</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">if_stm</span>: <span class="ident">If</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::If</span>(<span class="ident">if_stm</span>)
     }
 }

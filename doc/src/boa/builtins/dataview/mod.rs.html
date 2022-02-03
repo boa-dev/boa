@@ -1009,6 +1009,30 @@
 <span id="1008">1008</span>
 <span id="1009">1009</span>
 <span id="1010">1010</span>
+<span id="1011">1011</span>
+<span id="1012">1012</span>
+<span id="1013">1013</span>
+<span id="1014">1014</span>
+<span id="1015">1015</span>
+<span id="1016">1016</span>
+<span id="1017">1017</span>
+<span id="1018">1018</span>
+<span id="1019">1019</span>
+<span id="1020">1020</span>
+<span id="1021">1021</span>
+<span id="1022">1022</span>
+<span id="1023">1023</span>
+<span id="1024">1024</span>
+<span id="1025">1025</span>
+<span id="1026">1026</span>
+<span id="1027">1027</span>
+<span id="1028">1028</span>
+<span id="1029">1029</span>
+<span id="1030">1030</span>
+<span id="1031">1031</span>
+<span id="1032">1032</span>
+<span id="1033">1033</span>
+<span id="1034">1034</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{<span class="ident">array_buffer::SharedMemoryOrder</span>, <span class="ident">typed_array::TypedArrayName</span>, <span class="ident">BuiltIn</span>, <span class="ident">JsArgs</span>},
     <span class="ident">context::StandardObjects</span>,
@@ -1098,12 +1122,12 @@
 
     <span class="doccomment">/// `25.3.2.1 DataView ( buffer [ , byteOffset [ , byteLength ] ] )`</span>
     <span class="doccomment">///</span>
+    <span class="doccomment">/// The `DataView` view provides a low-level interface for reading and writing multiple number</span>
+    <span class="doccomment">/// types in a binary `ArrayBuffer`, without having to care about the platform&#39;s endianness.</span>
+    <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///  - [MDN][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The DataView view provides a low-level interface for reading and writing multiple number types in a</span>
-    <span class="doccomment">/// binary ArrayBuffer, without having to care about the platform&#39;s endianness.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-dataview-buffer-byteoffset-bytelength</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/DataView</span>
@@ -1153,9 +1177,9 @@
                 <span class="comment">// 8.b. If offset + viewByteLength &gt; bufferByteLength, throw a RangeError exception.</span>
                 <span class="kw">if</span> <span class="ident">offset</span> <span class="op">+</span> <span class="ident">view_byte_length</span> <span class="op">&gt;</span> <span class="ident">buffer_byte_length</span> {
                     <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Invalid data view length&quot;</span>);
-                } <span class="kw">else</span> {
-                    <span class="ident">view_byte_length</span>
                 }
+
+                <span class="ident">view_byte_length</span>
             };
             (<span class="ident">offset</span>, <span class="ident">view_byte_length</span>)
         };
@@ -1176,9 +1200,9 @@
 
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">JsObject::from_proto_and_data</span>(
             <span class="ident">prototype</span>,
-            <span class="ident">ObjectData::data_view</span>(<span class="ident">DataView</span> {
+            <span class="ident">ObjectData::data_view</span>(<span class="self">Self</span> {
                 <span class="comment">// 11. Set O.[[ViewedArrayBuffer]] to buffer.</span>
-                <span class="ident">viewed_array_buffer</span>: <span class="ident">buffer_obj</span>.<span class="ident">to_owned</span>(),
+                <span class="ident">viewed_array_buffer</span>: <span class="ident">buffer_obj</span>.<span class="ident">clone</span>(),
                 <span class="comment">// 12. Set O.[[ByteLength]] to viewByteLength.</span>
                 <span class="ident">byte_length</span>: <span class="ident">view_byte_length</span>,
                 <span class="comment">// 13. Set O.[[ByteOffset]] to offset.</span>
@@ -1192,7 +1216,8 @@
 
     <span class="doccomment">/// `25.3.4.1 get DataView.prototype.buffer`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The buffer accessor property represents the ArrayBuffer or SharedArrayBuffer referenced by the DataView at construction time.</span>
+    <span class="doccomment">/// The buffer accessor property represents the `ArrayBuffer` or `SharedArrayBuffer` referenced</span>
+    <span class="doccomment">/// by the `DataView` at construction time.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1207,7 +1232,7 @@
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? RequireInternalSlot(O, [[DataView]]).</span>
-        <span class="kw">let</span> <span class="ident">dataview</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">borrow</span>());
+        <span class="kw">let</span> <span class="ident">dataview</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">map</span>(<span class="ident">JsObject::borrow</span>);
         <span class="kw">let</span> <span class="ident">dataview</span> <span class="op">=</span> <span class="ident">dataview</span>
             .<span class="ident">as_ref</span>()
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">as_data_view</span>())
@@ -1221,7 +1246,7 @@
 
     <span class="doccomment">/// `25.3.4.1 get DataView.prototype.byteLength`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The byteLength accessor property represents the length (in bytes) of the dataview.</span>
+    <span class="doccomment">/// The `byteLength` accessor property represents the length (in bytes) of the dataview.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1236,7 +1261,7 @@
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? RequireInternalSlot(O, [[DataView]]).</span>
-        <span class="kw">let</span> <span class="ident">dataview</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">borrow</span>());
+        <span class="kw">let</span> <span class="ident">dataview</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">map</span>(<span class="ident">JsObject::borrow</span>);
         <span class="kw">let</span> <span class="ident">dataview</span> <span class="op">=</span> <span class="ident">dataview</span>
             .<span class="ident">as_ref</span>()
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">as_data_view</span>())
@@ -1259,7 +1284,8 @@
 
     <span class="doccomment">/// `25.3.4.1 get DataView.prototype.byteOffset`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The byteOffset accessor property represents the offset (in bytes) of this view from the start of its ArrayBuffer or SharedArrayBuffer.</span>
+    <span class="doccomment">/// The `byteOffset` accessor property represents the offset (in bytes) of this view from the</span>
+    <span class="doccomment">/// start of its `ArrayBuffer` or `SharedArrayBuffer`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1274,7 +1300,7 @@
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? RequireInternalSlot(O, [[DataView]]).</span>
-        <span class="kw">let</span> <span class="ident">dataview</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">borrow</span>());
+        <span class="kw">let</span> <span class="ident">dataview</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">map</span>(<span class="ident">JsObject::borrow</span>);
         <span class="kw">let</span> <span class="ident">dataview</span> <span class="op">=</span> <span class="ident">dataview</span>
             .<span class="ident">as_ref</span>()
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">as_data_view</span>())
@@ -1297,8 +1323,9 @@
 
     <span class="doccomment">/// `25.3.1.1 GetViewValue ( view, requestIndex, isLittleEndian, type )`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The abstract operation GetViewValue takes arguments view, requestIndex, isLittleEndian, and type.</span>
-    <span class="doccomment">/// It is used by functions on DataView instances to retrieve values from the view&#39;s buffer.</span>
+    <span class="doccomment">/// The abstract operation `GetViewValue` takes arguments view, requestIndex, `isLittleEndian`,</span>
+    <span class="doccomment">/// and type. It is used by functions on `DataView` instances to retrieve values from the</span>
+    <span class="doccomment">/// view&#39;s buffer.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1313,7 +1340,7 @@
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Perform ? RequireInternalSlot(view, [[DataView]]).</span>
         <span class="comment">// 2. Assert: view has a [[ViewedArrayBuffer]] internal slot.</span>
-        <span class="kw">let</span> <span class="ident">view</span> <span class="op">=</span> <span class="ident">view</span>.<span class="ident">as_object</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">borrow</span>());
+        <span class="kw">let</span> <span class="ident">view</span> <span class="op">=</span> <span class="ident">view</span>.<span class="ident">as_object</span>().<span class="ident">map</span>(<span class="ident">JsObject::borrow</span>);
         <span class="kw">let</span> <span class="ident">view</span> <span class="op">=</span> <span class="ident">view</span>
             .<span class="ident">as_ref</span>()
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">as_data_view</span>())
@@ -1364,7 +1391,8 @@
 
     <span class="doccomment">/// `25.3.4.5 DataView.prototype.getBigInt64 ( byteOffset [ , littleEndian ] )`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The getBigInt64() method gets a signed 64-bit integer (long long) at the specified byte offset from the start of the DataView.</span>
+    <span class="doccomment">/// The `getBigInt64()` method gets a signed 64-bit integer (long long) at the specified byte</span>
+    <span class="doccomment">/// offset from the start of the `DataView`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1381,7 +1409,7 @@
         <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
         <span class="comment">// 1. Let v be the this value.</span>
         <span class="comment">// 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).</span>
-        <span class="ident">DataView::get_view_value</span>(
+        <span class="ident"><span class="self">Self</span>::get_view_value</span>(
             <span class="ident">this</span>,
             <span class="ident">byte_offset</span>,
             <span class="ident">is_little_endian</span>,
@@ -1392,7 +1420,8 @@
 
     <span class="doccomment">/// `25.3.4.6 DataView.prototype.getBigUint64 ( byteOffset [ , littleEndian ] )`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The getBigUint64() method gets an unsigned 64-bit integer (unsigned long long) at the specified byte offset from the start of the DataView.</span>
+    <span class="doccomment">/// The `getBigUint64()` method gets an unsigned 64-bit integer (unsigned long long) at the</span>
+    <span class="doccomment">/// specified byte offset from the start of the `DataView`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1409,7 +1438,7 @@
         <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
         <span class="comment">// 1. Let v be the this value.</span>
         <span class="comment">// 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).</span>
-        <span class="ident">DataView::get_view_value</span>(
+        <span class="ident"><span class="self">Self</span>::get_view_value</span>(
             <span class="ident">this</span>,
             <span class="ident">byte_offset</span>,
             <span class="ident">is_little_endian</span>,
@@ -1420,7 +1449,8 @@
 
     <span class="doccomment">/// `25.3.4.7 DataView.prototype.getBigUint64 ( byteOffset [ , littleEndian ] )`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The getFloat32() method gets a signed 32-bit float (float) at the specified byte offset from the start of the DataView.</span>
+    <span class="doccomment">/// The `getFloat32()` method gets a signed 32-bit float (float) at the specified byte offset</span>
+    <span class="doccomment">/// from the start of the `DataView`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1437,7 +1467,7 @@
         <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
         <span class="comment">// 1. Let v be the this value.</span>
         <span class="comment">// 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).</span>
-        <span class="ident">DataView::get_view_value</span>(
+        <span class="ident"><span class="self">Self</span>::get_view_value</span>(
             <span class="ident">this</span>,
             <span class="ident">byte_offset</span>,
             <span class="ident">is_little_endian</span>,
@@ -1448,7 +1478,8 @@
 
     <span class="doccomment">/// `25.3.4.8 DataView.prototype.getFloat64 ( byteOffset [ , littleEndian ] )`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The getFloat64() method gets a signed 64-bit float (double) at the specified byte offset from the start of the DataView.</span>
+    <span class="doccomment">/// The `getFloat64()` method gets a signed 64-bit float (double) at the specified byte offset</span>
+    <span class="doccomment">/// from the start of the `DataView`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1465,7 +1496,7 @@
         <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
         <span class="comment">// 1. Let v be the this value.</span>
         <span class="comment">// 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).</span>
-        <span class="ident">DataView::get_view_value</span>(
+        <span class="ident"><span class="self">Self</span>::get_view_value</span>(
             <span class="ident">this</span>,
             <span class="ident">byte_offset</span>,
             <span class="ident">is_little_endian</span>,
@@ -1476,7 +1507,8 @@
 
     <span class="doccomment">/// `25.3.4.9 DataView.prototype.getInt8 ( byteOffset [ , littleEndian ] )`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The getInt8() method gets a signed 8-bit integer (byte) at the specified byte offset from the start of the DataView.</span>
+    <span class="doccomment">/// The `getInt8()` method gets a signed 8-bit integer (byte) at the specified byte offset</span>
+    <span class="doccomment">/// from the start of the `DataView`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1493,7 +1525,7 @@
         <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
         <span class="comment">// 1. Let v be the this value.</span>
         <span class="comment">// 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).</span>
-        <span class="ident">DataView::get_view_value</span>(
+        <span class="ident"><span class="self">Self</span>::get_view_value</span>(
             <span class="ident">this</span>,
             <span class="ident">byte_offset</span>,
             <span class="ident">is_little_endian</span>,
@@ -1504,7 +1536,8 @@
 
     <span class="doccomment">/// `25.3.4.10 DataView.prototype.getInt16 ( byteOffset [ , littleEndian ] )`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The getInt16() method gets a signed 16-bit integer (short) at the specified byte offset from the start of the DataView.</span>
+    <span class="doccomment">/// The `getInt16()` method gets a signed 16-bit integer (short) at the specified byte offset</span>
+    <span class="doccomment">/// from the start of the `DataView`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1521,7 +1554,7 @@
         <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
         <span class="comment">// 1. Let v be the this value.</span>
         <span class="comment">// 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).</span>
-        <span class="ident">DataView::get_view_value</span>(
+        <span class="ident"><span class="self">Self</span>::get_view_value</span>(
             <span class="ident">this</span>,
             <span class="ident">byte_offset</span>,
             <span class="ident">is_little_endian</span>,
@@ -1532,7 +1565,8 @@
 
     <span class="doccomment">/// `25.3.4.11 DataView.prototype.getInt32 ( byteOffset [ , littleEndian ] )`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The getInt32() method gets a signed 32-bit integer (long) at the specified byte offset from the start of the DataView.</span>
+    <span class="doccomment">/// The `getInt32()` method gets a signed 32-bit integer (long) at the specified byte offset</span>
+    <span class="doccomment">/// from the start of the `DataView`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1549,7 +1583,7 @@
         <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
         <span class="comment">// 1. Let v be the this value.</span>
         <span class="comment">// 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).</span>
-        <span class="ident">DataView::get_view_value</span>(
+        <span class="ident"><span class="self">Self</span>::get_view_value</span>(
             <span class="ident">this</span>,
             <span class="ident">byte_offset</span>,
             <span class="ident">is_little_endian</span>,
@@ -1560,7 +1594,8 @@
 
     <span class="doccomment">/// `25.3.4.12 DataView.prototype.getUint8 ( byteOffset [ , littleEndian ] )`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The getUint8() method gets an unsigned 8-bit integer (unsigned byte) at the specified byte offset from the start of the DataView.</span>
+    <span class="doccomment">/// The `getUint8()` method gets an unsigned 8-bit integer (unsigned byte) at the specified</span>
+    <span class="doccomment">/// byte offset from the start of the `DataView`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1577,7 +1612,7 @@
         <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
         <span class="comment">// 1. Let v be the this value.</span>
         <span class="comment">// 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).</span>
-        <span class="ident">DataView::get_view_value</span>(
+        <span class="ident"><span class="self">Self</span>::get_view_value</span>(
             <span class="ident">this</span>,
             <span class="ident">byte_offset</span>,
             <span class="ident">is_little_endian</span>,
@@ -1588,7 +1623,8 @@
 
     <span class="doccomment">/// `25.3.4.13 DataView.prototype.getUint16 ( byteOffset [ , littleEndian ] )`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The getUint16() method gets an unsigned 16-bit integer (unsigned short) at the specified byte offset from the start of the DataView.</span>
+    <span class="doccomment">/// The `getUint16()` method gets an unsigned 16-bit integer (unsigned short) at the specified</span>
+    <span class="doccomment">/// byte offset from the start of the `DataView`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1605,7 +1641,7 @@
         <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
         <span class="comment">// 1. Let v be the this value.</span>
         <span class="comment">// 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).</span>
-        <span class="ident">DataView::get_view_value</span>(
+        <span class="ident"><span class="self">Self</span>::get_view_value</span>(
             <span class="ident">this</span>,
             <span class="ident">byte_offset</span>,
             <span class="ident">is_little_endian</span>,
@@ -1616,7 +1652,8 @@
 
     <span class="doccomment">/// `25.3.4.14 DataView.prototype.getUint32 ( byteOffset [ , littleEndian ] )`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The getUint32() method gets an unsigned 32-bit integer (unsigned long) at the specified byte offset from the start of the DataView.</span>
+    <span class="doccomment">/// The `getUint32()` method gets an unsigned 32-bit integer (unsigned long) at the specified</span>
+    <span class="doccomment">/// byte offset from the start of the `DataView`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1633,7 +1670,7 @@
         <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
         <span class="comment">// 1. Let v be the this value.</span>
         <span class="comment">// 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).</span>
-        <span class="ident">DataView::get_view_value</span>(
+        <span class="ident"><span class="self">Self</span>::get_view_value</span>(
             <span class="ident">this</span>,
             <span class="ident">byte_offset</span>,
             <span class="ident">is_little_endian</span>,
@@ -1644,8 +1681,9 @@
 
     <span class="doccomment">/// `25.3.1.1 SetViewValue ( view, requestIndex, isLittleEndian, type )`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The abstract operation SetViewValue takes arguments view, requestIndex, isLittleEndian, type, and value.</span>
-    <span class="doccomment">/// It is used by functions on DataView instances to store values into the view&#39;s buffer.</span>
+    <span class="doccomment">/// The abstract operation `SetViewValue` takes arguments view, requestIndex, `isLittleEndian`,</span>
+    <span class="doccomment">/// type, and value. It is used by functions on `DataView` instances to store values into the</span>
+    <span class="doccomment">/// view&#39;s buffer.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1661,7 +1699,7 @@
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Perform ? RequireInternalSlot(view, [[DataView]]).</span>
         <span class="comment">// 2. Assert: view has a [[ViewedArrayBuffer]] internal slot.</span>
-        <span class="kw">let</span> <span class="ident">view</span> <span class="op">=</span> <span class="ident">view</span>.<span class="ident">as_object</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">borrow</span>());
+        <span class="kw">let</span> <span class="ident">view</span> <span class="op">=</span> <span class="ident">view</span>.<span class="ident">as_object</span>().<span class="ident">map</span>(<span class="ident">JsObject::borrow</span>);
         <span class="kw">let</span> <span class="ident">view</span> <span class="op">=</span> <span class="ident">view</span>
             .<span class="ident">as_ref</span>()
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">as_data_view</span>())
@@ -1712,7 +1750,7 @@
         <span class="ident">buffer</span>.<span class="ident">set_value_in_buffer</span>(
             <span class="ident">buffer_index</span>,
             <span class="ident">t</span>,
-            <span class="ident">number_value</span>,
+            <span class="kw-2">&amp;</span><span class="ident">number_value</span>,
             <span class="ident">SharedMemoryOrder::Unordered</span>,
             <span class="prelude-val">Some</span>(<span class="ident">is_little_endian</span>),
             <span class="ident">context</span>,
@@ -1721,7 +1759,8 @@
 
     <span class="doccomment">/// `25.3.4.15 DataView.prototype.setBigInt64 ( byteOffset, value [ , littleEndian ] )`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The setBigInt64() method stores a signed 64-bit integer (long long) value at the specified byte offset from the start of the DataView.</span>
+    <span class="doccomment">/// The `setBigInt64()` method stores a signed 64-bit integer (long long) value at the</span>
+    <span class="doccomment">/// specified byte offset from the start of the `DataView`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1739,7 +1778,7 @@
         <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">2</span>);
         <span class="comment">// 1. Let v be the this value.</span>
         <span class="comment">// 2. Return ? SetViewValue(v, byteOffset, littleEndian, BigUint64, value).</span>
-        <span class="ident">DataView::set_view_value</span>(
+        <span class="ident"><span class="self">Self</span>::set_view_value</span>(
             <span class="ident">this</span>,
             <span class="ident">byte_offset</span>,
             <span class="ident">is_little_endian</span>,
@@ -1751,7 +1790,8 @@
 
     <span class="doccomment">/// `25.3.4.16 DataView.prototype.setBigUint64 ( byteOffset, value [ , littleEndian ] )`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The setBigUint64() method stores an unsigned 64-bit integer (unsigned long long) value at the specified byte offset from the start of the DataView.</span>
+    <span class="doccomment">/// The `setBigUint64()` method stores an unsigned 64-bit integer (unsigned long long) value at</span>
+    <span class="doccomment">/// the specified byte offset from the start of the `DataView`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1769,7 +1809,7 @@
         <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">2</span>);
         <span class="comment">// 1. Let v be the this value.</span>
         <span class="comment">// 2. Return ? SetViewValue(v, byteOffset, littleEndian, BigUint64, value).</span>
-        <span class="ident">DataView::set_view_value</span>(
+        <span class="ident"><span class="self">Self</span>::set_view_value</span>(
             <span class="ident">this</span>,
             <span class="ident">byte_offset</span>,
             <span class="ident">is_little_endian</span>,
@@ -1781,7 +1821,8 @@
 
     <span class="doccomment">/// `25.3.4.17 DataView.prototype.setFloat32 ( byteOffset, value [ , littleEndian ] )`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The setFloat32() method stores a signed 32-bit float (float) value at the specified byte offset from the start of the DataView.</span>
+    <span class="doccomment">/// The `setFloat32()` method stores a signed 32-bit float (float) value at the specified byte</span>
+    <span class="doccomment">/// offset from the start of the `DataView`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1799,7 +1840,7 @@
         <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">2</span>);
         <span class="comment">// 1. Let v be the this value.</span>
         <span class="comment">// 2. Return ? SetViewValue(v, byteOffset, littleEndian, Float32, value).</span>
-        <span class="ident">DataView::set_view_value</span>(
+        <span class="ident"><span class="self">Self</span>::set_view_value</span>(
             <span class="ident">this</span>,
             <span class="ident">byte_offset</span>,
             <span class="ident">is_little_endian</span>,
@@ -1811,7 +1852,8 @@
 
     <span class="doccomment">/// `25.3.4.18 DataView.prototype.setFloat64 ( byteOffset, value [ , littleEndian ] )`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The setFloat64() method stores a signed 64-bit float (double) value at the specified byte offset from the start of the DataView.</span>
+    <span class="doccomment">/// The `setFloat64()` method stores a signed 64-bit float (double) value at the specified byte</span>
+    <span class="doccomment">/// offset from the start of the `DataView`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1829,7 +1871,7 @@
         <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">2</span>);
         <span class="comment">// 1. Let v be the this value.</span>
         <span class="comment">// 2. Return ? SetViewValue(v, byteOffset, littleEndian, Float64, value).</span>
-        <span class="ident">DataView::set_view_value</span>(
+        <span class="ident"><span class="self">Self</span>::set_view_value</span>(
             <span class="ident">this</span>,
             <span class="ident">byte_offset</span>,
             <span class="ident">is_little_endian</span>,
@@ -1841,7 +1883,8 @@
 
     <span class="doccomment">/// `25.3.4.19 DataView.prototype.setInt8 ( byteOffset, value [ , littleEndian ] )`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The setInt8() method stores a signed 8-bit integer (byte) value at the specified byte offset from the start of the DataView.</span>
+    <span class="doccomment">/// The `setInt8()` method stores a signed 8-bit integer (byte) value at the specified byte</span>
+    <span class="doccomment">/// offset from the start of the `DataView`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1859,7 +1902,7 @@
         <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">2</span>);
         <span class="comment">// 1. Let v be the this value.</span>
         <span class="comment">// 2. Return ? SetViewValue(v, byteOffset, littleEndian, Int8, value).</span>
-        <span class="ident">DataView::set_view_value</span>(
+        <span class="ident"><span class="self">Self</span>::set_view_value</span>(
             <span class="ident">this</span>,
             <span class="ident">byte_offset</span>,
             <span class="ident">is_little_endian</span>,
@@ -1871,7 +1914,8 @@
 
     <span class="doccomment">/// `25.3.4.20 DataView.prototype.setInt16 ( byteOffset, value [ , littleEndian ] )`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The setInt16() method stores a signed 16-bit integer (short) value at the specified byte offset from the start of the DataView.</span>
+    <span class="doccomment">/// The `setInt16()` method stores a signed 16-bit integer (short) value at the specified byte</span>
+    <span class="doccomment">/// offset from the start of the `DataView`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1889,7 +1933,7 @@
         <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">2</span>);
         <span class="comment">// 1. Let v be the this value.</span>
         <span class="comment">// 2. Return ? SetViewValue(v, byteOffset, littleEndian, Int16, value).</span>
-        <span class="ident">DataView::set_view_value</span>(
+        <span class="ident"><span class="self">Self</span>::set_view_value</span>(
             <span class="ident">this</span>,
             <span class="ident">byte_offset</span>,
             <span class="ident">is_little_endian</span>,
@@ -1901,7 +1945,8 @@
 
     <span class="doccomment">/// `25.3.4.21 DataView.prototype.setInt32 ( byteOffset, value [ , littleEndian ] )`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The setInt32() method stores a signed 32-bit integer (long) value at the specified byte offset from the start of the DataView.</span>
+    <span class="doccomment">/// The `setInt32()` method stores a signed 32-bit integer (long) value at the specified byte</span>
+    <span class="doccomment">/// offset from the start of the `DataView`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1919,7 +1964,7 @@
         <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">2</span>);
         <span class="comment">// 1. Let v be the this value.</span>
         <span class="comment">// 2. Return ? SetViewValue(v, byteOffset, littleEndian, Int32, value).</span>
-        <span class="ident">DataView::set_view_value</span>(
+        <span class="ident"><span class="self">Self</span>::set_view_value</span>(
             <span class="ident">this</span>,
             <span class="ident">byte_offset</span>,
             <span class="ident">is_little_endian</span>,
@@ -1931,7 +1976,8 @@
 
     <span class="doccomment">/// `25.3.4.22 DataView.prototype.setUint8 ( byteOffset, value [ , littleEndian ] )`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The setUint8() method stores an unsigned 8-bit integer (byte) value at the specified byte offset from the start of the DataView.</span>
+    <span class="doccomment">/// The `setUint8()` method stores an unsigned 8-bit integer (byte) value at the specified byte</span>
+    <span class="doccomment">/// offset from the start of the `DataView`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1949,7 +1995,7 @@
         <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">2</span>);
         <span class="comment">// 1. Let v be the this value.</span>
         <span class="comment">// 2. Return ? SetViewValue(v, byteOffset, littleEndian, Uint8, value).</span>
-        <span class="ident">DataView::set_view_value</span>(
+        <span class="ident"><span class="self">Self</span>::set_view_value</span>(
             <span class="ident">this</span>,
             <span class="ident">byte_offset</span>,
             <span class="ident">is_little_endian</span>,
@@ -1961,7 +2007,8 @@
 
     <span class="doccomment">/// `25.3.4.23 DataView.prototype.setUint16 ( byteOffset, value [ , littleEndian ] )`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The setUint16() method stores an unsigned 16-bit integer (unsigned short) value at the specified byte offset from the start of the DataView.</span>
+    <span class="doccomment">/// The `setUint16()` method stores an unsigned 16-bit integer (unsigned short) value at the</span>
+    <span class="doccomment">/// specified byte offset from the start of the `DataView`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1979,7 +2026,7 @@
         <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">2</span>);
         <span class="comment">// 1. Let v be the this value.</span>
         <span class="comment">// 2. Return ? SetViewValue(v, byteOffset, littleEndian, Uint16, value).</span>
-        <span class="ident">DataView::set_view_value</span>(
+        <span class="ident"><span class="self">Self</span>::set_view_value</span>(
             <span class="ident">this</span>,
             <span class="ident">byte_offset</span>,
             <span class="ident">is_little_endian</span>,
@@ -1991,7 +2038,8 @@
 
     <span class="doccomment">/// `25.3.4.24 DataView.prototype.setUint32 ( byteOffset, value [ , littleEndian ] )`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The setUint32() method stores an unsigned 32-bit integer (unsigned long) value at the specified byte offset from the start of the DataView.</span>
+    <span class="doccomment">/// The `setUint32()` method stores an unsigned 32-bit integer (unsigned long) value at the</span>
+    <span class="doccomment">/// specified byte offset from the start of the `DataView`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -2009,7 +2057,7 @@
         <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">2</span>);
         <span class="comment">// 1. Let v be the this value.</span>
         <span class="comment">// 2. Return ? SetViewValue(v, byteOffset, littleEndian, Uint32, value).</span>
-        <span class="ident">DataView::set_view_value</span>(
+        <span class="ident"><span class="self">Self</span>::set_view_value</span>(
             <span class="ident">this</span>,
             <span class="ident">byte_offset</span>,
             <span class="ident">is_little_endian</span>,

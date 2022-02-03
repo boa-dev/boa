@@ -445,7 +445,7 @@
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">set_strict_mode</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">strict_mode</span>: <span class="ident">bool</span>) {
-        <span class="self">self</span>.<span class="ident">cursor</span>.<span class="ident">set_strict_mode</span>(<span class="ident">strict_mode</span>)
+        <span class="self">self</span>.<span class="ident">cursor</span>.<span class="ident">set_strict_mode</span>(<span class="ident">strict_mode</span>);
     }
 
     <span class="doccomment">/// Creates a new lexer.</span>
@@ -456,7 +456,7 @@
     {
         <span class="self">Self</span> {
             <span class="ident">cursor</span>: <span class="ident">Cursor::new</span>(<span class="ident">reader</span>),
-            <span class="ident">goal_symbol</span>: <span class="ident">Default::default</span>(),
+            <span class="ident">goal_symbol</span>: <span class="ident">InputElement::default</span>(),
         }
     }
 
@@ -672,7 +672,7 @@
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">InputElement</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident">InputElement::RegExp</span>
+        <span class="ident"><span class="self">Self</span>::RegExp</span>
     }
 }
 </code></pre></div>

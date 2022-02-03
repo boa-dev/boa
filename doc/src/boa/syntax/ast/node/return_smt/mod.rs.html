@@ -134,8 +134,8 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Return</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Node</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">return_smt</span>: <span class="ident">Return</span>) -&gt; <span class="ident">Node</span> {
-        <span class="ident">Node::Return</span>(<span class="ident">return_smt</span>)
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">return_smt</span>: <span class="ident">Return</span>) -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::Return</span>(<span class="ident">return_smt</span>)
     }
 }
 

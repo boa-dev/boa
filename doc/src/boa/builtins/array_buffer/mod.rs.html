@@ -811,6 +811,8 @@
 <span id="810">810</span>
 <span id="811">811</span>
 <span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
 </pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
@@ -918,6 +920,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-arraybuffer-@@species</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unnecessary_wraps</span>)]</span>
     <span class="kw">fn</span> <span class="ident">get_species</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Return the this value.</span>
         <span class="prelude-val">Ok</span>(<span class="ident">this</span>.<span class="ident">clone</span>())
@@ -929,6 +932,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-arraybuffer.isview</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unnecessary_wraps</span>)]</span>
     <span class="kw">fn</span> <span class="ident">is_view</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">_context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. If Type(arg) is not Object, return false.</span>
         <span class="comment">// 2. If arg has a [[ViewedArrayBuffer]] internal slot, return true.</span>
@@ -1133,7 +1137,7 @@
 
         <span class="comment">// 3. Set obj.[[ArrayBufferData]] to block.</span>
         <span class="comment">// 4. Set obj.[[ArrayBufferByteLength]] to byteLength.</span>
-        <span class="ident">obj</span>.<span class="ident">borrow_mut</span>().<span class="ident">data</span> <span class="op">=</span> <span class="ident">ObjectData::array_buffer</span>(<span class="ident">ArrayBuffer</span> {
+        <span class="ident">obj</span>.<span class="ident">borrow_mut</span>().<span class="ident">data</span> <span class="op">=</span> <span class="ident">ObjectData::array_buffer</span>(<span class="self">Self</span> {
             <span class="ident">array_buffer_data</span>: <span class="prelude-val">Some</span>(<span class="ident">block</span>),
             <span class="ident">array_buffer_byte_length</span>: <span class="ident">byte_length</span>,
             <span class="ident">array_buffer_detach_key</span>: <span class="ident">JsValue::Undefined</span>,
@@ -1413,7 +1417,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-numerictorawbytes</span>
     <span class="kw">fn</span> <span class="ident">numeric_to_raw_bytes</span>(
         <span class="ident">t</span>: <span class="ident">TypedArrayName</span>,
-        <span class="ident">value</span>: <span class="ident">JsValue</span>,
+        <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="ident">is_little_endian</span>: <span class="ident">bool</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
@@ -1509,7 +1513,7 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">byte_index</span>: <span class="ident">usize</span>,
         <span class="ident">t</span>: <span class="ident">TypedArrayName</span>,
-        <span class="ident">value</span>: <span class="ident">JsValue</span>,
+        <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="ident">_order</span>: <span class="ident">SharedMemoryOrder</span>,
         <span class="ident">is_little_endian</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
@@ -1617,7 +1621,7 @@
 
 <span class="comment">// TODO: Allow unused variants until shared array buffers are implemented.</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">SharedMemoryOrder</span> {
     <span class="ident">Init</span>,
     <span class="ident">SeqCst</span>,

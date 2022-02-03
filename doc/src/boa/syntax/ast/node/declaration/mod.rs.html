@@ -682,6 +682,7 @@
 <span id="681">681</span>
 <span id="682">682</span>
 <span id="683">683</span>
+<span id="684">684</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Declaration nodes</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
@@ -779,7 +780,7 @@
 
 <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">Declaration</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DeclarationList</span> {
     <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">Declaration</span>] {
-        <span class="kw">use</span> <span class="ident">DeclarationList</span>::<span class="kw-2">*</span>;
+        <span class="kw">use</span> <span class="ident">DeclarationList</span>::{<span class="ident">Const</span>, <span class="ident">Let</span>, <span class="ident">Var</span>};
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">Var</span>(<span class="ident">list</span>) <span class="op">|</span> <span class="ident">Const</span>(<span class="ident">list</span>) <span class="op">|</span> <span class="ident">Let</span>(<span class="ident">list</span>) =&gt; <span class="ident">list</span>,
         }
@@ -788,8 +789,10 @@
 
 <span class="kw">impl</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">DeclarationList</span> {
     <span class="kw">fn</span> <span class="ident">to_interned_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>) -&gt; <span class="ident">String</span> {
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">as_ref</span>().<span class="ident">is_empty</span>() {
-            <span class="kw">use</span> <span class="ident">DeclarationList</span>::<span class="kw-2">*</span>;
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">as_ref</span>().<span class="ident">is_empty</span>() {
+            <span class="ident">String::new</span>()
+        } <span class="kw">else</span> {
+            <span class="kw">use</span> <span class="ident">DeclarationList</span>::{<span class="ident">Const</span>, <span class="ident">Let</span>, <span class="ident">Var</span>};
             <span class="macro">format!</span>(
                 <span class="string">&quot;{} {}&quot;</span>,
                 <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span> {
@@ -799,19 +802,17 @@
                 },
                 <span class="ident">join_nodes</span>(<span class="ident">interner</span>, <span class="self">self</span>.<span class="ident">as_ref</span>())
             )
-        } <span class="kw">else</span> {
-            <span class="ident">String::new</span>()
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">DeclarationList</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Node</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">list</span>: <span class="ident">DeclarationList</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">use</span> <span class="ident">DeclarationList</span>::<span class="kw-2">*</span>;
+        <span class="kw">use</span> <span class="ident">DeclarationList</span>::{<span class="ident">Const</span>, <span class="ident">Let</span>, <span class="ident">Var</span>};
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">list</span> {
-            <span class="ident">Let</span>(<span class="kw">_</span>) =&gt; <span class="ident">Node::LetDeclList</span>(<span class="ident">list</span>),
-            <span class="ident">Const</span>(<span class="kw">_</span>) =&gt; <span class="ident">Node::ConstDeclList</span>(<span class="ident">list</span>),
-            <span class="ident">Var</span>(<span class="kw">_</span>) =&gt; <span class="ident">Node::VarDeclList</span>(<span class="ident">list</span>),
+            <span class="ident">Let</span>(<span class="kw">_</span>) =&gt; <span class="ident"><span class="self">Self</span>::LetDeclList</span>(<span class="ident">list</span>),
+            <span class="ident">Const</span>(<span class="kw">_</span>) =&gt; <span class="ident"><span class="self">Self</span>::ConstDeclList</span>(<span class="ident">list</span>),
+            <span class="ident">Var</span>(<span class="kw">_</span>) =&gt; <span class="ident"><span class="self">Self</span>::VarDeclList</span>(<span class="ident">list</span>),
         }
     }
 }
@@ -824,9 +825,9 @@
 
 <span class="doccomment">/// Declaration represents either an individual binding or a binding pattern.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// For `let` and `const` declarations this type represents a [LexicalBinding][spec1]</span>
+<span class="doccomment">/// For `let` and `const` declarations this type represents a [`LexicalBinding`][spec1]</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// For `var` declarations this type represents a [VariableDeclaration][spec2]</span>
+<span class="doccomment">/// For `var` declarations this type represents a [`VariableDeclaration`][spec2]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// More information:</span>
 <span class="doccomment">///  - [ECMAScript reference: 14.3 Declarations and the Variable Statement][spec3]</span>
@@ -860,7 +861,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Declaration</span> {
-    <span class="doccomment">/// Creates a new variable declaration with a BindingIdentifier.</span>
+    <span class="doccomment">/// Creates a new variable declaration with a `BindingIdentifier`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax</span>) <span class="kw">fn</span> <span class="ident">new_with_identifier</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">ident</span>: <span class="ident">N</span>, <span class="ident">init</span>: <span class="ident">I</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
@@ -873,7 +874,7 @@
         }
     }
 
-    <span class="doccomment">/// Creates a new variable declaration with an ObjectBindingPattern.</span>
+    <span class="doccomment">/// Creates a new variable declaration with an `ObjectBindingPattern`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax</span>) <span class="kw">fn</span> <span class="ident">new_with_object_pattern</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(
         <span class="ident">bindings</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BindingPatternTypeObject</span><span class="op">&gt;</span>,
@@ -888,7 +889,7 @@
         )))
     }
 
-    <span class="doccomment">/// Creates a new variable declaration with an ArrayBindingPattern.</span>
+    <span class="doccomment">/// Creates a new variable declaration with an `ArrayBindingPattern`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax</span>) <span class="kw">fn</span> <span class="ident">new_with_array_pattern</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(
         <span class="ident">bindings</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BindingPatternTypeArray</span><span class="op">&gt;</span>,
@@ -913,12 +914,12 @@
     }
 }
 
-<span class="doccomment">/// DeclarationPattern represents an object or array binding pattern.</span>
+<span class="doccomment">/// `DeclarationPattern` represents an object or array binding pattern.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This enum mostly wraps the functionality of the specific binding pattern types.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - BindingPattern][spec1]</span>
+<span class="doccomment">///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - `BindingPattern`][spec1]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec1]: https://tc39.es/ecma262/#prod-BindingPattern</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
@@ -959,12 +960,12 @@
     }
 }
 
-<span class="doccomment">/// DeclarationPatternObject represents an object binding pattern.</span>
+<span class="doccomment">/// `DeclarationPatternObject` represents an object binding pattern.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This struct holds a list of bindings, and an optional initializer for the binding pattern.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - ObjectBindingPattern][spec1]</span>
+<span class="doccomment">///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - `ObjectBindingPattern`][spec1]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec1]: https://tc39.es/ecma262/#prod-ObjectBindingPattern</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
@@ -1023,7 +1024,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">idents</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
 
         <span class="kw">for</span> <span class="ident">binding</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">bindings</span> {
-            <span class="kw">use</span> <span class="ident">BindingPatternTypeObject</span>::<span class="kw-2">*</span>;
+            <span class="kw">use</span> <span class="ident">BindingPatternTypeObject</span>::{<span class="ident">BindingPattern</span>, <span class="ident">Empty</span>, <span class="ident">RestProperty</span>, <span class="ident">SingleName</span>};
 
             <span class="kw">match</span> <span class="ident">binding</span> {
                 <span class="ident">Empty</span> =&gt; {}
@@ -1056,12 +1057,12 @@
     }
 }
 
-<span class="doccomment">/// DeclarationPatternArray represents an array binding pattern.</span>
+<span class="doccomment">/// `DeclarationPatternArray` represents an array binding pattern.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This struct holds a list of bindings, and an optional initializer for the binding pattern.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - ArrayBindingPattern][spec1]</span>
+<span class="doccomment">///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - `ArrayBindingPattern`][spec1]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec1]: https://tc39.es/ecma262/#prod-ArrayBindingPattern</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
@@ -1078,7 +1079,7 @@
             <span class="kw">if</span> <span class="ident">i</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">bindings</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span> {
                 <span class="kw">match</span> <span class="ident">binding</span> {
                     <span class="ident">BindingPatternTypeArray::Elision</span> =&gt; {
-                        <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{}, &quot;</span>, <span class="ident">binding</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>)))
+                        <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{}, &quot;</span>, <span class="ident">binding</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>)));
                     }
                     <span class="kw">_</span> =&gt; <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{} &quot;</span>, <span class="ident">binding</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>))),
                 }
@@ -1122,11 +1123,12 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">idents</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
 
         <span class="kw">for</span> <span class="ident">binding</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">bindings</span> {
-            <span class="kw">use</span> <span class="ident">BindingPatternTypeArray</span>::<span class="kw-2">*</span>;
+            <span class="kw">use</span> <span class="ident">BindingPatternTypeArray</span>::{
+                <span class="ident">BindingPattern</span>, <span class="ident">BindingPatternRest</span>, <span class="ident">Elision</span>, <span class="ident">Empty</span>, <span class="ident">SingleName</span>, <span class="ident">SingleNameRest</span>,
+            };
 
             <span class="kw">match</span> <span class="ident">binding</span> {
-                <span class="ident">Empty</span> =&gt; {}
-                <span class="ident">Elision</span> =&gt; {}
+                <span class="ident">Empty</span> <span class="op">|</span> <span class="ident">Elision</span> =&gt; {}
                 <span class="ident">SingleName</span> {
                     <span class="ident">ident</span>,
                     <span class="ident">default_init</span>: <span class="kw">_</span>,
@@ -1135,7 +1137,7 @@
                 }
                 <span class="ident">BindingPattern</span> { <span class="ident">pattern</span> } <span class="op">|</span> <span class="ident">BindingPatternRest</span> { <span class="ident">pattern</span> } =&gt; {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">i</span> <span class="op">=</span> <span class="ident">pattern</span>.<span class="ident">idents</span>();
-                    <span class="ident">idents</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="ident">i</span>)
+                    <span class="ident">idents</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="ident">i</span>);
                 }
                 <span class="ident">SingleNameRest</span> { <span class="ident">ident</span> } =&gt; <span class="ident">idents</span>.<span class="ident">push</span>(<span class="kw-2">*</span><span class="ident">ident</span>),
             }
@@ -1145,10 +1147,10 @@
     }
 }
 
-<span class="doccomment">/// BindingPatternTypeObject represents the different types of bindings that an object binding pattern may contain.</span>
+<span class="doccomment">/// `BindingPatternTypeObject` represents the different types of bindings that an object binding pattern may contain.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - ObjectBindingPattern][spec1]</span>
+<span class="doccomment">///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - `ObjectBindingPattern`][spec1]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec1]: https://tc39.es/ecma262/#prod-ObjectBindingPattern</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
@@ -1249,10 +1251,10 @@
     }
 }
 
-<span class="doccomment">/// BindingPatternTypeArray represents the different types of bindings that an array binding pattern may contain.</span>
+<span class="doccomment">/// `BindingPatternTypeArray` represents the different types of bindings that an array binding pattern may contain.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - ArrayBindingPattern][spec1]</span>
+<span class="doccomment">///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - `ArrayBindingPattern`][spec1]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec1]: https://tc39.es/ecma262/#prod-ArrayBindingPattern</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>

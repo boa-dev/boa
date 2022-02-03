@@ -219,8 +219,8 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">LexError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ParseError</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">LexError</span>) -&gt; <span class="ident">ParseError</span> {
-        <span class="ident">ParseError::lex</span>(<span class="ident">e</span>)
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">LexError</span>) -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::lex</span>(<span class="ident">e</span>)
     }
 }
 

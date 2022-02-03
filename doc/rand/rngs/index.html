@@ -49,10 +49,10 @@ secure, though the paranoid may prefer <a href="struct.OsRng.html" title="OsRng"
 which is well established and rigorously analysed.
 <a href="struct.StdRng.html" title="StdRng"><code>StdRng</code></a> provides the algorithm used by <a href="struct.ThreadRng.html" title="ThreadRng"><code>ThreadRng</code></a> but without
 periodic reseeding.</li>
-<li>[<code>SmallRng</code>] is an <strong>insecure</strong> PRNG designed to be fast, simple, require
+<li><a href="struct.SmallRng.html" title="SmallRng"><code>SmallRng</code></a> is an <strong>insecure</strong> PRNG designed to be fast, simple, require
 little memory, and have good output quality.</li>
 </ul>
-<p>The algorithms selected for <a href="struct.StdRng.html" title="StdRng"><code>StdRng</code></a> and [<code>SmallRng</code>] may change in any
+<p>The algorithms selected for <a href="struct.StdRng.html" title="StdRng"><code>StdRng</code></a> and <a href="struct.SmallRng.html" title="SmallRng"><code>SmallRng</code></a> may change in any
 release and may be platform-dependent, therefore they should be considered
 <strong>not reproducible</strong>.</p>
 <h3 id="additional-generators" class="section-header"><a href="#additional-generators">Additional generators</a></h3>
@@ -63,7 +63,7 @@ entropy harvesting from CPU timer jitter, but is very slow and has
 <a href="https://github.com/rust-random/rand/issues/699">security issues</a>.</p>
 <p><strong>PRNGs</strong>: Several companion crates are available, providing individual or
 families of PRNG algorithms. These provide the implementations behind
-<a href="struct.StdRng.html" title="StdRng"><code>StdRng</code></a> and [<code>SmallRng</code>] but can also be used directly, indeed <em>should</em>
+<a href="struct.StdRng.html" title="StdRng"><code>StdRng</code></a> and <a href="struct.SmallRng.html" title="SmallRng"><code>SmallRng</code></a> but can also be used directly, indeed <em>should</em>
 be used directly when <strong>reproducibility</strong> matters.
 Some suggestions are: <a href="https://crates.io/crates/rand_chacha"><code>rand_chacha</code></a>, <a href="https://crates.io/crates/rand_pcg"><code>rand_pcg</code></a>, <a href="https://crates.io/crates/rand_xoshiro"><code>rand_xoshiro</code></a>.
 A full list can be found by searching for crates with the <a href="https://crates.io/keywords/rng"><code>rng</code> tag</a>.</p>
@@ -73,6 +73,7 @@ A full list can be found by searching for crates with the <a href="https://crate
 </div></div></div><h2 id="structs" class="small-section-header"><a href="#structs">Structs</a></h2>
 <div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.OsRng.html" title="rand::rngs::OsRng struct">OsRng</a></div><div class="item-right docblock-short"><p>A random number generator that retrieves randomness from the
 operating system.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.SmallRng.html" title="rand::rngs::SmallRng struct">SmallRng</a></div><div class="item-right docblock-short"><p>A small-state, fast non-crypto PRNG</p>
 </div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.StdRng.html" title="rand::rngs::StdRng struct">StdRng</a></div><div class="item-right docblock-short"><p>The standard RNG. The PRNG algorithm in <code>StdRng</code> is chosen to be efficient
 on the current platform, to be statistically strong and unpredictable
 (meaning a cryptographically secure PRNG).</p>

@@ -132,6 +132,33 @@
 <span id="131">131</span>
 <span id="132">132</span>
 <span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This library implements the extension to query if a char belongs to a particular unicode identifier property.</span>
 <span class="doccomment">//! Version: Unicode 13.0.0</span>
 <span class="doccomment">//!</span>
@@ -144,8 +171,27 @@
     <span class="ident">html_logo_url</span> <span class="op">=</span> <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>,
     <span class="ident">html_favicon_url</span> <span class="op">=</span> <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>
 )]</span>
+<span class="attribute">#![<span class="ident">warn</span>(
+    <span class="ident">clippy::perf</span>,
+    <span class="ident">clippy::single_match_else</span>,
+    <span class="ident">clippy::dbg_macro</span>,
+    <span class="ident">clippy::doc_markdown</span>,
+    <span class="ident">clippy::wildcard_imports</span>,
+    <span class="ident">clippy::struct_excessive_bools</span>,
+    <span class="ident">clippy::doc_markdown</span>,
+    <span class="ident">clippy::semicolon_if_nothing_returned</span>,
+    <span class="ident">clippy::pedantic</span>
+)]</span>
 <span class="attribute">#![<span class="ident">deny</span>(
     <span class="ident">clippy::all</span>,
+    <span class="ident">clippy::cast_lossless</span>,
+    <span class="ident">clippy::redundant_closure_for_method_calls</span>,
+    <span class="ident">clippy::use_self</span>,
+    <span class="ident">clippy::unnested_or_patterns</span>,
+    <span class="ident">clippy::trivially_copy_pass_by_ref</span>,
+    <span class="ident">clippy::needless_pass_by_value</span>,
+    <span class="ident">clippy::match_wildcard_for_single_variants</span>,
+    <span class="ident">clippy::map_unwrap_or</span>,
     <span class="ident">unused_qualifications</span>,
     <span class="ident">unused_import_braces</span>,
     <span class="ident">unused_lifetimes</span>,
@@ -162,8 +208,16 @@
     <span class="ident">future_incompatible</span>,
     <span class="ident">nonstandard_style</span>,
 )]</span>
-<span class="attribute">#![<span class="ident">warn</span>(<span class="ident">clippy::perf</span>, <span class="ident">clippy::single_match_else</span>, <span class="ident">clippy::dbg_macro</span>)]</span>
 <span class="attribute">#![<span class="ident">allow</span>(
+    <span class="ident">clippy::module_name_repetitions</span>,
+    <span class="ident">clippy::cast_possible_truncation</span>,
+    <span class="ident">clippy::cast_sign_loss</span>,
+    <span class="ident">clippy::cast_precision_loss</span>,
+    <span class="ident">clippy::cast_possible_wrap</span>,
+    <span class="ident">clippy::cast_ptr_alignment</span>,
+    <span class="ident">clippy::missing_panics_doc</span>,
+    <span class="ident">clippy::too_many_lines</span>,
+    <span class="ident">clippy::unreadable_literal</span>,
     <span class="ident">clippy::missing_inline_in_public_items</span>,
     <span class="ident">clippy::cognitive_complexity</span>,
     <span class="ident">clippy::must_use_candidate</span>,
@@ -193,22 +247,22 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [uax31]: http://unicode.org/reports/tr31</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">UnicodeProperties</span>: <span class="ident">Sized</span> <span class="op">+</span> <span class="ident">Copy</span> {
-    <span class="doccomment">/// Returns `true` if this value is a member of &quot;ID_Start&quot;.</span>
+    <span class="doccomment">/// Returns `true` if this value is a member of `ID_Start`.</span>
     <span class="kw">fn</span> <span class="ident">is_id_start</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span>;
 
-    <span class="doccomment">/// Returns `true` if this value is a member of &quot;ID_Continue&quot;.</span>
+    <span class="doccomment">/// Returns `true` if this value is a member of `ID_Continue`.</span>
     <span class="kw">fn</span> <span class="ident">is_id_continue</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span>;
 
-    <span class="doccomment">/// Returns `true` if this value is a member of &quot;Other_ID_Start&quot;.</span>
+    <span class="doccomment">/// Returns `true` if this value is a member of `Other_ID_Start`.</span>
     <span class="kw">fn</span> <span class="ident">is_other_id_start</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span>;
 
-    <span class="doccomment">/// Returns `true` if this value is a member of &quot;Other_ID_Continue&quot;.</span>
+    <span class="doccomment">/// Returns `true` if this value is a member of `Other_ID_Continue`.</span>
     <span class="kw">fn</span> <span class="ident">is_other_id_continue</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span>;
 
-    <span class="doccomment">/// Returns `true` if this value is a member of &quot;Pattern_Syntax&quot;.</span>
+    <span class="doccomment">/// Returns `true` if this value is a member of `Pattern_Syntax`.</span>
     <span class="kw">fn</span> <span class="ident">is_pattern_syntax</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span>;
 
-    <span class="doccomment">/// Returns `true` if this value is a member of &quot;Pattern_White_Space&quot;.</span>
+    <span class="doccomment">/// Returns `true` if this value is a member of `Pattern_White_Space`.</span>
     <span class="kw">fn</span> <span class="ident">is_pattern_whitespace</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span>;
 }
 

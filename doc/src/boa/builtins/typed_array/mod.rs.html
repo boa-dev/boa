@@ -3374,8 +3374,6 @@
 <span id="3373">3373</span>
 <span id="3374">3374</span>
 <span id="3375">3375</span>
-<span id="3376">3376</span>
-<span id="3377">3377</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `TypedArray` objects.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! A `TypedArray` object describes an array-like view of an underlying binary data buffer.</span>
@@ -3524,11 +3522,7 @@
                     <span class="comment">// ii. If firstArgument has a [[TypedArrayName]] internal slot, then</span>
                     <span class="kw">if</span> <span class="ident">first_argument</span>.<span class="ident">is_typed_array</span>() {
                         <span class="comment">// 1. Perform ? InitializeTypedArrayFromTypedArray(O, firstArgument).</span>
-                        <span class="ident">TypedArray::initialize_from_typed_array</span>(
-                            <span class="kw-2">&amp;</span><span class="ident">o</span>,
-                            <span class="ident">first_argument</span>.<span class="ident">clone</span>(),
-                            <span class="ident">context</span>,
-                        )<span class="question-mark">?</span>;
+                        <span class="ident">TypedArray::initialize_from_typed_array</span>(<span class="kw-2">&amp;</span><span class="ident">o</span>, <span class="ident">first_argument</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
                     } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">first_argument</span>.<span class="ident">is_array_buffer</span>() {
                         <span class="comment">// iii. Else if firstArgument has an [[ArrayBufferData]] internal slot, then</span>
 
@@ -3563,7 +3557,7 @@
                             <span class="comment">// a. Let values be ? IterableToList(firstArgument, usingIterator).</span>
                             <span class="kw">let</span> <span class="ident">values</span> <span class="op">=</span> <span class="ident">iterable_to_list</span>(
                                 <span class="ident">context</span>,
-                                <span class="ident">first_argument_v</span>,
+                                <span class="kw-2">&amp;</span><span class="ident">first_argument_v</span>,
                                 <span class="prelude-val">Some</span>(<span class="ident">using_iterator</span>.<span class="ident">into</span>()),
                             )<span class="question-mark">?</span>;
 
@@ -3796,7 +3790,7 @@
         <span class="comment">// 6. If usingIterator is not undefined, then</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">using_iterator</span>) <span class="op">=</span> <span class="ident">using_iterator</span> {
             <span class="comment">// a. Let values be ? IterableToList(source, usingIterator).</span>
-            <span class="kw">let</span> <span class="ident">values</span> <span class="op">=</span> <span class="ident">iterable_to_list</span>(<span class="ident">context</span>, <span class="ident">source</span>.<span class="ident">clone</span>(), <span class="prelude-val">Some</span>(<span class="ident">using_iterator</span>.<span class="ident">into</span>()))<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">values</span> <span class="op">=</span> <span class="ident">iterable_to_list</span>(<span class="ident">context</span>, <span class="ident">source</span>, <span class="prelude-val">Some</span>(<span class="ident">using_iterator</span>.<span class="ident">into</span>()))<span class="question-mark">?</span>;
 
             <span class="comment">// b. Let len be the number of elements in values.</span>
             <span class="comment">// c. Let targetObj be ? TypedArrayCreate(C, « 𝔽(len) »).</span>
@@ -3903,6 +3897,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-%typedarray%-@@species</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unnecessary_wraps</span>)]</span>
     <span class="kw">fn</span> <span class="ident">get_species</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Return the this value.</span>
         <span class="prelude-val">Ok</span>(<span class="ident">this</span>.<span class="ident">clone</span>())
@@ -3978,8 +3973,7 @@
         <span class="comment">// 5. Return buffer.</span>
         <span class="prelude-val">Ok</span>(<span class="ident">typed_array</span>
             .<span class="ident">viewed_array_buffer</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">buffer</span><span class="op">|</span> <span class="ident">buffer</span>.<span class="ident">clone</span>().<span class="ident">into</span>())
-            .<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>))
+            .<span class="ident">map_or_else</span>(<span class="ident">JsValue::undefined</span>, <span class="op">|</span><span class="ident">buffer</span><span class="op">|</span> <span class="ident">buffer</span>.<span class="ident">clone</span>().<span class="ident">into</span>()))
     }
 
     <span class="doccomment">/// `23.2.3.3 get %TypedArray%.prototype.byteLength`</span>
@@ -4188,7 +4182,7 @@
                 <span class="ident">buffer</span>.<span class="ident">set_value_in_buffer</span>(
                     <span class="ident">to_byte_index</span> <span class="kw">as</span> <span class="ident">usize</span>,
                     <span class="ident">TypedArrayName::Uint8Array</span>,
-                    <span class="ident">value</span>,
+                    <span class="kw-2">&amp;</span><span class="ident">value</span>,
                     <span class="ident">SharedMemoryOrder::Unordered</span>,
                     <span class="prelude-val">None</span>,
                     <span class="ident">context</span>,
@@ -5449,7 +5443,7 @@
                     .<span class="ident">set_value_in_buffer</span>(
                         <span class="ident">target_byte_index</span>,
                         <span class="ident">TypedArrayName::Uint8Array</span>,
-                        <span class="ident">value</span>,
+                        <span class="kw-2">&amp;</span><span class="ident">value</span>,
                         <span class="ident">SharedMemoryOrder::Unordered</span>,
                         <span class="prelude-val">None</span>,
                         <span class="ident">context</span>,
@@ -5483,7 +5477,7 @@
                     .<span class="ident">set_value_in_buffer</span>(
                         <span class="ident">target_byte_index</span>,
                         <span class="ident">target_name</span>,
-                        <span class="ident">value</span>,
+                        <span class="kw-2">&amp;</span><span class="ident">value</span>,
                         <span class="ident">SharedMemoryOrder::Unordered</span>,
                         <span class="prelude-val">None</span>,
                         <span class="ident">context</span>,
@@ -5598,7 +5592,7 @@
             <span class="ident">target_buffer</span>.<span class="ident">set_value_in_buffer</span>(
                 <span class="ident">target_byte_index</span>,
                 <span class="ident">target_name</span>,
-                <span class="ident">value</span>,
+                <span class="kw-2">&amp;</span><span class="ident">value</span>,
                 <span class="ident">SharedMemoryOrder::Unordered</span>,
                 <span class="prelude-val">None</span>,
                 <span class="ident">context</span>,
@@ -5688,6 +5682,7 @@
             <span class="comment">// d. Let targetName be the String value of A.[[TypedArrayName]].</span>
             <span class="comment">// e. Let targetType be the Element Type value in Table 73 for targetName.</span>
             <span class="comment">// f. If srcType is different from targetType, then</span>
+            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::if_not_else</span>)]</span>
             <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">typed_array_name</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">a_array</span>.<span class="ident">typed_array_name</span>() {
                 <span class="comment">// i. Let n be 0.</span>
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">n</span> <span class="op">=</span> <span class="number">0</span>;
@@ -5757,7 +5752,7 @@
                     <span class="ident">target_buffer</span>.<span class="ident">set_value_in_buffer</span>(
                         <span class="ident">target_byte_index</span>,
                         <span class="ident">TypedArrayName::Uint8Array</span>,
-                        <span class="ident">value</span>,
+                        <span class="kw-2">&amp;</span><span class="ident">value</span>,
                         <span class="ident">SharedMemoryOrder::Unordered</span>,
                         <span class="prelude-val">None</span>,
                         <span class="ident">context</span>,
@@ -6163,6 +6158,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-%typedarray%.prototype-@@tostringtag</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unnecessary_wraps</span>)]</span>
     <span class="kw">fn</span> <span class="ident">to_string_tag</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. If Type(O) is not Object, return undefined.</span>
@@ -6325,7 +6321,7 @@
             <span class="kw">let</span> <span class="ident">o_inner</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">as_typed_array_mut</span>().<span class="ident">expect</span>(<span class="string">&quot;expected a TypedArray&quot;</span>);
 
             <span class="comment">// 2. Perform ? AllocateTypedArrayBuffer(O, len).</span>
-            <span class="ident">TypedArray::allocate_buffer</span>(<span class="ident">o_inner</span>, <span class="ident">len</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="ident"><span class="self">Self</span>::allocate_buffer</span>(<span class="ident">o_inner</span>, <span class="ident">len</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
         }
 
         <span class="comment">// 3. Let k be 0.</span>
@@ -6379,7 +6375,7 @@
         <span class="comment">// 8. Else,</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">length</span>) <span class="op">=</span> <span class="ident">length</span> {
             <span class="comment">// a. Perform ? AllocateTypedArrayBuffer(obj, length).</span>
-            <span class="ident">TypedArray::allocate_buffer</span>(<span class="kw-2">&amp;mut</span> <span class="ident">indexed</span>, <span class="ident">length</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="ident"><span class="self">Self</span>::allocate_buffer</span>(<span class="kw-2">&amp;mut</span> <span class="ident">indexed</span>, <span class="ident">length</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
         }
 
         <span class="comment">// 2. Let obj be ! IntegerIndexedObjectCreate(proto).</span>
@@ -6397,7 +6393,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-initializetypedarrayfromtypedarray</span>
     <span class="kw">fn</span> <span class="ident">initialize_from_typed_array</span>(
         <span class="ident">o</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
-        <span class="ident">src_array</span>: <span class="ident">JsObject</span>,
+        <span class="ident">src_array</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">o_obj</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">borrow</span>();
@@ -6499,7 +6495,7 @@
                 <span class="ident">data</span>.<span class="ident">set_value_in_buffer</span>(
                     <span class="ident">target_byte_index</span>,
                     <span class="ident">constructor_name</span>,
-                    <span class="ident">value</span>,
+                    <span class="kw-2">&amp;</span><span class="ident">value</span>,
                     <span class="ident">SharedMemoryOrder::Unordered</span>,
                     <span class="prelude-val">None</span>,
                     <span class="ident">context</span>,
@@ -6646,7 +6642,7 @@
         {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">o_borrow</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">borrow_mut</span>();
             <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">o_borrow</span>.<span class="ident">as_typed_array_mut</span>().<span class="ident">expect</span>(<span class="string">&quot;Must be typed array&quot;</span>);
-            <span class="ident">TypedArray::allocate_buffer</span>(<span class="ident">o</span>, <span class="ident">len</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="ident"><span class="self">Self</span>::allocate_buffer</span>(<span class="ident">o</span>, <span class="ident">len</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
         }
 
         <span class="comment">// 3. Let k be 0.</span>
@@ -6726,7 +6722,7 @@
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_big_int_element_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_big_int_element_type</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="macro">matches!</span>(
             <span class="self">self</span>,
             <span class="ident">TypedArrayName::BigUint64Array</span> <span class="op">|</span> <span class="ident">TypedArrayName::BigInt64Array</span>

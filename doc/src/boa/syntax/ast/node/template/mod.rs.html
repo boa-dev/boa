@@ -159,7 +159,7 @@
     <span class="kw">where</span>
         <span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">TemplateElement</span>]<span class="op">&gt;</span><span class="op">&gt;</span>,
     {
-        <span class="ident">TemplateLit</span> {
+        <span class="self">Self</span> {
             <span class="ident">elements</span>: <span class="ident">elements</span>.<span class="ident">into</span>(),
         }
     }
@@ -177,7 +177,7 @@
             <span class="kw">match</span> <span class="ident">elt</span> {
                 <span class="ident">TemplateElement::String</span>(<span class="ident">s</span>) =&gt; <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="kw-2">*</span><span class="ident">s</span>)),
                 <span class="ident">TemplateElement::Expr</span>(<span class="ident">n</span>) =&gt; {
-                    <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;${{{}}}&quot;</span>, <span class="ident">n</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>)))
+                    <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;${{{}}}&quot;</span>, <span class="ident">n</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>)));
                 }
             }
         }
@@ -247,7 +247,7 @@
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">TaggedTemplate</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Node</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">template</span>: <span class="ident">TaggedTemplate</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Node::TaggedTemplate</span>(<span class="ident">template</span>)
+        <span class="ident"><span class="self">Self</span>::TaggedTemplate</span>(<span class="ident">template</span>)
     }
 }
 

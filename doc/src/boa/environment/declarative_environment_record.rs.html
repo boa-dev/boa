@@ -383,9 +383,9 @@
 }
 
 <span class="kw">impl</span> <span class="ident">DeclarativeEnvironmentRecord</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">env</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Environment</span><span class="op">&gt;</span>) -&gt; <span class="ident">DeclarativeEnvironmentRecord</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">env</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Environment</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;new_declarative_environment&quot;</span>, <span class="string">&quot;env&quot;</span>);
-        <span class="ident">DeclarativeEnvironmentRecord</span> {
+        <span class="self">Self</span> {
             <span class="ident">env_rec</span>: <span class="ident">gc::Cell::new</span>(<span class="ident">FxHashMap::default</span>()),
             <span class="ident">outer_env</span>: <span class="ident">env</span>,
         }
@@ -681,7 +681,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">DeclarativeEnvironmentRecord</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Environment</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">env</span>: <span class="ident">DeclarativeEnvironmentRecord</span>) -&gt; <span class="ident">Environment</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">env</span>: <span class="ident">DeclarativeEnvironmentRecord</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">Gc::new</span>(<span class="ident">Box::new</span>(<span class="ident">env</span>))
     }
 }

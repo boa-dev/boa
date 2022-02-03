@@ -190,6 +190,9 @@
 <span id="189">189</span>
 <span id="190">190</span>
 <span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements lexing for identifiers (foo, myvar, etc.) used in the JavaScript programing language.</span>
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Cursor</span>, <span class="ident">Error</span>, <span class="ident">Tokenizer</span>};
@@ -239,7 +242,7 @@
         <span class="self">Self</span> { <span class="ident">init</span> }
     }
 
-    <span class="doccomment">/// Checks if a character is IdentifierStart as per ECMAScript standards.</span>
+    <span class="doccomment">/// Checks if a character is `IdentifierStart` as per ECMAScript standards.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -254,7 +257,7 @@
             }
     }
 
-    <span class="doccomment">/// Checks if a character is IdentifierPart as per ECMAScript standards.</span>
+    <span class="doccomment">/// Checks if a character is `IdentifierPart` as per ECMAScript standards.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -338,6 +341,9 @@
     <span class="kw">where</span>
         <span class="ident">R</span>: <span class="ident">Read</span>,
     {
+        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span>
+            <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Identifier::take_identifier_name&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
+
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">contains_escaped_chars</span> <span class="op">=</span> <span class="bool-val">false</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">identifier_name</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">init</span> <span class="op">==</span> <span class="string">&#39;\\&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">cursor</span>.<span class="ident">next_is</span>(<span class="string">b&#39;u&#39;</span>)<span class="question-mark">?</span> {
             <span class="kw">let</span> <span class="ident">ch</span> <span class="op">=</span> <span class="ident">StringLiteral::take_unicode_escape_sequence</span>(<span class="ident">cursor</span>, <span class="ident">start_pos</span>)<span class="question-mark">?</span>;
@@ -357,8 +363,8 @@
             <span class="kw">let</span> <span class="ident">ch</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek_char</span>()<span class="question-mark">?</span> {
                 <span class="prelude-val">Some</span>(<span class="number">0x005C</span> <span class="comment">/* \ */</span>) <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">peek_n</span>(<span class="number">2</span>)<span class="question-mark">?</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">8</span> <span class="op">==</span> <span class="number">0x0075</span> <span class="comment">/* u */</span> =&gt; {
                     <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">pos</span>();
-                    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next_byte</span>();
-                    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next_byte</span>();
+                    <span class="kw">let</span> <span class="ident">_next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next_byte</span>();
+                    <span class="kw">let</span> <span class="ident">_next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next_byte</span>();
                     <span class="kw">let</span> <span class="ident">ch</span> <span class="op">=</span> <span class="ident">StringLiteral::take_unicode_escape_sequence</span>(<span class="ident">cursor</span>, <span class="ident">pos</span>)<span class="question-mark">?</span>;
 
                     <span class="kw">if</span> <span class="ident"><span class="self">Self</span>::is_identifier_part</span>(<span class="ident">ch</span>) {

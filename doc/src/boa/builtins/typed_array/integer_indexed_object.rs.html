@@ -148,6 +148,8 @@
 <span id="147">147</span>
 <span id="148">148</span>
 <span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `Integer-Indexed` exotic object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! An `Integer-Indexed` exotic object is an exotic object that performs</span>
@@ -206,14 +208,16 @@
 
     <span class="doccomment">/// `IntegerIndexedObjectCreate ( prototype )`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Create a new `JsObject from a prototype and a `IntergetIndexedObject`</span>
+    <span class="doccomment">/// Create a new `JsObject` from a prototype and a `IntergetIndexedObject`</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-integerindexedobjectcreate</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">prototype</span>: <span class="ident">JsObject</span>, <span class="ident">data</span>: <span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>) -&gt; <span class="ident">JsObject</span> {
-        <span class="comment">// 1. Let internalSlotsList be « [[Prototype]], [[Extensible]], [[ViewedArrayBuffer]], [[TypedArrayName]], [[ContentType]], [[ByteLength]], [[ByteOffset]], [[ArrayLength]] ».</span>
+        <span class="comment">// 1. Let internalSlotsList be « [[Prototype]], [[Extensible]], [[ViewedArrayBuffer]],</span>
+        <span class="comment">//    [[TypedArrayName]], [[ContentType]], [[ByteLength]], [[ByteOffset]],</span>
+        <span class="comment">//    [[ArrayLength]] ».</span>
         <span class="comment">// 2. Let A be ! MakeBasicObject(internalSlotsList).</span>
         <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">construct_object</span>();
 

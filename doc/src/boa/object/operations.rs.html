@@ -794,10 +794,6 @@
 <span id="793">793</span>
 <span id="794">794</span>
 <span id="795">795</span>
-<span id="796">796</span>
-<span id="797">797</span>
-<span id="798">798</span>
-<span id="799">799</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::Array</span>,
     <span class="ident">context</span>::{<span class="ident">StandardConstructor</span>, <span class="ident">StandardObjects</span>},
@@ -989,7 +985,7 @@
     <span class="doccomment">/// Defines the property or throws a `TypeError` if the operation fails.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [EcmaScript reference][spec]</span>
+    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-definepropertyorthrow</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -1221,9 +1217,10 @@
 
     <span class="doccomment">/// `7.3.22 SpeciesConstructor ( O, defaultConstructor )`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The abstract operation SpeciesConstructor takes arguments O (an Object) and defaultConstructor (a constructor).</span>
-    <span class="doccomment">/// It is used to retrieve the constructor that should be used to create new objects that are derived from O.</span>
-    <span class="doccomment">/// defaultConstructor is the constructor to use if a constructor @@species property cannot be found starting from O.</span>
+    <span class="doccomment">/// The abstract operation `SpeciesConstructor` takes arguments `O` (an Object) and</span>
+    <span class="doccomment">/// `defaultConstructor` (a constructor). It is used to retrieve the constructor that should be</span>
+    <span class="doccomment">/// used to create new objects that are derived from `O`. `defaultConstructor` is the</span>
+    <span class="doccomment">/// constructor to use if a constructor `@@species` property cannot be found starting from `O`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1233,7 +1230,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">default_constructor</span>: <span class="ident">F</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span>
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">StandardObjects</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span>,
     {
@@ -1271,7 +1268,7 @@
     <span class="doccomment">/// It is used to iterate over names of object&#39;s keys.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [EcmaScript reference][spec]</span>
+    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-enumerableownpropertynames</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">enumerable_own_property_names</span>(
@@ -1291,7 +1288,7 @@
             <span class="kw">let</span> <span class="ident">key_str</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">key</span> {
                 <span class="ident">PropertyKey::String</span>(<span class="ident">s</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">s</span>.<span class="ident">clone</span>()),
                 <span class="ident">PropertyKey::Index</span>(<span class="ident">i</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">i</span>.<span class="ident">to_string</span>().<span class="ident">into</span>()),
-                <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+                <span class="ident">PropertyKey::Symbol</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
             };
 
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">key_str</span>) <span class="op">=</span> <span class="ident">key_str</span> {
@@ -1307,7 +1304,7 @@
                             <span class="comment">// a. Let value be ? Get(O, key).</span>
                             <span class="comment">// b. If kind is value, append value to properties.</span>
                             <span class="ident">PropertyNameKind::Value</span> =&gt; {
-                                <span class="ident">properties</span>.<span class="ident">push</span>(<span class="self">self</span>.<span class="ident">get</span>(<span class="ident">key</span>.<span class="ident">clone</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>)
+                                <span class="ident">properties</span>.<span class="ident">push</span>(<span class="self">self</span>.<span class="ident">get</span>(<span class="ident">key</span>.<span class="ident">clone</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>);
                             }
                             <span class="comment">// c. Else,</span>
                             <span class="comment">// i. Assert: kind is key+value.</span>
@@ -1335,10 +1332,10 @@
     <span class="doccomment">/// Retrieves the value of a specific property, when the value of the property is expected to be a function.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [EcmaScript reference][spec]</span>
+    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-getmethod</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_method</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span><span class="op">&gt;</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_method</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
     {
@@ -1418,11 +1415,11 @@
     <span class="doccomment">/// type of the value.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [EcmaScript reference][spec]</span>
+    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-getmethod</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_v</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_v</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
     {
@@ -1438,7 +1435,7 @@
     <span class="doccomment">/// Retrieves the value of a specific property, when the value of the property is expected to be a function.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [EcmaScript reference][spec]</span>
+    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-getmethod</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -1455,14 +1452,14 @@
     <span class="doccomment">/// self.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [EcmaScript reference][spec]</span>
+    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-createlistfromarraylike</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_list_from_array_like</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">element_types</span>: <span class="kw-2">&amp;</span>[<span class="ident">Type</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="comment">// 1. If elementTypes is not present, set elementTypes to « Undefined, Null, Boolean, String, Symbol, Number, BigInt, Object ».</span>
         <span class="kw">let</span> <span class="ident">types</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">element_types</span>.<span class="ident">is_empty</span>() {
             <span class="kw-2">&amp;</span>[
@@ -1509,20 +1506,15 @@
         <span class="prelude-val">Ok</span>(<span class="ident">list</span>)
     }
 
-    <span class="doccomment">/// Abstract operation `( V, P [ , argumentsList ] )</span>
+    <span class="doccomment">/// Abstract operation `( V, P [ , argumentsList ] )`</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Calls a method property of an ECMAScript language value.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [EcmaScript reference][spec]</span>
+    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-invoke</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">invoke</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">key</span>: <span class="ident">K</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">invoke</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="self">Self</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
     {
@@ -1537,12 +1529,12 @@
     <span class="doccomment">/// Abstract operation `OrdinaryHasInstance ( C, O )`</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [EcmaScript reference][spec]</span>
+    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ordinaryhasinstance</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ordinary_has_instance</span>(
-        <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">object</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>,
+        <span class="ident">object</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
         <span class="comment">// 1. If IsCallable(C) is false, return false.</span>
@@ -1556,7 +1548,7 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">bound_function</span>) <span class="op">=</span> <span class="ident">function</span>.<span class="ident">borrow</span>().<span class="ident">as_bound_function</span>() {
             <span class="comment">// a. Let BC be C.[[BoundTargetFunction]].</span>
             <span class="comment">// b. Return ? InstanceofOperator(O, BC).</span>
-            <span class="kw">return</span> <span class="ident">JsValue::instance_of</span>(
+            <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::instance_of</span>(
                 <span class="ident">object</span>,
                 <span class="kw-2">&amp;</span><span class="ident">bound_function</span>.<span class="ident">target_function</span>().<span class="ident">clone</span>().<span class="ident">into</span>(),
                 <span class="ident">context</span>,

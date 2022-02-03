@@ -58,7 +58,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">IntrinsicObjects</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">IntrinsicObjects</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">throw_type_error</span>: <span class="ident">create_throw_type_error</span>(<span class="ident">context</span>),
         }

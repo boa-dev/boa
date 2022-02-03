@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["YieldExpression","YieldExpression parsing."]]});
+initSidebarItems({"struct":[["YieldExpression","`YieldExpression` parsing."]]});

@@ -387,6 +387,7 @@
 <span id="386">386</span>
 <span id="387">387</span>
 <span id="388">388</span>
+<span id="389">389</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{<span class="ident">array_buffer::SharedMemoryOrder</span>, <span class="ident">typed_array::integer_indexed_object::ContentType</span>},
     <span class="ident">object::JsObject</span>,
@@ -414,7 +415,7 @@
         ..<span class="ident">ORDINARY_INTERNAL_METHODS</span>
     };
 
-<span class="doccomment">/// InternalMethod `[[GetOwnProperty]]` for Integer-Indexed exotic objects.</span>
+<span class="doccomment">/// `[[GetOwnProperty]]` internal method for Integer-Indexed exotic objects.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// More information:</span>
 <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -447,7 +448,7 @@
     }
 }
 
-<span class="doccomment">/// InternalMethod `[[HasProperty]]` for Integer-Indexed exotic objects.</span>
+<span class="doccomment">/// `[[HasProperty]]` internal method for Integer-Indexed exotic objects.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// More information:</span>
 <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -470,7 +471,7 @@
     }
 }
 
-<span class="doccomment">/// InternalMethod `[[DefineOwnProperty]]` for Integer-Indexed exotic objects.</span>
+<span class="doccomment">/// `[[DefineOwnProperty]]` internal method for Integer-Indexed exotic objects.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// More information:</span>
 <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -505,7 +506,7 @@
 
         <span class="comment">// vi. If Desc has a [[Value]] field, perform ? IntegerIndexedElementSet(O, numericIndex, Desc.[[Value]]).</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">value</span>() {
-            <span class="ident">integer_indexed_element_set</span>(<span class="ident">obj</span>, <span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">value</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
+            <span class="ident">integer_indexed_element_set</span>(<span class="ident">obj</span>, <span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">value</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
         }
 
         <span class="comment">// vii. Return true.</span>
@@ -601,6 +602,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects-ownpropertykeys</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unnecessary_wraps</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">integer_indexed_exotic_own_property_keys</span>(
     <span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
     <span class="ident">_context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
@@ -629,7 +631,7 @@
         <span class="ident">obj</span>.<span class="ident">properties</span>
             .<span class="ident">string_property_keys</span>()
             .<span class="ident">cloned</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">into</span>()),
+            .<span class="ident">map</span>(<span class="ident">Into::into</span>),
     );
 
     <span class="comment">// 4. For each own property key P of O such that Type(P) is Symbol, in ascending chronological order of property creation, do</span>
@@ -638,7 +640,7 @@
         <span class="ident">obj</span>.<span class="ident">properties</span>
             .<span class="ident">symbol_property_keys</span>()
             .<span class="ident">cloned</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">sym</span><span class="op">|</span> <span class="ident">sym</span>.<span class="ident">into</span>()),
+            .<span class="ident">map</span>(<span class="ident">Into::into</span>),
     );
 
     <span class="comment">// 5. Return keys.</span>
@@ -764,7 +766,7 @@
             .<span class="ident">set_value_in_buffer</span>(
                 <span class="ident">indexed_position</span>,
                 <span class="ident">elem_type</span>,
-                <span class="ident">num_value</span>,
+                <span class="kw-2">&amp;</span><span class="ident">num_value</span>,
                 <span class="ident">SharedMemoryOrder::Unordered</span>,
                 <span class="prelude-val">None</span>,
                 <span class="ident">context</span>,

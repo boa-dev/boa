@@ -219,6 +219,8 @@
 <span id="218">218</span>
 <span id="219">219</span>
 <span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
 </pre><pre class="rust"><code><span class="doccomment">//! # Environment Records</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! &lt;https://tc39.es/ecma262/#sec-environment-records&gt;</span>
@@ -281,9 +283,11 @@
     <span class="kw">fn</span> <span class="ident">initialize_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="ident">Sym</span>, <span class="ident">value</span>: <span class="ident">JsValue</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
 
     <span class="doccomment">/// Set the value of an already existing mutable binding in an Environment Record.</span>
+    <span class="doccomment">///</span>
     <span class="doccomment">/// The String value `name` is the text of the bound name.</span>
-    <span class="doccomment">/// value is the `value` for the binding and may be a value of any ECMAScript language type. S is a Boolean flag.</span>
-    <span class="doccomment">/// If `strict` is true and the binding cannot be set throw a TypeError exception.</span>
+    <span class="doccomment">/// value is the `value` for the binding and may be a value of any ECMAScript language type.</span>
+    <span class="doccomment">/// `S` is a `Boolean` flag. If `strict` is true and the binding cannot be set throw a</span>
+    <span class="doccomment">/// `TypeError` exception.</span>
     <span class="kw">fn</span> <span class="ident">set_mutable_binding</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">name</span>: <span class="ident">Sym</span>,

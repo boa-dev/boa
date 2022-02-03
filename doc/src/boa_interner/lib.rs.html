@@ -328,6 +328,34 @@
 <span id="327">327</span>
 <span id="328">328</span>
 <span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
 </pre><pre class="rust"><code><span class="doccomment">//! String interner for Boa.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The idea behind using a string interner is that in most of the code, strings such as</span>
@@ -342,8 +370,27 @@
     <span class="ident">html_logo_url</span> <span class="op">=</span> <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>,
     <span class="ident">html_favicon_url</span> <span class="op">=</span> <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>
 )]</span>
+<span class="attribute">#![<span class="ident">warn</span>(
+    <span class="ident">clippy::perf</span>,
+    <span class="ident">clippy::single_match_else</span>,
+    <span class="ident">clippy::dbg_macro</span>,
+    <span class="ident">clippy::doc_markdown</span>,
+    <span class="ident">clippy::wildcard_imports</span>,
+    <span class="ident">clippy::struct_excessive_bools</span>,
+    <span class="ident">clippy::doc_markdown</span>,
+    <span class="ident">clippy::semicolon_if_nothing_returned</span>,
+    <span class="ident">clippy::pedantic</span>
+)]</span>
 <span class="attribute">#![<span class="ident">deny</span>(
     <span class="ident">clippy::all</span>,
+    <span class="ident">clippy::cast_lossless</span>,
+    <span class="ident">clippy::redundant_closure_for_method_calls</span>,
+    <span class="ident">clippy::use_self</span>,
+    <span class="ident">clippy::unnested_or_patterns</span>,
+    <span class="ident">clippy::trivially_copy_pass_by_ref</span>,
+    <span class="ident">clippy::needless_pass_by_value</span>,
+    <span class="ident">clippy::match_wildcard_for_single_variants</span>,
+    <span class="ident">clippy::map_unwrap_or</span>,
     <span class="ident">unused_qualifications</span>,
     <span class="ident">unused_import_braces</span>,
     <span class="ident">unused_lifetimes</span>,
@@ -360,8 +407,16 @@
     <span class="ident">future_incompatible</span>,
     <span class="ident">nonstandard_style</span>,
 )]</span>
-<span class="attribute">#![<span class="ident">warn</span>(<span class="ident">clippy::perf</span>, <span class="ident">clippy::single_match_else</span>, <span class="ident">clippy::dbg_macro</span>)]</span>
 <span class="attribute">#![<span class="ident">allow</span>(
+    <span class="ident">clippy::module_name_repetitions</span>,
+    <span class="ident">clippy::cast_possible_truncation</span>,
+    <span class="ident">clippy::cast_sign_loss</span>,
+    <span class="ident">clippy::cast_precision_loss</span>,
+    <span class="ident">clippy::cast_possible_wrap</span>,
+    <span class="ident">clippy::cast_ptr_alignment</span>,
+    <span class="ident">clippy::missing_panics_doc</span>,
+    <span class="ident">clippy::too_many_lines</span>,
+    <span class="ident">clippy::unreadable_literal</span>,
     <span class="ident">clippy::missing_inline_in_public_items</span>,
     <span class="ident">clippy::cognitive_complexity</span>,
     <span class="ident">clippy::must_use_candidate</span>,
@@ -393,7 +448,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Interner</span> {
-    <span class="doccomment">/// Creates a new StringInterner with the given initial capacity.</span>
+    <span class="doccomment">/// Creates a new `StringInterner` with the given initial capacity.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_capacity</span>(<span class="ident">cap</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
@@ -458,7 +513,7 @@
     <span class="doccomment">/// Shrink backend capacity to fit the interned strings exactly.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shrink_to_fit</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">shrink_to_fit</span>()
+        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">shrink_to_fit</span>();
     }
 
     <span class="doccomment">/// Returns the string for the given symbol if any.</span>
@@ -519,7 +574,7 @@
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>,
     {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">extend</span>(<span class="ident">iter</span>)
+        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">extend</span>(<span class="ident">iter</span>);
     }
 }
 
@@ -548,6 +603,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>, <span class="ident">Finalize</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">serde</span>(<span class="ident">transparent</span>))]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unsafe_derive_deserialize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Sym</span> {
     <span class="ident">value</span>: <span class="ident">NonZeroUsize</span>,
 }
@@ -597,7 +653,7 @@
         <span class="self">Self</span> { <span class="ident">value</span> }
     }
 
-    <span class="doccomment">/// Retrieves the raw `NonZeroUsize` for this symbol.`</span>
+    <span class="doccomment">/// Retrieves the raw `NonZeroUsize` for this symbol.</span>
     <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">as_raw</span>(<span class="self">self</span>) -&gt; <span class="ident">NonZeroUsize</span> {
         <span class="self">self</span>.<span class="ident">value</span>
     }

@@ -280,7 +280,6 @@
 <span id="279">279</span>
 <span id="280">280</span>
 <span id="281">281</span>
-<span id="282">282</span>
 </pre><pre class="rust"><code><span class="doccomment">//! # Object Records</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Each object Environment Record is associated with an object called its binding object.</span>
@@ -310,8 +309,8 @@
 }
 
 <span class="kw">impl</span> <span class="ident">ObjectEnvironmentRecord</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">object</span>: <span class="ident">JsObject</span>, <span class="ident">environment</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Environment</span><span class="op">&gt;</span>) -&gt; <span class="ident">ObjectEnvironmentRecord</span> {
-        <span class="ident">ObjectEnvironmentRecord</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">object</span>: <span class="ident">JsObject</span>, <span class="ident">environment</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Environment</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span> {
             <span class="ident">bindings</span>: <span class="ident">object</span>,
             <span class="ident">outer_env</span>: <span class="ident">environment</span>,
             <span class="doccomment">/// Object Environment Records created for with statements (13.11)</span>
@@ -477,12 +476,11 @@
             <span class="comment">// a. If S is false, return the value undefined; otherwise throw a ReferenceError exception.</span>
             <span class="kw">if</span> <span class="op">!</span><span class="ident">strict</span> {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>());
-            } <span class="kw">else</span> {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_reference_error</span>(<span class="macro">format!</span>(
-                    <span class="string">&quot;{} has no binding&quot;</span>,
-                    <span class="ident">context</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">name</span>)
-                ));
             }
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_reference_error</span>(<span class="macro">format!</span>(
+                <span class="string">&quot;{} has no binding&quot;</span>,
+                <span class="ident">context</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">name</span>)
+            ));
         }
 
         <span class="comment">// 4. Return ? Get(bindingObject, N).</span>
@@ -559,7 +557,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ObjectEnvironmentRecord</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Environment</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">env</span>: <span class="ident">ObjectEnvironmentRecord</span>) -&gt; <span class="ident">Environment</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">env</span>: <span class="ident">ObjectEnvironmentRecord</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">Gc::new</span>(<span class="ident">Box::new</span>(<span class="ident">env</span>))
     }
 }

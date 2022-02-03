@@ -890,6 +890,7 @@
 <span id="889">889</span>
 <span id="890">890</span>
 <span id="891">891</span>
+<span id="892">892</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Math` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! `Math` is a built-in object that has properties and methods for mathematical constants and functions. It’s not a function object.</span>
@@ -975,7 +976,7 @@
             .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::trunc</span>, <span class="string">&quot;trunc&quot;</span>, <span class="number">1</span>)
             .<span class="ident">property</span>(
                 <span class="ident">string_tag</span>,
-                <span class="ident">Math::NAME</span>,
+                <span class="ident"><span class="self">Self</span>::NAME</span>,
                 <span class="ident">Attribute::READONLY</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>,
             )
             .<span class="ident">build</span>();
@@ -1358,7 +1359,7 @@
         <span class="comment">// 4. Let n32 be the result of converting n to a value in IEEE 754-2019 binary32 format using roundTiesToEven mode.</span>
         <span class="comment">// 5. Let n64 be the result of converting n32 to a value in IEEE 754-2019 binary64 format.</span>
         <span class="comment">// 6. Return the ECMAScript Number value corresponding to n64.</span>
-        <span class="prelude-val">Ok</span>((<span class="ident">x</span> <span class="kw">as</span> <span class="ident">f32</span> <span class="kw">as</span> <span class="ident">f64</span>).<span class="ident">into</span>())
+        <span class="prelude-val">Ok</span>(<span class="ident">f64::from</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">f32</span>).<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// Get an approximation of the square root of the sum of squares of all arguments.</span>
@@ -1607,6 +1608,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.random</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unnecessary_wraps</span>)]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">random</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// NOTE: Each Math.random function created for distinct realms must produce a distinct sequence of values from successive calls.</span>
         <span class="prelude-val">Ok</span>(<span class="ident">rand::random</span>::<span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>().<span class="ident">into</span>())

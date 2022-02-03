@@ -330,7 +330,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">set_goal</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">elm</span>: <span class="ident">InputElement</span>) {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;cursor::set_goal()&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
-        <span class="self">self</span>.<span class="ident">lexer</span>.<span class="ident">set_goal</span>(<span class="ident">elm</span>)
+        <span class="self">self</span>.<span class="ident">lexer</span>.<span class="ident">set_goal</span>(<span class="ident">elm</span>);
     }
 
     <span class="doccomment">/// Lexes the next tokens as a regex assuming that the starting &#39;/&#39; has already been consumed.</span>
@@ -344,7 +344,7 @@
         <span class="self">self</span>.<span class="ident">set_goal</span>(<span class="ident">InputElement::RegExp</span>);
         <span class="self">self</span>.<span class="ident">lexer</span>
             .<span class="ident">lex_slash_token</span>(<span class="ident">start</span>, <span class="ident">interner</span>)
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">into</span>())
+            .<span class="ident">map_err</span>(<span class="ident">Into::into</span>)
     }
 
     <span class="doccomment">/// Lexes the next tokens as template middle or template tail assuming that the starting</span>
@@ -366,7 +366,7 @@
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">set_strict_mode</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">strict_mode</span>: <span class="ident">bool</span>) {
-        <span class="self">self</span>.<span class="ident">lexer</span>.<span class="ident">set_strict_mode</span>(<span class="ident">strict_mode</span>)
+        <span class="self">self</span>.<span class="ident">lexer</span>.<span class="ident">set_strict_mode</span>(<span class="ident">strict_mode</span>);
     }
 
     <span class="doccomment">/// Fills the peeking buffer with the next token.</span>
@@ -418,7 +418,7 @@
 
     <span class="doccomment">/// Moves the cursor to the next token and returns the token.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// If skip_line_terminators is true then line terminators will be discarded.</span>
+    <span class="doccomment">/// If `skip_line_terminators` is true then line terminators will be discarded.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This follows iterator semantics in that a `peek(0, false)` followed by a `next(false)` will</span>
     <span class="doccomment">/// return the same value. Note that because a `peek(n, false)` may return a line terminator a</span>

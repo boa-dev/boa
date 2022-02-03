@@ -102,9 +102,6 @@
 <span id="101">101</span>
 <span id="102">102</span>
 <span id="103">103</span>
-<span id="104">104</span>
-<span id="105">105</span>
-<span id="106">106</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Exponentiation operator parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -173,13 +170,10 @@
     <span class="prelude-val">Ok</span>(<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">tok</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
         <span class="macro">matches!</span>(
             <span class="ident">tok</span>.<span class="ident">kind</span>(),
-            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Delete</span>)
-                <span class="op">|</span> <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Void</span>)
-                <span class="op">|</span> <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::TypeOf</span>)
-                <span class="op">|</span> <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Add</span>)
-                <span class="op">|</span> <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Sub</span>)
-                <span class="op">|</span> <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Not</span>)
-                <span class="op">|</span> <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Neg</span>)
+            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Delete</span> <span class="op">|</span> <span class="ident">Keyword::Void</span> <span class="op">|</span> <span class="ident">Keyword::TypeOf</span>)
+                <span class="op">|</span> <span class="ident">TokenKind::Punctuator</span>(
+                    <span class="ident">Punctuator::Add</span> <span class="op">|</span> <span class="ident">Punctuator::Sub</span> <span class="op">|</span> <span class="ident">Punctuator::Not</span> <span class="op">|</span> <span class="ident">Punctuator::Neg</span>
+                )
         )
     } <span class="kw">else</span> {
         <span class="bool-val">false</span>

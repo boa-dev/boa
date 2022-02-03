@@ -1,5 +1,5 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_tester&#x2F;src&#x2F;main.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>main.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;boa-dev&#x2F;boa&#x2F;main&#x2F;assets&#x2F;logo.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../boa_tester/index.html'><div class='logo-container rust-logo'><img src='https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;boa-dev&#x2F;boa&#x2F;main&#x2F;assets&#x2F;logo.svg' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../boa_tester/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -500,17 +500,58 @@
 <span id="499">499</span>
 <span id="500">500</span>
 <span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Test262 test runner</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This crate will run the full ECMAScript test suite (Test262) and report compliance of the</span>
 <span class="doccomment">//! `boa` context.</span>
-<span class="attribute">#![<span class="ident">doc</span>(
-    <span class="ident">html_logo_url</span> <span class="op">=</span> <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>,
-    <span class="ident">html_favicon_url</span> <span class="op">=</span> <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>
+<span class="attribute">#![<span class="ident">warn</span>(
+    <span class="ident">clippy::perf</span>,
+    <span class="ident">clippy::single_match_else</span>,
+    <span class="ident">clippy::dbg_macro</span>,
+    <span class="ident">clippy::doc_markdown</span>,
+    <span class="ident">clippy::wildcard_imports</span>,
+    <span class="ident">clippy::struct_excessive_bools</span>,
+    <span class="ident">clippy::doc_markdown</span>,
+    <span class="ident">clippy::semicolon_if_nothing_returned</span>,
+    <span class="ident">clippy::pedantic</span>
 )]</span>
 <span class="attribute">#![<span class="ident">deny</span>(
-    <span class="ident">unused_qualifications</span>,
     <span class="ident">clippy::all</span>,
+    <span class="ident">clippy::cast_lossless</span>,
+    <span class="ident">clippy::redundant_closure_for_method_calls</span>,
+    <span class="ident">clippy::use_self</span>,
+    <span class="ident">clippy::unnested_or_patterns</span>,
+    <span class="ident">clippy::trivially_copy_pass_by_ref</span>,
+    <span class="ident">clippy::needless_pass_by_value</span>,
+    <span class="ident">clippy::match_wildcard_for_single_variants</span>,
+    <span class="ident">clippy::map_unwrap_or</span>,
     <span class="ident">unused_qualifications</span>,
     <span class="ident">unused_import_braces</span>,
     <span class="ident">unused_lifetimes</span>,
@@ -527,8 +568,16 @@
     <span class="ident">future_incompatible</span>,
     <span class="ident">nonstandard_style</span>,
 )]</span>
-<span class="attribute">#![<span class="ident">warn</span>(<span class="ident">clippy::perf</span>, <span class="ident">clippy::single_match_else</span>, <span class="ident">clippy::dbg_macro</span>)]</span>
 <span class="attribute">#![<span class="ident">allow</span>(
+    <span class="ident">clippy::module_name_repetitions</span>,
+    <span class="ident">clippy::cast_possible_truncation</span>,
+    <span class="ident">clippy::cast_sign_loss</span>,
+    <span class="ident">clippy::cast_precision_loss</span>,
+    <span class="ident">clippy::cast_possible_wrap</span>,
+    <span class="ident">clippy::cast_ptr_alignment</span>,
+    <span class="ident">clippy::missing_panics_doc</span>,
+    <span class="ident">clippy::too_many_lines</span>,
+    <span class="ident">clippy::unreadable_literal</span>,
     <span class="ident">clippy::missing_inline_in_public_items</span>,
     <span class="ident">clippy::cognitive_complexity</span>,
     <span class="ident">clippy::must_use_candidate</span>,
@@ -596,9 +645,9 @@
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Ignored</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
-            <span class="ident">tests</span>: <span class="ident">Default::default</span>(),
-            <span class="ident">features</span>: <span class="ident">Default::default</span>(),
-            <span class="ident">files</span>: <span class="ident">Default::default</span>(),
+            <span class="ident">tests</span>: <span class="ident">FxHashSet::default</span>(),
+            <span class="ident">features</span>: <span class="ident">FxHashSet::default</span>(),
+            <span class="ident">files</span>: <span class="ident">FxHashSet::default</span>(),
             <span class="ident">flags</span>: <span class="ident">TestFlags::empty</span>(),
         }
     }
@@ -646,10 +695,15 @@
                         .<span class="ident">trim</span>()
                         .<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">TestFlag</span><span class="op">&gt;</span>()
                         .<span class="ident">expect</span>(<span class="string">&quot;invalid flag found&quot;</span>);
-                    <span class="ident">ign</span>.<span class="ident">flags</span>.<span class="ident">insert</span>(<span class="ident">flag</span>.<span class="ident">into</span>())
+                    <span class="ident">ign</span>.<span class="ident">flags</span>.<span class="ident">insert</span>(<span class="ident">flag</span>.<span class="ident">into</span>());
                 } <span class="kw">else</span> {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">test</span> <span class="op">=</span> <span class="ident">line</span>.<span class="ident">trim</span>();
-                    <span class="kw">if</span> <span class="ident">test</span>.<span class="ident">ends_with</span>(<span class="string">&quot;.js&quot;</span>) {
+                    <span class="kw">if</span> <span class="ident">test</span>
+                        .<span class="ident">rsplit</span>(<span class="string">&#39;.&#39;</span>)
+                        .<span class="ident">next</span>()
+                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">ext</span><span class="op">|</span> <span class="ident">ext</span>.<span class="ident">eq_ignore_ascii_case</span>(<span class="string">&quot;js&quot;</span>))
+                        <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="bool-val">true</span>)
+                    {
                         <span class="ident">test</span> <span class="op">=</span> <span class="ident">test</span>.<span class="ident">strip_suffix</span>(<span class="string">&quot;.js&quot;</span>).<span class="ident">expect</span>(<span class="string">&quot;suffix disappeared&quot;</span>);
                     }
                     <span class="ident">ign</span>.<span class="ident">tests</span>.<span class="ident">insert</span>(<span class="ident">test</span>.<span class="ident">to_owned</span>().<span class="ident">into_boxed_str</span>());
@@ -657,7 +711,7 @@
                 <span class="ident">ign</span>
             })
     } <span class="kw">else</span> {
-        <span class="ident">Default::default</span>()
+        <span class="ident">Ignored::default</span>()
     }
 });
 
@@ -898,7 +952,7 @@
     <span class="kw">where</span>
         <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
-        <span class="self">self</span>.<span class="ident">name</span> <span class="op">=</span> <span class="ident">name</span>.<span class="ident">into</span>()
+        <span class="self">self</span>.<span class="ident">name</span> <span class="op">=</span> <span class="ident">name</span>.<span class="ident">into</span>();
     }
 }
 
@@ -976,7 +1030,7 @@
             }
 
             <span class="kw">if</span> <span class="op">!</span><span class="ident">result</span>.<span class="ident">intersects</span>(<span class="ident"><span class="self">Self</span>::default</span>()) {
-                <span class="ident">result</span> <span class="op">|</span><span class="op">=</span> <span class="ident"><span class="self">Self</span>::default</span>()
+                <span class="ident">result</span> <span class="op">|</span><span class="op">=</span> <span class="ident"><span class="self">Self</span>::default</span>();
             }
 
             <span class="ident">result</span>

@@ -181,11 +181,7 @@
 <span id="180">180</span>
 <span id="181">181</span>
 <span id="182">182</span>
-<span id="183">183</span>
-<span id="184">184</span>
-<span id="185">185</span>
-<span id="186">186</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">JsBigInt</span>, <span class="ident">JsObject</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>, <span class="ident">PreferredType</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">builtins::Number</span>, <span class="ident">Context</span>};
 
 <span class="kw">impl</span> <span class="ident">JsValue</span> {
@@ -240,12 +236,8 @@
             <span class="comment">// 4. If Type(x) is String and Type(y) is Number, return the result of the comparison ! ToNumber(x) == y.</span>
             <span class="comment">//</span>
             <span class="comment">// https://github.com/rust-lang/rust/issues/54883</span>
-            (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="kw">_</span>), <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw">_</span>))
-            <span class="op">|</span> (<span class="ident"><span class="self">Self</span>::Rational</span>(<span class="kw">_</span>), <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw">_</span>))
-            <span class="op">|</span> (<span class="ident"><span class="self">Self</span>::String</span>(<span class="kw">_</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="kw">_</span>))
-            <span class="op">|</span> (<span class="ident"><span class="self">Self</span>::String</span>(<span class="kw">_</span>), <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="kw">_</span>))
-            <span class="op">|</span> (<span class="ident"><span class="self">Self</span>::Rational</span>(<span class="kw">_</span>), <span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="kw">_</span>))
-            <span class="op">|</span> (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="kw">_</span>), <span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="kw">_</span>)) =&gt; {
+            (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="kw">_</span>), <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="kw">_</span>))
+            <span class="op">|</span> (<span class="ident"><span class="self">Self</span>::String</span>(<span class="kw">_</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="kw">_</span>)) =&gt; {
                 <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="ident">other</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
                 <span class="ident">Number::equal</span>(<span class="ident">x</span>, <span class="ident">y</span>)
@@ -267,10 +259,10 @@
             },
 
             <span class="comment">// 8. If Type(x) is Boolean, return the result of the comparison ! ToNumber(x) == y.</span>
-            (<span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="ident">x</span>), <span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="ident">other</span>.<span class="ident">equals</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue::new</span>(<span class="kw-2">*</span><span class="ident">x</span> <span class="kw">as</span> <span class="ident">i32</span>), <span class="ident">context</span>),
+            (<span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="ident">x</span>), <span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="ident">other</span>.<span class="ident">equals</span>(<span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::new</span>(<span class="kw-2">*</span><span class="ident">x</span> <span class="kw">as</span> <span class="ident">i32</span>), <span class="ident">context</span>),
 
             <span class="comment">// 9. If Type(y) is Boolean, return the result of the comparison x == ! ToNumber(y).</span>
-            (<span class="kw">_</span>, <span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="ident">y</span>)) =&gt; <span class="kw">return</span> <span class="self">self</span>.<span class="ident">equals</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue::new</span>(<span class="kw-2">*</span><span class="ident">y</span> <span class="kw">as</span> <span class="ident">i32</span>), <span class="ident">context</span>),
+            (<span class="kw">_</span>, <span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="ident">y</span>)) =&gt; <span class="kw">return</span> <span class="self">self</span>.<span class="ident">equals</span>(<span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::new</span>(<span class="kw-2">*</span><span class="ident">y</span> <span class="kw">as</span> <span class="ident">i32</span>), <span class="ident">context</span>),
 
             <span class="comment">// 10. If Type(x) is either String, Number, BigInt, or Symbol and Type(y) is Object, return the result</span>
             <span class="comment">// of the comparison x == ? ToPrimitive(y).</span>
@@ -306,7 +298,7 @@
     <span class="doccomment">///  - [ECMAScript][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-samevalue</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">same_value</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) -&gt; <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">same_value</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
         <span class="comment">// 1. If Type(x) is different from Type(y), return false.</span>
         <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">get_type</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">y</span>.<span class="ident">get_type</span>() {
             <span class="kw">return</span> <span class="bool-val">false</span>;
@@ -315,11 +307,11 @@
         <span class="kw">match</span> (<span class="ident">x</span>, <span class="ident">y</span>) {
             <span class="comment">// 2. If Type(x) is Number or BigInt, then</span>
             <span class="comment">//    a. Return ! Type(x)::SameValue(x, y).</span>
-            (<span class="ident">JsValue::BigInt</span>(<span class="ident">x</span>), <span class="ident">JsValue::BigInt</span>(<span class="ident">y</span>)) =&gt; <span class="ident">JsBigInt::same_value</span>(<span class="ident">x</span>, <span class="ident">y</span>),
-            (<span class="ident">JsValue::Rational</span>(<span class="ident">x</span>), <span class="ident">JsValue::Rational</span>(<span class="ident">y</span>)) =&gt; <span class="ident">Number::same_value</span>(<span class="kw-2">*</span><span class="ident">x</span>, <span class="kw-2">*</span><span class="ident">y</span>),
-            (<span class="ident">JsValue::Rational</span>(<span class="ident">x</span>), <span class="ident">JsValue::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident">Number::same_value</span>(<span class="kw-2">*</span><span class="ident">x</span>, <span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">y</span>)),
-            (<span class="ident">JsValue::Integer</span>(<span class="ident">x</span>), <span class="ident">JsValue::Rational</span>(<span class="ident">y</span>)) =&gt; <span class="ident">Number::same_value</span>(<span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">x</span>), <span class="kw-2">*</span><span class="ident">y</span>),
-            (<span class="ident">JsValue::Integer</span>(<span class="ident">x</span>), <span class="ident">JsValue::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident">x</span> <span class="op">==</span> <span class="ident">y</span>,
+            (<span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="ident">y</span>)) =&gt; <span class="ident">JsBigInt::same_value</span>(<span class="ident">x</span>, <span class="ident">y</span>),
+            (<span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">y</span>)) =&gt; <span class="ident">Number::same_value</span>(<span class="kw-2">*</span><span class="ident">x</span>, <span class="kw-2">*</span><span class="ident">y</span>),
+            (<span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident">Number::same_value</span>(<span class="kw-2">*</span><span class="ident">x</span>, <span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">y</span>)),
+            (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">y</span>)) =&gt; <span class="ident">Number::same_value</span>(<span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">x</span>), <span class="kw-2">*</span><span class="ident">y</span>),
+            (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident">x</span> <span class="op">==</span> <span class="ident">y</span>,
 
             <span class="comment">// 3. Return ! SameValueNonNumeric(x, y).</span>
             (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="ident"><span class="self">Self</span>::same_value_non_numeric</span>(<span class="ident">x</span>, <span class="ident">y</span>),
@@ -329,13 +321,13 @@
     <span class="doccomment">/// The internal comparison abstract operation `SameValueZero(x, y)`,</span>
     <span class="doccomment">/// where `x` and `y` are ECMAScript language values, produces `true` or `false`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// `SameValueZero` differs from SameValue only in its treatment of `+0` and `-0`.</span>
+    <span class="doccomment">/// `SameValueZero` differs from `SameValue` only in its treatment of `+0` and `-0`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-samevaluezero</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">same_value_zero</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) -&gt; <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">same_value_zero</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">get_type</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">y</span>.<span class="ident">get_type</span>() {
             <span class="kw">return</span> <span class="bool-val">false</span>;
         }
@@ -359,7 +351,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">same_value_non_numeric</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) -&gt; <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">same_value_non_numeric</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
         <span class="macro">debug_assert!</span>(<span class="ident">x</span>.<span class="ident">get_type</span>() <span class="op">==</span> <span class="ident">y</span>.<span class="ident">get_type</span>());
         <span class="kw">match</span> (<span class="ident">x</span>, <span class="ident">y</span>) {
             (<span class="ident">JsValue::Null</span>, <span class="ident">JsValue::Null</span>) <span class="op">|</span> (<span class="ident">JsValue::Undefined</span>, <span class="ident">JsValue::Undefined</span>) =&gt; <span class="bool-val">true</span>,

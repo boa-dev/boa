@@ -1734,45 +1734,6 @@
 <span id="1733">1733</span>
 <span id="1734">1734</span>
 <span id="1735">1735</span>
-<span id="1736">1736</span>
-<span id="1737">1737</span>
-<span id="1738">1738</span>
-<span id="1739">1739</span>
-<span id="1740">1740</span>
-<span id="1741">1741</span>
-<span id="1742">1742</span>
-<span id="1743">1743</span>
-<span id="1744">1744</span>
-<span id="1745">1745</span>
-<span id="1746">1746</span>
-<span id="1747">1747</span>
-<span id="1748">1748</span>
-<span id="1749">1749</span>
-<span id="1750">1750</span>
-<span id="1751">1751</span>
-<span id="1752">1752</span>
-<span id="1753">1753</span>
-<span id="1754">1754</span>
-<span id="1755">1755</span>
-<span id="1756">1756</span>
-<span id="1757">1757</span>
-<span id="1758">1758</span>
-<span id="1759">1759</span>
-<span id="1760">1760</span>
-<span id="1761">1761</span>
-<span id="1762">1762</span>
-<span id="1763">1763</span>
-<span id="1764">1764</span>
-<span id="1765">1765</span>
-<span id="1766">1766</span>
-<span id="1767">1767</span>
-<span id="1768">1768</span>
-<span id="1769">1769</span>
-<span id="1770">1770</span>
-<span id="1771">1771</span>
-<span id="1772">1772</span>
-<span id="1773">1773</span>
-<span id="1774">1774</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::function::ThisMode</span>,
     <span class="ident">gc::Gc</span>,
@@ -1915,7 +1876,7 @@
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">emit_opcode</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">opcode</span>: <span class="ident">Opcode</span>) {
-        <span class="self">self</span>.<span class="ident">emit_u8</span>(<span class="ident">opcode</span> <span class="kw">as</span> <span class="ident">u8</span>)
+        <span class="self">self</span>.<span class="ident">emit_u8</span>(<span class="ident">opcode</span> <span class="kw">as</span> <span class="ident">u8</span>);
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -1928,11 +1889,11 @@
         <span class="kw">match</span> <span class="ident">value</span> {
             <span class="number">0</span> =&gt; <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushZero</span>),
             <span class="number">1</span> =&gt; <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushOne</span>),
-            <span class="ident">x</span> <span class="kw">if</span> <span class="ident">x</span> <span class="kw">as</span> <span class="ident">i8</span> <span class="kw">as</span> <span class="ident">i32</span> <span class="op">==</span> <span class="ident">x</span> =&gt; {
+            <span class="ident">x</span> <span class="kw">if</span> <span class="ident">i32::from</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">i8</span>) <span class="op">==</span> <span class="ident">x</span> =&gt; {
                 <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushInt8</span>);
                 <span class="self">self</span>.<span class="ident">emit_u8</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">i8</span> <span class="kw">as</span> <span class="ident">u8</span>);
             }
-            <span class="ident">x</span> <span class="kw">if</span> <span class="ident">x</span> <span class="kw">as</span> <span class="ident">i16</span> <span class="kw">as</span> <span class="ident">i32</span> <span class="op">==</span> <span class="ident">x</span> =&gt; {
+            <span class="ident">x</span> <span class="kw">if</span> <span class="ident">i32::from</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">i16</span>) <span class="op">==</span> <span class="ident">x</span> =&gt; {
                 <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushInt16</span>);
                 <span class="self">self</span>.<span class="ident">emit_u16</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">i16</span> <span class="kw">as</span> <span class="ident">u16</span>);
             }
@@ -1955,14 +1916,13 @@
         <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_infinite</span>() {
             <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_sign_positive</span>() {
                 <span class="kw">return</span> <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushPositiveInfinity</span>);
-            } <span class="kw">else</span> {
-                <span class="kw">return</span> <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushNegativeInfinity</span>);
             }
+            <span class="kw">return</span> <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushNegativeInfinity</span>);
         }
 
         <span class="comment">// Check if the f64 value can fit in an i32.</span>
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::float_cmp</span>)]</span>
-        <span class="kw">if</span> <span class="ident">value</span> <span class="kw">as</span> <span class="ident">i32</span> <span class="kw">as</span> <span class="ident">f64</span> <span class="op">==</span> <span class="ident">value</span> {
+        <span class="kw">if</span> <span class="ident">f64::from</span>(<span class="ident">value</span> <span class="kw">as</span> <span class="ident">i32</span>) <span class="op">==</span> <span class="ident">value</span> {
             <span class="self">self</span>.<span class="ident">emit_push_integer</span>(<span class="ident">value</span> <span class="kw">as</span> <span class="ident">i32</span>);
         } <span class="kw">else</span> {
             <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushRational</span>);
@@ -2020,7 +1980,7 @@
             <span class="ident">breaks</span>: <span class="ident">Vec::new</span>(),
             <span class="ident">try_continues</span>: <span class="ident">Vec::new</span>(),
             <span class="ident">for_of_in_loop</span>: <span class="bool-val">false</span>,
-        })
+        });
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -2032,7 +1992,7 @@
             <span class="ident">breaks</span>: <span class="ident">Vec::new</span>(),
             <span class="ident">try_continues</span>: <span class="ident">Vec::new</span>(),
             <span class="ident">for_of_in_loop</span>: <span class="bool-val">true</span>,
-        })
+        });
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -2055,7 +2015,7 @@
             <span class="ident">breaks</span>: <span class="ident">Vec::new</span>(),
             <span class="ident">try_continues</span>: <span class="ident">Vec::new</span>(),
             <span class="ident">for_of_in_loop</span>: <span class="bool-val">false</span>,
-        })
+        });
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -2081,7 +2041,7 @@
                 <span class="ident">breaks</span>: <span class="ident">Vec::new</span>(),
                 <span class="ident">try_continues</span>: <span class="ident">Vec::new</span>(),
                 <span class="ident">for_of_in_loop</span>: <span class="bool-val">false</span>,
-            })
+            });
         }
     }
 
@@ -2099,7 +2059,7 @@
                     <span class="kw">if</span> <span class="ident">label</span>.<span class="ident">index</span> <span class="op">&lt;</span> <span class="ident">finally_start_address</span> {
                         <span class="self">self</span>.<span class="ident">patch_jump_with_target</span>(<span class="ident">label</span>, <span class="ident">finally_start_address</span>);
                     } <span class="kw">else</span> {
-                        <span class="self">self</span>.<span class="ident">patch_jump_with_target</span>(<span class="ident">label</span>, <span class="ident">info</span>.<span class="ident">start_address</span>)
+                        <span class="self">self</span>.<span class="ident">patch_jump_with_target</span>(<span class="ident">label</span>, <span class="ident">info</span>.<span class="ident">start_address</span>);
                     }
                 }
 
@@ -2505,46 +2465,18 @@
                                         <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::DefineOwnPropertyByValue</span>);
                                     }
                                 },
-                                <span class="ident">MethodDefinitionKind::Generator</span> =&gt; {
+                                <span class="ident">MethodDefinitionKind::Generator</span>
+                                <span class="op">|</span> <span class="ident">MethodDefinitionKind::Async</span>
+                                <span class="op">|</span> <span class="ident">MethodDefinitionKind::AsyncGenerator</span> =&gt; {
                                     <span class="comment">// TODO: Implement generators</span>
-                                    <span class="kw">match</span> <span class="ident">name</span> {
-                                        <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
-                                            <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushUndefined</span>);
-                                            <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
-                                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="kw-2">*</span><span class="ident">name</span>);
-                                            <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefineOwnPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
-                                        }
-                                        <span class="ident">PropertyName::Computed</span>(<span class="ident">name_node</span>) =&gt; {
-                                            <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">name_node</span>, <span class="bool-val">true</span>);
-                                            <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushUndefined</span>);
-                                            <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::DefineOwnPropertyByValue</span>);
-                                        }
-                                    }
-                                }
-                                <span class="ident">MethodDefinitionKind::Async</span> =&gt; {
                                     <span class="comment">// TODO: Implement async</span>
-                                    <span class="kw">match</span> <span class="ident">name</span> {
-                                        <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
-                                            <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushUndefined</span>);
-                                            <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
-                                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="kw-2">*</span><span class="ident">name</span>);
-                                            <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefineOwnPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>])
-                                        }
-                                        <span class="ident">PropertyName::Computed</span>(<span class="ident">name_node</span>) =&gt; {
-                                            <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">name_node</span>, <span class="bool-val">true</span>);
-                                            <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushUndefined</span>);
-                                            <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::DefineOwnPropertyByValue</span>);
-                                        }
-                                    }
-                                }
-                                <span class="ident">MethodDefinitionKind::AsyncGenerator</span> =&gt; {
                                     <span class="comment">// TODO: Implement async generators</span>
                                     <span class="kw">match</span> <span class="ident">name</span> {
                                         <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
                                             <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushUndefined</span>);
                                             <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
                                             <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="kw-2">*</span><span class="ident">name</span>);
-                                            <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefineOwnPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>])
+                                            <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefineOwnPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                                         }
                                         <span class="ident">PropertyName::Computed</span>(<span class="ident">name_node</span>) =&gt; {
                                             <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">name_node</span>, <span class="bool-val">true</span>);
@@ -2628,8 +2560,7 @@
             <span class="ident">Node::Spread</span>(<span class="ident">spread</span>) =&gt; <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">spread</span>.<span class="ident">val</span>(), <span class="bool-val">true</span>),
             <span class="ident">Node::FunctionExpr</span>(<span class="ident">_function</span>) =&gt; <span class="self">self</span>.<span class="ident">function</span>(<span class="ident">expr</span>, <span class="ident">use_expr</span>),
             <span class="ident">Node::ArrowFunctionDecl</span>(<span class="ident">_function</span>) =&gt; <span class="self">self</span>.<span class="ident">function</span>(<span class="ident">expr</span>, <span class="ident">use_expr</span>),
-            <span class="ident">Node::Call</span>(<span class="kw">_</span>) =&gt; <span class="self">self</span>.<span class="ident">call</span>(<span class="ident">expr</span>, <span class="ident">use_expr</span>),
-            <span class="ident">Node::New</span>(<span class="kw">_</span>) =&gt; <span class="self">self</span>.<span class="ident">call</span>(<span class="ident">expr</span>, <span class="ident">use_expr</span>),
+            <span class="ident">Node::Call</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Node::New</span>(<span class="kw">_</span>) =&gt; <span class="self">self</span>.<span class="ident">call</span>(<span class="ident">expr</span>, <span class="ident">use_expr</span>),
             <span class="ident">Node::TemplateLit</span>(<span class="ident">template_literal</span>) =&gt; {
                 <span class="kw">for</span> <span class="ident">element</span> <span class="kw">in</span> <span class="ident">template_literal</span>.<span class="ident">elements</span>() {
                     <span class="kw">match</span> <span class="ident">element</span> {
@@ -2652,23 +2583,15 @@
                 }
             }
             <span class="comment">// TODO: implement AsyncFunctionExpr</span>
-            <span class="ident">Node::AsyncFunctionExpr</span>(<span class="kw">_</span>) =&gt; {
-                <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushUndefined</span>);
-            }
             <span class="comment">// TODO: implement AwaitExpr</span>
-            <span class="ident">Node::AwaitExpr</span>(<span class="kw">_</span>) =&gt; {
-                <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushUndefined</span>);
-            }
             <span class="comment">// TODO: implement GeneratorExpr</span>
-            <span class="ident">Node::GeneratorExpr</span>(<span class="kw">_</span>) =&gt; {
-                <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushUndefined</span>);
-            }
             <span class="comment">// TODO: implement AsyncGeneratorExpr</span>
-            <span class="ident">Node::AsyncGeneratorExpr</span>(<span class="kw">_</span>) =&gt; {
-                <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushUndefined</span>);
-            }
             <span class="comment">// TODO: implement Yield</span>
-            <span class="ident">Node::Yield</span>(<span class="kw">_</span>) =&gt; {
+            <span class="ident">Node::AsyncFunctionExpr</span>(<span class="kw">_</span>)
+            <span class="op">|</span> <span class="ident">Node::AwaitExpr</span>(<span class="kw">_</span>)
+            <span class="op">|</span> <span class="ident">Node::GeneratorExpr</span>(<span class="kw">_</span>)
+            <span class="op">|</span> <span class="ident">Node::AsyncGeneratorExpr</span>(<span class="kw">_</span>)
+            <span class="op">|</span> <span class="ident">Node::Yield</span>(<span class="kw">_</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushUndefined</span>);
             }
             <span class="ident">Node::TaggedTemplate</span>(<span class="ident">template</span>) =&gt; {
@@ -3203,15 +3126,9 @@
                 }
             }
             <span class="comment">// TODO: implement AsyncFunctionDecl</span>
-            <span class="ident">Node::AsyncFunctionDecl</span>(<span class="kw">_</span>) =&gt; {
-                <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushUndefined</span>);
-            }
             <span class="comment">// TODO: implement GeneratorDecl</span>
-            <span class="ident">Node::GeneratorDecl</span>(<span class="kw">_</span>) =&gt; {
-                <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushUndefined</span>);
-            }
             <span class="comment">// TODO: implement AsyncGeneratorDecl</span>
-            <span class="ident">Node::AsyncGeneratorDecl</span>(<span class="kw">_</span>) =&gt; {
+            <span class="ident">Node::AsyncFunctionDecl</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Node::GeneratorDecl</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Node::AsyncGeneratorDecl</span>(<span class="kw">_</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushUndefined</span>);
             }
             <span class="ident">Node::Empty</span> =&gt; {}
@@ -3297,7 +3214,7 @@
         }
 
         <span class="kw">if</span> <span class="ident">has_parameter_expressions</span> {
-            <span class="ident">compiler</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushFunctionEnvironment</span>)
+            <span class="ident">compiler</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushFunctionEnvironment</span>);
         }
 
         <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="ident">body</span>.<span class="ident">items</span>() {
@@ -3375,11 +3292,11 @@
 
         <span class="kw">match</span> <span class="ident">kind</span> {
             <span class="ident">CallKind::Call</span> <span class="kw">if</span> <span class="ident">last_is_rest_parameter</span> =&gt; {
-                <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::CallWithRest</span>, <span class="kw-2">&amp;</span>[<span class="ident">call</span>.<span class="ident">args</span>().<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>])
+                <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::CallWithRest</span>, <span class="kw-2">&amp;</span>[<span class="ident">call</span>.<span class="ident">args</span>().<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>]);
             }
             <span class="ident">CallKind::Call</span> =&gt; <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Call</span>, <span class="kw-2">&amp;</span>[<span class="ident">call</span>.<span class="ident">args</span>().<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>]),
             <span class="ident">CallKind::New</span> <span class="kw">if</span> <span class="ident">last_is_rest_parameter</span> =&gt; {
-                <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::NewWithRest</span>, <span class="kw-2">&amp;</span>[<span class="ident">call</span>.<span class="ident">args</span>().<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>])
+                <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::NewWithRest</span>, <span class="kw-2">&amp;</span>[<span class="ident">call</span>.<span class="ident">args</span>().<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>]);
             }
             <span class="ident">CallKind::New</span> =&gt; <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::New</span>, <span class="kw-2">&amp;</span>[<span class="ident">call</span>.<span class="ident">args</span>().<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>]),
         }
@@ -3410,7 +3327,9 @@
                 <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::RequireObjectCoercible</span>);
 
                 <span class="kw">for</span> <span class="ident">binding</span> <span class="kw">in</span> <span class="ident">pattern</span>.<span class="ident">bindings</span>() {
-                    <span class="kw">use</span> <span class="ident">BindingPatternTypeObject</span>::<span class="kw-2">*</span>;
+                    <span class="kw">use</span> <span class="ident">BindingPatternTypeObject</span>::{
+                        <span class="ident">BindingPattern</span>, <span class="ident">Empty</span>, <span class="ident">RestProperty</span>, <span class="ident">SingleName</span>,
+                    };
 
                     <span class="kw">match</span> <span class="ident">binding</span> {
                         <span class="comment">// ObjectBindingPattern : { }</span>
@@ -3485,7 +3404,10 @@
                 <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::InitIterator</span>);
 
                 <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">binding</span>) <span class="kw">in</span> <span class="ident">pattern</span>.<span class="ident">bindings</span>().<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-                    <span class="kw">use</span> <span class="ident">BindingPatternTypeArray</span>::<span class="kw-2">*</span>;
+                    <span class="kw">use</span> <span class="ident">BindingPatternTypeArray</span>::{
+                        <span class="ident">BindingPattern</span>, <span class="ident">BindingPatternRest</span>, <span class="ident">Elision</span>, <span class="ident">Empty</span>, <span class="ident">SingleName</span>,
+                        <span class="ident">SingleNameRest</span>,
+                    };
 
                     <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">i</span> <span class="op">==</span> <span class="ident">pattern</span>.<span class="ident">bindings</span>().<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span> {
                         <span class="ident">Opcode::IteratorNextFull</span>
@@ -3520,7 +3442,7 @@
                         <span class="comment">// BindingElement : BindingPattern Initializer[opt]</span>
                         <span class="ident">BindingPattern</span> { <span class="ident">pattern</span> } =&gt; {
                             <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">next</span>);
-                            <span class="self">self</span>.<span class="ident">compile_declaration_pattern</span>(<span class="ident">pattern</span>, <span class="ident">def</span>)
+                            <span class="self">self</span>.<span class="ident">compile_declaration_pattern</span>(<span class="ident">pattern</span>, <span class="ident">def</span>);
                         }
                         <span class="comment">// BindingRestElement : ... BindingIdentifier</span>
                         <span class="ident">SingleNameRest</span> { <span class="ident">ident</span> } =&gt; {

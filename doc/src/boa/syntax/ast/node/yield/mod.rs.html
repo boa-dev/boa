@@ -108,8 +108,8 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Yield</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Node</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">r#yield</span>: <span class="ident">Yield</span>) -&gt; <span class="ident">Node</span> {
-        <span class="ident">Node::Yield</span>(<span class="ident">r#yield</span>)
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">r#yield</span>: <span class="ident">Yield</span>) -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::Yield</span>(<span class="ident">r#yield</span>)
     }
 }
 

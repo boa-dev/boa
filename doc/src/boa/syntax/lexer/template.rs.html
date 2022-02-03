@@ -249,7 +249,7 @@
 
 <span class="doccomment">/// Template literal lexing.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// Expects: Initial ` to already be consumed by cursor.</span>
+<span class="doccomment">/// Expects: Initial `` ` `` to already be consumed by cursor.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// More information:</span>
 <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -310,9 +310,9 @@
                         ))
                     })<span class="question-mark">?</span>;
 
-                    <span class="ident">buf</span>.<span class="ident">push</span>(<span class="string">b&#39;\\&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>);
+                    <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">u16::from</span>(<span class="string">b&#39;\\&#39;</span>));
                     <span class="kw">match</span> <span class="ident">escape_ch</span> {
-                        <span class="string">b&#39;`&#39;</span> <span class="op">|</span> <span class="string">b&#39;$&#39;</span> <span class="op">|</span> <span class="string">b&#39;\\&#39;</span> =&gt; <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">cursor</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span>.<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">u16</span>),
+                        <span class="string">b&#39;`&#39;</span> <span class="op">|</span> <span class="string">b&#39;$&#39;</span> <span class="op">|</span> <span class="string">b&#39;\\&#39;</span> =&gt; <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">u16::from</span>(<span class="ident">cursor</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span>.<span class="ident">unwrap</span>())),
                         <span class="kw">_</span> =&gt; <span class="kw">continue</span>,
                     }
                 }

@@ -119,7 +119,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Spread</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Node</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">spread</span>: <span class="ident">Spread</span>) -&gt; <span class="ident">Node</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">spread</span>: <span class="ident">Spread</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::Spread</span>(<span class="ident">spread</span>)
     }
 }

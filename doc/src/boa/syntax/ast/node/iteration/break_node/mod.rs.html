@@ -137,7 +137,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Break</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Node</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">break_smt</span>: <span class="ident">Break</span>) -&gt; <span class="ident">Node</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">break_smt</span>: <span class="ident">Break</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::Break</span>(<span class="ident">break_smt</span>)
     }
 }
