@@ -29,7 +29,7 @@ impl TemplateLit {
     where
         E: Into<Box<[TemplateElement]>>,
     {
-        TemplateLit {
+        Self {
             elements: elements.into(),
         }
     }
@@ -47,7 +47,7 @@ impl ToInternedString for TemplateLit {
             match elt {
                 TemplateElement::String(s) => buf.push_str(interner.resolve_expect(*s)),
                 TemplateElement::Expr(n) => {
-                    buf.push_str(&format!("${{{}}}", n.to_interned_string(interner)))
+                    buf.push_str(&format!("${{{}}}", n.to_interned_string(interner)));
                 }
             }
         }
@@ -117,7 +117,7 @@ impl ToInternedString for TaggedTemplate {
 
 impl From<TaggedTemplate> for Node {
     fn from(template: TaggedTemplate) -> Self {
-        Node::TaggedTemplate(template)
+        Self::TaggedTemplate(template)
     }
 }
 

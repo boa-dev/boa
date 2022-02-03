@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 /// This property accessor provides access to an object's properties by using the
 /// [bracket notation][mdn].
 ///
-/// In the object\[property_name\] syntax, the property_name is just a string or
+/// In the `object[property_name]` syntax, the `property_name` is just a string or
 /// [Symbol][symbol]. So, it can be any string, including '1foo', '!bar!', or even ' ' (a
 /// space).
 ///

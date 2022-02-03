@@ -230,7 +230,8 @@ impl From<Const> for Node {
 
 impl Node {
     /// Returns a node ordering based on the hoistability of each node.
-    pub(crate) fn hoistable_order(a: &Node, b: &Node) -> Ordering {
+    #[allow(clippy::match_same_arms)]
+    pub(crate) fn hoistable_order(a: &Self, b: &Self) -> Ordering {
         match (a, b) {
             (Node::FunctionDecl(_), Node::FunctionDecl(_)) => Ordering::Equal,
             (_, Node::FunctionDecl(_)) => Ordering::Greater,
@@ -307,8 +308,9 @@ impl Node {
             Self::TemplateLit(ref template) => template.to_interned_string(interner),
             Self::Throw(ref throw) => throw.to_interned_string(interner),
             Self::Assign(ref op) => op.to_interned_string(interner),
-            Self::LetDeclList(ref decl) => decl.to_interned_string(interner),
-            Self::ConstDeclList(ref decl) => decl.to_interned_string(interner),
+            Self::LetDeclList(ref decl) | Self::ConstDeclList(ref decl) => {
+                decl.to_interned_string(interner)
+            }
             Self::AsyncFunctionDecl(ref decl) => decl.to_indented_string(interner, indentation),
             Self::AsyncFunctionExpr(ref expr) => expr.to_indented_string(interner, indentation),
             Self::AwaitExpr(ref expr) => expr.to_interned_string(interner),
@@ -341,7 +343,7 @@ where
         } else {
             buf.push_str(", ");
         }
-        buf.push_str(&e.to_interned_string(interner))
+        buf.push_str(&e.to_interned_string(interner));
     }
     buf
 }
@@ -606,7 +608,7 @@ unsafe impl Trace for MethodDefinitionKind {
     empty_trace!();
 }
 
-/// PropertyName can be either a literal or computed.
+/// `PropertyName` can be either a literal or computed.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -657,7 +659,7 @@ unsafe impl Trace for PropertyName {
 }
 
 /// This parses the given source code, and then makes sure that
-/// the resulting StatementList is formatted in the same manner
+/// the resulting `StatementList` is formatted in the same manner
 /// as the source code. This is expected to have a preceding
 /// newline.
 ///

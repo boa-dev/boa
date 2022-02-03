@@ -25,7 +25,7 @@ impl ArrayIterator {
     pub(crate) const NAME: &'static str = "ArrayIterator";
 
     fn new(array: JsObject, kind: PropertyNameKind) -> Self {
-        ArrayIterator {
+        Self {
             array,
             kind,
             next_index: 0,
@@ -33,7 +33,7 @@ impl ArrayIterator {
         }
     }
 
-    /// CreateArrayIterator( array, kind )
+    /// `CreateArrayIterator( array, kind )`
     ///
     /// Creates a new iterator over the given array.
     ///
@@ -62,7 +62,7 @@ impl ArrayIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%.next
     pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let mut array_iterator = this.as_object().map(|obj| obj.borrow_mut());
+        let mut array_iterator = this.as_object().map(JsObject::borrow_mut);
         let array_iterator = array_iterator
             .as_mut()
             .and_then(|obj| obj.as_array_iterator_mut())
@@ -111,7 +111,7 @@ impl ArrayIterator {
         }
     }
 
-    /// Create the %ArrayIteratorPrototype% object
+    /// Create the `%ArrayIteratorPrototype%` object
     ///
     /// More information:
     ///  - [ECMA reference][spec]

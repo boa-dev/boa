@@ -88,7 +88,7 @@ impl ToInternedString for If {
 }
 
 impl From<If> for Node {
-    fn from(if_stm: If) -> Node {
+    fn from(if_stm: If) -> Self {
         Self::If(if_stm)
     }
 }

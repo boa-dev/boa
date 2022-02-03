@@ -11,7 +11,7 @@ fn check_static_strings() {
     let mut interner = Interner::default();
 
     for (i, str) in Interner::STATIC_STRINGS.into_iter().enumerate() {
-        assert_eq!(interner.get_or_intern(str), sym_from_usize(i + 1))
+        assert_eq!(interner.get_or_intern(str), sym_from_usize(i + 1));
     }
 }
 

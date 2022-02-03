@@ -39,9 +39,9 @@ pub struct DeclarativeEnvironmentRecord {
 }
 
 impl DeclarativeEnvironmentRecord {
-    pub fn new(env: Option<Environment>) -> DeclarativeEnvironmentRecord {
+    pub fn new(env: Option<Environment>) -> Self {
         let _timer = BoaProfiler::global().start_event("new_declarative_environment", "env");
-        DeclarativeEnvironmentRecord {
+        Self {
             env_rec: gc::Cell::new(FxHashMap::default()),
             outer_env: env,
         }
@@ -337,7 +337,7 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
 }
 
 impl From<DeclarativeEnvironmentRecord> for Environment {
-    fn from(env: DeclarativeEnvironmentRecord) -> Environment {
+    fn from(env: DeclarativeEnvironmentRecord) -> Self {
         Gc::new(Box::new(env))
     }
 }

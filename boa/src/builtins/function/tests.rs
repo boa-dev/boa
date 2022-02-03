@@ -142,7 +142,7 @@ fn function_prototype_call_throw() {
     let value = forward_val(&mut context, throw).unwrap_err();
     assert!(value.is_object());
     let string = value.to_string(&mut context).unwrap();
-    assert!(string.starts_with("TypeError"))
+    assert!(string.starts_with("TypeError"));
 }
 
 #[test]

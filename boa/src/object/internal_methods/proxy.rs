@@ -159,7 +159,7 @@ pub(crate) fn proxy_exotic_set_prototype_of(
             &handler.into(),
             &[
                 target.clone().into(),
-                val.clone().map_or(JsValue::Null, |obj| obj.into()),
+                val.clone().map_or(JsValue::Null, Into::into),
             ],
             context,
         )?
@@ -338,14 +338,13 @@ pub(crate) fn proxy_exotic_get_own_property(
                 return context.throw_type_error(
                     "Proxy trap result is undefined and target is not extensible",
                 );
-            // e. Return undefined.
-            } else {
-                return Ok(None);
             }
-        } else {
-            // a. If targetDesc is undefined, return undefined.
+            // e. Return undefined.
             return Ok(None);
         }
+
+        // a. If targetDesc is undefined, return undefined.
+        return Ok(None);
     }
 
     // 11. Let extensibleTarget be ? IsExtensible(target).
@@ -829,7 +828,7 @@ pub(crate) fn proxy_exotic_own_property_keys(
                         "Proxy trap result contains duplicate string property keys",
                     );
                 }
-                trap_result.push(s.clone().into())
+                trap_result.push(s.clone().into());
             }
             JsValue::Symbol(s) => {
                 if !unchecked_result_keys.insert(s.clone().into()) {
@@ -837,7 +836,7 @@ pub(crate) fn proxy_exotic_own_property_keys(
                         "Proxy trap result contains duplicate symbol property keys",
                     );
                 }
-                trap_result.push(s.clone().into())
+                trap_result.push(s.clone().into());
             }
             _ => {}
         }

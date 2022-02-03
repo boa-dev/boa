@@ -29,9 +29,7 @@ const MILLIS_PER_SECOND: i64 = 1000;
 
 #[inline]
 fn is_zero_or_normal_opt(value: Option<f64>) -> bool {
-    value
-        .map(|value| value == 0f64 || value.is_normal())
-        .unwrap_or(true)
+    value.map_or(true, |value| value == 0f64 || value.is_normal())
 }
 
 macro_rules! check_normal_opt {
@@ -43,8 +41,7 @@ macro_rules! check_normal_opt {
 #[inline]
 fn ignore_ambiguity<T>(result: LocalResult<T>) -> Option<T> {
     match result {
-        LocalResult::Ambiguous(v, _) => Some(v),
-        LocalResult::Single(v) => Some(v),
+        LocalResult::Ambiguous(v, _) | LocalResult::Single(v) => Some(v),
         LocalResult::None => None,
     }
 }
@@ -290,14 +287,14 @@ impl Date {
         };
 
         self.0 = naive.and_then(|naive| {
-            let year = year.unwrap_or_else(|| naive.year() as f64) as i32;
-            let month = month.unwrap_or_else(|| naive.month0() as f64) as i32;
-            let day = (day.unwrap_or_else(|| naive.day() as f64) as i32).checked_sub(1)?;
-            let hour = hour.unwrap_or_else(|| naive.hour() as f64) as i64;
-            let minute = minute.unwrap_or_else(|| naive.minute() as f64) as i64;
-            let second = second.unwrap_or_else(|| naive.second() as f64) as i64;
+            let year = year.unwrap_or_else(|| f64::from(naive.year())) as i32;
+            let month = month.unwrap_or_else(|| f64::from(naive.month0())) as i32;
+            let day = (day.unwrap_or_else(|| f64::from(naive.day())) as i32).checked_sub(1)?;
+            let hour = hour.unwrap_or_else(|| f64::from(naive.hour())) as i64;
+            let minute = minute.unwrap_or_else(|| f64::from(naive.minute())) as i64;
+            let second = second.unwrap_or_else(|| f64::from(naive.second())) as i64;
             let millisecond = millisecond
-                .unwrap_or_else(|| naive.nanosecond() as f64 / NANOS_PER_MS as f64)
+                .unwrap_or_else(|| f64::from(naive.nanosecond()) / NANOS_PER_MS as f64)
                 as i64;
 
             let (year, month, day) = fix_day(year, month, day)?;
@@ -384,7 +381,7 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date-constructor
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date
     pub(crate) fn make_date_now(prototype: JsObject) -> JsObject {
-        JsObject::from_proto_and_data(prototype, ObjectData::date(Date::default()))
+        JsObject::from_proto_and_data(prototype, ObjectData::date(Self::default()))
     }
 
     /// `Date(value)`
@@ -416,8 +413,8 @@ impl Date {
                         None
                     } else {
                         let secs = (tv / 1_000f64) as i64;
-                        let nsecs = ((tv % 1_000f64) * 1_000_000f64) as u32;
-                        NaiveDateTime::from_timestamp_opt(secs, nsecs)
+                        let nano_secs = ((tv % 1_000f64) * 1_000_000f64) as u32;
+                        NaiveDateTime::from_timestamp_opt(secs, nano_secs)
                     }
                 }
             },
@@ -426,7 +423,7 @@ impl Date {
         let tv = tv.filter(|time| Self::time_clip(time.timestamp_millis() as f64).is_some());
         Ok(JsObject::from_proto_and_data(
             prototype,
-            ObjectData::date(Date(tv)),
+            ObjectData::date(Self(tv)),
         ))
     }
 
@@ -467,12 +464,12 @@ impl Date {
         if !check_normal_opt!(year, month, day, hour, min, sec, milli) {
             return Ok(JsObject::from_proto_and_data(
                 prototype,
-                ObjectData::date(Date(None)),
+                ObjectData::date(Self(None)),
             ));
         }
 
         if (0.0..=99.0).contains(&year) {
-            year += 1900.0
+            year += 1900.0;
         }
 
         let mut date = Self(
@@ -525,10 +522,10 @@ impl Date {
 
         let hint = args.get_or_undefined(0);
 
-        let try_first = match hint.as_string().map(|s| s.as_str()) {
+        let try_first = match hint.as_string().map(JsString::as_str) {
             // 3. If hint is "string" or "default", then
             // a. Let tryFirst be string.
-            Some("string") | Some("default") => PreferredType::String,
+            Some("string" | "default") => PreferredType::String,
             // 4. Else if hint is "number", then
             // a. Let tryFirst be number.
             Some("number") => PreferredType::Number,
@@ -554,7 +551,7 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getdate
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getDate
     pub fn get_date(&self) -> f64 {
-        self.to_local().map_or(f64::NAN, |dt| dt.day() as f64)
+        self.to_local().map_or(f64::NAN, |dt| f64::from(dt.day()))
     }
 
     /// `Date.prototype.getDay()`
@@ -572,7 +569,7 @@ impl Date {
         self.to_local().map_or(f64::NAN, |dt| {
             let weekday = dt.weekday() as u32;
             let weekday = (weekday + 1) % 7; // 0 represents Monday in Chrono
-            weekday as f64
+            f64::from(weekday)
         })
     }
 
@@ -587,7 +584,7 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getfullyear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getFullYear
     pub fn get_full_year(&self) -> f64 {
-        self.to_local().map_or(f64::NAN, |dt| dt.year() as f64)
+        self.to_local().map_or(f64::NAN, |dt| f64::from(dt.year()))
     }
 
     /// `Date.prototype.getHours()`
@@ -601,7 +598,7 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.gethours
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getHours
     pub fn get_hours(&self) -> f64 {
-        self.to_local().map_or(f64::NAN, |dt| dt.hour() as f64)
+        self.to_local().map_or(f64::NAN, |dt| f64::from(dt.hour()))
     }
 
     /// `Date.prototype.getMilliseconds()`
@@ -615,8 +612,9 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getmilliseconds
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getMilliseconds
     pub fn get_milliseconds(&self) -> f64 {
-        self.to_local()
-            .map_or(f64::NAN, |dt| dt.nanosecond() as f64 / NANOS_PER_MS as f64)
+        self.to_local().map_or(f64::NAN, |dt| {
+            f64::from(dt.nanosecond()) / NANOS_PER_MS as f64
+        })
     }
 
     /// `Date.prototype.getMinutes()`
@@ -630,7 +628,8 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getminutes
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getMinutes
     pub fn get_minutes(&self) -> f64 {
-        self.to_local().map_or(f64::NAN, |dt| dt.minute() as f64)
+        self.to_local()
+            .map_or(f64::NAN, |dt| f64::from(dt.minute()))
     }
 
     /// `Date.prototype.getMonth()`
@@ -645,7 +644,8 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getmonth
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getMonth
     pub fn get_month(&self) -> f64 {
-        self.to_local().map_or(f64::NAN, |dt| dt.month0() as f64)
+        self.to_local()
+            .map_or(f64::NAN, |dt| f64::from(dt.month0()))
     }
 
     /// `Date.prototype.getSeconds()`
@@ -659,13 +659,15 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getseconds
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getSeconds
     pub fn get_seconds(&self) -> f64 {
-        self.to_local().map_or(f64::NAN, |dt| dt.second() as f64)
+        self.to_local()
+            .map_or(f64::NAN, |dt| f64::from(dt.second()))
     }
 
     /// `Date.prototype.getYear()`
     ///
-    /// The getYear() method returns the year in the specified date according to local time. Because getYear() does not
-    /// return full years ("year 2000 problem"), it is no longer used and has been replaced by the getFullYear() method.
+    /// The `getYear()` method returns the year in the specified date according to local time.
+    /// Because `getYear()` does not return full years ("year 2000 problem"), it is no longer used
+    /// and has been replaced by the `getFullYear()` method.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -675,7 +677,7 @@ impl Date {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getYear
     pub fn get_year(&self) -> f64 {
         self.to_local()
-            .map_or(f64::NAN, |dt| dt.year() as f64 - 1900f64)
+            .map_or(f64::NAN, |dt| f64::from(dt.year()) - 1900f64)
     }
 
     /// `Date.prototype.getTime()`
@@ -695,7 +697,7 @@ impl Date {
 
     /// `Date.prototype.getTimeZoneOffset()`
     ///
-    /// The getTimezoneOffset() method returns the time zone difference, in minutes, from current locale (host system
+    /// The `getTimezoneOffset()` method returns the time zone difference, in minutes, from current locale (host system
     /// settings) to UTC.
     ///
     /// More information:
@@ -720,7 +722,7 @@ impl Date {
 
         // 3. Return (t - LocalTime(t)) / msPerMinute.
         Ok(JsValue::new(
-            -Local::now().offset().local_minus_utc() as f64 / 60f64,
+            f64::from(-Local::now().offset().local_minus_utc()) / 60f64,
         ))
     }
 
@@ -735,7 +737,7 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutcdate
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCDate
     pub fn get_utc_date(&self) -> f64 {
-        self.to_utc().map_or(f64::NAN, |dt| dt.day() as f64)
+        self.to_utc().map_or(f64::NAN, |dt| f64::from(dt.day()))
     }
 
     /// `Date.prototype.getUTCDay()`
@@ -753,7 +755,7 @@ impl Date {
         self.to_utc().map_or(f64::NAN, |dt| {
             let weekday = dt.weekday() as u32;
             let weekday = (weekday + 1) % 7; // 0 represents Monday in Chrono
-            weekday as f64
+            f64::from(weekday)
         })
     }
 
@@ -768,7 +770,7 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutcfullyear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCFullYear
     pub fn get_utc_full_year(&self) -> f64 {
-        self.to_utc().map_or(f64::NAN, |dt| dt.year() as f64)
+        self.to_utc().map_or(f64::NAN, |dt| f64::from(dt.year()))
     }
 
     /// `Date.prototype.getUTCHours()`
@@ -782,7 +784,7 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutchours
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCHours
     pub fn get_utc_hours(&self) -> f64 {
-        self.to_utc().map_or(f64::NAN, |dt| dt.hour() as f64)
+        self.to_utc().map_or(f64::NAN, |dt| f64::from(dt.hour()))
     }
 
     /// `Date.prototype.getUTCMilliseconds()`
@@ -796,8 +798,9 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutcmilliseconds
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCMilliseconds
     pub fn get_utc_milliseconds(&self) -> f64 {
-        self.to_utc()
-            .map_or(f64::NAN, |dt| dt.nanosecond() as f64 / NANOS_PER_MS as f64)
+        self.to_utc().map_or(f64::NAN, |dt| {
+            f64::from(dt.nanosecond()) / NANOS_PER_MS as f64
+        })
     }
 
     /// `Date.prototype.getUTCMinutes()`
@@ -811,7 +814,7 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutcminutes
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCMinutes
     pub fn get_utc_minutes(&self) -> f64 {
-        self.to_utc().map_or(f64::NAN, |dt| dt.minute() as f64)
+        self.to_utc().map_or(f64::NAN, |dt| f64::from(dt.minute()))
     }
 
     /// `Date.prototype.getUTCMonth()`
@@ -826,7 +829,7 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutcmonth
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCMonth
     pub fn get_utc_month(&self) -> f64 {
-        self.to_utc().map_or(f64::NAN, |dt| dt.month0() as f64)
+        self.to_utc().map_or(f64::NAN, |dt| f64::from(dt.month0()))
     }
 
     /// `Date.prototype.getUTCSeconds()`
@@ -840,7 +843,7 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutcseconds
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCSeconds
     pub fn get_utc_seconds(&self) -> f64 {
-        self.to_utc().map_or(f64::NAN, |dt| dt.second() as f64)
+        self.to_utc().map_or(f64::NAN, |dt| f64::from(dt.second()))
     }
 
     /// `Date.prototype.setDate()`
@@ -1204,7 +1207,7 @@ impl Date {
         // 4. If y is NaN, then
         if y.is_nan() {
             // a. Set the [[DateValue]] internal slot of this Date object to NaN.
-            this.set_data(ObjectData::date(Date(None)));
+            this.set_data(ObjectData::date(Self(None)));
 
             // b. Return NaN.
             return Ok(JsValue::nan());
@@ -1248,12 +1251,12 @@ impl Date {
             let t = t.to_number(context)?;
             let seconds = (t / 1_000f64) as i64;
             let nanoseconds = ((t % 1_000f64) * 1_000_000f64) as u32;
-            Date(
+            Self(
                 ignore_ambiguity(Local.timestamp_opt(seconds, nanoseconds))
                     .map(|dt| dt.naive_utc()),
             )
         } else {
-            Date(None)
+            Self(None)
         };
 
         // 3. Let v be TimeClip(t).
@@ -1793,9 +1796,10 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.toutcstring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toUTCString
     pub fn to_utc_string(self) -> String {
-        self.to_utc()
-            .map(|date_time| date_time.format("%a, %d %b %Y %H:%M:%S GMT").to_string())
-            .unwrap_or_else(|| "Invalid Date".to_string())
+        self.to_utc().map_or_else(
+            || "Invalid Date".to_string(),
+            |date_time| date_time.format("%a, %d %b %Y %H:%M:%S GMT").to_string(),
+        )
     }
 
     /// `Date.prototype.valueOf()`
@@ -1822,6 +1826,7 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.now
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now
+    #[allow(clippy::unnecessary_wraps)]
     pub(crate) fn now(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Ok(JsValue::new(Utc::now().timestamp_millis() as f64))
     }
@@ -1829,7 +1834,7 @@ impl Date {
     /// `Date.parse()`
     ///
     /// The `Date.parse()` method parses a string representation of a date, and returns the number of milliseconds since
-    /// January 1, 1970, 00:00:00 UTC or NaN if the string is unrecognized or, in some cases, contains illegal date
+    /// January 1, 1970, 00:00:00 UTC or `NaN` if the string is unrecognized or, in some cases, contains illegal date
     /// values.
     ///
     /// More information:

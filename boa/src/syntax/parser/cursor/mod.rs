@@ -41,7 +41,7 @@ where
 
     #[inline]
     pub(super) fn set_goal(&mut self, elm: InputElement) {
-        self.buffered_lexer.set_goal(elm)
+        self.buffered_lexer.set_goal(elm);
     }
 
     #[inline]
@@ -83,7 +83,7 @@ where
 
     #[inline]
     pub(super) fn set_strict_mode(&mut self, strict_mode: bool) {
-        self.buffered_lexer.set_strict_mode(strict_mode)
+        self.buffered_lexer.set_strict_mode(strict_mode);
     }
 
     /// Returns an error if the next token is not of kind `kind`.
@@ -124,11 +124,8 @@ where
     ) -> Result<SemicolonResult<'_>, ParseError> {
         match self.buffered_lexer.peek(0, false, interner)? {
             Some(tk) => match tk.kind() {
-                TokenKind::Punctuator(Punctuator::Semicolon)
-                | TokenKind::LineTerminator
-                | TokenKind::Punctuator(Punctuator::CloseBlock) => {
-                    Ok(SemicolonResult::Found(Some(tk)))
-                }
+                TokenKind::Punctuator(Punctuator::Semicolon | Punctuator::CloseBlock)
+                | TokenKind::LineTerminator => Ok(SemicolonResult::Found(Some(tk))),
                 _ => Ok(SemicolonResult::NotFound(tk)),
             },
             None => Ok(SemicolonResult::Found(None)),
@@ -149,7 +146,7 @@ where
         match self.peek_semicolon(interner)? {
             SemicolonResult::Found(Some(tk)) => match *tk.kind() {
                 TokenKind::Punctuator(Punctuator::Semicolon) | TokenKind::LineTerminator => {
-                    let _ = self.buffered_lexer.next(false, interner)?;
+                    let _next = self.buffered_lexer.next(false, interner)?;
                     Ok(())
                 }
                 _ => Ok(()),
@@ -168,7 +165,8 @@ where
     ///
     /// It expects that the token stream does not end here.
     ///
-    /// This is just syntatic sugar for a .peek(skip_n) call followed by a check that the result is not a line terminator or None.
+    /// This is just syntatic sugar for a `.peek(skip_n)` call followed by a check that the result
+    /// is not a line terminator or `None`.
     #[inline]
     pub(super) fn peek_expect_no_lineterminator(
         &mut self,

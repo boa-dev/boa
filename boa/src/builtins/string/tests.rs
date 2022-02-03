@@ -350,7 +350,7 @@ fn starts_with_with_regex_arg() {
             &mut context, scenario
         ),
         "\"TypeError: First argument to String.prototype.startsWith must not be a regular expression\""
-    )
+    );
 }
 
 #[test]
@@ -394,7 +394,7 @@ fn ends_with_with_regex_arg() {
             &mut context, scenario
         ),
         "\"TypeError: First argument to String.prototype.endsWith must not be a regular expression\""
-    )
+    );
 }
 
 #[test]
@@ -438,7 +438,7 @@ fn includes_with_regex_arg() {
             &mut context, scenario
         ),
         "\"TypeError: First argument to String.prototype.includes must not be a regular expression\""
-    )
+    );
 }
 
 #[test]
@@ -680,7 +680,10 @@ fn split() {
 
     // TODO: Support keeping invalid code point in string
     assert_eq!(
-        forward(&mut context, "'𝟘𝟙𝟚𝟛'.split('')"),
+        forward(
+            &mut context,
+            "\'\u{1d7d8}\u{1d7d9}\u{1d7da}\u{1d7db}\'.split(\'\')"
+        ),
         forward(&mut context, "['�','�','�','�','�','�','�','�']")
     );
 }

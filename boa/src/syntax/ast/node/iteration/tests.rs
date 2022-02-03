@@ -336,7 +336,7 @@ fn for_loop_break_label() {
         }
         str
     "#;
-    assert_eq!(&exec(scenario), "\"01\"")
+    assert_eq!(&exec(scenario), "\"01\"");
 }
 
 #[test]
@@ -462,7 +462,7 @@ fn for_in_break_label() {
         }
         str
     "#;
-    assert_eq!(&exec(scenario), "\"0\"")
+    assert_eq!(&exec(scenario), "\"0\"");
 }
 
 #[test]
@@ -481,7 +481,7 @@ fn for_in_continue_label() {
         }
         str
     "#;
-    assert_eq!(&exec(scenario), "\"00\"")
+    assert_eq!(&exec(scenario), "\"00\"");
 }
 
 #[test]

@@ -1,9 +1,9 @@
-use super::*;
+use super::{BoaProfiler, Display, JsBigInt, JsObject, JsString, JsSymbol, JsValue};
 use std::convert::TryFrom;
 
-impl From<&JsValue> for JsValue {
+impl From<&Self> for JsValue {
     #[inline]
-    fn from(value: &JsValue) -> Self {
+    fn from(value: &Self) -> Self {
         value.clone()
     }
 }
@@ -23,14 +23,14 @@ where
 impl From<char> for JsValue {
     #[inline]
     fn from(value: char) -> Self {
-        JsValue::new(value.to_string())
+        Self::new(value.to_string())
     }
 }
 
 impl From<JsSymbol> for JsValue {
     #[inline]
     fn from(value: JsSymbol) -> Self {
-        JsValue::Symbol(value)
+        Self::Symbol(value)
     }
 }
 
@@ -48,67 +48,67 @@ impl From<f64> for JsValue {
     #[inline]
     fn from(value: f64) -> Self {
         // if value as i32 as f64 == value {
-        //     JsValue::Integer(value as i32)
+        //     Self::Integer(value as i32)
         // } else {
-        JsValue::Rational(value)
+        Self::Rational(value)
         // }
     }
 }
 
 impl From<u32> for JsValue {
     #[inline]
-    fn from(value: u32) -> JsValue {
+    fn from(value: u32) -> Self {
         if let Ok(integer) = i32::try_from(value) {
-            JsValue::Integer(integer)
+            Self::Integer(integer)
         } else {
-            JsValue::Rational(value.into())
+            Self::Rational(value.into())
         }
     }
 }
 
 impl From<i32> for JsValue {
     #[inline]
-    fn from(value: i32) -> JsValue {
-        JsValue::Integer(value)
+    fn from(value: i32) -> Self {
+        Self::Integer(value)
     }
 }
 
 impl From<JsBigInt> for JsValue {
     #[inline]
     fn from(value: JsBigInt) -> Self {
-        JsValue::BigInt(value)
+        Self::BigInt(value)
     }
 }
 
 impl From<usize> for JsValue {
     #[inline]
-    fn from(value: usize) -> JsValue {
+    fn from(value: usize) -> Self {
         if let Ok(value) = i32::try_from(value) {
-            JsValue::Integer(value)
+            Self::Integer(value)
         } else {
-            JsValue::Rational(value as f64)
+            Self::Rational(value as f64)
         }
     }
 }
 
 impl From<u64> for JsValue {
     #[inline]
-    fn from(value: u64) -> JsValue {
+    fn from(value: u64) -> Self {
         if let Ok(value) = i32::try_from(value) {
-            JsValue::Integer(value)
+            Self::Integer(value)
         } else {
-            JsValue::Rational(value as f64)
+            Self::Rational(value as f64)
         }
     }
 }
 
 impl From<i64> for JsValue {
     #[inline]
-    fn from(value: i64) -> JsValue {
+    fn from(value: i64) -> Self {
         if let Ok(value) = i32::try_from(value) {
-            JsValue::Integer(value)
+            Self::Integer(value)
         } else {
-            JsValue::Rational(value as f64)
+            Self::Rational(value as f64)
         }
     }
 }
@@ -116,7 +116,7 @@ impl From<i64> for JsValue {
 impl From<bool> for JsValue {
     #[inline]
     fn from(value: bool) -> Self {
-        JsValue::Boolean(value)
+        Self::Boolean(value)
     }
 }
 
@@ -124,7 +124,7 @@ impl From<JsObject> for JsValue {
     #[inline]
     fn from(object: JsObject) -> Self {
         let _timer = BoaProfiler::global().start_event("From<JsObject>", "value");
-        JsValue::Object(object)
+        Self::Object(object)
     }
 }
 
@@ -141,19 +141,19 @@ impl Display for TryFromObjectError {
 impl From<()> for JsValue {
     #[inline]
     fn from(_: ()) -> Self {
-        JsValue::null()
+        Self::null()
     }
 }
 
 impl<T> From<Option<T>> for JsValue
 where
-    T: Into<JsValue>,
+    T: Into<Self>,
 {
     #[inline]
     fn from(value: Option<T>) -> Self {
         match value {
             Some(value) => value.into(),
-            None => JsValue::null(),
+            None => Self::null(),
         }
     }
 }

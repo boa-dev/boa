@@ -79,7 +79,7 @@ impl ToInternedString for ForInLoop {
 }
 
 impl From<ForInLoop> for Node {
-    fn from(for_in: ForInLoop) -> Node {
+    fn from(for_in: ForInLoop) -> Self {
         Self::ForInLoop(for_in)
     }
 }

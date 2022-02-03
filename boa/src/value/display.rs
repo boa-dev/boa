@@ -1,6 +1,6 @@
-use crate::object::ObjectKind;
+use crate::{object::ObjectKind, property::PropertyDescriptor};
 
-use super::*;
+use super::{fmt, Display, HashSet, JsValue, PropertyKey};
 
 /// This object is used for displaying a `Value`.
 #[derive(Debug, Clone, Copy)]
@@ -14,7 +14,7 @@ pub struct ValueDisplay<'value> {
 /// - The object to be printed
 /// - The function with which to print
 /// - The indentation for the current level (for nested objects)
-/// - A HashSet with the addresses of the already printed objects for the current branch
+/// - A `HashSet` with the addresses of the already printed objects for the current branch
 ///      (used to avoid infinite loops when there are cyclic deps)
 macro_rules! print_obj_value {
     (all of $obj:expr, $display_fn:ident, $indent:expr, $encounters:expr) => {
@@ -126,7 +126,7 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                                         .properties()
                                         .get(&i.into())
                                         // FIXME: handle accessor descriptors
-                                        .and_then(|p| p.value())
+                                        .and_then(PropertyDescriptor::value)
                                         .unwrap_or(&JsValue::Undefined),
                                     print_internals,
                                     false,
@@ -196,30 +196,6 @@ pub(crate) fn display_obj(v: &JsValue, print_internals: bool) -> String {
         my_ptr as usize
     }
 
-    // We keep track of which objects we have encountered by keeping their
-    // in-memory address in this set
-    let mut encounters = HashSet::new();
-
-    if let JsValue::Object(object) = v {
-        if object.borrow().is_error() {
-            let name = v
-                .get_property("name")
-                .as_ref()
-                .and_then(|d| d.value())
-                .unwrap_or(&JsValue::Undefined)
-                .display()
-                .to_string();
-            let message = v
-                .get_property("message")
-                .as_ref()
-                .and_then(|d| d.value())
-                .unwrap_or(&JsValue::Undefined)
-                .display()
-                .to_string();
-            return format!("{}: {}", name, message);
-        }
-    }
-
     fn display_obj_internal(
         data: &JsValue,
         encounters: &mut HashSet<usize>,
@@ -257,6 +233,30 @@ pub(crate) fn display_obj(v: &JsValue, print_internals: bool) -> String {
         } else {
             // Every other type of data is printed with the display method
             format!("{}", data.display())
+        }
+    }
+
+    // We keep track of which objects we have encountered by keeping their
+    // in-memory address in this set
+    let mut encounters = HashSet::new();
+
+    if let JsValue::Object(object) = v {
+        if object.borrow().is_error() {
+            let name = v
+                .get_property("name")
+                .as_ref()
+                .and_then(PropertyDescriptor::value)
+                .unwrap_or(&JsValue::Undefined)
+                .display()
+                .to_string();
+            let message = v
+                .get_property("message")
+                .as_ref()
+                .and_then(PropertyDescriptor::value)
+                .unwrap_or(&JsValue::Undefined)
+                .display()
+                .to_string();
+            return format!("{}: {}", name, message);
         }
     }
 

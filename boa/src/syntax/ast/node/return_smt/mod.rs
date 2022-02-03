@@ -59,8 +59,8 @@ impl Return {
 }
 
 impl From<Return> for Node {
-    fn from(return_smt: Return) -> Node {
-        Node::Return(return_smt)
+    fn from(return_smt: Return) -> Self {
+        Self::Return(return_smt)
     }
 }
 

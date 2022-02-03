@@ -405,7 +405,7 @@ fn check_async_method_lineterminator() {
             dive(){}
         };
         ",
-    )
+    );
 }
 
 #[test]
@@ -416,5 +416,5 @@ fn check_async_gen_method_lineterminator() {
             * vroom() {}
         };
         ",
-    )
+    );
 }

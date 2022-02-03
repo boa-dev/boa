@@ -32,7 +32,7 @@ impl StringIterator {
     }
 
     pub fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let mut string_iterator = this.as_object().map(|obj| obj.borrow_mut());
+        let mut string_iterator = this.as_object().map(JsObject::borrow_mut);
         let string_iterator = string_iterator
             .as_mut()
             .and_then(|obj| obj.as_string_iterator_mut())
@@ -57,8 +57,8 @@ impl StringIterator {
             ));
         }
         let (_, code_unit_count, _) =
-            code_point_at(native_string, position).expect("Invalid code point position");
-        string_iterator.next_index += code_unit_count as i32;
+            code_point_at(&native_string, position).expect("Invalid code point position");
+        string_iterator.next_index += i32::from(code_unit_count);
         let result_string = crate::builtins::string::String::substring(
             &string_iterator.string,
             &[position.into(), string_iterator.next_index.into()],
@@ -67,7 +67,7 @@ impl StringIterator {
         Ok(create_iter_result_object(result_string, false, context))
     }
 
-    /// Create the %ArrayIteratorPrototype% object
+    /// Create the `%ArrayIteratorPrototype%` object
     ///
     /// More information:
     ///  - [ECMA reference][spec]

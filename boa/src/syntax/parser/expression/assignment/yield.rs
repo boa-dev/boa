@@ -1,4 +1,4 @@
-//! YieldExpression parsing.
+//! `YieldExpression` parsing.
 //!
 //! More information:
 //!  - [MDN documentation][mdn]
@@ -23,7 +23,7 @@ use std::io::Read;
 
 use super::AssignmentExpression;
 
-/// YieldExpression parsing.
+/// `YieldExpression` parsing.
 ///
 /// More information:
 ///  - [MDN documentation][mdn]

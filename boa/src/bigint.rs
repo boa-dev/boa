@@ -77,15 +77,15 @@ impl JsBigInt {
         self.inner.to_str_radix(radix)
     }
 
-    /// Converts the BigInt to a f64 type.
+    /// Converts the `BigInt` to a f64 type.
     ///
-    /// Returns `f64::INFINITY` if the BigInt is too big.
+    /// Returns `f64::INFINITY` if the `BigInt` is too big.
     #[inline]
     pub fn to_f64(&self) -> f64 {
         self.inner.to_f64().unwrap_or(f64::INFINITY)
     }
 
-    /// Converts a string to a BigInt with the specified radix.
+    /// Converts a string to a `BigInt` with the specified radix.
     #[inline]
     pub fn from_string_radix(buf: &str, radix: u32) -> Option<Self> {
         Some(Self {
@@ -93,7 +93,7 @@ impl JsBigInt {
         })
     }
 
-    /// This function takes a string and conversts it to BigInt type.
+    /// This function takes a string and conversts it to `BigInt` type.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -104,7 +104,7 @@ impl JsBigInt {
         string = string.trim();
 
         if string.is_empty() {
-            return Some(JsBigInt::zero());
+            return Some(Self::zero());
         }
 
         let mut radix = 10;
@@ -149,7 +149,7 @@ impl JsBigInt {
 
     /// Checks for mathematical equality.
     ///
-    /// The abstract operation BigInt::equal takes arguments x (a `BigInt`) and y (a `BigInt`).
+    /// The abstract operation `BigInt::equal` takes arguments x (a `BigInt`) and y (a `BigInt`).
     /// It returns `true` if x and y have the same mathematical integer value and false otherwise.
     ///
     /// More information:

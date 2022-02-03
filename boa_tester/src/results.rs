@@ -211,10 +211,10 @@ pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) {
         fn diff_format(diff: isize) -> String {
             format!(
                 "{}{}{}{}",
-                if diff != 0 { "**" } else { "" },
+                if diff == 0 { "" } else { "**" },
                 if diff > 0 { "+" } else { "" },
                 diff.to_formatted_string(&Locale::en),
-                if diff != 0 { "**" } else { "" }
+                if diff == 0 { "" } else { "**" }
             )
         }
 
@@ -435,6 +435,7 @@ fn compute_result_diff(
             )
             .into_boxed_str();
 
+            #[allow(clippy::match_same_arms)]
             match (base_test.result, new_test.result) {
                 (a, b) if a == b => {}
                 (TestOutcomeResult::Ignored, TestOutcomeResult::Failed) => {}
@@ -458,7 +459,7 @@ fn compute_result_diff(
             let new_base = base.join(new_suite.name.as_ref());
             let diff = compute_result_diff(new_base.as_path(), base_suite, new_suite);
 
-            final_diff.extend(diff)
+            final_diff.extend(diff);
         }
     }
 

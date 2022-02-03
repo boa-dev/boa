@@ -1,6 +1,6 @@
 //! This module implements the global `SyntaxError` object.
 //!
-//! The SyntaxError object represents an error when trying to interpret syntactically invalid code.
+//! The `SyntaxError` object represents an error when trying to interpret syntactically invalid code.
 //! It is thrown when the JavaScript context encounters tokens or token order that does not conform
 //! to the syntax of the language when parsing code.
 //!

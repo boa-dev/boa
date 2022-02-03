@@ -161,6 +161,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-map-@@species
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/@@species
+    #[allow(clippy::unnecessary_wraps)]
     fn get_species(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Return the this value.
         Ok(this.clone())
@@ -330,10 +331,9 @@ impl Map {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let key = args.get_or_undefined(0);
-
         const JS_ZERO: &JsValue = &JsValue::Rational(0f64);
 
+        let key = args.get_or_undefined(0);
         let key = match key {
             JsValue::Rational(r) => {
                 if r.is_zero() {
@@ -403,10 +403,9 @@ impl Map {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let key = args.get_or_undefined(0);
-
         const JS_ZERO: &JsValue = &JsValue::Rational(0f64);
 
+        let key = args.get_or_undefined(0);
         let key = match key {
             JsValue::Rational(r) => {
                 if r.is_zero() {

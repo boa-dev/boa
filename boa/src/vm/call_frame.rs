@@ -1,5 +1,6 @@
-//! CallFrame
-//! This module will provides everything needed to implement the CallFrame
+//! `CallFrame`
+//!
+//! This module will provides everything needed to implement the `CallFrame`
 
 use super::CodeBlock;
 use crate::{gc::Gc, JsValue};

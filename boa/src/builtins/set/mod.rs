@@ -162,7 +162,7 @@ impl Set {
                 return iterator_record.close(Err(status), context);
             }
 
-            next = iterator_record.next(context)?
+            next = iterator_record.next(context)?;
         }
 
         // 8.b
@@ -179,6 +179,7 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-set-@@species
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/@@species
+    #[allow(clippy::unnecessary_wraps)]
     fn get_species(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Return the this value.
         Ok(this.clone())
@@ -203,7 +204,7 @@ impl Set {
 
         if let Some(object) = this.as_object() {
             if let Some(set) = object.borrow_mut().as_set_mut() {
-                set.add(if value.as_number().map(|n| n == -0f64).unwrap_or(false) {
+                set.add(if value.as_number().map_or(false, |n| n == -0f64) {
                     JsValue::Integer(0)
                 } else {
                     value.clone()
@@ -336,7 +337,7 @@ impl Set {
 
         let mut index = 0;
 
-        while index < Set::get_size(this, context)? {
+        while index < Self::get_size(this, context)? {
             let arguments = this
                 .as_object()
                 .and_then(|obj| {
@@ -418,13 +419,13 @@ impl Set {
     }
 
     fn size_getter(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        Set::get_size(this, context).map(JsValue::from)
+        Self::get_size(this, context).map(JsValue::from)
     }
 
     /// Helper function to get the size of the set.
     fn get_size(set: &JsValue, context: &mut Context) -> JsResult<usize> {
         set.as_object()
-            .and_then(|obj| obj.borrow().as_set_ref().map(|set| set.size()))
+            .and_then(|obj| obj.borrow().as_set_ref().map(OrderedSet::size))
             .ok_or_else(|| context.construct_type_error("'this' is not a Set"))
     }
 }

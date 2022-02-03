@@ -12,7 +12,7 @@
 
 use crate::{
     builtins::{self, BuiltIn},
-    object::ObjectInitializer,
+    object::{JsObject, ObjectInitializer},
     property::Attribute,
     symbol::WellKnownSymbols,
     BoaProfiler, Context, JsResult, JsValue,
@@ -79,7 +79,7 @@ impl Reflect {
     pub(crate) fn apply(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let target = args
             .get(0)
-            .and_then(|v| v.as_object())
+            .and_then(JsValue::as_object)
             .ok_or_else(|| context.construct_type_error("target must be a function"))?;
         let this_arg = args.get_or_undefined(1);
         let args_list = args.get_or_undefined(2);
@@ -106,7 +106,7 @@ impl Reflect {
     ) -> JsResult<JsValue> {
         let target = args
             .get(0)
-            .and_then(|v| v.as_object())
+            .and_then(JsValue::as_object)
             .ok_or_else(|| context.construct_type_error("target must be a function"))?;
         let args_list = args.get_or_undefined(1);
 
@@ -115,7 +115,7 @@ impl Reflect {
         }
 
         let new_target = if let Some(new_target) = args.get(2) {
-            if new_target.as_object().map(|o| o.is_constructor()) != Some(true) {
+            if new_target.as_object().map(JsObject::is_constructor) != Some(true) {
                 return context.throw_type_error("newTarget must be constructor");
             }
             new_target.clone()
@@ -142,7 +142,7 @@ impl Reflect {
     ) -> JsResult<JsValue> {
         let target = args
             .get(0)
-            .and_then(|v| v.as_object())
+            .and_then(JsValue::as_object)
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
         let key = args.get_or_undefined(1).to_property_key(context)?;
         let prop_desc: JsValue = args
@@ -153,7 +153,7 @@ impl Reflect {
 
         target
             .__define_own_property__(key, prop_desc.to_property_descriptor(context)?, context)
-            .map(|b| b.into())
+            .map(Into::into)
     }
 
     /// Defines a property on an object.
@@ -171,7 +171,7 @@ impl Reflect {
     ) -> JsResult<JsValue> {
         let target = args
             .get(0)
-            .and_then(|v| v.as_object())
+            .and_then(JsValue::as_object)
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
         let key = args.get_or_undefined(1).to_property_key(context)?;
 
@@ -190,7 +190,7 @@ impl Reflect {
         // 1. If Type(target) is not Object, throw a TypeError exception.
         let target = args
             .get(0)
-            .and_then(|v| v.as_object())
+            .and_then(JsValue::as_object)
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
         // 2. Let key be ? ToPropertyKey(propertyKey).
         let key = args.get_or_undefined(1).to_property_key(context)?;
@@ -246,7 +246,7 @@ impl Reflect {
     ) -> JsResult<JsValue> {
         let target = args
             .get(0)
-            .and_then(|v| v.as_object())
+            .and_then(JsValue::as_object)
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
         Ok(target
             .__get_prototype_of__(context)?
@@ -264,7 +264,7 @@ impl Reflect {
     pub(crate) fn has(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let target = args
             .get(0)
-            .and_then(|v| v.as_object())
+            .and_then(JsValue::as_object)
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
         let key = args
             .get(1)
@@ -288,7 +288,7 @@ impl Reflect {
     ) -> JsResult<JsValue> {
         let target = args
             .get(0)
-            .and_then(|v| v.as_object())
+            .and_then(JsValue::as_object)
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
         Ok(target.__is_extensible__(context)?.into())
     }
@@ -308,13 +308,13 @@ impl Reflect {
     ) -> JsResult<JsValue> {
         let target = args
             .get(0)
-            .and_then(|v| v.as_object())
+            .and_then(JsValue::as_object)
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
 
         let keys: Vec<JsValue> = target
             .__own_property_keys__(context)?
             .into_iter()
-            .map(|key| key.into())
+            .map(Into::into)
             .collect();
 
         Ok(Array::create_array_from_list(keys, context).into())
@@ -335,7 +335,7 @@ impl Reflect {
     ) -> JsResult<JsValue> {
         let target = args
             .get(0)
-            .and_then(|v| v.as_object())
+            .and_then(JsValue::as_object)
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
 
         Ok(target.__prevent_extensions__(context)?.into())
@@ -352,7 +352,7 @@ impl Reflect {
     pub(crate) fn set(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let target = args
             .get(0)
-            .and_then(|v| v.as_object())
+            .and_then(JsValue::as_object)
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
         let key = args.get_or_undefined(1).to_property_key(context)?;
         let value = args.get_or_undefined(2);
@@ -381,7 +381,7 @@ impl Reflect {
     ) -> JsResult<JsValue> {
         let target = args
             .get(0)
-            .and_then(|v| v.as_object())
+            .and_then(JsValue::as_object)
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
         let proto = match args.get_or_undefined(1) {
             JsValue::Object(obj) => Some(obj.clone()),

@@ -189,7 +189,7 @@ impl JsObject {
     /// Defines the property or throws a `TypeError` if the operation fails.
     ///
     /// More information:
-    /// - [EcmaScript reference][spec]
+    /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-definepropertyorthrow
     #[inline]
@@ -421,9 +421,10 @@ impl JsObject {
 
     /// `7.3.22 SpeciesConstructor ( O, defaultConstructor )`
     ///
-    /// The abstract operation SpeciesConstructor takes arguments O (an Object) and defaultConstructor (a constructor).
-    /// It is used to retrieve the constructor that should be used to create new objects that are derived from O.
-    /// defaultConstructor is the constructor to use if a constructor @@species property cannot be found starting from O.
+    /// The abstract operation `SpeciesConstructor` takes arguments `O` (an Object) and
+    /// `defaultConstructor` (a constructor). It is used to retrieve the constructor that should be
+    /// used to create new objects that are derived from `O`. `defaultConstructor` is the
+    /// constructor to use if a constructor `@@species` property cannot be found starting from `O`.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -433,7 +434,7 @@ impl JsObject {
         &self,
         default_constructor: F,
         context: &mut Context,
-    ) -> JsResult<JsObject>
+    ) -> JsResult<Self>
     where
         F: FnOnce(&StandardObjects) -> &StandardConstructor,
     {
@@ -471,7 +472,7 @@ impl JsObject {
     /// It is used to iterate over names of object's keys.
     ///
     /// More information:
-    /// - [EcmaScript reference][spec]
+    /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-enumerableownpropertynames
     pub(crate) fn enumerable_own_property_names(
@@ -491,7 +492,7 @@ impl JsObject {
             let key_str = match &key {
                 PropertyKey::String(s) => Some(s.clone()),
                 PropertyKey::Index(i) => Some(i.to_string().into()),
-                _ => None,
+                PropertyKey::Symbol(_) => None,
             };
 
             if let Some(key_str) = key_str {
@@ -507,7 +508,7 @@ impl JsObject {
                             // a. Let value be ? Get(O, key).
                             // b. If kind is value, append value to properties.
                             PropertyNameKind::Value => {
-                                properties.push(self.get(key.clone(), context)?)
+                                properties.push(self.get(key.clone(), context)?);
                             }
                             // c. Else,
                             // i. Assert: kind is key+value.
@@ -535,10 +536,10 @@ impl JsObject {
     /// Retrieves the value of a specific property, when the value of the property is expected to be a function.
     ///
     /// More information:
-    /// - [EcmaScript reference][spec]
+    /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getmethod
-    pub(crate) fn get_method<K>(&self, key: K, context: &mut Context) -> JsResult<Option<JsObject>>
+    pub(crate) fn get_method<K>(&self, key: K, context: &mut Context) -> JsResult<Option<Self>>
     where
         K: Into<PropertyKey>,
     {
@@ -618,11 +619,11 @@ impl JsValue {
     /// type of the value.
     ///
     /// More information:
-    /// - [EcmaScript reference][spec]
+    /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getmethod
     #[inline]
-    pub(crate) fn get_v<K>(&self, key: K, context: &mut Context) -> JsResult<JsValue>
+    pub(crate) fn get_v<K>(&self, key: K, context: &mut Context) -> JsResult<Self>
     where
         K: Into<PropertyKey>,
     {
@@ -638,7 +639,7 @@ impl JsValue {
     /// Retrieves the value of a specific property, when the value of the property is expected to be a function.
     ///
     /// More information:
-    /// - [EcmaScript reference][spec]
+    /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getmethod
     #[inline]
@@ -655,14 +656,14 @@ impl JsValue {
     /// self.
     ///
     /// More information:
-    /// - [EcmaScript reference][spec]
+    /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createlistfromarraylike
     pub(crate) fn create_list_from_array_like(
         &self,
         element_types: &[Type],
         context: &mut Context,
-    ) -> JsResult<Vec<JsValue>> {
+    ) -> JsResult<Vec<Self>> {
         // 1. If elementTypes is not present, set elementTypes to « Undefined, Null, Boolean, String, Symbol, Number, BigInt, Object ».
         let types = if element_types.is_empty() {
             &[
@@ -709,20 +710,15 @@ impl JsValue {
         Ok(list)
     }
 
-    /// Abstract operation `( V, P [ , argumentsList ] )
+    /// Abstract operation `( V, P [ , argumentsList ] )`
     ///
     /// Calls a method property of an ECMAScript language value.
     ///
     /// More information:
-    /// - [EcmaScript reference][spec]
+    /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-invoke
-    pub(crate) fn invoke<K>(
-        &self,
-        key: K,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue>
+    pub(crate) fn invoke<K>(&self, key: K, args: &[Self], context: &mut Context) -> JsResult<Self>
     where
         K: Into<PropertyKey>,
     {
@@ -737,12 +733,12 @@ impl JsValue {
     /// Abstract operation `OrdinaryHasInstance ( C, O )`
     ///
     /// More information:
-    /// - [EcmaScript reference][spec]
+    /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinaryhasinstance
     pub fn ordinary_has_instance(
-        function: &JsValue,
-        object: &JsValue,
+        function: &Self,
+        object: &Self,
         context: &mut Context,
     ) -> JsResult<bool> {
         // 1. If IsCallable(C) is false, return false.
@@ -756,7 +752,7 @@ impl JsValue {
         if let Some(bound_function) = function.borrow().as_bound_function() {
             // a. Let BC be C.[[BoundTargetFunction]].
             // b. Return ? InstanceofOperator(O, BC).
-            return JsValue::instance_of(
+            return Self::instance_of(
                 object,
                 &bound_function.target_function().clone().into(),
                 context,

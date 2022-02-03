@@ -81,7 +81,7 @@ where
                 break;
             }
 
-            let _ = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd); // Check that there are more tokens to read.
+            let _next = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd); // Check that there are more tokens to read.
 
             if cursor.next_if(Punctuator::Spread, interner)?.is_some() {
                 let node = AssignmentExpression::new(true, self.allow_yield, self.allow_await)

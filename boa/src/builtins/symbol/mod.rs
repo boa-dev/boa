@@ -61,8 +61,8 @@ impl GlobalSymbolRegistry {
         symbol
     }
 
-    fn get_symbol(&self, sym: JsSymbol) -> Option<JsString> {
-        if let Some(key) = self.symbols.get(&sym) {
+    fn get_symbol(&self, sym: &JsSymbol) -> Option<JsString> {
+        if let Some(key) = self.symbols.get(sym) {
             return Some(key.clone());
         }
 
@@ -311,7 +311,7 @@ impl Symbol {
             // 4. Return undefined.
             let symbol = GLOBAL_SYMBOL_REGISTRY.with(move |registry| {
                 let registry = registry.borrow();
-                registry.get_symbol(sym)
+                registry.get_symbol(&sym)
             });
 
             Ok(symbol.map(JsValue::from).unwrap_or_default())

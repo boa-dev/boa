@@ -142,7 +142,7 @@ impl Array {
         // 4. If numberOfArgs = 0, then
         if number_of_args == 0 {
             // 4.a. Return ! ArrayCreate(0, proto).
-            Ok(Array::array_create(0, Some(prototype), context)
+            Ok(Self::array_create(0, Some(prototype), context)
                 .unwrap()
                 .into())
         // 5. Else if numberOfArgs = 1, then
@@ -150,8 +150,9 @@ impl Array {
             // a. Let len be values[0].
             let len = &args[0];
             // b. Let array be ! ArrayCreate(0, proto).
-            let array = Array::array_create(0, Some(prototype), context).unwrap();
+            let array = Self::array_create(0, Some(prototype), context).unwrap();
             // c. If Type(len) is not Number, then
+            #[allow(clippy::if_not_else)]
             let int_len = if !len.is_number() {
                 // i. Perform ! CreateDataPropertyOrThrow(array, "0", len).
                 array
@@ -179,7 +180,7 @@ impl Array {
             debug_assert!(number_of_args >= 2);
 
             // b. Let array be ? ArrayCreate(numberOfArgs, proto).
-            let array = Array::array_create(number_of_args, Some(prototype), context)?;
+            let array = Self::array_create(number_of_args, Some(prototype), context)?;
             // c. Let k be 0.
             // d. Repeat, while k < numberOfArgs,
             for (i, item) in args.iter().cloned().enumerate() {
@@ -304,13 +305,14 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-array-@@species
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/@@species
+    #[allow(clippy::unnecessary_wraps)]
     fn get_species(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Return the this value.
         Ok(this.clone())
     }
 
     /// Utility function used to specify the creation of a new Array object using a constructor
-    /// function that is derived from original_array.
+    /// function that is derived from `original_array`.
     ///
     /// see: <https://tc39.es/ecma262/#sec-arrayspeciescreate>
     pub(crate) fn array_species_create(
@@ -414,9 +416,7 @@ impl Array {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Return ? IsArray(arg).
-        args.get_or_undefined(0)
-            .is_array(context)
-            .map(|ok| ok.into())
+        args.get_or_undefined(0).is_array(context).map(Into::into)
     }
 
     /// `Array.of(...items)`
@@ -448,7 +448,7 @@ impl Array {
                 .ok_or_else(|| {
                     context.construct_type_error("object constructor didn't return an object")
                 })?,
-            _ => Array::array_create(len, None, context)?,
+            _ => Self::array_create(len, None, context)?,
         };
 
         // 6. Let k be 0.
@@ -574,7 +574,7 @@ impl Array {
                 // iii. Perform ? CreateDataPropertyOrThrow(A, ! ToString(𝔽(n)), E).
                 arr.create_data_property_or_throw(n, item, context)?;
                 // iv. Set n to n + 1.
-                n += 1
+                n += 1;
             }
         }
         // 6. Perform ? Set(A, "length", 𝔽(n), true).
@@ -1152,7 +1152,7 @@ impl Array {
         let mut k;
         if n >= 0 {
             // a. Let k be n.
-            k = n
+            k = n;
         // 9. Else,
         } else {
             // a. Let k be len + n.
@@ -1189,7 +1189,7 @@ impl Array {
     /// `Array.prototype.lastIndexOf( searchElement[, fromIndex ] )`
     ///
     ///
-    /// lastIndexOf compares searchElement to the elements of the array in descending order
+    /// `lastIndexOf` compares searchElement to the elements of the array in descending order
     /// using the Strict Equality Comparison algorithm, and if found at one or more indices,
     /// returns the largest such index; otherwise, -1 is returned.
     ///
@@ -1426,9 +1426,9 @@ impl Array {
 
     /// `Array.prototype.findLastIndex( predicate [ , thisArg ] )`
     ///
-    /// findLastIndex calls predicate once for each element of the array, in descending order,
-    /// until it finds one where predicate returns true. If such an element is found, findLastIndex
-    /// immediately returns the index of that element value. Otherwise, findLastIndex returns -1.
+    /// `findLastIndex` calls predicate once for each element of the array, in descending order,
+    /// until it finds one where predicate returns true. If such an element is found, `findLastIndex`
+    /// immediately returns the index of that element value. Otherwise, `findLastIndex` returns -1.
     ///
     /// More information:
     ///  - [ECMAScript proposal][spec]
@@ -1565,7 +1565,7 @@ impl Array {
             source_len as u64,
             0,
             1,
-            Some(mapper_function.clone()),
+            Some(mapper_function),
             args.get_or_undefined(1),
             context,
         )?;
@@ -1587,7 +1587,7 @@ impl Array {
         source_len: u64,
         start: u64,
         depth: u64,
-        mapper_function: Option<JsObject>,
+        mapper_function: Option<&JsObject>,
         this_arg: &JsValue,
         context: &mut Context,
     ) -> JsResult<u64> {
@@ -1618,7 +1618,7 @@ impl Array {
                 let mut element = source.get(p, context)?;
 
                 // ii. If mapperFunction is present, then
-                if let Some(ref mapper_function) = mapper_function {
+                if let Some(mapper_function) = mapper_function {
                     // 1. Set element to ? Call(mapperFunction, thisArg, <<element, sourceIndex, source>>)
                     element = mapper_function.call(
                         this_arg,
@@ -1781,7 +1781,7 @@ impl Array {
         let mut k;
         if n >= 0 {
             // a. Let k be n.
-            k = n
+            k = n;
         // 9. Else,
         } else {
             // a. Let k be len + n.

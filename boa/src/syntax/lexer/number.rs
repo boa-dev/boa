@@ -49,17 +49,15 @@ impl NumericKind {
     fn base(self) -> u32 {
         match self {
             Self::Rational => 10,
-            Self::Integer(base) => base,
-            Self::BigInt(base) => base,
+            Self::Integer(base) | Self::BigInt(base) => base,
         }
     }
 
-    /// Converts `self` to BigInt kind.
+    /// Converts `self` to `BigInt` kind.
     fn to_bigint(self) -> Self {
         match self {
             Self::Rational => unreachable!("can not convert rational number to BigInt"),
-            Self::Integer(base) => Self::BigInt(base),
-            Self::BigInt(base) => Self::BigInt(base),
+            Self::Integer(base) | Self::BigInt(base) => Self::BigInt(base),
         }
     }
 }
@@ -68,7 +66,7 @@ impl NumericKind {
 fn take_signed_integer<R>(
     buf: &mut Vec<u8>,
     cursor: &mut Cursor<R>,
-    kind: &NumericKind,
+    kind: NumericKind,
 ) -> Result<(), Error>
 where
     R: Read,
@@ -118,7 +116,7 @@ where
 fn take_integer<R>(
     buf: &mut Vec<u8>,
     cursor: &mut Cursor<R>,
-    kind: &NumericKind,
+    kind: NumericKind,
     separator_allowed: bool,
 ) -> Result<(), Error>
 where
@@ -156,7 +154,8 @@ where
     }
     Ok(())
 }
-/// Utility function for checking the NumericLiteral is not followed by an `IdentifierStart` or `DecimalDigit` character.
+
+/// Utility function for checking the `NumericLiteral` is not followed by an `IdentifierStart` or `DecimalDigit` character.
 ///
 /// More information:
 ///  - [ECMAScript Specification][spec]
@@ -268,14 +267,14 @@ impl<R> Tokenizer<R> for NumberLiteral {
                                     "implicit octal literals are not allowed in strict mode",
                                     start_pos,
                                 ));
-                            } else {
-                                // Remove the initial '0' from buffer.
-                                buf.pop();
-
-                                buf.push(cursor.next_byte()?.expect("'0' character vanished"));
-
-                                kind = NumericKind::Integer(8);
                             }
+
+                            // Remove the initial '0' from buffer.
+                            buf.pop();
+
+                            buf.push(cursor.next_byte()?.expect("'0' character vanished"));
+
+                            kind = NumericKind::Integer(8);
                         } else if ch.is_digit(10) {
                             // Indicates a numerical digit comes after then 0 but it isn't an octal digit
                             // so therefore this must be a number with an unneeded leading 0. This is
@@ -304,7 +303,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
         } else {
             // Consume digits and separators until a non-digit non-separator
             // character is encountered or all the characters are consumed.
-            take_integer(&mut buf, cursor, &kind, !legacy_octal)?;
+            take_integer(&mut buf, cursor, kind, !legacy_octal)?;
             cursor.peek()?
         };
 
@@ -346,18 +345,18 @@ impl<R> Tokenizer<R> for NumberLiteral {
 
                     // Consume digits and separators until a non-digit non-separator
                     // character is encountered or all the characters are consumed.
-                    take_integer(&mut buf, cursor, &kind, true)?;
+                    take_integer(&mut buf, cursor, kind, true)?;
 
                     // The non-digit character at this point must be an 'e' or 'E' to indicate an Exponent Part.
                     // Another '.' or 'n' is not allowed.
                     match cursor.peek()? {
-                        Some(b'e') | Some(b'E') => {
+                        Some(b'e' | b'E') => {
                             // Consume the ExponentIndicator.
                             cursor.next_byte()?.expect("e or E token vanished");
 
                             buf.push(b'E');
 
-                            take_signed_integer(&mut buf, cursor, &kind)?;
+                            take_signed_integer(&mut buf, cursor, kind)?;
                         }
                         Some(_) | None => {
                             // Finished lexing.
@@ -365,11 +364,11 @@ impl<R> Tokenizer<R> for NumberLiteral {
                     }
                 }
             }
-            Some(b'e') | Some(b'E') => {
+            Some(b'e' | b'E') => {
                 kind = NumericKind::Rational;
                 cursor.next_byte()?.expect("e or E character vanished"); // Consume the ExponentIndicator.
                 buf.push(b'E');
-                take_signed_integer(&mut buf, cursor, &kind)?;
+                take_signed_integer(&mut buf, cursor, kind)?;
             }
             Some(_) | None => {
                 // Indicates lexing finished.
@@ -392,7 +391,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                 // The truncated float should be identically to the non-truncated float for the conversion to be loss-less,
                 // any other different and the number must be stored as a rational.
                 #[allow(clippy::float_cmp)]
-                if (int_val as f64) == val {
+                if f64::from(int_val) == val {
                     // For performance reasons we attempt to store values as integers if possible.
                     Numeric::Integer(int_val)
                 } else {

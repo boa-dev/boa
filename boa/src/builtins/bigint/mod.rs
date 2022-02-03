@@ -71,7 +71,7 @@ impl BigInt {
 
     /// `BigInt()`
     ///
-    /// The `BigInt()` constructor is used to create BigInt objects.
+    /// The `BigInt()` constructor is used to create `BigInt` objects.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -111,10 +111,10 @@ impl BigInt {
         Ok(JsBigInt::from(number.to_bigint().expect("This conversion must be safe")).into())
     }
 
-    /// The abstract operation thisBigIntValue takes argument value.
+    /// The abstract operation `thisBigIntValue` takes argument value.
     ///
-    /// The phrase “this BigInt value” within the specification of a method refers to the
-    /// result returned by calling the abstract operation thisBigIntValue with the `this` value
+    /// The phrase “this `BigInt` value” within the specification of a method refers to the
+    /// result returned by calling the abstract operation `thisBigIntValue` with the `this` value
     /// of the method invocation passed as the argument.
     ///
     /// More information:
@@ -141,7 +141,7 @@ impl BigInt {
 
     /// `BigInt.prototype.toString( [radix] )`
     ///
-    /// The `toString()` method returns a string representing the specified BigInt object.
+    /// The `toString()` method returns a string representing the specified `BigInt` object.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -225,11 +225,16 @@ impl BigInt {
         let (modulo, bits) = Self::calculate_as_uint_n(args, context)?;
 
         if bits > 0
-            && modulo >= JsBigInt::pow(&JsBigInt::new(2), &JsBigInt::new(bits as i64 - 1), context)?
+            && modulo
+                >= JsBigInt::pow(
+                    &JsBigInt::new(2),
+                    &JsBigInt::new(i64::from(bits) - 1),
+                    context,
+                )?
         {
             Ok(JsValue::new(JsBigInt::sub(
                 &modulo,
-                &JsBigInt::pow(&JsBigInt::new(2), &JsBigInt::new(bits as i64), context)?,
+                &JsBigInt::pow(&JsBigInt::new(2), &JsBigInt::new(i64::from(bits)), context)?,
             )))
         } else {
             Ok(JsValue::new(modulo))
@@ -270,7 +275,7 @@ impl BigInt {
         Ok((
             JsBigInt::mod_floor(
                 &bigint,
-                &JsBigInt::pow(&JsBigInt::new(2), &JsBigInt::new(bits as i64), context)?,
+                &JsBigInt::pow(&JsBigInt::new(2), &JsBigInt::new(i64::from(bits)), context)?,
             ),
             bits,
         ))

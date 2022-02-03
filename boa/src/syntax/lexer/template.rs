@@ -86,7 +86,7 @@ impl TemplateString {
 
 /// Template literal lexing.
 ///
-/// Expects: Initial ` to already be consumed by cursor.
+/// Expects: Initial `` ` `` to already be consumed by cursor.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -147,9 +147,9 @@ impl<R> Tokenizer<R> for TemplateLiteral {
                         ))
                     })?;
 
-                    buf.push(b'\\' as u16);
+                    buf.push(u16::from(b'\\'));
                     match escape_ch {
-                        b'`' | b'$' | b'\\' => buf.push(cursor.next_byte()?.unwrap() as u16),
+                        b'`' | b'$' | b'\\' => buf.push(u16::from(cursor.next_byte()?.unwrap())),
                         _ => continue,
                     }
                 }

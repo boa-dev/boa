@@ -103,8 +103,7 @@ where
                         {
                             true
                         }
-                        Node::GetConstField(_) => true,
-                        Node::GetField(_) => true,
+                        Node::GetConstField(_) | Node::GetField(_) => true,
                         _ => false,
                     };
                     if !ok {
@@ -128,8 +127,7 @@ where
                         {
                             true
                         }
-                        Node::GetConstField(_) => true,
-                        Node::GetField(_) => true,
+                        Node::GetConstField(_) | Node::GetField(_) => true,
                         _ => false,
                     };
                     if !ok {

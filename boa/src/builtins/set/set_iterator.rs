@@ -25,14 +25,14 @@ impl SetIterator {
 
     /// Constructs a new `SetIterator`, that will iterate over `set`, starting at index 0
     fn new(set: JsValue, kind: PropertyNameKind) -> Self {
-        SetIterator {
+        Self {
             iterated_set: set,
             next_index: 0,
             iteration_kind: kind,
         }
     }
 
-    /// Abstract operation CreateSetIterator( set, kind )
+    /// Abstract operation `CreateSetIterator( set, kind )`
     ///
     /// Creates a new iterator over the given set.
     ///
@@ -61,7 +61,7 @@ impl SetIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%setiteratorprototype%.next
     pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let mut set_iterator = this.as_object().map(|obj| obj.borrow_mut());
+        let mut set_iterator = this.as_object().map(JsObject::borrow_mut);
 
         let set_iterator = set_iterator
             .as_mut()
@@ -80,7 +80,7 @@ impl SetIterator {
                 ));
             }
 
-            let entries = m.as_object().map(|obj| obj.borrow());
+            let entries = m.as_object().map(JsObject::borrow);
             let entries = entries
                 .as_ref()
                 .and_then(|obj| obj.as_set_ref())
@@ -119,7 +119,7 @@ impl SetIterator {
         ))
     }
 
-    /// Create the %SetIteratorPrototype% object
+    /// Create the `%SetIteratorPrototype%` object
     ///
     /// More information:
     ///  - [ECMA reference][spec]

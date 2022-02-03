@@ -84,6 +84,7 @@ pub(crate) fn string_exotic_define_own_property(
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-string-exotic-objects-ownpropertykeys
 #[inline]
+#[allow(clippy::unnecessary_wraps)]
 pub(crate) fn string_exotic_own_property_keys(
     obj: &JsObject,
     _context: &mut Context,
@@ -103,7 +104,7 @@ pub(crate) fn string_exotic_own_property_keys(
 
     // 5. For each integer i starting with 0 such that i < len, in ascending order, do
     // a. Add ! ToString(𝔽(i)) as the last element of keys.
-    keys.extend((0..len).into_iter().map(|idx| idx.into()));
+    keys.extend((0..len).into_iter().map(Into::into));
 
     // 6. For each own property key P of O such that P is an array index
     // and ! ToIntegerOrInfinity(P) ≥ len, in ascending numeric index order, do
@@ -111,11 +112,11 @@ pub(crate) fn string_exotic_own_property_keys(
     let mut remaining_indices: Vec<_> = obj
         .properties
         .index_property_keys()
-        .cloned()
+        .copied()
         .filter(|idx| (*idx as usize) >= len)
         .collect();
     remaining_indices.sort_unstable();
-    keys.extend(remaining_indices.into_iter().map(|idx| idx.into()));
+    keys.extend(remaining_indices.into_iter().map(Into::into));
 
     // 7. For each own property key P of O such that Type(P) is String and P is not
     // an array index, in ascending chronological order of property creation, do
@@ -124,7 +125,7 @@ pub(crate) fn string_exotic_own_property_keys(
         obj.properties
             .string_property_keys()
             .cloned()
-            .map(|s| s.into()),
+            .map(Into::into),
     );
 
     // 8. For each own property key P of O such that Type(P) is Symbol, in ascending
@@ -134,14 +135,14 @@ pub(crate) fn string_exotic_own_property_keys(
         obj.properties
             .symbol_property_keys()
             .cloned()
-            .map(|sym| sym.into()),
+            .map(Into::into),
     );
 
     // 9. Return keys.
     Ok(keys)
 }
 
-/// StringGetOwnProperty abstract operation
+/// `StringGetOwnProperty` abstract operation
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]

@@ -1,6 +1,6 @@
 //! This module implements the global `RegExp` object.
 //!
-//! `The `RegExp` object is used for matching text with a pattern.
+//! The `RegExp` object is used for matching text with a pattern.
 //!
 //! More information:
 //!  - [ECMAScript reference][spec]
@@ -237,10 +237,10 @@ impl RegExp {
         };
 
         // 7. Let O be ? RegExpAlloc(newTarget).
-        let o = RegExp::alloc(new_target, &[], context)?;
+        let o = Self::alloc(new_target, &[], context)?;
 
         // 8.Return ? RegExpInitialize(O, P, F).
-        RegExp::initialize(&o, &[p, f], context)
+        Self::initialize(&o, &[p, f], context)
     }
 
     /// `22.2.3.2.1 RegExpAlloc ( newTarget )`
@@ -335,7 +335,7 @@ impl RegExp {
             Ok(val) => val,
         };
 
-        let regexp = RegExp {
+        let regexp = Self {
             matcher,
             dot_all,
             global,
@@ -361,19 +361,19 @@ impl RegExp {
     /// [spec]: https://tc39.es/ecma262/#sec-regexpcreate
     pub(crate) fn create(p: JsValue, f: JsValue, context: &mut Context) -> JsResult<JsValue> {
         // 1. Let obj be ? RegExpAlloc(%RegExp%).
-        let obj = RegExp::alloc(
-            &context.global_object().get(RegExp::NAME, context)?,
+        let obj = Self::alloc(
+            &context.global_object().get(Self::NAME, context)?,
             &[],
             context,
         )?;
 
         // 2. Return ? RegExpInitialize(obj, P, F).
-        RegExp::initialize(&obj, &[p, f], context)
+        Self::initialize(&obj, &[p, f], context)
     }
 
     /// `get RegExp [ @@species ]`
     ///
-    /// The `RegExp [ @@species ]` accessor property returns the RegExp constructor.
+    /// The `RegExp [ @@species ]` accessor property returns the `RegExp` constructor.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -381,6 +381,7 @@ impl RegExp {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-regexp-@@species
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/@@species
+    #[allow(clippy::unnecessary_wraps)]
     fn get_species(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Return the this value.
         Ok(this.clone())
@@ -639,7 +640,10 @@ impl RegExp {
                     // 5. Let src be R.[[OriginalSource]].
                     // 6. Let flags be R.[[OriginalFlags]].
                     // 7. Return EscapeRegExpPattern(src, flags).
-                    RegExp::escape_pattern(&re.original_source, &re.original_flags)
+                    Ok(Self::escape_pattern(
+                        &re.original_source,
+                        &re.original_flags,
+                    ))
                 }
             }
         } else {
@@ -653,9 +657,9 @@ impl RegExp {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-escaperegexppattern
-    fn escape_pattern(src: &str, _flags: &str) -> JsResult<JsValue> {
+    fn escape_pattern(src: &str, _flags: &str) -> JsValue {
         if src.is_empty() {
-            Ok(JsValue::new("(?:)"))
+            JsValue::new("(?:)")
         } else {
             let mut s = String::from("");
 
@@ -668,7 +672,7 @@ impl RegExp {
                 }
             }
 
-            Ok(JsValue::new(s))
+            JsValue::new(s)
         }
     }
 
@@ -744,7 +748,7 @@ impl RegExp {
         let arg_str = args.get_or_undefined(0).to_string(context)?;
 
         // 4. Return ? RegExpBuiltinExec(R, S).
-        if let Some(v) = Self::abstract_builtin_exec(obj, arg_str, context)? {
+        if let Some(v) = Self::abstract_builtin_exec(obj, &arg_str, context)? {
             Ok(v.into())
         } else {
             Ok(JsValue::null())
@@ -788,7 +792,7 @@ impl RegExp {
         }
 
         // 6. Return ? RegExpBuiltinExec(R, S).
-        Self::abstract_builtin_exec(this, input, context)
+        Self::abstract_builtin_exec(this, &input, context)
     }
 
     /// `22.2.5.2.2 RegExpBuiltinExec ( R, S )`
@@ -799,7 +803,7 @@ impl RegExp {
     /// [spec]: https://tc39.es/ecma262/#sec-regexpbuiltinexec
     pub(crate) fn abstract_builtin_exec(
         this: &JsObject,
-        input: JsString,
+        input: &JsString,
         context: &mut Context,
     ) -> JsResult<Option<JsObject>> {
         // 1. Assert: R is an initialized RegExp instance.
@@ -866,7 +870,7 @@ impl RegExp {
                         .throw_type_error("Failed to get byte index from utf16 encoded string")
                 }
             };
-            let r = matcher.find_from(&input, last_byte_index).next();
+            let r = matcher.find_from(input, last_byte_index).next();
 
             match r {
                 // c. If r is failure, then
@@ -881,12 +885,12 @@ impl RegExp {
                     }
 
                     // ii. Set lastIndex to AdvanceStringIndex(S, lastIndex, fullUnicode).
-                    last_index = advance_string_index(input.clone(), last_index, unicode);
+                    last_index = advance_string_index(input, last_index, unicode);
                 }
 
                 Some(m) => {
                     // c. If r is failure, then
-                    // d. Else,
+                    #[allow(clippy::if_not_else)]
                     if m.start() != last_index {
                         // i. If sticky is true, then
                         if sticky {
@@ -898,7 +902,8 @@ impl RegExp {
                         }
 
                         // ii. Set lastIndex to AdvanceStringIndex(S, lastIndex, fullUnicode).
-                        last_index = advance_string_index(input.clone(), last_index, unicode);
+                        last_index = advance_string_index(input, last_index, unicode);
+                    // d. Else,
                     } else {
                         //i. Assert: r is a State.
                         //ii. Set matchSucceeded to true.
@@ -1052,7 +1057,7 @@ impl RegExp {
         let global = rx.get("global", context)?.to_boolean();
 
         // 5. If global is false, then
-        // 6. Else,
+        #[allow(clippy::if_not_else)]
         if !global {
             // a. Return ? RegExpExec(rx, S).
             if let Some(v) = Self::abstract_exec(rx, arg_str, context)? {
@@ -1060,6 +1065,7 @@ impl RegExp {
             } else {
                 Ok(JsValue::null())
             }
+        // 6. Else,
         } else {
             // a. Assert: global is true.
 
@@ -1096,7 +1102,7 @@ impl RegExp {
                         let this_index = rx.get("lastIndex", context)?.to_length(context)?;
 
                         // b. Let nextIndex be AdvanceStringIndex(S, thisIndex, fullUnicode).
-                        let next_index = advance_string_index(arg_str.clone(), this_index, unicode);
+                        let next_index = advance_string_index(&arg_str, this_index, unicode);
 
                         // c. Perform ? Set(rx, "lastIndex", 𝔽(nextIndex), true).
                         rx.set("lastIndex", JsValue::new(next_index), true, context)?;
@@ -1106,12 +1112,11 @@ impl RegExp {
                     n += 1;
                 } else {
                     // 1. If n = 0, return null.
-                    // 2. Return A.
                     if n == 0 {
                         return Ok(JsValue::null());
-                    } else {
-                        return Ok(a.into());
                     }
+                    // 2. Return A.
+                    return Ok(a.into());
                 }
             }
         }
@@ -1208,13 +1213,13 @@ impl RegExp {
         let unicode = flags.contains('u');
 
         // 13. Return ! CreateRegExpStringIterator(matcher, S, global, fullUnicode).
-        RegExpStringIterator::create_regexp_string_iterator(
+        Ok(RegExpStringIterator::create_regexp_string_iterator(
             matcher.clone(),
             arg_str,
             global,
             unicode,
             context,
-        )
+        ))
     }
 
     /// `RegExp.prototype [ @@replace ] ( string, replaceValue )`
@@ -1258,7 +1263,7 @@ impl RegExp {
         let mut replace_value = args.get_or_undefined(1).clone();
         let functional_replace = replace_value
             .as_object()
-            .map(|obj| obj.is_callable())
+            .map(JsObject::is_callable)
             .unwrap_or_default();
 
         // 6. If functionalReplace is false, then
@@ -1296,24 +1301,24 @@ impl RegExp {
                 results.push(result.clone());
 
                 // ii. If global is false, set done to true.
-                // iii. Else,
+
                 if !global {
                     break;
-                } else {
-                    // 1. Let matchStr be ? ToString(? Get(result, "0")).
-                    let match_str = result.get("0", context)?.to_string(context)?;
+                }
+                // iii. Else,
+                // 1. Let matchStr be ? ToString(? Get(result, "0")).
+                let match_str = result.get("0", context)?.to_string(context)?;
 
-                    // 2. If matchStr is the empty String, then
-                    if match_str.is_empty() {
-                        // a. Let thisIndex be ℝ(? ToLength(? Get(rx, "lastIndex"))).
-                        let this_index = rx.get("lastIndex", context)?.to_length(context)?;
+                // 2. If matchStr is the empty String, then
+                if match_str.is_empty() {
+                    // a. Let thisIndex be ℝ(? ToLength(? Get(rx, "lastIndex"))).
+                    let this_index = rx.get("lastIndex", context)?.to_length(context)?;
 
-                        // b. Let nextIndex be AdvanceStringIndex(S, thisIndex, fullUnicode).
-                        let next_index = advance_string_index(arg_str.clone(), this_index, unicode);
+                    // b. Let nextIndex be AdvanceStringIndex(S, thisIndex, fullUnicode).
+                    let next_index = advance_string_index(&arg_str, this_index, unicode);
 
-                        // c. Perform ? Set(rx, "lastIndex", 𝔽(nextIndex), true).
-                        rx.set("lastIndex", JsValue::new(next_index), true, context)?;
-                    }
+                    // c. Perform ? Set(rx, "lastIndex", 𝔽(nextIndex), true).
+                    rx.set("lastIndex", JsValue::new(next_index), true, context)?;
                 }
             } else {
                 break;
@@ -1420,12 +1425,12 @@ impl RegExp {
 
                 // ii. Let replacement be ? GetSubstitution(matched, S, position, captures, namedCaptures, replaceValue).
                 replacement = string::get_substitution(
-                    matched.to_string(),
-                    arg_str.to_string(),
+                    matched.as_str(),
+                    arg_str.as_str(),
                     position,
-                    captures,
-                    named_captures,
-                    replace_value.to_string(context)?,
+                    &captures,
+                    &named_captures,
+                    &replace_value.to_string(context)?,
                     context,
                 )?;
             }
@@ -1652,7 +1657,7 @@ impl RegExp {
                 // iii. If e = p, set q to AdvanceStringIndex(S, q, unicodeMatching).
                 // iv. Else,
                 if e == p {
-                    q = advance_string_index(arg_str.clone(), q, unicode);
+                    q = advance_string_index(&arg_str, q, unicode);
                 } else {
                     // 1. Let T be the substring of S from p to q.
                     let arg_str_substring = String::from_utf16_lossy(
@@ -1711,7 +1716,7 @@ impl RegExp {
                     q = p;
                 }
             } else {
-                q = advance_string_index(arg_str.clone(), q, unicode);
+                q = advance_string_index(&arg_str, q, unicode);
             }
         }
 
@@ -1739,7 +1744,7 @@ impl RegExp {
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-advancestringindex
-fn advance_string_index(s: JsString, index: usize, unicode: bool) -> usize {
+fn advance_string_index(s: &JsString, index: usize, unicode: bool) -> usize {
     // Regress only works with utf8, so this function differs from the spec.
 
     // 1. Assert: index ≤ 2^53 - 1.

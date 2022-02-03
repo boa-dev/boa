@@ -84,14 +84,14 @@ where
             .kind()
         {
             TokenKind::Keyword(Keyword::Var) => {
-                let _ = cursor.next(interner)?;
+                let _next = cursor.next(interner)?;
                 Some(
                     VariableDeclarationList::new(false, self.allow_yield, self.allow_await)
                         .parse(cursor, interner)
                         .map(Node::from)?,
                 )
             }
-            TokenKind::Keyword(Keyword::Let) | TokenKind::Keyword(Keyword::Const) => Some(
+            TokenKind::Keyword(Keyword::Let | Keyword::Const) => Some(
                 Declaration::new(self.allow_yield, self.allow_await, false)
                     .parse(cursor, interner)?,
             ),
@@ -106,7 +106,7 @@ where
             Some(tok) if tok.kind() == &TokenKind::Keyword(Keyword::In) && init.is_some() => {
                 let init = node_to_iterable_loop_initializer(&init.unwrap(), init_position)?;
 
-                let _ = cursor.next(interner)?;
+                let _next = cursor.next(interner)?;
                 let expr = Expression::new(true, self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
 
@@ -128,7 +128,7 @@ where
             Some(tok) if tok.kind() == &TokenKind::Keyword(Keyword::Of) && init.is_some() => {
                 let init = node_to_iterable_loop_initializer(&init.unwrap(), init_position)?;
 
-                let _ = cursor.next(interner)?;
+                let _next = cursor.next(interner)?;
                 let iterable = Expression::new(true, self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
 

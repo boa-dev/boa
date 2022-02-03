@@ -49,10 +49,10 @@ impl Object {
     pub(in crate::syntax::ast::node) fn to_indented_string(
         &self,
         interner: &Interner,
-        indent: usize,
+        indent_n: usize,
     ) -> String {
         let mut buf = "{\n".to_owned();
-        let indentation = "    ".repeat(indent + 1);
+        let indentation = "    ".repeat(indent_n + 1);
         for property in self.properties().iter() {
             buf.push_str(&match property {
                 PropertyDefinition::IdentifierReference(ident) => {
@@ -63,7 +63,7 @@ impl Object {
                         "{}{}: {},\n",
                         indentation,
                         key.to_interned_string(interner),
-                        value.to_no_indent_string(interner, indent + 1)
+                        value.to_no_indent_string(interner, indent_n + 1)
                     )
                 }
                 PropertyDefinition::SpreadObject(key) => {
@@ -83,12 +83,12 @@ impl Object {
                         },
                         key.to_interned_string(interner),
                         join_nodes(interner, node.parameters()),
-                        block_to_string(node.body(), interner, indent + 1)
+                        block_to_string(node.body(), interner, indent_n + 1)
                     )
                 }
             });
         }
-        buf.push_str(&format!("{}}}", "    ".repeat(indent)));
+        buf.push_str(&format!("{}}}", "    ".repeat(indent_n)));
 
         buf
     }

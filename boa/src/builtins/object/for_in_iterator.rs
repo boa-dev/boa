@@ -10,7 +10,7 @@ use crate::{
 use rustc_hash::FxHashSet;
 use std::collections::VecDeque;
 
-/// The ForInIterator object represents an iteration over some specific object.
+/// The `ForInIterator` object represents an iteration over some specific object.
 /// It implements the iterator protocol.
 ///
 /// More information:
@@ -29,7 +29,7 @@ impl ForInIterator {
     pub(crate) const NAME: &'static str = "ForInIterator";
 
     fn new(object: JsValue) -> Self {
-        ForInIterator {
+        Self {
             object,
             visited_keys: FxHashSet::default(),
             remaining_keys: VecDeque::default(),
@@ -37,7 +37,7 @@ impl ForInIterator {
         }
     }
 
-    /// CreateForInIterator( object )
+    /// `CreateForInIterator( object )`
     ///
     /// Creates a new iterator over the given object.
     ///
@@ -62,7 +62,7 @@ impl ForInIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%foriniteratorprototype%.next
     pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let mut iterator = this.as_object().map(|obj| obj.borrow_mut());
+        let mut iterator = this.as_object().map(JsObject::borrow_mut);
         let iterator = iterator
             .as_mut()
             .and_then(|obj| obj.as_for_in_iterator_mut())
@@ -79,7 +79,7 @@ impl ForInIterator {
                         PropertyKey::Index(i) => {
                             iterator.remaining_keys.push_back(i.to_string().into());
                         }
-                        _ => {}
+                        PropertyKey::Symbol(_) => {}
                     }
                 }
                 iterator.object_was_visited = true;
@@ -118,7 +118,7 @@ impl ForInIterator {
         }
     }
 
-    /// Create the %ArrayIteratorPrototype% object
+    /// Create the `%ArrayIteratorPrototype%` object
     ///
     /// More information:
     ///  - [ECMA reference][spec]

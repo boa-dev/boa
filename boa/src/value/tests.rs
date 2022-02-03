@@ -440,7 +440,7 @@ fn display_boolean_object() {
         bool
     "#;
     let value = forward_val(&mut context, d_obj).unwrap();
-    assert_eq!(value.display().to_string(), "Boolean { false }")
+    assert_eq!(value.display().to_string(), "Boolean { false }");
 }
 
 #[test]
@@ -451,7 +451,7 @@ fn display_number_object() {
         num
     "#;
     let value = forward_val(&mut context, d_obj).unwrap();
-    assert_eq!(value.display().to_string(), "Number { 3.14 }")
+    assert_eq!(value.display().to_string(), "Number { 3.14 }");
 }
 
 #[test]
@@ -462,7 +462,7 @@ fn display_negative_zero_object() {
         num
     "#;
     let value = forward_val(&mut context, d_obj).unwrap();
-    assert_eq!(value.display().to_string(), "Number { -0 }")
+    assert_eq!(value.display().to_string(), "Number { -0 }");
 }
 
 #[test]
@@ -725,7 +725,7 @@ mod cyclic_conversions {
             console.log(a);
         "#;
 
-        let _ = forward(&mut context, src);
+        let _res = forward(&mut context, src);
         // Should not stack overflow
     }
 }

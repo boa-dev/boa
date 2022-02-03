@@ -83,7 +83,7 @@ impl BuiltIn for Math {
             .function(Self::trunc, "trunc", 1)
             .property(
                 string_tag,
-                Math::NAME,
+                Self::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .build();
@@ -466,7 +466,7 @@ impl Math {
         // 4. Let n32 be the result of converting n to a value in IEEE 754-2019 binary32 format using roundTiesToEven mode.
         // 5. Let n64 be the result of converting n32 to a value in IEEE 754-2019 binary64 format.
         // 6. Return the ECMAScript Number value corresponding to n64.
-        Ok((x as f32 as f64).into())
+        Ok(f64::from(x as f32).into())
     }
 
     /// Get an approximation of the square root of the sum of squares of all arguments.
@@ -715,6 +715,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.random
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
+    #[allow(clippy::unnecessary_wraps)]
     pub(crate) fn random(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // NOTE: Each Math.random function created for distinct realms must produce a distinct sequence of values from successive calls.
         Ok(rand::random::<f64>().into())

@@ -7,7 +7,7 @@ use indexmap::IndexMap;
 use rustc_hash::{FxHashMap, FxHasher};
 use std::{collections::hash_map, hash::BuildHasherDefault, iter::FusedIterator};
 
-/// Wrapper around indexmap::IndexMap for usage in PropertyMap
+/// Wrapper around `indexmap::IndexMap` for usage in `PropertyMap`.
 #[derive(Debug, Finalize)]
 struct OrderedHashMap<K: Trace>(IndexMap<K, PropertyDescriptor, BuildHasherDefault<FxHasher>>);
 
@@ -49,7 +49,7 @@ impl PropertyMap {
 
     pub fn insert(
         &mut self,
-        key: PropertyKey,
+        key: &PropertyKey,
         property: PropertyDescriptor,
     ) -> Option<PropertyDescriptor> {
         match &key {

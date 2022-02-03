@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 /// [dot notation][mdn].
 ///
 /// In the object.property syntax, the property must be a valid JavaScript identifier.
-/// (In the ECMAScript standard, the names of properties are technically "IdentifierNames", not
+/// (In the ECMAScript standard, the names of properties are technically `IdentifierNames`, not
 /// "Identifiers", so reserved words can be used but are not recommended).
 ///
 /// One can think of an object as an associative array (a.k.a. map, dictionary, hash, lookup

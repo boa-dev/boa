@@ -106,7 +106,7 @@ impl<R> Lexer<R> {
 
     #[inline]
     pub(super) fn set_strict_mode(&mut self, strict_mode: bool) {
-        self.cursor.set_strict_mode(strict_mode)
+        self.cursor.set_strict_mode(strict_mode);
     }
 
     /// Creates a new lexer.
@@ -117,7 +117,7 @@ impl<R> Lexer<R> {
     {
         Self {
             cursor: Cursor::new(reader),
-            goal_symbol: Default::default(),
+            goal_symbol: InputElement::default(),
         }
     }
 
@@ -333,6 +333,6 @@ pub(crate) enum InputElement {
 
 impl Default for InputElement {
     fn default() -> Self {
-        InputElement::RegExp
+        Self::RegExp
     }
 }

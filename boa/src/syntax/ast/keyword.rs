@@ -386,8 +386,8 @@ pub enum Keyword {
     ///  - [MDN documentation][mdn]
     ///
     /// [node]: ../node/enum.Node.html#variant.Throw
-    /// [spec]: https://tc39.es/ecma262/#prod-ArrowFunction
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions
+    /// [spec]: https://tc39.es/ecma262/#sec-throw-statement
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/throw
     Throw,
 
     /// The `true` keyword

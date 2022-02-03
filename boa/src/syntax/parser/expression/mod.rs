@@ -63,8 +63,8 @@ impl PartialEq<Punctuator> for Keyword {
 /// ```
 ///
 /// This macro has 2 mandatory identifiers:
-///  - The `$name` identifier is the name of the TargetExpression struct that the parser will be implemented for.
-///  - The `$lower` identifier is the name of the InnerExpression struct according to the pattern above.
+///  - The `$name` identifier is the name of the `TargetExpression` struct that the parser will be implemented for.
+///  - The `$lower` identifier is the name of the `InnerExpression` struct according to the pattern above.
 ///
 /// A list of punctuators (operands between the <TargetExpression> and <InnerExpression>) are passed as the third parameter.
 ///
@@ -87,7 +87,7 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
             while let Some(tok) = cursor.peek(0, interner)? {
                 match *tok.kind() {
                     TokenKind::Punctuator(op) if $( op == $op )||* => {
-                        let _ = cursor.next(interner).expect("token disappeared");
+                        let _next = cursor.next(interner).expect("token disappeared");
                         lhs = BinOp::new(
                             op.as_binop().expect("Could not get binary operation."),
                             lhs,
@@ -95,7 +95,7 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
                         ).into();
                     }
                     TokenKind::Keyword(op) if $( op == $op )||* => {
-                        let _ = cursor.next(interner).expect("token disappeared");
+                        let _next = cursor.next(interner).expect("token disappeared");
                         lhs = BinOp::new(
                             op.as_binop().expect("Could not get binary operation."),
                             lhs,
@@ -233,7 +233,7 @@ where
                             "logical expression (cannot use '??' without parentheses within '||' or '&&')",
                         ));
                     }
-                    let _ = cursor.next(interner)?.expect("'&&' expected");
+                    let _next = cursor.next(interner)?.expect("'&&' expected");
                     previous = PreviousExpr::Logical;
                     let rhs =
                         BitwiseORExpression::new(self.allow_in, self.allow_yield, self.allow_await)
@@ -249,9 +249,9 @@ where
                             "logical expression (cannot use '??' without parentheses within '||' or '&&')",
                         ));
                     }
-                    let _ = cursor.next(interner)?.expect("'||' expected");
+                    let _next = cursor.next(interner)?.expect("'||' expected");
                     previous = PreviousExpr::Logical;
-                    let rhs = ShortCircuitExpression::with_previous(
+                    let rhs = Self::with_previous(
                         self.allow_in,
                         self.allow_yield,
                         self.allow_await,
@@ -269,7 +269,7 @@ where
                             "cannot use '??' unparenthesized within '||' or '&&'",
                         ));
                     }
-                    let _ = cursor.next(interner)?.expect("'??' expected");
+                    let _next = cursor.next(interner)?.expect("'??' expected");
                     previous = PreviousExpr::Coalesce;
                     let rhs =
                         BitwiseORExpression::new(self.allow_in, self.allow_yield, self.allow_await)
@@ -498,7 +498,7 @@ where
                         || op == Punctuator::LessThanOrEq
                         || op == Punctuator::GreaterThanOrEq =>
                 {
-                    let _ = cursor.next(interner).expect("token disappeared");
+                    let _next = cursor.next(interner).expect("token disappeared");
                     lhs = BinOp::new(
                         op.as_binop().expect("Could not get binary operation."),
                         lhs,
@@ -511,7 +511,7 @@ where
                     if op == Keyword::InstanceOf
                         || (op == Keyword::In && self.allow_in == AllowIn(true)) =>
                 {
-                    let _ = cursor.next(interner).expect("token disappeared");
+                    let _next = cursor.next(interner).expect("token disappeared");
                     lhs = BinOp::new(
                         op.as_binop().expect("Could not get binary operation."),
                         lhs,

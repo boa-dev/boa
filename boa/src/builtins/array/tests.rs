@@ -818,7 +818,7 @@ fn map() {
 
     // One but it uses `this` inside the callback
     let one_with_this = forward(&mut context, "one.map(callbackThatUsesThis, _this)[0];");
-    assert_eq!(one_with_this, String::from("\"The answer to life is: 42\""))
+    assert_eq!(one_with_this, String::from("\"The answer to life is: 42\""));
 }
 
 #[test]
