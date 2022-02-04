@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1643954924584,
+  "lastUpdate": 1643972045549,
   "repoUrl": "https://github.com/boa-dev/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -14423,6 +14423,432 @@ window.BENCHMARK_DATA = {
             "name": "Mini js (Execution)",
             "value": 1358584,
             "range": "± 10203",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "distinct": false,
+          "id": "b34d581db50bdef70e6598f96bcf04c19b618341",
+          "message": "Bump monaco-editor from 0.31.1 to 0.32.0 (#1818)\n\nBumps [monaco-editor](https://github.com/microsoft/monaco-editor) from 0.31.1 to 0.32.0.\n<details>\n<summary>Changelog</summary>\n<p><em>Sourced from <a href=\"https://github.com/microsoft/monaco-editor/blob/main/CHANGELOG.md\">monaco-editor's changelog</a>.</em></p>\n<blockquote>\n<h2>[0.32.0] (03.02.2022)</h2>\n<h3>Breaking Changes</h3>\n<ul>\n<li>The binary format for <code>IEncodedLineTokens</code> has changed to support strikethrough text.</li>\n<li><code>IDiffEditor.getDomNode()</code> has been renamed to <code>IDiffEditor.getContainerDomNode()</code>.</li>\n<li><code>InlayHint.text</code> has been replaced by <code>InlayHint.label</code> and <code>InlayHintsProvider.provideInlayHints</code> now returns an <code>InlayHintList</code>.</li>\n</ul>\n<h3>Thank you</h3>\n<p>Contributions to <code>monaco-editor</code>:</p>\n<ul>\n<li><a href=\"https://github.com/blutorange\"><code>@​blutorange (Andre Wachsmuth)</code></a>: Implements <a href=\"https://github-redirect.dependabot.com/microsoft/monaco-editor/issues/2383\">#2383</a> Add syntax modes for FreeMarker template language [PR <a href=\"https://github-redirect.dependabot.com/microsoft/monaco-editor/issues/2847\">#2847</a>](<a href=\"https://github-redirect.dependabot.com/microsoft/monaco-editor/pull/2847\">microsoft/monaco-editor#2847</a>)</li>\n<li><a href=\"https://github.com/forensicmike\"><code>@​forensicmike (forensicmike1)</code></a>: Add &quot;cd monaco-editor&quot; to the step by step commandline instructions for cloning and running the samples [PR <a href=\"https://github-redirect.dependabot.com/microsoft/monaco-editor/issues/2894\">#2894</a>](<a href=\"https://github-redirect.dependabot.com/microsoft/monaco-editor/pull/2894\">microsoft/monaco-editor#2894</a>)</li>\n<li><a href=\"https://github.com/juan-carlos-diaz\"><code>@​juan-carlos-diaz</code></a>: Fix <a href=\"https://github-redirect.dependabot.com/microsoft/monaco-editor/issues/2851\">#2851</a> Highlight correctly the attributes and identifiers (with dashes) for Shell language [PR <a href=\"https://github-redirect.dependabot.com/microsoft/monaco-editor/issues/2871\">#2871</a>](<a href=\"https://github-redirect.dependabot.com/microsoft/monaco-editor/pull/2871\">microsoft/monaco-editor#2871</a>)</li>\n<li><a href=\"https://github.com/MasterOdin\"><code>@​MasterOdin (Matthew Peveler)</code></a>: Only run publish workflow on main monaco-editor repo [PR <a href=\"https://github-redirect.dependabot.com/microsoft/monaco-editor/issues/2926\">#2926</a>](<a href=\"https://github-redirect.dependabot.com/microsoft/monaco-editor/pull/2926\">microsoft/monaco-editor#2926</a>)</li>\n<li><a href=\"https://github.com/philipturner\"><code>@​philipturner (Philip Turner)</code></a>\n<ul>\n<li>Update Swift language specification to version 5.5 [PR <a href=\"https://github-redirect.dependabot.com/microsoft/monaco-editor/issues/2855\">#2855</a>](<a href=\"https://github-redirect.dependabot.com/microsoft/monaco-editor/pull/2855\">microsoft/monaco-editor#2855</a>)</li>\n<li>Add <a href=\"https://github.com/preconcurrency\"><code>@​preconcurrency</code></a> to Swift declaration attributes [PR <a href=\"https://github-redirect.dependabot.com/microsoft/monaco-editor/issues/2924\">#2924</a>](<a href=\"https://github-redirect.dependabot.com/microsoft/monaco-editor/pull/2924\">microsoft/monaco-editor#2924</a>)</li>\n</ul>\n</li>\n<li><a href=\"https://github.com/rcjsuen\"><code>@​rcjsuen (Remy Suen)</code></a>: Support hyphenated HTML tags in Markdown syntax [PR <a href=\"https://github-redirect.dependabot.com/microsoft/monaco-editor/issues/2864\">#2864</a>](<a href=\"https://github-redirect.dependabot.com/microsoft/monaco-editor/pull/2864\">microsoft/monaco-editor#2864</a>)</li>\n<li><a href=\"https://github.com/resistdesign\"><code>@​resistdesign (Ryan Graff)</code></a>: doc: (samples) Simplify Browser ESM Parcel build [PR <a href=\"https://github-redirect.dependabot.com/microsoft/monaco-editor/issues/2832\">#2832</a>](<a href=\"https://github-redirect.dependabot.com/microsoft/monaco-editor/pull/2832\">microsoft/monaco-editor#2832</a>)</li>\n<li><a href=\"https://github.com/ValeraS\"><code>@​ValeraS (Valeriy)</code></a>\n<ul>\n<li>fix(monaco-editor-webpack-plugin): load monaco-editor with webpack 4 [PR <a href=\"https://github-redirect.dependabot.com/microsoft/monaco-editor/issues/2818\">#2818</a>](<a href=\"https://github-redirect.dependabot.com/microsoft/monaco-editor/pull/2818\">microsoft/monaco-editor#2818</a>)</li>\n<li>tune(monaco-editor-webpack-plugin): expose plugin options type [PR <a href=\"https://github-redirect.dependabot.com/microsoft/monaco-editor/issues/2853\">#2853</a>](<a href=\"https://github-redirect.dependabot.com/microsoft/monaco-editor/pull/2853\">microsoft/monaco-editor#2853</a>)</li>\n</ul>\n</li>\n<li><a href=\"https://github.com/ZusorCode\"><code>@​ZusorCode (Tobias Messner)</code></a>: Add .cjs extension for javascript files [PR <a href=\"https://github-redirect.dependabot.com/microsoft/monaco-editor/issues/2929\">#2929</a>](<a href=\"https://github-redirect.dependabot.com/microsoft/monaco-editor/pull/2929\">microsoft/monaco-editor#2929</a>)</li>\n</ul>\n</blockquote>\n</details>\n<details>\n<summary>Commits</summary>\n<ul>\n<li>See full diff in <a href=\"https://github.com/microsoft/monaco-editor/commits\">compare view</a></li>\n</ul>\n</details>\n<br />\n\n\n[![Dependabot compatibility score](https://dependabot-badges.githubapp.com/badges/compatibility_score?dependency-name=monaco-editor&package-manager=npm_and_yarn&previous-version=0.31.1&new-version=0.32.0)](https://docs.github.com/en/github/managing-security-vulnerabilities/about-dependabot-security-updates#about-compatibility-scores)\n\nDependabot will resolve any conflicts with this PR as long as you don't alter it yourself. You can also trigger a rebase manually by commenting `@dependabot rebase`.\n\n[//]: # (dependabot-automerge-start)\n[//]: # (dependabot-automerge-end)\n\n---\n\n<details>\n<summary>Dependabot commands and options</summary>\n<br />\n\nYou can trigger Dependabot actions by commenting on this PR:\n- `@dependabot rebase` will rebase this PR\n- `@dependabot recreate` will recreate this PR, overwriting any edits that have been made to it\n- `@dependabot merge` will merge this PR after your CI passes on it\n- `@dependabot squash and merge` will squash and merge this PR after your CI passes on it\n- `@dependabot cancel merge` will cancel a previously requested merge and block automerging\n- `@dependabot reopen` will reopen this PR if it is closed\n- `@dependabot close` will close this PR and stop Dependabot recreating it. You can achieve the same result by closing it manually\n- `@dependabot ignore this major version` will close this PR and stop Dependabot creating any more for this major version (unless you reopen the PR or upgrade to it yourself)\n- `@dependabot ignore this minor version` will close this PR and stop Dependabot creating any more for this minor version (unless you reopen the PR or upgrade to it yourself)\n- `@dependabot ignore this dependency` will close this PR and stop Dependabot creating any more for this dependency (unless you reopen the PR or upgrade to it yourself)\n\n\n</details>",
+          "timestamp": "2022-02-04T10:22:04Z",
+          "tree_id": "dba8374de5401f0efc0233d26a72a80a89f8b11b",
+          "url": "https://github.com/boa-dev/boa/commit/b34d581db50bdef70e6598f96bcf04c19b618341"
+        },
+        "date": 1643971998176,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 340,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Symbols (Parser)",
+            "value": 4435,
+            "range": "± 15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "For loop (Parser)",
+            "value": 14162,
+            "range": "± 13",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Fibonacci (Parser)",
+            "value": 16510,
+            "range": "± 28",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Object Creation (Parser)",
+            "value": 9413,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Static Object Property Access (Parser)",
+            "value": 10113,
+            "range": "± 32",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Dynamic Object Property Access (Parser)",
+            "value": 10840,
+            "range": "± 16",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal Creation (Parser)",
+            "value": 6519,
+            "range": "± 23",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Creation (Parser)",
+            "value": 8596,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal (Parser)",
+            "value": 8290,
+            "range": "± 28",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp (Parser)",
+            "value": 10332,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array access (Parser)",
+            "value": 12239,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array creation (Parser)",
+            "value": 13513,
+            "range": "± 27",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array pop (Parser)",
+            "value": 143105,
+            "range": "± 168",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String concatenation (Parser)",
+            "value": 7656,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String comparison (Parser)",
+            "value": 11148,
+            "range": "± 13",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String copy (Parser)",
+            "value": 5742,
+            "range": "± 22",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Number Object Access (Parser)",
+            "value": 11418,
+            "range": "± 30",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Boolean Object Access (Parser)",
+            "value": 14450,
+            "range": "± 35",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String Object Access (Parser)",
+            "value": 14140,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Arithmetic operations (Parser)",
+            "value": 5774,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Clean js (Parser)",
+            "value": 29406,
+            "range": "± 37",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Mini js (Parser)",
+            "value": 25767,
+            "range": "± 21",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Symbols (Compiler)",
+            "value": 649,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "For loop (Compiler)",
+            "value": 1287,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Fibonacci (Compiler)",
+            "value": 1487,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Object Creation (Compiler)",
+            "value": 974,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Static Object Property Access (Compiler)",
+            "value": 996,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Dynamic Object Property Access (Compiler)",
+            "value": 1158,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal Creation (Compiler)",
+            "value": 1068,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Creation (Compiler)",
+            "value": 1045,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal (Compiler)",
+            "value": 1146,
+            "range": "± 7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp (Compiler)",
+            "value": 1183,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array access (Compiler)",
+            "value": 825,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array creation (Compiler)",
+            "value": 1168,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array pop (Compiler)",
+            "value": 2815,
+            "range": "± 13",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String concatenation (Compiler)",
+            "value": 1059,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String comparison (Compiler)",
+            "value": 1328,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String copy (Compiler)",
+            "value": 877,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Number Object Access (Compiler)",
+            "value": 644,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Boolean Object Access (Compiler)",
+            "value": 686,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String Object Access (Compiler)",
+            "value": 1027,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Arithmetic operations (Compiler)",
+            "value": 408,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Clean js (Compiler)",
+            "value": 2238,
+            "range": "± 7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Mini js (Compiler)",
+            "value": 2229,
+            "range": "± 9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Symbols (Execution)",
+            "value": 4922,
+            "range": "± 9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "For loop (Execution)",
+            "value": 43727,
+            "range": "± 166",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Fibonacci (Execution)",
+            "value": 2744123,
+            "range": "± 4967",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Object Creation (Execution)",
+            "value": 6188,
+            "range": "± 23",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Static Object Property Access (Execution)",
+            "value": 6358,
+            "range": "± 20",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Dynamic Object Property Access (Execution)",
+            "value": 6785,
+            "range": "± 29",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal Creation (Execution)",
+            "value": 9852,
+            "range": "± 56",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Creation (Execution)",
+            "value": 9791,
+            "range": "± 92",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal (Execution)",
+            "value": 12959,
+            "range": "± 36",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp (Execution)",
+            "value": 13040,
+            "range": "± 32",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array access (Execution)",
+            "value": 10378,
+            "range": "± 25",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array creation (Execution)",
+            "value": 3100935,
+            "range": "± 6479",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array pop (Execution)",
+            "value": 1304391,
+            "range": "± 3820",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String concatenation (Execution)",
+            "value": 6117,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String comparison (Execution)",
+            "value": 7171,
+            "range": "± 25",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String copy (Execution)",
+            "value": 5233,
+            "range": "± 20",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Number Object Access (Execution)",
+            "value": 5404,
+            "range": "± 14",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Boolean Object Access (Execution)",
+            "value": 6873,
+            "range": "± 16",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String Object Access (Execution)",
+            "value": 8702,
+            "range": "± 13",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Arithmetic operations (Execution)",
+            "value": 1983,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Clean js (Execution)",
+            "value": 1465782,
+            "range": "± 11969",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Mini js (Execution)",
+            "value": 1359525,
+            "range": "± 7579",
             "unit": "ns/iter"
           }
         ]
