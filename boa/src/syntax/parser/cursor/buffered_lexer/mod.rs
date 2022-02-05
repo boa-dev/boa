@@ -17,12 +17,12 @@ const MAX_PEEK_SKIP: usize = 3;
 /// The fixed size of the buffer used for storing values that are peeked ahead.
 ///
 /// The size is calculated for a worst case scenario, where we want to peek `MAX_PEEK_SKIP` tokens
-/// skipping line terminators:
+/// skipping line terminators, and the stream ends just after:
 /// ```text
-/// [\n, B, \n, C, \n, D, \n, E, \n, F]
-///   0  0   1  1   2  2   3  3   4  4
+/// [\n, B, \n, C, \n, D, \n, E, \n, F, None]
+///   0  0   1  1   2  2   3  3   4  4  5
 /// ```
-const PEEK_BUF_SIZE: usize = (MAX_PEEK_SKIP + 1) * 2;
+const PEEK_BUF_SIZE: usize = (MAX_PEEK_SKIP + 1) * 2 + 1;
 
 #[derive(Debug)]
 pub(super) struct BufferedLexer<R> {
@@ -41,6 +41,7 @@ where
         Self {
             lexer,
             peeked: [
+                None::<Token>,
                 None::<Token>,
                 None::<Token>,
                 None::<Token>,
@@ -152,6 +153,7 @@ where
             self.read_index, self.write_index,
             "we reached the read index with the write index"
         );
+
         debug_assert!(
             self.read_index < PEEK_BUF_SIZE,
             "read index went out of bounds"
