@@ -153,15 +153,11 @@ where
                                         .map(Node::ArrowFunctionDecl);
                                     }
                                     TokenKind::Punctuator(Punctuator::CloseParen) => {
-                                        // Need to check if the token after the close paren is an arrow, if so then this is an ArrowFunction
-                                        // otherwise it is an expression of the form (b).
-                                        #[allow(clippy::match_same_arms)]
-                                        match cursor.peek(3, interner) {
-                                            Ok(Some(t))
-                                                if t.kind()
-                                                    == &TokenKind::Punctuator(
-                                                        Punctuator::Arrow,
-                                                    ) =>
+                                        // Need to check if the token after the close paren is an
+                                        // arrow, if so then this is an ArrowFunction otherwise it
+                                        // is an expression of the form (b).
+                                        if let Some(t) = cursor.peek(3, interner)? {
+                                            if t.kind() == &TokenKind::Punctuator(Punctuator::Arrow)
                                             {
                                                 return ArrowFunction::new(
                                                     self.allow_in,
@@ -171,9 +167,6 @@ where
                                                 .parse(cursor, interner)
                                                 .map(Node::ArrowFunctionDecl);
                                             }
-                                            Err(ParseError::AbruptEnd) => {}
-                                            Err(e) => return Err(e),
-                                            _ => {}
                                         }
                                     }
                                     _ => {}

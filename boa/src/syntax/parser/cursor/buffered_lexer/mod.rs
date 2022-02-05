@@ -153,7 +153,6 @@ where
             self.read_index, self.write_index,
             "we reached the read index with the write index"
         );
-
         debug_assert!(
             self.read_index < PEEK_BUF_SIZE,
             "read index went out of bounds"
