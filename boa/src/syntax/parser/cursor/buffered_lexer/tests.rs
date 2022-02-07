@@ -278,3 +278,11 @@ fn skip_peeked_terminators() {
     // End of stream
     assert!(cur.peek(2, true, &mut interner).unwrap().is_none());
 }
+
+#[test]
+fn issue_1768() {
+    let mut cur = BufferedLexer::from(&b"\n(\nx\n)\n"[..]);
+    let mut interner = Interner::default();
+
+    assert!(cur.peek(3, true, &mut interner).unwrap().is_none());
+}
