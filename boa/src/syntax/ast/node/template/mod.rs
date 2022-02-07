@@ -117,7 +117,7 @@ impl ToInternedString for TaggedTemplate {
 
 impl From<TaggedTemplate> for Node {
     fn from(template: TaggedTemplate) -> Self {
-        Self::TaggedTemplate(template)
+        Self::TaggedTemplate(Box::new(template))
     }
 }
 
