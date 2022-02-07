@@ -247,7 +247,7 @@
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">TaggedTemplate</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Node</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">template</span>: <span class="ident">TaggedTemplate</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::TaggedTemplate</span>(<span class="ident">template</span>)
+        <span class="ident"><span class="self">Self</span>::TaggedTemplate</span>(<span class="ident">Box::new</span>(<span class="ident">template</span>))
     }
 }
 
