@@ -254,6 +254,7 @@
 <span id="253">253</span>
 <span id="254">254</span>
 <span id="255">255</span>
+<span id="256">256</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">profiler::BoaProfiler</span>,
     <span class="ident">syntax</span>::{
@@ -273,12 +274,12 @@
 <span class="doccomment">/// The fixed size of the buffer used for storing values that are peeked ahead.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// The size is calculated for a worst case scenario, where we want to peek `MAX_PEEK_SKIP` tokens</span>
-<span class="doccomment">/// skipping line terminators:</span>
+<span class="doccomment">/// skipping line terminators, and the stream ends just after:</span>
 <span class="doccomment">/// ```text</span>
-<span class="doccomment">/// [\n, B, \n, C, \n, D, \n, E, \n, F]</span>
-<span class="doccomment">///   0  0   1  1   2  2   3  3   4  4</span>
+<span class="doccomment">/// [\n, B, \n, C, \n, D, \n, E, \n, F, None]</span>
+<span class="doccomment">///   0  0   1  1   2  2   3  3   4  4  5</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">const</span> <span class="ident">PEEK_BUF_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> (<span class="ident">MAX_PEEK_SKIP</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">*</span> <span class="number">2</span>;
+<span class="kw">const</span> <span class="ident">PEEK_BUF_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> (<span class="ident">MAX_PEEK_SKIP</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">*</span> <span class="number">2</span> <span class="op">+</span> <span class="number">1</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">BufferedLexer</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
@@ -297,6 +298,7 @@
         <span class="self">Self</span> {
             <span class="ident">lexer</span>,
             <span class="ident">peeked</span>: [
+                <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>,
                 <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>,
                 <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>,
                 <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>,
