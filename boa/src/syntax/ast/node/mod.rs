@@ -166,7 +166,7 @@ pub enum Node {
     Spread(Spread),
 
     /// A tagged template. [More information](./template/struct.TaggedTemplate.html).
-    TaggedTemplate(TaggedTemplate),
+    TaggedTemplate(Box<TaggedTemplate>),
 
     /// A template literal. [More information](./template/struct.TemplateLit.html).
     TemplateLit(TemplateLit),
@@ -175,7 +175,7 @@ pub enum Node {
     Throw(Throw),
 
     /// A `try...catch` node. [More information](./try_node/struct.Try.htl).
-    Try(Try),
+    Try(Box<Try>),
 
     /// The JavaScript `this` keyword refers to the object it belongs to.
     ///

@@ -23,7 +23,7 @@ mod operator;
 mod regex;
 mod spread;
 mod string;
-mod template;
+pub mod template;
 pub mod token;
 
 #[cfg(test)]
