@@ -93,7 +93,7 @@ struct Opt {
     #[clap(long, short = 'a', value_name = "FORMAT", ignore_case = true, arg_enum)]
     dump_ast: Option<Option<DumpFormat>>,
 
-    /// Dump the AST to stdout with the given format.
+    /// Dump the compiled bytecode and trace the execution stack
     #[clap(long = "trace", short = 't')]
     trace: bool,
 

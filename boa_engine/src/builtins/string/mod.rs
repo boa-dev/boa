@@ -179,8 +179,12 @@ impl String {
         let string = match args.get(0) {
             // 2. Else,
             // a. If NewTarget is undefined and Type(value) is Symbol, return SymbolDescriptiveString(value).
-            Some(JsValue::Symbol(ref sym)) if new_target.is_undefined() => {
-                return Ok(sym.descriptive_string().into())
+            Some(value) if new_target.is_undefined() && value.is_symbol() => {
+                return Ok(value
+                    .as_symbol()
+                    .expect("Already checked for a symbol")
+                    .descriptive_string()
+                    .into())
             }
             // b. Let s be ? ToString(value).
             Some(value) => value.to_string(context)?,
@@ -244,6 +248,7 @@ impl String {
     fn this_string_value(this: &JsValue, context: &mut Context) -> JsResult<JsString> {
         // 1. If Type(value) is String, return value.
         this.as_string()
+            .as_deref()
             .cloned()
             // 2. If Type(value) is Object and value has a [[StringData]] internal slot, then
             //     a. Let s be value.[[StringData]].
@@ -395,7 +400,7 @@ impl String {
         //    If codeUnits is empty, the empty String is returned.
 
         let s = std::string::String::from_utf16_lossy(elements.as_slice());
-        Ok(JsValue::String(JsString::new(s)))
+        Ok(JsValue::new(JsString::new(s)))
     }
 
     /// `String.prototype.toString ( )`
@@ -780,7 +785,7 @@ impl String {
 
         // 3. Let isRegExp be ? IsRegExp(searchString).
         // 4. If isRegExp is true, throw a TypeError exception.
-        if is_reg_exp(search_string, context)? {
+        if is_reg_exp(&search_string, context)? {
             context.throw_type_error(
                 "First argument to String.prototype.startsWith must not be a regular expression",
             )?;
@@ -793,9 +798,11 @@ impl String {
         let len = string.encode_utf16().count() as i64;
 
         // 7. If position is undefined, let pos be 0; else let pos be ? ToIntegerOrInfinity(position).
-        let pos = match args.get_or_undefined(1) {
-            &JsValue::Undefined => IntegerOrInfinity::Integer(0),
-            position => position.to_integer_or_infinity(context)?,
+        let pos = args.get_or_undefined(1);
+        let pos = if pos.is_undefined() {
+            IntegerOrInfinity::Integer(0)
+        } else {
+            pos.to_integer_or_infinity(context)?
         };
 
         // 8. Let start be the result of clamping pos between 0 and len.
@@ -850,7 +857,7 @@ impl String {
         let search_str = match args.get_or_undefined(0) {
             // 3. Let isRegExp be ? IsRegExp(searchString).
             // 4. If isRegExp is true, throw a TypeError exception.
-            search_string if is_reg_exp(search_string, context)? => {
+            search_string if is_reg_exp(&search_string, context)? => {
                 return context.throw_type_error(
                     "First argument to String.prototype.endsWith must not be a regular expression",
                 );
@@ -919,7 +926,7 @@ impl String {
 
         let search_str = match args.get_or_undefined(0) {
             // 3. Let isRegExp be ? IsRegExp(searchString).
-            search_string if is_reg_exp(search_string, context)? => {
+            search_string if is_reg_exp(&search_string, context)? => {
                 return context.throw_type_error(
                     // 4. If isRegExp is true, throw a TypeError exception.
                     "First argument to String.prototype.includes must not be a regular expression",
@@ -979,7 +986,7 @@ impl String {
             if let Some(replacer) = replacer {
                 // i. Return ? Call(replacer, searchValue, « O, replaceValue »).
                 return replacer.call(
-                    search_value,
+                    &search_value,
                     &[this.clone(), replace_value.clone()],
                     context,
                 );
@@ -995,6 +1002,7 @@ impl String {
         // 5. Let functionalReplace be IsCallable(replaceValue).
         let functional_replace = replace_value
             .as_object()
+            .as_deref()
             .map(JsObject::is_callable)
             .unwrap_or_default();
 
@@ -1023,7 +1031,7 @@ impl String {
             // a. Let replacement be ? ToString(? Call(replaceValue, undefined, « searchString, 𝔽(position), string »)).
             context
                 .call(
-                    replace_value,
+                    &replace_value,
                     &JsValue::undefined(),
                     &[search_str.into(), position.into(), this_str.clone().into()],
                 )?
@@ -1088,7 +1096,7 @@ impl String {
         // 2. If searchValue is neither undefined nor null, then
         if !search_value.is_null_or_undefined() {
             // a. Let isRegExp be ? IsRegExp(searchValue).
-            if let Some(obj) = search_value.as_object() {
+            if let Some(ref obj) = search_value.as_object() {
                 // b. If isRegExp is true, then
                 if is_reg_exp_object(obj, context)? {
                     // i. Let flags be ? Get(searchValue, "flags").
@@ -1112,7 +1120,7 @@ impl String {
             // d. If replacer is not undefined, then
             if let Some(replacer) = replacer {
                 // i. Return ? Call(replacer, searchValue, « O, replaceValue »).
-                return replacer.call(search_value, &[o.into(), replace_value.clone()], context);
+                return replacer.call(&search_value, &[o.into(), replace_value.clone()], context);
             }
         }
 
@@ -1125,6 +1133,7 @@ impl String {
         // 5. Let functionalReplace be IsCallable(replaceValue).
         let functional_replace = replace_value
             .as_object()
+            .as_deref()
             .map(JsObject::is_callable)
             .unwrap_or_default();
 
@@ -1196,7 +1205,7 @@ impl String {
                 // i. Let replacement be ? ToString(? Call(replaceValue, undefined, « searchString, 𝔽(p), string »)).
                 context
                     .call(
-                        replace_value,
+                        &replace_value,
                         &JsValue::undefined(),
                         &[
                             search_string.clone().into(),
@@ -1372,7 +1381,7 @@ impl String {
             // b. If matcher is not undefined, then
             if let Some(matcher) = matcher {
                 // i. Return ? Call(matcher, regexp, « O »).
-                return matcher.call(regexp, &[o.clone()], context);
+                return matcher.call(&regexp, &[o.clone()], context);
             }
         }
 
@@ -1380,7 +1389,7 @@ impl String {
         let s = o.to_string(context)?;
 
         // 4. Let rx be ? RegExpCreate(regexp, undefined).
-        let rx = RegExp::create(regexp, &JsValue::Undefined, context)?;
+        let rx = RegExp::create(&regexp, &JsValue::undefined(), context)?;
 
         // 5. Return ? Invoke(rx, @@match, « S »).
         rx.invoke(WellKnownSymbols::r#match(), &[JsValue::new(s)], context)
@@ -1485,7 +1494,7 @@ impl String {
         let fill_string = args.get_or_undefined(1);
 
         // 2. Return ? StringPad(O, maxLength, fillString, end).
-        Self::string_pad(this, max_length, fill_string, Placement::End, context)
+        Self::string_pad(this, &max_length, &fill_string, Placement::End, context)
     }
 
     /// `String.prototype.padStart( targetLength [, padString] )`
@@ -1512,7 +1521,7 @@ impl String {
         let fill_string = args.get_or_undefined(1);
 
         // 2. Return ? StringPad(O, maxLength, fillString, start).
-        Self::string_pad(this, max_length, fill_string, Placement::Start, context)
+        Self::string_pad(this, &max_length, &fill_string, Placement::Start, context)
     }
 
     /// String.prototype.trim()
@@ -1676,9 +1685,11 @@ impl String {
         let int_start = args.get_or_undefined(0).to_integer_or_infinity(context)?;
 
         // 5. If end is undefined, let intEnd be len; else let intEnd be ? ToIntegerOrInfinity(end).
-        let int_end = match args.get_or_undefined(1) {
-            &JsValue::Undefined => IntegerOrInfinity::Integer(len),
-            end => end.to_integer_or_infinity(context)?,
+        let end = args.get_or_undefined(1);
+        let int_end = if end.is_undefined() {
+            IntegerOrInfinity::Integer(len)
+        } else {
+            end.to_integer_or_infinity(context)?
         };
 
         // 6. Let finalStart be the result of clamping intStart between 0 and len.
@@ -1733,9 +1744,11 @@ impl String {
 
         // 7. If length is undefined, let intLength be size; otherwise let intLength be ? ToIntegerOrInfinity(length).
         // Moved it before to ensure an error throws before returning the empty string on `match int_start`
-        let int_length = match args.get_or_undefined(1) {
-            &JsValue::Undefined => IntegerOrInfinity::Integer(size),
-            val => val.to_integer_or_infinity(context)?,
+        let length = args.get_or_undefined(1);
+        let int_length = if length.is_undefined() {
+            IntegerOrInfinity::Integer(size)
+        } else {
+            length.to_integer_or_infinity(context)?
         };
 
         let int_start = match int_start {
@@ -1798,7 +1811,7 @@ impl String {
             // b. If splitter is not undefined, then
             if let Some(splitter) = splitter {
                 // i. Return ? Call(splitter, separator, « O, limit »).
-                return splitter.call(separator, &[this.clone(), limit.clone()], context);
+                return splitter.call(&separator, &[this.clone(), limit.clone()], context);
             }
         }
 
@@ -1983,7 +1996,7 @@ impl String {
             let matcher = regexp.get_method(WellKnownSymbols::match_all(), context)?;
             // d. If matcher is not undefined, then
             if let Some(matcher) = matcher {
-                return matcher.call(regexp, &[o.clone()], context);
+                return matcher.call(&regexp, &[o.clone()], context);
             }
         }
 
@@ -1991,7 +2004,7 @@ impl String {
         let s = o.to_string(context)?;
 
         // 4. Let rx be ? RegExpCreate(regexp, "g").
-        let rx = RegExp::create(regexp, &JsValue::new("g"), context)?;
+        let rx = RegExp::create(&regexp, &JsValue::new("g"), context)?;
 
         // 5. Return ? Invoke(rx, @@matchAll, « S »).
         rx.invoke(WellKnownSymbols::match_all(), &[JsValue::new(s)], context)
@@ -2072,7 +2085,7 @@ impl String {
             // b. If searcher is not undefined, then
             if let Some(searcher) = searcher {
                 // i. Return ? Call(searcher, regexp, « O »).
-                return searcher.call(regexp, &[o.clone()], context);
+                return searcher.call(&regexp, &[o.clone()], context);
             }
         }
 
@@ -2080,7 +2093,7 @@ impl String {
         let string = o.to_string(context)?;
 
         // 4. Let rx be ? RegExpCreate(regexp, undefined).
-        let rx = RegExp::create(regexp, &JsValue::Undefined, context)?;
+        let rx = RegExp::create(&regexp, &JsValue::undefined(), context)?;
 
         // 5. Return ? Invoke(rx, @@search, « string »).
         rx.invoke(WellKnownSymbols::search(), &[JsValue::new(string)], context)
@@ -2193,7 +2206,7 @@ pub(crate) fn get_substitution(
                         result.push(second);
                         result.push(*third);
                     } else if let Some(capture) = captures.get(nn - 1) {
-                        if let Some(s) = capture.as_string() {
+                        if let Some(ref s) = capture.as_string() {
                             result.push_str(s);
                         }
                     }
@@ -2214,7 +2227,7 @@ pub(crate) fn get_substitution(
                         result.push('$');
                         result.push(second);
                     } else if let Some(capture) = captures.get(n - 1) {
-                        if let Some(s) = capture.as_string() {
+                        if let Some(ref s) = capture.as_string() {
                             result.push_str(s);
                         }
                     }
@@ -2324,12 +2337,13 @@ fn split_match(s_str: &str, q: usize, r_str: &str) -> Option<usize> {
 /// [spec]: https://tc39.es/ecma262/#sec-isregexp
 fn is_reg_exp(argument: &JsValue, context: &mut Context) -> JsResult<bool> {
     // 1. If Type(argument) is not Object, return false.
-    let argument = match argument {
-        JsValue::Object(o) => o,
-        _ => return Ok(false),
+    let argument = if let Some(o) = argument.as_object() {
+        o
+    } else {
+        return Ok(false);
     };
 
-    is_reg_exp_object(argument, context)
+    is_reg_exp_object(&argument, context)
 }
 fn is_reg_exp_object(argument: &JsObject, context: &mut Context) -> JsResult<bool> {
     // 2. Let matcher be ? Get(argument, @@match).

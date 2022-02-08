@@ -743,7 +743,7 @@ impl Context {
     /// Runs all the jobs in the job queue.
     fn run_queued_jobs(&mut self) -> JsResult<()> {
         while let Some(job) = self.promise_job_queue.pop_front() {
-            job.call_job_callback(&JsValue::Undefined, &[], self)?;
+            job.call_job_callback(&JsValue::undefined(), &[], self)?;
         }
         Ok(())
     }

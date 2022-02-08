@@ -402,7 +402,7 @@ impl DeclarativeEnvironmentStack {
         let this = if let Some(this) = this {
             this
         } else {
-            JsValue::Null
+            JsValue::null()
         };
 
         self.stack.push(Gc::new(DeclarativeEnvironment {

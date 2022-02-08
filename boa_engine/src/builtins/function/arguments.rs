@@ -196,7 +196,6 @@ impl Arguments {
         // In the case of duplicate parameter names, the last one is bound as the environment binding.
         //
         // The following logic implements the steps 17-19 adjusted for our environment structure.
-
         let mut bindings = FxHashMap::default();
         let mut property_index = 0;
         'outer: for formal in formals.parameters.iter() {

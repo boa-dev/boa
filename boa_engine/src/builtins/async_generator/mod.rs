@@ -203,7 +203,7 @@ impl AsyncGenerator {
         }
 
         // 7. Let completion be NormalCompletion(value).
-        let completion = (Ok(args.get_or_undefined(0).clone()), false);
+        let completion = (Ok(args.get_or_undefined(0)), false);
 
         // 8. Perform AsyncGeneratorEnqueue(generator, completion, promiseCapability).
         generator.enqueue(completion.clone(), promise_capability.clone());
@@ -221,7 +221,7 @@ impl AsyncGenerator {
             drop(generator_obj_mut);
 
             Self::resume(
-                generator_object,
+                &generator_object,
                 state,
                 &generator_context,
                 completion,
@@ -272,7 +272,7 @@ impl AsyncGenerator {
         if_abrupt_reject_promise!(generator, promise_capability, context);
 
         // 5. Let completion be Completion Record { [[Type]]: return, [[Value]]: value, [[Target]]: empty }.
-        let completion = (Ok(args.get_or_undefined(0).clone()), true);
+        let completion = (Ok(args.get_or_undefined(0)), true);
 
         // 6. Perform AsyncGeneratorEnqueue(generator, completion, promiseCapability).
         generator.enqueue(completion.clone(), promise_capability.clone());
@@ -305,7 +305,7 @@ impl AsyncGenerator {
 
             drop(generator_obj_mut);
             Self::resume(
-                generator_object,
+                &generator_object,
                 state,
                 &generator_context,
                 completion,
@@ -376,7 +376,7 @@ impl AsyncGenerator {
                 .reject()
                 .call(
                     &JsValue::undefined(),
-                    &[args.get_or_undefined(0).clone()],
+                    &[args.get_or_undefined(0)],
                     context,
                 )
                 .expect("cannot fail per spec");
@@ -386,7 +386,7 @@ impl AsyncGenerator {
         }
 
         // 8. Let completion be ThrowCompletion(exception).
-        let completion = (Err(args.get_or_undefined(0).clone()), false);
+        let completion = (Err(args.get_or_undefined(0)), false);
 
         // 9. Perform AsyncGeneratorEnqueue(generator, completion, promiseCapability).
         generator.enqueue(completion.clone(), promise_capability.clone());
@@ -401,7 +401,7 @@ impl AsyncGenerator {
 
             // a. Perform AsyncGeneratorResume(generator, completion).
             Self::resume(
-                generator_object,
+                &generator_object,
                 state,
                 &generator_context,
                 completion,
@@ -622,7 +622,7 @@ impl AsyncGenerator {
                 gen.state = AsyncGeneratorState::Completed;
 
                 // b. Let result be NormalCompletion(value).
-                let result = Ok(args.get_or_undefined(0).clone());
+                let result = Ok(args.get_or_undefined(0));
 
                 // c. Perform AsyncGeneratorCompleteStep(generator, result, true).
                 let next = gen.queue.pop_front().expect("must have one entry");
@@ -655,7 +655,7 @@ impl AsyncGenerator {
                 gen.state = AsyncGeneratorState::Completed;
 
                 // b. Let result be ThrowCompletion(reason).
-                let result = Err(args.get_or_undefined(0).clone());
+                let result = Err(args.get_or_undefined(0));
 
                 // c. Perform AsyncGeneratorCompleteStep(generator, result, true).
                 let next = gen.queue.pop_front().expect("must have one entry");

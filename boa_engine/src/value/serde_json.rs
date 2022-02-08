@@ -1,6 +1,6 @@
 //! This module implements the conversions from and into [`serde_json::Value`].
 
-use super::JsValue;
+use super::{JsValue, JsVariant};
 use crate::{
     builtins::Array,
     property::{PropertyDescriptor, PropertyKey},
@@ -41,13 +41,13 @@ impl JsValue {
         const MIN_INT: i64 = i32::MIN as i64;
 
         match json {
-            Value::Null => Ok(Self::Null),
-            Value::Bool(b) => Ok(Self::Boolean(*b)),
+            Value::Null => Ok(Self::null()),
+            Value::Bool(b) => Ok(Self::from(*b)),
             Value::Number(num) => num
                 .as_i64()
                 .filter(|n| (MIN_INT..=MAX_INT).contains(n))
-                .map(|i| Self::Integer(i as i32))
-                .or_else(|| num.as_f64().map(Self::Rational))
+                .map(|i| Self::from(i as i32))
+                .or_else(|| num.as_f64().map(Self::from))
                 .ok_or_else(|| {
                     context.construct_type_error(format!(
                         "could not convert JSON number {num} to JsValue"
@@ -104,15 +104,15 @@ impl JsValue {
     /// # assert_eq!(json, back_to_json);
     /// ```
     pub fn to_json(&self, context: &mut Context) -> JsResult<Value> {
-        match self {
-            Self::Null => Ok(Value::Null),
-            Self::Undefined => todo!("undefined to JSON"),
-            &Self::Boolean(b) => Ok(b.into()),
-            Self::String(string) => Ok(string.as_str().into()),
-            &Self::Rational(rat) => Ok(rat.into()),
-            &Self::Integer(int) => Ok(int.into()),
-            Self::BigInt(_bigint) => context.throw_type_error("cannot convert bigint to JSON"),
-            Self::Object(obj) => {
+        match self.variant() {
+            JsVariant::Null => Ok(Value::Null),
+            JsVariant::Undefined => todo!("undefined to JSON"),
+            JsVariant::Boolean(b) => Ok(b.into()),
+            JsVariant::String(string) => Ok(string.as_str().into()),
+            JsVariant::Float64(rat) => Ok(rat.into()),
+            JsVariant::Integer32(int) => Ok(int.into()),
+            JsVariant::BigInt(_bigint) => context.throw_type_error("cannot convert bigint to JSON"),
+            JsVariant::Object(obj) => {
                 if obj.is_array() {
                     let len = obj.length_of_array_like(context)?;
                     let mut arr = Vec::with_capacity(len as usize);
@@ -120,9 +120,12 @@ impl JsValue {
                     let obj = obj.borrow();
 
                     for k in 0..len as u32 {
-                        let val = obj.properties().get(&k.into()).map_or(Self::Null, |desc| {
-                            desc.value().cloned().unwrap_or(Self::Null)
-                        });
+                        let val = obj
+                            .properties()
+                            .get(&k.into())
+                            .map_or(Self::null(), |desc| {
+                                desc.value().cloned().unwrap_or(Self::null())
+                            });
                         arr.push(val.to_json(context)?);
                     }
 
@@ -149,7 +152,7 @@ impl JsValue {
                     Ok(Value::Object(map))
                 }
             }
-            Self::Symbol(_sym) => context.throw_type_error("cannot convert Symbol to JSON"),
+            JsVariant::Symbol(_sym) => context.throw_type_error("cannot convert Symbol to JSON"),
         }
     }
 }

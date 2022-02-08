@@ -16,6 +16,7 @@ use crate::{
     object::ObjectInitializer,
     property::Attribute,
     symbol::WellKnownSymbols,
+    value::JsVariant,
     Context, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
@@ -86,7 +87,7 @@ impl Reflect {
             return context.throw_type_error("target must be a function");
         }
         let args = args_list.create_list_from_array_like(&[], context)?;
-        target.call(this_arg, &args, context)
+        target.call(&this_arg, &args, context)
     }
 
     /// Calls a target function as a constructor with arguments.
@@ -104,20 +105,21 @@ impl Reflect {
     ) -> JsResult<JsValue> {
         // 1. If IsConstructor(target) is false, throw a TypeError exception.
         let target = args
-            .get_or_undefined(0)
+            .get_or_undefined(0);
+        let target = target
             .as_constructor()
             .ok_or_else(|| context.construct_type_error("target must be a constructor"))?;
 
         let new_target = if let Some(new_target) = args.get(2) {
             // 3. Else if IsConstructor(newTarget) is false, throw a TypeError exception.
             if let Some(new_target) = new_target.as_constructor() {
-                new_target
+                new_target.clone()
             } else {
                 return context.throw_type_error("newTarget must be a constructor");
             }
         } else {
             // 2. If newTarget is not present, set newTarget to target.
-            target
+            target.clone()
         };
 
         // 4. Let args be ? CreateListFromArrayLike(argumentsList).
@@ -127,7 +129,7 @@ impl Reflect {
 
         // 5. Return ? Construct(target, args, newTarget).
         target
-            .construct(&args, Some(new_target), context)
+            .construct(&args, Some(&new_target), context)
             .map(JsValue::from)
     }
 
@@ -151,7 +153,7 @@ impl Reflect {
         let key = args.get_or_undefined(1).to_property_key(context)?;
         let prop_desc: JsValue = args
             .get(2)
-            .and_then(|v| v.as_object().cloned())
+            .and_then(|v| v.as_object().as_deref().cloned())
             .ok_or_else(|| context.construct_type_error("property descriptor must be an object"))?
             .into();
 
@@ -254,7 +256,7 @@ impl Reflect {
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
         Ok(target
             .__get_prototype_of__(context)?
-            .map_or(JsValue::Null, JsValue::new))
+            .map_or(JsValue::null(), JsValue::new))
     }
 
     /// Returns `true` if the object has the property, `false` otherwise.
@@ -365,9 +367,7 @@ impl Reflect {
         } else {
             target.clone().into()
         };
-        Ok(target
-            .__set__(key, value.clone(), receiver, context)?
-            .into())
+        Ok(target.__set__(key, value, receiver, context)?.into())
     }
 
     /// Sets the prototype of an object.
@@ -387,9 +387,9 @@ impl Reflect {
             .get(0)
             .and_then(JsValue::as_object)
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
-        let proto = match args.get_or_undefined(1) {
-            JsValue::Object(obj) => Some(obj.clone()),
-            JsValue::Null => None,
+        let proto = match args.get_or_undefined(1).variant() {
+            JsVariant::Object(obj) => Some(obj.clone()),
+            JsVariant::Null => None,
             _ => return context.throw_type_error("proto must be an object or null"),
         };
         Ok(target.__set_prototype_of__(proto, context)?.into())

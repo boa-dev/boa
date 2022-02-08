@@ -1,10 +1,11 @@
 //! This module implements the JavaScript bigint primitive rust type.
 
-use crate::{builtins::Number, Context, JsValue};
+use crate::{builtins::Number, value::PointerType, Context, JsValue};
 use num_integer::Integer;
 use num_traits::{pow::Pow, FromPrimitive, One, ToPrimitive, Zero};
 use std::{
     fmt::{self, Display},
+    mem::{self, ManuallyDrop},
     ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Neg, Rem, Shl, Shr, Sub},
     rc::Rc,
 };
@@ -20,6 +21,16 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct JsBigInt {
     inner: Rc<RawBigInt>,
+}
+
+unsafe impl PointerType for JsBigInt {
+    unsafe fn from_void_ptr(ptr: *mut ()) -> ManuallyDrop<Self> {
+        ManuallyDrop::new(mem::transmute(ptr))
+    }
+
+    unsafe fn into_void_ptr(bigint: ManuallyDrop<Self>) -> *mut () {
+        mem::transmute(bigint)
+    }
 }
 
 impl JsBigInt {

@@ -55,7 +55,7 @@ impl PromiseJob {
                     },
                     //   e. Else, let handlerResult be Completion(HostCallJobCallback(handler, undefined, « argument »)).
                     Some(handler) => {
-                        handler.call_job_callback(&JsValue::Undefined, &[argument.clone()], context)
+                        handler.call_job_callback(&JsValue::undefined(), &[argument.clone()], context)
                     }
                 };
 
@@ -69,7 +69,7 @@ impl PromiseJob {
                         );
 
                         // ii. Return empty.
-                        Ok(JsValue::Undefined)
+                        Ok(JsValue::undefined())
                     }
                     Some(promise_capability_record) => {
                         // g. Assert: promiseCapability is a PromiseCapability Record.
@@ -83,13 +83,13 @@ impl PromiseJob {
                             // h. If handlerResult is an abrupt completion, then
                             Err(value) => {
                                 // i. Return ? Call(promiseCapability.[[Reject]], undefined, « handlerResult.[[Value]] »).
-                                context.call(&reject.clone().into(), &JsValue::Undefined, &[value])
+                                context.call(&reject.clone().into(), &JsValue::undefined(), &[value])
                             }
 
                             // i. Else,
                             Ok(value) => {
                                 // i. Return ? Call(promiseCapability.[[Resolve]], undefined, « handlerResult.[[Value]] »).
-                                context.call(&resolve.clone().into(), &JsValue::Undefined, &[value])
+                                context.call(&resolve.clone().into(), &JsValue::undefined(), &[value])
                             }
                         }
                     }
@@ -149,7 +149,7 @@ impl PromiseJob {
                     //    i. Return ? Call(resolvingFunctions.[[Reject]], undefined, « thenCallResult.[[Value]] »).
                     return context.call(
                         &resolving_functions.reject,
-                        &JsValue::Undefined,
+                        &JsValue::undefined(),
                         &[value],
                     );
                 }

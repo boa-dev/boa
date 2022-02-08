@@ -148,8 +148,8 @@ impl Generator {
     ) -> JsResult<JsValue> {
         // 1. Return ? GeneratorResume(this value, value, empty).
         match this.as_object() {
-            Some(obj) if obj.is_generator() => {
-                Self::generator_resume(obj, args.get_or_undefined(0), context)
+            Some(ref obj) if obj.is_generator() => {
+                Self::generator_resume(obj, &args.get_or_undefined(0), context)
             }
             _ => context.throw_type_error("Generator.prototype.next called on non generator"),
         }
@@ -173,7 +173,7 @@ impl Generator {
         // 1. Let g be the this value.
         // 2. Let C be Completion { [[Type]]: return, [[Value]]: value, [[Target]]: empty }.
         // 3. Return ? GeneratorResumeAbrupt(g, C, empty).
-        Self::generator_resume_abrupt(this, Ok(args.get_or_undefined(0).clone()), context)
+        Self::generator_resume_abrupt(this, Ok(args.get_or_undefined(0)), context)
     }
 
     /// `Generator.prototype.throw ( exception )`
@@ -195,7 +195,7 @@ impl Generator {
         // 1. Let g be the this value.
         // 2. Let C be ThrowCompletion(exception).
         // 3. Return ? GeneratorResumeAbrupt(g, C, empty).
-        Self::generator_resume_abrupt(this, Err(args.get_or_undefined(0).clone()), context)
+        Self::generator_resume_abrupt(this, Err(args.get_or_undefined(0)), context)
     }
 
     /// `27.5.3.3 GeneratorResume ( generator, value, generatorBrand )`

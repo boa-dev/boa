@@ -874,6 +874,7 @@ mod in_operator {
                 .get("prototype", &mut context)
                 .unwrap()
                 .as_object()
+                .as_deref()
                 .cloned())
         );
     }
@@ -1057,7 +1058,7 @@ fn to_integer_or_infinity() {
 fn to_length() {
     let mut context = Context::default();
 
-    assert_eq!(JsValue::new(f64::NAN).to_length(&mut context).unwrap(), 0);
+    assert_eq!(JsValue::nan().to_length(&mut context).unwrap(), 0);
     assert_eq!(
         JsValue::new(f64::NEG_INFINITY)
             .to_length(&mut context)

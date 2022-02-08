@@ -77,7 +77,7 @@ impl Intl {
         let ll = canonicalize_locale_list(args, context)?;
 
         // 2. Return CreateArrayFromList(ll).
-        Ok(JsValue::Object(Array::create_array_from_list(
+        Ok(JsValue::new(Array::create_array_from_list(
             ll.into_iter().map(|loc| loc.to_string().into()),
             context,
         )))
@@ -595,7 +595,7 @@ fn resolve_locale(
         // e. Let value be keyLocaleData[0].
         // TODO f. Assert: Type(value) is either String or Null.
         let mut value = match key_locale_data.get(0) {
-            Some(first_elt) => JsValue::String(first_elt.clone()),
+            Some(first_elt) => JsValue::from(first_elt.clone()),
             None => JsValue::null(),
         };
 
@@ -616,7 +616,7 @@ fn resolve_locale(
                     // a. If keyLocaleData contains requestedValue, then
                     if key_locale_data.contains(requested_value) {
                         // i. Let value be requestedValue.
-                        value = JsValue::String(JsString::new(requested_value));
+                        value = JsValue::from(JsString::new(requested_value));
                         // ii. Let supportedExtensionAddition be the string-concatenation
                         // of "-", key, "-", and value.
                         supported_extension_addition =
@@ -625,7 +625,7 @@ fn resolve_locale(
                 // 4. Else if keyLocaleData contains "true", then
                 } else if key_locale_data.contains(&JsString::new("true")) {
                     // a. Let value be "true".
-                    value = JsValue::String(JsString::new("true"));
+                    value = JsValue::from(JsString::new("true"));
                     // b. Let supportedExtensionAddition be the string-concatenation of "-" and key.
                     supported_extension_addition = JsString::concat_array(&["-", key]);
                 }
@@ -659,7 +659,7 @@ fn resolve_locale(
                 if let Some(options_val_str) = options_value.as_string() {
                     if options_val_str.is_empty() {
                         // a. Let optionsValue be "true".
-                        options_value = JsValue::String(JsString::new("true"));
+                        options_value = JsValue::from(JsString::new("true"));
                     }
                 }
             }
@@ -747,13 +747,13 @@ pub(crate) fn get_option(
     // 7. If values is not undefined and values does not contain an element equal to value,
     // throw a RangeError exception.
     value = match r#type {
-        GetOptionType::Boolean => JsValue::Boolean(value.to_boolean()),
+        GetOptionType::Boolean => JsValue::from(value.to_boolean()),
         GetOptionType::String => {
             let string_value = value.to_string(context)?;
             if !values.is_empty() && !values.contains(&string_value) {
                 return context.throw_range_error("GetOption: values array does not contain value");
             }
-            JsValue::String(string_value)
+            JsValue::from(string_value)
         }
     };
 

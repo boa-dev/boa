@@ -262,7 +262,7 @@ impl ArrayBuffer {
         // 20. If SameValue(new, O) is true, throw a TypeError exception.
         if this
             .as_object()
-            .map(|obj| JsObject::equals(obj, &new))
+            .map(|obj| JsObject::equals(&obj, &new))
             .unwrap_or_default()
         {
             return context.throw_type_error("New ArrayBuffer is the same as this ArrayBuffer");
@@ -334,7 +334,7 @@ impl ArrayBuffer {
         obj.borrow_mut().data = ObjectData::array_buffer(Self {
             array_buffer_data: Some(block),
             array_buffer_byte_length: byte_length,
-            array_buffer_detach_key: JsValue::Undefined,
+            array_buffer_detach_key: JsValue::undefined(),
         });
 
         // 5. Return obj.

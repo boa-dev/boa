@@ -682,7 +682,7 @@ impl BuiltInFunctionObject {
             // TODO?: 3.a. PrepareForTailCall
 
             // b. Return ? Call(func, thisArg).
-            return func.call(this_arg, &[], context);
+            return func.call(&this_arg, &[], context);
         }
 
         // 4. Let argList be ? CreateListFromArrayLike(argArray).
@@ -692,7 +692,7 @@ impl BuiltInFunctionObject {
         // TODO?: 5. PrepareForTailCall
 
         // 6. Return ? Call(func, thisArg, argList).
-        func.call(this_arg, &arg_list, context)
+        func.call(&this_arg, &arg_list, context)
     }
 
     /// `Function.prototype.bind ( thisArg, ...args )`
@@ -714,7 +714,7 @@ impl BuiltInFunctionObject {
             context.construct_type_error("cannot bind `this` without a `[[Call]]` internal method")
         })?;
 
-        let this_arg = args.get_or_undefined(0).clone();
+        let this_arg = args.get_or_undefined(0);
         let bound_args = args.get(1..).unwrap_or(&[]).to_vec();
         let arg_count = bound_args.len() as i64;
 
@@ -769,7 +769,9 @@ impl BuiltInFunctionObject {
         // 9. If Type(targetName) is not String, set targetName to the empty String.
         let target_name = target_name
             .as_string()
-            .map_or(JsString::new(""), Clone::clone);
+            .as_deref()
+            .cloned()
+            .unwrap_or_default();
 
         // 10. Perform SetFunctionName(F, targetName, "bound").
         set_function_name(&f, &target_name.into(), Some("bound"), context);
@@ -800,12 +802,13 @@ impl BuiltInFunctionObject {
         // TODO?: 3. Perform PrepareForTailCall
 
         // 4. Return ? Call(func, thisArg, args).
-        func.call(this_arg, args.get(1..).unwrap_or(&[]), context)
+        func.call(&this_arg, args.get(1..).unwrap_or(&[]), context)
     }
 
     #[allow(clippy::wrong_self_convention)]
     fn to_string(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object().map(JsObject::borrow);
+        let object = this.as_object();
+        let object = object.as_deref().map(JsObject::borrow);
         let function = object
             .as_deref()
             .and_then(Object::as_function)
@@ -855,7 +858,7 @@ impl BuiltInFunctionObject {
     fn has_instance(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let F be the this value.
         // 2. Return ? OrdinaryHasInstance(F, V).
-        Ok(JsValue::ordinary_has_instance(this, args.get_or_undefined(0), context)?.into())
+        Ok(JsValue::ordinary_has_instance(this, &args.get_or_undefined(0), context)?.into())
     }
 
     #[allow(clippy::unnecessary_wraps)]

@@ -111,7 +111,7 @@ impl<T: Class> ClassConstructor for T {
         }
 
         let class_constructor = context.global_object().clone().get(T::NAME, context)?;
-        let class_constructor = if let JsValue::Object(ref obj) = class_constructor {
+        let class_constructor = if let Some(obj) = class_constructor.as_object() {
             obj
         } else {
             return context.throw_type_error(format!(
@@ -120,8 +120,8 @@ impl<T: Class> ClassConstructor for T {
             ));
         };
         let class_prototype =
-            if let JsValue::Object(ref obj) = class_constructor.get(PROTOTYPE, context)? {
-                obj.clone()
+            if let Some(object) = class_constructor.get(PROTOTYPE, context)?.as_object() {
+                object.clone()
             } else {
                 return context.throw_type_error(format!(
                     "invalid default prototype for native class `{}`",
@@ -131,10 +131,10 @@ impl<T: Class> ClassConstructor for T {
 
         let prototype = this
             .as_object()
-            .cloned()
+            .as_deref()
             .map(|obj| {
                 obj.get(PROTOTYPE, context)
-                    .map(|val| val.as_object().cloned())
+                    .map(|val| val.as_object().as_deref().cloned())
             })
             .transpose()?
             .flatten()

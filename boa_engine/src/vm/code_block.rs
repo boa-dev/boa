@@ -20,7 +20,7 @@ use crate::{
     syntax::ast::node::FormalParameterList,
     vm::call_frame::GeneratorResumeKind,
     vm::{call_frame::FinallyReturn, CallFrame, Opcode},
-    Context, JsResult, JsValue,
+    Context, JsResult, JsValue, value::JsVariant,
 };
 use boa_gc::{Cell, Finalize, Gc, Trace};
 use boa_interner::{Interner, Sym, ToInternedString};
@@ -749,7 +749,7 @@ impl JsObject {
                 let args = if code.params.parameters.len() > args.len() {
                     let mut v = args.to_vec();
                     v.extend(vec![
-                        JsValue::Undefined;
+                        JsValue::undefined();
                         code.params.parameters.len() - args.len()
                     ]);
                     v
@@ -872,7 +872,7 @@ impl JsObject {
                 let args = if code.params.parameters.len() > args.len() {
                     let mut v = args.to_vec();
                     v.extend(vec![
-                        JsValue::Undefined;
+                        JsValue::undefined();
                         code.params.parameters.len() - args.len()
                     ]);
                     v
@@ -989,7 +989,7 @@ impl JsObject {
                 let mut args = if code.params.parameters.len() > args.len() {
                     let mut v = args.to_vec();
                     v.extend(vec![
-                        JsValue::Undefined;
+                        JsValue::undefined();
                         code.params.parameters.len() - args.len()
                     ]);
                     v
@@ -1124,7 +1124,7 @@ impl JsObject {
                 let mut args = if code.params.parameters.len() > args.len() {
                     let mut v = args.to_vec();
                     v.extend(vec![
-                        JsValue::Undefined;
+                        JsValue::undefined();
                         code.params.parameters.len() - args.len()
                     ]);
                     v
@@ -1238,10 +1238,10 @@ impl JsObject {
                 let constructor = *constructor;
                 drop(object);
 
-                match function(this_target, args, context)? {
-                    JsValue::Object(ref o) => Ok(o.clone()),
+                match function(this_target, args, context)?.variant() {
+                    JsVariant::Object(o) => Ok(o.clone()),
                     val => {
-                        if constructor.expect("hmm").is_base() || val.is_undefined() {
+                        if constructor.expect("hmm").is_base() || matches!(val, JsVariant::Undefined) {
                             create_this(context)
                         } else {
                             context.throw_type_error(
@@ -1262,10 +1262,10 @@ impl JsObject {
                 let constructor = *constructor;
                 drop(object);
 
-                match (function)(this_target, args, captures, context)? {
-                    JsValue::Object(ref o) => Ok(o.clone()),
+                match (function)(this_target, args, captures, context)?.variant() {
+                    JsVariant::Object(o) => Ok(o.clone()),
                     val => {
-                        if constructor.expect("hmma").is_base() || val.is_undefined() {
+                        if constructor.expect("hmma").is_base() || matches!(val, JsVariant::Undefined) {
                             create_this(context)
                         } else {
                             context.throw_type_error(
@@ -1369,7 +1369,7 @@ impl JsObject {
                 let args = if code.params.parameters.len() > args.len() {
                     let mut v = args.to_vec();
                     v.extend(vec![
-                        JsValue::Undefined;
+                        JsValue::undefined();
                         code.params.parameters.len() - args.len()
                     ]);
                     v

@@ -284,7 +284,7 @@ fn get_opt() {
     let mut context = Context::default();
 
     let values = Vec::<JsString>::new();
-    let fallback = JsValue::String(JsString::new("fallback"));
+    let fallback = JsValue::from(JsString::new("fallback"));
     let options_obj = JsObject::empty();
     let option_type = GetOptionType::String;
     let get_option_result = get_option(
@@ -299,9 +299,9 @@ fn get_opt() {
     assert_eq!(get_option_result, fallback);
 
     let values = Vec::<JsString>::new();
-    let fallback = JsValue::String(JsString::new("fallback"));
+    let fallback = JsValue::from(JsString::new("fallback"));
     let options_obj = JsObject::empty();
-    let locale_value = JsValue::String(JsString::new("en-US"));
+    let locale_value = JsValue::from(JsString::new("en-US"));
     options_obj
         .set("Locale", locale_value.clone(), true, &mut context)
         .expect("Setting a property should not fail");
@@ -317,10 +317,10 @@ fn get_opt() {
     .expect("GetOption should not fail on string test");
     assert_eq!(get_option_result, locale_value);
 
-    let fallback = JsValue::String(JsString::new("fallback"));
+    let fallback = JsValue::from(JsString::new("fallback"));
     let options_obj = JsObject::empty();
     let locale_string = JsString::new("en-US");
-    let locale_value = JsValue::String(locale_string.clone());
+    let locale_value = JsValue::from(locale_string.clone());
     let values = vec![locale_string];
     options_obj
         .set("Locale", locale_value.clone(), true, &mut context)
@@ -356,9 +356,9 @@ fn get_opt() {
     .expect("GetOption should not fail on boolean test");
     assert_eq!(get_option_result, boolean_value);
 
-    let fallback = JsValue::String(JsString::new("fallback"));
+    let fallback = JsValue::from(JsString::new("fallback"));
     let options_obj = JsObject::empty();
-    let locale_value = JsValue::String(JsString::new("en-US"));
+    let locale_value = JsValue::from(JsString::new("en-US"));
     let other_locale_str = JsString::new("de-DE");
     let values = vec![other_locale_str];
     options_obj
@@ -473,7 +473,7 @@ fn to_date_time_opts() {
     )
     .expect("toDateTimeOptions should not fail in date test");
 
-    let numeric_jsstring = JsValue::String(JsString::new("numeric"));
+    let numeric_jsstring = JsValue::from(JsString::new("numeric"));
     assert_eq!(
         date_time_opts.get("year", &mut context),
         Ok(numeric_jsstring.clone())
@@ -495,7 +495,7 @@ fn to_date_time_opts() {
     )
     .expect("toDateTimeOptions should not fail in time test");
 
-    let numeric_jsstring = JsValue::String(JsString::new("numeric"));
+    let numeric_jsstring = JsValue::from(JsString::new("numeric"));
     assert_eq!(
         date_time_opts.get("hour", &mut context),
         Ok(numeric_jsstring.clone())
@@ -517,7 +517,7 @@ fn to_date_time_opts() {
     )
     .expect("toDateTimeOptions should not fail when testing required = 'any'");
 
-    let numeric_jsstring = JsValue::String(JsString::new("numeric"));
+    let numeric_jsstring = JsValue::from(JsString::new("numeric"));
     assert_eq!(
         date_time_opts.get("year", &mut context),
         Ok(numeric_jsstring.clone())

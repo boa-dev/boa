@@ -86,11 +86,11 @@ impl AggregateError {
         }
 
         // 4. Perform ? InstallErrorCause(O, options).
-        Error::install_error_cause(&o, args.get_or_undefined(2), context)?;
+        Error::install_error_cause(&o, &args.get_or_undefined(2), context)?;
 
         // 5. Let errorsList be ? IterableToList(errors).
         let errors = args.get_or_undefined(0);
-        let errors_list = iterable_to_list(context, errors, None)?;
+        let errors_list = iterable_to_list(context, &errors, None)?;
         // 6. Perform ! DefinePropertyOrThrow(O, "errors",
         //    PropertyDescriptor {
         //      [[Configurable]]: true,
