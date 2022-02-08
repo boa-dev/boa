@@ -39,6 +39,7 @@ use self::internal_methods::{
         BOUND_CONSTRUCTOR_EXOTIC_INTERNAL_METHODS, BOUND_FUNCTION_EXOTIC_INTERNAL_METHODS,
     },
     function::{CONSTRUCTOR_INTERNAL_METHODS, FUNCTION_INTERNAL_METHODS},
+    global::GLOBAL_INTERNAL_METHODS,
     integer_indexed::INTEGER_INDEXED_EXOTIC_INTERNAL_METHODS,
     proxy::{
         PROXY_EXOTIC_INTERNAL_METHODS_ALL, PROXY_EXOTIC_INTERNAL_METHODS_BASIC,
@@ -339,7 +340,7 @@ impl ObjectData {
     pub fn global() -> Self {
         Self {
             kind: ObjectKind::Global,
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
+            internal_methods: &GLOBAL_INTERNAL_METHODS,
         }
     }
 

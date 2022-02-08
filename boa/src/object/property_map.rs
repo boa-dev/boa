@@ -180,6 +180,14 @@ impl PropertyMap {
             PropertyKey::Symbol(symbol) => self.symbol_properties.0.contains_key(symbol),
         }
     }
+
+    // Internal method to efficiently work on string properties.
+    #[inline]
+    pub(crate) fn string_property_map_mut(
+        &mut self,
+    ) -> &mut IndexMap<JsString, PropertyDescriptor, BuildHasherDefault<FxHasher>> {
+        &mut self.string_properties.0
+    }
 }
 
 /// An iterator over the property entries of an `Object`

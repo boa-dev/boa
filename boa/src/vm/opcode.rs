@@ -410,7 +410,7 @@ pub enum Opcode {
     ///
     /// Operands: name_index: `u32`
     ///
-    /// Stack: value **=>**
+    /// Stack: value, has_declarative_binding **=>**
     DefInitVar,
 
     /// Declare `let` type variable.
@@ -729,7 +729,7 @@ pub enum Opcode {
 
     /// Push a declarative environment.
     ///
-    /// Operands:
+    /// Operands: num_bindings: `u32`
     ///
     /// Stack: **=>**
     PushDeclarativeEnvironment,
@@ -747,6 +747,27 @@ pub enum Opcode {
     ///
     /// Stack: **=>**
     PopEnvironment,
+
+    /// Push loop start marker.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=>**
+    LoopStart,
+
+    /// Clean up environments when a loop continues.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=>**
+    LoopContinue,
+
+    /// Clean up environments at the end of a loop.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=>**
+    LoopEnd,
 
     /// Initialize the iterator for a for..in loop or jump to after the loop if object is null or undefined.
     ///
@@ -971,6 +992,9 @@ impl Opcode {
             Opcode::PushDeclarativeEnvironment => "PushDeclarativeEnvironment",
             Opcode::PushFunctionEnvironment => "PushFunctionEnvironment",
             Opcode::PopEnvironment => "PopEnvironment",
+            Opcode::LoopStart => "LoopStart",
+            Opcode::LoopContinue => "LoopContinue",
+            Opcode::LoopEnd => "LoopEnd",
             Opcode::ForInLoopInitIterator => "ForInLoopInitIterator",
             Opcode::InitIterator => "InitIterator",
             Opcode::IteratorNext => "IteratorNext",

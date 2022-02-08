@@ -13,14 +13,16 @@
 //! [spec]: https://tc39.es/ecma262/#sec-number-object
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number
 
-use super::string::is_trimmable_whitespace;
-use super::JsArgs;
-use crate::context::StandardObjects;
-use crate::object::JsObject;
 use crate::{
-    builtins::{function::make_builtin_fn, BuiltIn},
-    object::{internal_methods::get_prototype_from_constructor, ConstructorBuilder, ObjectData},
-    property::Attribute,
+    builtins::{
+        function::NativeFunctionSignature, string::is_trimmable_whitespace, BuiltIn, JsArgs,
+    },
+    context::StandardObjects,
+    object::{
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
+        JsObject, ObjectData,
+    },
+    property::{Attribute, PropertyDescriptor},
     value::{AbstractRelation, IntegerOrInfinity, JsValue},
     BoaProfiler, Context, JsResult,
 };
@@ -38,12 +40,6 @@ const BUF_SIZE: usize = 2200;
 /// `Number` implementation.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Number;
-
-/// Maximum number of arguments expected to the builtin parseInt() function.
-const PARSE_INT_MAX_ARG_COUNT: usize = 2;
-
-/// Maximum number of arguments expected to the builtin parseFloat() function.
-const PARSE_FLOAT_MAX_ARG_COUNT: usize = 1;
 
 impl BuiltIn for Number {
     const NAME: &'static str = "Number";
@@ -83,23 +79,36 @@ impl BuiltIn for Number {
         .static_method(Self::number_is_integer, "isInteger", 1)
         .build();
 
-        let global = context.global_object();
-        make_builtin_fn(
-            Self::parse_int,
-            "parseInt",
-            &global,
-            PARSE_INT_MAX_ARG_COUNT,
-            context,
-        );
-        make_builtin_fn(
-            Self::parse_float,
-            "parseFloat",
-            &global,
-            PARSE_FLOAT_MAX_ARG_COUNT,
-            context,
-        );
-        make_builtin_fn(Self::global_is_finite, "isFinite", &global, 1, context);
-        make_builtin_fn(Self::global_is_nan, "isNaN", &global, 1, context);
+        fn build_in_function(
+            name: &str,
+            length: usize,
+            function: NativeFunctionSignature,
+            context: &mut Context,
+        ) {
+            let function = FunctionBuilder::native(context, function)
+                .name(name)
+                .length(length)
+                .constructor(false)
+                .build();
+
+            let property = PropertyDescriptor::builder()
+                .value(function)
+                .writable(true)
+                .enumerable(false)
+                .configurable(true)
+                .build();
+
+            context
+                .realm
+                .global_bindings
+                .string_property_map_mut()
+                .insert(name.into(), property);
+        }
+
+        build_in_function("parseInt", 2, Self::parse_int, context);
+        build_in_function("parseFloat", 1, Self::parse_float, context);
+        build_in_function("isFinite", 1, Self::global_is_finite, context);
+        build_in_function("isNaN", 1, Self::global_is_nan, context);
 
         number_object.into()
     }
