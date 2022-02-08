@@ -644,7 +644,7 @@ impl JsObject {
                 let args = if code.params.parameters.len() > args.len() {
                     let mut v = args.to_vec();
                     v.extend(vec![
-                        JsValue::Undefined;
+                        JsValue::undefined();
                         code.params.parameters.len() - args.len()
                     ]);
                     v
@@ -743,7 +743,7 @@ impl JsObject {
                 let mut args = if code.params.parameters.len() > args.len() {
                     let mut v = args.to_vec();
                     v.extend(vec![
-                        JsValue::Undefined;
+                        JsValue::undefined();
                         code.params.parameters.len() - args.len()
                     ]);
                     v
@@ -919,7 +919,7 @@ impl JsObject {
                 let args = if code.params.parameters.len() > args.len() {
                     let mut v = args.to_vec();
                     v.extend(vec![
-                        JsValue::Undefined;
+                        JsValue::undefined();
                         code.params.parameters.len() - args.len()
                     ]);
                     v

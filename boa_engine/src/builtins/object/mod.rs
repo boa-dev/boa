@@ -23,7 +23,7 @@ use crate::{
     },
     property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
     symbol::WellKnownSymbols,
-    value::JsValue,
+    value::{JsValue, JsVariant},
     Context, JsResult, JsString,
 };
 use boa_profiler::Profiler;
@@ -135,8 +135,8 @@ impl Object {
         let prototype = args.get_or_undefined(0);
         let properties = args.get_or_undefined(1);
 
-        let obj = match prototype {
-            JsValue::Object(_) | JsValue::Null => JsObject::from_proto_and_data(
+        let obj = match prototype.variant() {
+            JsVariant::Object(_) | JsVariant::Null => JsObject::from_proto_and_data(
                 prototype.as_object().cloned(),
                 ObjectData::ordinary(),
             ),
@@ -226,7 +226,7 @@ impl Object {
         }
 
         // 5. Return descriptors.
-        Ok(descriptors.into())
+        Ok(JsValue::new(descriptors))
     }
 
     /// The abstract operation `FromPropertyDescriptor`.
@@ -320,7 +320,7 @@ impl Object {
         // 2. Return ? obj.[[GetPrototypeOf]]().
         Ok(obj
             .__get_prototype_of__(ctx)?
-            .map_or(JsValue::Null, JsValue::new))
+            .map_or(JsValue::null(), JsValue::new))
     }
 
     /// Set the `prototype` of an object.
@@ -328,9 +328,13 @@ impl Object {
     /// [More information][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.setprototypeof
-    pub fn set_prototype_of(_: &JsValue, args: &[JsValue], ctx: &mut Context) -> JsResult<JsValue> {
+    pub fn set_prototype_of(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         if args.len() < 2 {
-            return ctx.throw_type_error(format!(
+            return context.throw_type_error(format!(
                 "Object.setPrototypeOf: At least 2 arguments required, but only {} passed",
                 args.len()
             ));
@@ -341,16 +345,19 @@ impl Object {
             .get(0)
             .cloned()
             .unwrap_or_default()
-            .require_object_coercible(ctx)?
+            .require_object_coercible(context)?
             .clone();
 
-        let proto = match args.get_or_undefined(1) {
-            JsValue::Object(obj) => Some(obj.clone()),
-            JsValue::Null => None,
+        let proto = args.get_or_undefined(1);
+        let proto = match proto.variant() {
+            JsVariant::Object(obj) => Some(obj.clone()),
+            JsVariant::Null => None,
             // 2. If Type(proto) is neither Object nor Null, throw a TypeError exception.
-            val => {
-                return ctx
-                    .throw_type_error(format!("expected an object or null, got {}", val.type_of()))
+            _ => {
+                return context.throw_type_error(format!(
+                    "expected an object or null, got {}",
+                    proto.type_of()
+                ))
             }
         };
 
@@ -362,11 +369,11 @@ impl Object {
         };
 
         // 4. Let status be ? O.[[SetPrototypeOf]](proto).
-        let status = obj.__set_prototype_of__(proto, ctx)?;
+        let status = obj.__set_prototype_of__(proto, context)?;
 
         // 5. If status is false, throw a TypeError exception.
         if !status {
-            return ctx.throw_type_error("can't set prototype of this object");
+            return context.throw_type_error("can't set prototype of this object");
         }
 
         // 6. Return O.
@@ -412,14 +419,14 @@ impl Object {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         let object = args.get_or_undefined(0);
-        if let JsValue::Object(object) = object {
+        if let Some(object) = object.as_object() {
             let key = args
                 .get(1)
-                .unwrap_or(&JsValue::Undefined)
+                .unwrap_or(&JsValue::undefined())
                 .to_property_key(context)?;
             let desc = args
                 .get(2)
-                .unwrap_or(&JsValue::Undefined)
+                .unwrap_or(&JsValue::undefined())
                 .to_property_descriptor(context)?;
 
             object.define_property_or_throw(key, desc, context)?;
@@ -446,7 +453,7 @@ impl Object {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         let arg = args.get_or_undefined(0);
-        if let JsValue::Object(obj) = arg {
+        if let Some(obj) = arg.as_object() {
             let props = args.get_or_undefined(1);
             object_define_properties(obj, props, context)?;
             Ok(arg.clone())

@@ -15,12 +15,13 @@
 //! [spec]: https://tc39.es/ecma262/#sec-symbol-value
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol
 
-use crate::JsString;
+use crate::{value::PointerType, JsString};
 use boa_gc::{unsafe_empty_trace, Finalize, Trace};
 use std::{
     cell::Cell,
     fmt::{self, Display},
     hash::{Hash, Hasher},
+    mem::{self, ManuallyDrop},
     rc::Rc,
 };
 
@@ -251,6 +252,16 @@ struct Inner {
 #[derive(Debug, Clone)]
 pub struct JsSymbol {
     inner: Rc<Inner>,
+}
+
+unsafe impl PointerType for JsSymbol {
+    unsafe fn from_void_ptr(ptr: *mut ()) -> ManuallyDrop<Self> {
+        ManuallyDrop::new(mem::transmute(ptr))
+    }
+
+    unsafe fn into_void_ptr(symbol: ManuallyDrop<Self>) -> *mut () {
+        mem::transmute(symbol)
+    }
 }
 
 impl JsSymbol {

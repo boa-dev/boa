@@ -27,7 +27,7 @@ use crate::{
     },
     property::{Attribute, PropertyDescriptor, PropertyNameKind},
     symbol::WellKnownSymbols,
-    value::{IntegerOrInfinity, JsValue},
+    value::{IntegerOrInfinity, JsValue, JsVariant},
     Context, JsResult, JsString,
 };
 use std::cmp::{max, min, Ordering};
@@ -2164,9 +2164,9 @@ impl Array {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. If comparefn is not undefined and IsCallable(comparefn) is false, throw a TypeError exception.
-        let comparefn = match args.get_or_undefined(0) {
-            JsValue::Object(ref obj) if obj.is_callable() => Some(obj),
-            JsValue::Undefined => None,
+        let comparefn = match args.get_or_undefined(0).variant() {
+            JsVariant::Object(obj) if obj.is_callable() => Some(obj),
+            JsVariant::Undefined => None,
             _ => {
                 return context.throw_type_error(
                     "The comparison function must be either a function or undefined",
@@ -2197,7 +2197,7 @@ impl Array {
                     let args = [x.clone(), y.clone()];
                     // a. Let v be ? ToNumber(? Call(comparefn, undefined, « x, y »)).
                     let v = cmp
-                        .call(&JsValue::Undefined, &args, context)?
+                        .call(&JsValue::undefined(), &args, context)?
                         .to_number(context)?;
                     // b. If v is NaN, return +0𝔽.
                     // c. Return v.

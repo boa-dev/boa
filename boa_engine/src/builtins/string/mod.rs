@@ -182,8 +182,12 @@ impl String {
         let string = match args.get(0) {
             // 2. Else,
             // a. If NewTarget is undefined and Type(value) is Symbol, return SymbolDescriptiveString(value).
-            Some(JsValue::Symbol(ref sym)) if new_target.is_undefined() => {
-                return Ok(sym.descriptive_string().into())
+            Some(value) if new_target.is_undefined() && value.is_symbol() => {
+                return Ok(value
+                    .as_symbol()
+                    .expect("Already checked for a symbol")
+                    .descriptive_string()
+                    .into())
             }
             // b. Let s be ? ToString(value).
             Some(value) => value.to_string(context)?,
@@ -400,7 +404,7 @@ impl String {
         //    If codeUnits is empty, the empty String is returned.
 
         let s = std::string::String::from_utf16_lossy(elements.as_slice());
-        Ok(JsValue::String(JsString::new(s)))
+        Ok(JsValue::new(JsString::new(s)))
     }
 
     /// `String.prototype.toString ( )`
@@ -798,9 +802,11 @@ impl String {
         let len = string.encode_utf16().count() as i64;
 
         // 7. If position is undefined, let pos be 0; else let pos be ? ToIntegerOrInfinity(position).
-        let pos = match args.get_or_undefined(1) {
-            &JsValue::Undefined => IntegerOrInfinity::Integer(0),
-            position => position.to_integer_or_infinity(context)?,
+        let pos = args.get_or_undefined(1);
+        let pos = if pos.is_undefined() {
+            IntegerOrInfinity::Integer(0)
+        } else {
+            pos.to_integer_or_infinity(context)?
         };
 
         // 8. Let start be the result of clamping pos between 0 and len.
@@ -1681,9 +1687,11 @@ impl String {
         let int_start = args.get_or_undefined(0).to_integer_or_infinity(context)?;
 
         // 5. If end is undefined, let intEnd be len; else let intEnd be ? ToIntegerOrInfinity(end).
-        let int_end = match args.get_or_undefined(1) {
-            &JsValue::Undefined => IntegerOrInfinity::Integer(len),
-            end => end.to_integer_or_infinity(context)?,
+        let end = args.get_or_undefined(1);
+        let int_end = if end.is_undefined() {
+            IntegerOrInfinity::Integer(len)
+        } else {
+            end.to_integer_or_infinity(context)?
         };
 
         // 6. Let finalStart be the result of clamping intStart between 0 and len.
@@ -1738,9 +1746,11 @@ impl String {
 
         // 7. If length is undefined, let intLength be size; otherwise let intLength be ? ToIntegerOrInfinity(length).
         // Moved it before to ensure an error throws before returning the empty string on `match int_start`
-        let int_length = match args.get_or_undefined(1) {
-            &JsValue::Undefined => IntegerOrInfinity::Integer(size),
-            val => val.to_integer_or_infinity(context)?,
+        let length = args.get_or_undefined(1);
+        let int_length = if length.is_undefined() {
+            IntegerOrInfinity::Integer(size)
+        } else {
+            length.to_integer_or_infinity(context)?
         };
 
         let int_start = match int_start {
@@ -2329,9 +2339,10 @@ fn split_match(s_str: &str, q: usize, r_str: &str) -> Option<usize> {
 /// [spec]: https://tc39.es/ecma262/#sec-isregexp
 fn is_reg_exp(argument: &JsValue, context: &mut Context) -> JsResult<bool> {
     // 1. If Type(argument) is not Object, return false.
-    let argument = match argument {
-        JsValue::Object(o) => o,
-        _ => return Ok(false),
+    let argument = if let Some(o) = argument.as_object() {
+        o
+    } else {
+        return Ok(false);
     };
 
     is_reg_exp_object(argument, context)

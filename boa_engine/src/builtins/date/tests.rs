@@ -13,7 +13,7 @@ fn forward_dt_utc(context: &mut Context, src: &str) -> Option<NaiveDateTime> {
         panic!("expected success")
     };
 
-    if let JsValue::Object(ref date_time) = date_time {
+    if let Some(date_time) = date_time.as_object() {
         if let Some(date_time) = date_time.borrow().as_date() {
             date_time.0
         } else {

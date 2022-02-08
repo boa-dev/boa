@@ -1,4 +1,4 @@
-use crate::builtins::string::is_trimmable_whitespace;
+use crate::{builtins::string::is_trimmable_whitespace, value::PointerType};
 use boa_gc::{unsafe_empty_trace, Finalize, Trace};
 use rustc_hash::FxHashSet;
 use std::{
@@ -7,6 +7,7 @@ use std::{
     cell::Cell,
     hash::{Hash, Hasher},
     marker::PhantomData,
+    mem::ManuallyDrop,
     ops::Deref,
     ptr::{copy_nonoverlapping, NonNull},
     rc::Rc,
@@ -316,6 +317,21 @@ impl Inner {
 pub struct JsString {
     inner: NonNull<Inner>,
     _marker: PhantomData<Rc<str>>,
+}
+
+unsafe impl PointerType for JsString {
+    unsafe fn from_void_ptr(ptr: *mut ()) -> ManuallyDrop<Self> {
+        let string = Self {
+            inner: NonNull::new_unchecked(ptr.cast()),
+            _marker: PhantomData,
+        };
+
+        ManuallyDrop::new(string)
+    }
+
+    unsafe fn into_void_ptr(string: ManuallyDrop<Self>) -> *mut () {
+        string.inner.as_ptr().cast()
+    }
 }
 
 impl Default for JsString {

@@ -1,5 +1,5 @@
 use super::{
-    Context, FromStr, JsBigInt, JsResult, JsString, JsValue, Numeric, PreferredType,
+    Context, FromStr, JsBigInt, JsResult, JsString, JsValue, JsVariant, Numeric, PreferredType,
     WellKnownSymbols,
 };
 use crate::builtins::number::{f64_to_int32, f64_to_uint32, Number};
@@ -7,54 +7,65 @@ use crate::builtins::number::{f64_to_int32, f64_to_uint32, Number};
 impl JsValue {
     #[inline]
     pub fn add(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
-        Ok(match (self, other) {
+        Ok(match (self.variant(), other.variant()) {
             // Fast path:
-            (Self::Integer(x), Self::Integer(y)) => Self::new(f64::from(*x) + f64::from(*y)),
-            (Self::Rational(x), Self::Rational(y)) => Self::new(x + y),
-            (Self::Integer(x), Self::Rational(y)) => Self::new(f64::from(*x) + y),
-            (Self::Rational(x), Self::Integer(y)) => Self::new(x + f64::from(*y)),
+            (JsVariant::Integer(x), JsVariant::Integer(y)) => {
+                Self::new(f64::from(x) + f64::from(y))
+            }
+            (JsVariant::Rational(x), JsVariant::Rational(y)) => Self::new(x + y),
+            (JsVariant::Integer(x), JsVariant::Rational(y)) => Self::new(f64::from(x) + y),
+            (JsVariant::Rational(x), JsVariant::Integer(y)) => Self::new(x + f64::from(y)),
 
-            (Self::String(ref x), Self::String(ref y)) => Self::from(JsString::concat(x, y)),
-            (Self::String(ref x), y) => Self::from(JsString::concat(x, y.to_string(context)?)),
-            (x, Self::String(ref y)) => Self::from(JsString::concat(x.to_string(context)?, y)),
-            (Self::BigInt(ref x), Self::BigInt(ref y)) => Self::new(JsBigInt::add(x, y)),
+            (JsVariant::String(ref x), JsVariant::String(ref y)) => {
+                Self::from(JsString::concat(x, y))
+            }
+            (JsVariant::String(ref x), _) => {
+                Self::new(JsString::concat(x, other.to_string(context)?))
+            }
+            (_, JsVariant::String(ref y)) => {
+                Self::new(JsString::concat(self.to_string(context)?, y))
+            }
+            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => Self::new(JsBigInt::add(x, y)),
 
             // Slow path:
-            (_, _) => match (
-                self.to_primitive(context, PreferredType::Default)?,
-                other.to_primitive(context, PreferredType::Default)?,
-            ) {
-                (Self::String(ref x), ref y) => {
-                    Self::from(JsString::concat(x, y.to_string(context)?))
-                }
-                (ref x, Self::String(ref y)) => {
-                    Self::from(JsString::concat(x.to_string(context)?, y))
-                }
-                (x, y) => match (x.to_numeric(context)?, y.to_numeric(context)?) {
-                    (Numeric::Number(x), Numeric::Number(y)) => Self::new(x + y),
-                    (Numeric::BigInt(ref x), Numeric::BigInt(ref y)) => {
-                        Self::new(JsBigInt::add(x, y))
+            (_, _) => {
+                let x = self.to_primitive(context, PreferredType::Default)?;
+                let y = other.to_primitive(context, PreferredType::Default)?;
+                match (x.variant(), y.variant()) {
+                    (JsVariant::String(ref x), _) => {
+                        Self::from(JsString::concat(x, y.to_string(context)?))
                     }
-                    (_, _) => {
-                        return context.throw_type_error(
-                            "cannot mix BigInt and other types, use explicit conversions",
-                        )
+                    (_, JsVariant::String(ref y)) => {
+                        Self::from(JsString::concat(x.to_string(context)?, y))
                     }
-                },
-            },
+                    (_, _) => match (x.to_numeric(context)?, y.to_numeric(context)?) {
+                        (Numeric::Number(x), Numeric::Number(y)) => Self::new(x + y),
+                        (Numeric::BigInt(ref x), Numeric::BigInt(ref y)) => {
+                            Self::new(JsBigInt::add(x, y))
+                        }
+                        (_, _) => {
+                            return context.throw_type_error(
+                                "cannot mix BigInt and other types, use explicit conversions",
+                            )
+                        }
+                    },
+                }
+            }
         })
     }
 
     #[inline]
     pub fn sub(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
-        Ok(match (self, other) {
+        Ok(match (self.variant(), other.variant()) {
             // Fast path:
-            (Self::Integer(x), Self::Integer(y)) => Self::new(f64::from(*x) - f64::from(*y)),
-            (Self::Rational(x), Self::Rational(y)) => Self::new(x - y),
-            (Self::Integer(x), Self::Rational(y)) => Self::new(f64::from(*x) - y),
-            (Self::Rational(x), Self::Integer(y)) => Self::new(x - f64::from(*y)),
+            (JsVariant::Integer(x), JsVariant::Integer(y)) => {
+                Self::new(f64::from(x) - f64::from(y))
+            }
+            (JsVariant::Rational(x), JsVariant::Rational(y)) => Self::new(x - y),
+            (JsVariant::Integer(x), JsVariant::Rational(y)) => Self::new(f64::from(x) - y),
+            (JsVariant::Rational(x), JsVariant::Integer(y)) => Self::new(x - f64::from(y)),
 
-            (Self::BigInt(ref x), Self::BigInt(ref y)) => Self::new(JsBigInt::sub(x, y)),
+            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => Self::new(JsBigInt::sub(x, y)),
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
@@ -71,14 +82,16 @@ impl JsValue {
 
     #[inline]
     pub fn mul(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
-        Ok(match (self, other) {
+        Ok(match (self.variant(), other.variant()) {
             // Fast path:
-            (Self::Integer(x), Self::Integer(y)) => Self::new(f64::from(*x) * f64::from(*y)),
-            (Self::Rational(x), Self::Rational(y)) => Self::new(x * y),
-            (Self::Integer(x), Self::Rational(y)) => Self::new(f64::from(*x) * y),
-            (Self::Rational(x), Self::Integer(y)) => Self::new(x * f64::from(*y)),
+            (JsVariant::Integer(x), JsVariant::Integer(y)) => {
+                Self::new(f64::from(x) * f64::from(y))
+            }
+            (JsVariant::Rational(x), JsVariant::Rational(y)) => Self::new(x * y),
+            (JsVariant::Integer(x), JsVariant::Rational(y)) => Self::new(f64::from(x) * y),
+            (JsVariant::Rational(x), JsVariant::Integer(y)) => Self::new(x * f64::from(y)),
 
-            (Self::BigInt(ref x), Self::BigInt(ref y)) => Self::new(JsBigInt::mul(x, y)),
+            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => Self::new(JsBigInt::mul(x, y)),
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
@@ -95,14 +108,16 @@ impl JsValue {
 
     #[inline]
     pub fn div(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
-        Ok(match (self, other) {
+        Ok(match (self.variant(), other.variant()) {
             // Fast path:
-            (Self::Integer(x), Self::Integer(y)) => Self::new(f64::from(*x) / f64::from(*y)),
-            (Self::Rational(x), Self::Rational(y)) => Self::new(x / y),
-            (Self::Integer(x), Self::Rational(y)) => Self::new(f64::from(*x) / y),
-            (Self::Rational(x), Self::Integer(y)) => Self::new(x / f64::from(*y)),
+            (JsVariant::Integer(x), JsVariant::Integer(y)) => {
+                Self::new(f64::from(x) / f64::from(y))
+            }
+            (JsVariant::Rational(x), JsVariant::Rational(y)) => Self::new(x / y),
+            (JsVariant::Integer(x), JsVariant::Rational(y)) => Self::new(f64::from(x) / y),
+            (JsVariant::Rational(x), JsVariant::Integer(y)) => Self::new(x / f64::from(y)),
 
-            (Self::BigInt(ref x), Self::BigInt(ref y)) => {
+            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => {
                 if y.is_zero() {
                     return context.throw_range_error("BigInt division by zero");
                 }
@@ -129,33 +144,32 @@ impl JsValue {
 
     #[inline]
     pub fn rem(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
-        Ok(match (self, other) {
+        Ok(match (self.variant(), other.variant()) {
             // Fast path:
-            (Self::Integer(x), Self::Integer(y)) => {
-                if *y == 0 {
+            (JsVariant::Integer(x), JsVariant::Integer(y)) => {
+                if y == 0 {
                     Self::nan()
                 } else {
-                    match x % *y {
-                        rem if rem == 0 && *x < 0 => Self::new(-0.0),
+                    match x % y {
+                        rem if rem == 0 && x < 0 => Self::new(-0.0),
                         rem => Self::new(rem),
                     }
                 }
             }
-            (Self::Rational(x), Self::Rational(y)) => Self::new((x % y).copysign(*x)),
-            (Self::Integer(x), Self::Rational(y)) => {
-                let x = f64::from(*x);
+            (JsVariant::Rational(x), JsVariant::Rational(y)) => Self::new((x % y).copysign(x)),
+            (JsVariant::Integer(x), JsVariant::Rational(y)) => {
+                let x = f64::from(x);
                 Self::new((x % y).copysign(x))
             }
-
-            (Self::Rational(x), Self::Integer(y)) => Self::new((x % f64::from(*y)).copysign(*x)),
-
-            (Self::BigInt(ref x), Self::BigInt(ref y)) => {
+            (JsVariant::Rational(x), JsVariant::Integer(y)) => {
+                Self::new((x % f64::from(y)).copysign(x))
+            }
+            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => {
                 if y.is_zero() {
                     return context.throw_range_error("BigInt division by zero");
                 }
                 Self::new(JsBigInt::rem(x, y))
             }
-
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
                 (Numeric::Number(a), Numeric::Number(b)) => Self::new(a % b),
@@ -176,14 +190,16 @@ impl JsValue {
 
     #[inline]
     pub fn pow(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
-        Ok(match (self, other) {
+        Ok(match (self.variant(), other.variant()) {
             // Fast path:
-            (Self::Integer(x), Self::Integer(y)) => Self::new(f64::from(*x).powi(*y)),
-            (Self::Rational(x), Self::Rational(y)) => Self::new(x.powf(*y)),
-            (Self::Integer(x), Self::Rational(y)) => Self::new(f64::from(*x).powf(*y)),
-            (Self::Rational(x), Self::Integer(y)) => Self::new(x.powi(*y)),
+            (JsVariant::Integer(x), JsVariant::Integer(y)) => Self::new(f64::from(x).powi(y)),
+            (JsVariant::Rational(x), JsVariant::Rational(y)) => Self::new(x.powf(y)),
+            (JsVariant::Integer(x), JsVariant::Rational(y)) => Self::new(f64::from(x).powf(y)),
+            (JsVariant::Rational(x), JsVariant::Integer(y)) => Self::new(x.powi(y)),
 
-            (Self::BigInt(ref a), Self::BigInt(ref b)) => Self::new(JsBigInt::pow(a, b, context)?),
+            (JsVariant::BigInt(a), JsVariant::BigInt(b)) => {
+                Self::new(JsBigInt::pow(a, b, context)?)
+            }
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
@@ -202,16 +218,16 @@ impl JsValue {
 
     #[inline]
     pub fn bitand(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
-        Ok(match (self, other) {
+        Ok(match (self.variant(), other.variant()) {
             // Fast path:
-            (Self::Integer(x), Self::Integer(y)) => Self::new(x & y),
-            (Self::Rational(x), Self::Rational(y)) => {
-                Self::new(f64_to_int32(*x) & f64_to_int32(*y))
+            (JsVariant::Integer(x), JsVariant::Integer(y)) => Self::new(x & y),
+            (JsVariant::Rational(x), JsVariant::Rational(y)) => {
+                Self::new(f64_to_int32(x) & f64_to_int32(y))
             }
-            (Self::Integer(x), Self::Rational(y)) => Self::new(x & f64_to_int32(*y)),
-            (Self::Rational(x), Self::Integer(y)) => Self::new(f64_to_int32(*x) & y),
+            (JsVariant::Integer(x), JsVariant::Rational(y)) => Self::new(x & f64_to_int32(y)),
+            (JsVariant::Rational(x), JsVariant::Integer(y)) => Self::new(f64_to_int32(x) & y),
 
-            (Self::BigInt(ref x), Self::BigInt(ref y)) => Self::new(JsBigInt::bitand(x, y)),
+            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => Self::new(JsBigInt::bitand(x, y)),
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
@@ -232,16 +248,16 @@ impl JsValue {
 
     #[inline]
     pub fn bitor(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
-        Ok(match (self, other) {
+        Ok(match (self.variant(), other.variant()) {
             // Fast path:
-            (Self::Integer(x), Self::Integer(y)) => Self::new(x | y),
-            (Self::Rational(x), Self::Rational(y)) => {
-                Self::new(f64_to_int32(*x) | f64_to_int32(*y))
+            (JsVariant::Integer(x), JsVariant::Integer(y)) => Self::new(x | y),
+            (JsVariant::Rational(x), JsVariant::Rational(y)) => {
+                Self::new(f64_to_int32(x) | f64_to_int32(y))
             }
-            (Self::Integer(x), Self::Rational(y)) => Self::new(x | f64_to_int32(*y)),
-            (Self::Rational(x), Self::Integer(y)) => Self::new(f64_to_int32(*x) | y),
+            (JsVariant::Integer(x), JsVariant::Rational(y)) => Self::new(x | f64_to_int32(y)),
+            (JsVariant::Rational(x), JsVariant::Integer(y)) => Self::new(f64_to_int32(x) | y),
 
-            (Self::BigInt(ref x), Self::BigInt(ref y)) => Self::new(JsBigInt::bitor(x, y)),
+            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => Self::new(JsBigInt::bitor(x, y)),
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
@@ -262,16 +278,16 @@ impl JsValue {
 
     #[inline]
     pub fn bitxor(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
-        Ok(match (self, other) {
+        Ok(match (self.variant(), other.variant()) {
             // Fast path:
-            (Self::Integer(x), Self::Integer(y)) => Self::new(x ^ y),
-            (Self::Rational(x), Self::Rational(y)) => {
-                Self::new(f64_to_int32(*x) ^ f64_to_int32(*y))
+            (JsVariant::Integer(x), JsVariant::Integer(y)) => Self::new(x ^ y),
+            (JsVariant::Rational(x), JsVariant::Rational(y)) => {
+                Self::new(f64_to_int32(x) ^ f64_to_int32(y))
             }
-            (Self::Integer(x), Self::Rational(y)) => Self::new(x ^ f64_to_int32(*y)),
-            (Self::Rational(x), Self::Integer(y)) => Self::new(f64_to_int32(*x) ^ y),
+            (JsVariant::Integer(x), JsVariant::Rational(y)) => Self::new(x ^ f64_to_int32(y)),
+            (JsVariant::Rational(x), JsVariant::Integer(y)) => Self::new(f64_to_int32(x) ^ y),
 
-            (Self::BigInt(ref x), Self::BigInt(ref y)) => Self::new(JsBigInt::bitxor(x, y)),
+            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => Self::new(JsBigInt::bitxor(x, y)),
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
@@ -292,18 +308,20 @@ impl JsValue {
 
     #[inline]
     pub fn shl(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
-        Ok(match (self, other) {
+        Ok(match (self.variant(), other.variant()) {
             // Fast path:
-            (Self::Integer(x), Self::Integer(y)) => Self::new(x.wrapping_shl(*y as u32)),
-            (Self::Rational(x), Self::Rational(y)) => {
-                Self::new(f64_to_int32(*x).wrapping_shl(f64_to_uint32(*y)))
+            (JsVariant::Integer(x), JsVariant::Integer(y)) => Self::new(x.wrapping_shl(y as u32)),
+            (JsVariant::Rational(x), JsVariant::Rational(y)) => {
+                Self::new(f64_to_int32(x).wrapping_shl(f64_to_uint32(y)))
             }
-            (Self::Integer(x), Self::Rational(y)) => Self::new(x.wrapping_shl(f64_to_uint32(*y))),
-            (Self::Rational(x), Self::Integer(y)) => {
-                Self::new(f64_to_int32(*x).wrapping_shl(*y as u32))
+            (JsVariant::Integer(x), JsVariant::Rational(y)) => {
+                Self::new(x.wrapping_shl(f64_to_uint32(y)))
+            }
+            (JsVariant::Rational(x), JsVariant::Integer(y)) => {
+                Self::new(f64_to_int32(x).wrapping_shl(y as u32))
             }
 
-            (Self::BigInt(ref a), Self::BigInt(ref b)) => {
+            (JsVariant::BigInt(a), JsVariant::BigInt(b)) => {
                 Self::new(JsBigInt::shift_left(a, b, context)?)
             }
 
@@ -326,18 +344,20 @@ impl JsValue {
 
     #[inline]
     pub fn shr(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
-        Ok(match (self, other) {
+        Ok(match (self.variant(), other.variant()) {
             // Fast path:
-            (Self::Integer(x), Self::Integer(y)) => Self::new(x.wrapping_shr(*y as u32)),
-            (Self::Rational(x), Self::Rational(y)) => {
-                Self::new(f64_to_int32(*x).wrapping_shr(f64_to_uint32(*y)))
+            (JsVariant::Integer(x), JsVariant::Integer(y)) => Self::new(x.wrapping_shr(y as u32)),
+            (JsVariant::Rational(x), JsVariant::Rational(y)) => {
+                Self::new(f64_to_int32(x).wrapping_shr(f64_to_uint32(y)))
             }
-            (Self::Integer(x), Self::Rational(y)) => Self::new(x.wrapping_shr(f64_to_uint32(*y))),
-            (Self::Rational(x), Self::Integer(y)) => {
-                Self::new(f64_to_int32(*x).wrapping_shr(*y as u32))
+            (JsVariant::Integer(x), JsVariant::Rational(y)) => {
+                Self::new(x.wrapping_shr(f64_to_uint32(y)))
+            }
+            (JsVariant::Rational(x), JsVariant::Integer(y)) => {
+                Self::new(f64_to_int32(x).wrapping_shr(y as u32))
             }
 
-            (Self::BigInt(ref a), Self::BigInt(ref b)) => {
+            (JsVariant::BigInt(a), JsVariant::BigInt(b)) => {
                 Self::new(JsBigInt::shift_right(a, b, context)?)
             }
 
@@ -360,17 +380,19 @@ impl JsValue {
 
     #[inline]
     pub fn ushr(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
-        Ok(match (self, other) {
+        Ok(match (self.variant(), other.variant()) {
             // Fast path:
-            (Self::Integer(x), Self::Integer(y)) => Self::new((*x as u32).wrapping_shr(*y as u32)),
-            (Self::Rational(x), Self::Rational(y)) => {
-                Self::new(f64_to_uint32(*x).wrapping_shr(f64_to_uint32(*y)))
+            (JsVariant::Integer(x), JsVariant::Integer(y)) => {
+                Self::new((x as u32).wrapping_shr(y as u32))
             }
-            (Self::Integer(x), Self::Rational(y)) => {
-                Self::new((*x as u32).wrapping_shr(f64_to_uint32(*y)))
+            (JsVariant::Rational(x), JsVariant::Rational(y)) => {
+                Self::new(f64_to_uint32(x).wrapping_shr(f64_to_uint32(y)))
             }
-            (Self::Rational(x), Self::Integer(y)) => {
-                Self::new(f64_to_uint32(*x).wrapping_shr(*y as u32))
+            (JsVariant::Integer(x), JsVariant::Rational(y)) => {
+                Self::new((x as u32).wrapping_shr(f64_to_uint32(y)))
+            }
+            (JsVariant::Rational(x), JsVariant::Integer(y)) => {
+                Self::new(f64_to_uint32(x).wrapping_shr(y as u32))
             }
 
             // Slow path:
@@ -429,22 +451,22 @@ impl JsValue {
 
     #[inline]
     pub fn neg(&self, context: &mut Context) -> JsResult<Self> {
-        Ok(match *self {
-            Self::Symbol(_) | Self::Undefined => Self::new(f64::NAN),
-            Self::Object(_) => Self::new(match self.to_numeric_number(context) {
+        Ok(match self.variant() {
+            JsVariant::Symbol(_) | JsVariant::Undefined => Self::new(f64::NAN),
+            JsVariant::Object(_) => Self::new(match self.to_numeric_number(context) {
                 Ok(num) => -num,
                 Err(_) => f64::NAN,
             }),
-            Self::String(ref str) => Self::new(match f64::from_str(str) {
+            JsVariant::String(str) => Self::new(match f64::from_str(str) {
                 Ok(num) => -num,
                 Err(_) => f64::NAN,
             }),
-            Self::Rational(num) => Self::new(-num),
-            Self::Integer(num) if num == 0 => Self::new(-f64::from(0)),
-            Self::Integer(num) => Self::new(-num),
-            Self::Boolean(true) => Self::new(1),
-            Self::Boolean(false) | Self::Null => Self::new(0),
-            Self::BigInt(ref x) => Self::new(JsBigInt::neg(x)),
+            JsVariant::Rational(num) => Self::new(-num),
+            JsVariant::Integer(num) if num == 0 => Self::new(-f64::from(0)),
+            JsVariant::Integer(num) => Self::new(-num),
+            JsVariant::Boolean(true) => Self::new(1),
+            JsVariant::Boolean(false) | JsVariant::Null => Self::new(0),
+            JsVariant::BigInt(x) => Self::new(JsBigInt::neg(x)),
         })
     }
 
@@ -476,13 +498,13 @@ impl JsValue {
         left_first: bool,
         context: &mut Context,
     ) -> JsResult<AbstractRelation> {
-        Ok(match (self, other) {
+        Ok(match (self.variant(), other.variant()) {
             // Fast path (for some common operations):
-            (Self::Integer(x), Self::Integer(y)) => (x < y).into(),
-            (Self::Integer(x), Self::Rational(y)) => Number::less_than(f64::from(*x), *y),
-            (Self::Rational(x), Self::Integer(y)) => Number::less_than(*x, f64::from(*y)),
-            (Self::Rational(x), Self::Rational(y)) => Number::less_than(*x, *y),
-            (Self::BigInt(ref x), Self::BigInt(ref y)) => (x < y).into(),
+            (JsVariant::Integer(x), JsVariant::Integer(y)) => (x < y).into(),
+            (JsVariant::Integer(x), JsVariant::Rational(y)) => Number::less_than(f64::from(x), y),
+            (JsVariant::Rational(x), JsVariant::Integer(y)) => Number::less_than(x, f64::from(y)),
+            (JsVariant::Rational(x), JsVariant::Rational(y)) => Number::less_than(x, y),
+            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => (x < y).into(),
 
             // Slow path:
             (_, _) => {
@@ -497,8 +519,8 @@ impl JsValue {
                     (px, py)
                 };
 
-                match (px, py) {
-                    (Self::String(ref x), Self::String(ref y)) => {
+                match (px.variant(), py.variant()) {
+                    (JsVariant::String(x), JsVariant::String(y)) => {
                         if x.starts_with(y.as_str()) {
                             return Ok(AbstractRelation::False);
                         }
@@ -512,21 +534,21 @@ impl JsValue {
                         }
                         unreachable!()
                     }
-                    (Self::BigInt(ref x), Self::String(ref y)) => {
+                    (JsVariant::BigInt(x), JsVariant::String(y)) => {
                         if let Some(y) = JsBigInt::from_string(y) {
                             (*x < y).into()
                         } else {
                             AbstractRelation::Undefined
                         }
                     }
-                    (Self::String(ref x), Self::BigInt(ref y)) => {
+                    (JsVariant::String(x), JsVariant::BigInt(y)) => {
                         if let Some(x) = JsBigInt::from_string(x) {
                             (x < *y).into()
                         } else {
                             AbstractRelation::Undefined
                         }
                     }
-                    (px, py) => match (px.to_numeric(context)?, py.to_numeric(context)?) {
+                    (_, _) => match (px.to_numeric(context)?, py.to_numeric(context)?) {
                         (Numeric::Number(x), Numeric::Number(y)) => Number::less_than(x, y),
                         (Numeric::BigInt(ref x), Numeric::BigInt(ref y)) => (x < y).into(),
                         (Numeric::BigInt(ref x), Numeric::Number(y)) => {

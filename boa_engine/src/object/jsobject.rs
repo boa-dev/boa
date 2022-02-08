@@ -6,7 +6,7 @@ use super::{JsPrototype, NativeObject, Object, PropertyMap};
 use crate::{
     object::{ObjectData, ObjectKind},
     property::{PropertyDescriptor, PropertyKey},
-    value::PreferredType,
+    value::{PointerType, PreferredType},
     Context, JsResult, JsValue,
 };
 use boa_gc::{self, Finalize, Gc, Trace};
@@ -15,6 +15,7 @@ use std::{
     collections::HashMap,
     error::Error,
     fmt::{self, Debug, Display},
+    mem::{self, ManuallyDrop},
     result::Result as StdResult,
 };
 
@@ -28,6 +29,16 @@ pub type RefMut<'a, T, U> = boa_gc::RefMut<'a, T, U>;
 #[derive(Trace, Finalize, Clone, Default)]
 pub struct JsObject {
     inner: Gc<boa_gc::Cell<Object>>,
+}
+
+unsafe impl PointerType for JsObject {
+    unsafe fn from_void_ptr(ptr: *mut ()) -> ManuallyDrop<Self> {
+        ManuallyDrop::new(mem::transmute(ptr))
+    }
+
+    unsafe fn into_void_ptr(object: ManuallyDrop<Self>) -> *mut () {
+        mem::transmute(object)
+    }
 }
 
 impl JsObject {

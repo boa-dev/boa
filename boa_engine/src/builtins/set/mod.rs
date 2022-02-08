@@ -203,7 +203,7 @@ impl Set {
         if let Some(object) = this.as_object() {
             if let Some(set) = object.borrow_mut().as_set_mut() {
                 set.add(if value.as_number().map_or(false, |n| n == -0f64) {
-                    JsValue::Integer(0)
+                    JsValue::new(0)
                 } else {
                     value.clone()
                 });
@@ -353,7 +353,7 @@ impl Set {
             index += 1;
         }
 
-        Ok(JsValue::Undefined)
+        Ok(JsValue::undefined())
     }
 
     /// `Map.prototype.has( key )`

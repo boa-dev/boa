@@ -1,4 +1,4 @@
-use super::JsValue;
+use super::{JsValue, JsVariant};
 use crate::builtins::Number;
 use std::hash::{Hash, Hasher};
 
@@ -37,16 +37,16 @@ impl Hash for RationalHashable {
 
 impl Hash for JsValue {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        match self {
-            Self::Undefined => UndefinedHashable.hash(state),
-            Self::Null => NullHashable.hash(state),
-            Self::String(ref string) => string.hash(state),
-            Self::Boolean(boolean) => boolean.hash(state),
-            Self::Integer(integer) => RationalHashable(f64::from(*integer)).hash(state),
-            Self::BigInt(ref bigint) => bigint.hash(state),
-            Self::Rational(rational) => RationalHashable(*rational).hash(state),
-            Self::Symbol(ref symbol) => Hash::hash(symbol, state),
-            Self::Object(ref object) => std::ptr::hash(object.as_ref(), state),
+        match self.variant() {
+            JsVariant::Undefined => UndefinedHashable.hash(state),
+            JsVariant::Null => NullHashable.hash(state),
+            JsVariant::String(ref string) => string.hash(state),
+            JsVariant::Boolean(boolean) => boolean.hash(state),
+            JsVariant::Integer(integer) => RationalHashable(f64::from(integer)).hash(state),
+            JsVariant::BigInt(ref bigint) => bigint.hash(state),
+            JsVariant::Rational(rational) => RationalHashable(rational).hash(state),
+            JsVariant::Symbol(ref symbol) => Hash::hash(symbol, state),
+            JsVariant::Object(ref object) => std::ptr::hash(object.as_ref(), state),
         }
     }
 }

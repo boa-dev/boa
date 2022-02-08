@@ -62,6 +62,6 @@ fn multiple_catches() {
 
     assert_eq!(
         Context::default().eval(source.as_bytes()),
-        Ok(JsValue::Undefined)
+        Ok(JsValue::undefined())
     );
 }

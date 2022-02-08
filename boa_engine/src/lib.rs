@@ -64,6 +64,7 @@
     clippy::missing_errors_doc,
     clippy::as_conversions,
     clippy::let_unit_value,
+    clippy::transmute_ptr_to_ptr,
     rustdoc::missing_doc_code_examples
 )]
 

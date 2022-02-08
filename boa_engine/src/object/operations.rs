@@ -4,7 +4,7 @@ use crate::{
     object::JsObject,
     property::{PropertyDescriptor, PropertyDescriptorBuilder, PropertyKey, PropertyNameKind},
     symbol::WellKnownSymbols,
-    value::Type,
+    value::{JsVariant, Type},
     Context, JsResult, JsValue,
 };
 
@@ -587,11 +587,14 @@ impl JsObject {
 
         // 1. Assert: IsPropertyKey(P) is true.
         // 2. Let func be ? GetV(V, P).
-        match &self.__get__(&key.into(), self.clone().into(), context)? {
+        match self
+            .__get__(&key.into(), self.clone().into(), context)?
+            .variant()
+        {
             // 3. If func is either undefined or null, return undefined.
-            JsValue::Undefined | JsValue::Null => Ok(None),
+            JsVariant::Undefined | JsVariant::Null => Ok(None),
             // 5. Return func.
-            JsValue::Object(obj) if obj.is_callable() => Ok(Some(obj.clone())),
+            JsVariant::Object(object) if object.is_callable() => Ok(Some(object.clone())),
             // 4. If IsCallable(func) is false, throw a TypeError exception.
             _ => {
                 context.throw_type_error("value returned for property of object is not a function")

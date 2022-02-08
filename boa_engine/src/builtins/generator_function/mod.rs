@@ -102,7 +102,7 @@ impl BuiltIn for GeneratorFunction {
             .borrow_mut()
             .insert(WellKnownSymbols::to_string_tag(), property);
 
-        JsValue::Null
+        JsValue::null()
     }
 }
 

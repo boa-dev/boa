@@ -324,7 +324,7 @@ impl ArrayBuffer {
         obj.borrow_mut().data = ObjectData::array_buffer(Self {
             array_buffer_data: Some(block),
             array_buffer_byte_length: byte_length,
-            array_buffer_detach_key: JsValue::Undefined,
+            array_buffer_detach_key: JsValue::undefined(),
         });
 
         // 5. Return obj.

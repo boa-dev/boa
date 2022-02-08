@@ -2,7 +2,7 @@ use crate::{
     builtins::{array, object::Object},
     object::{InternalObjectMethods, JsObject, JsPrototype},
     property::{PropertyDescriptor, PropertyKey},
-    value::Type,
+    value::{JsVariant, Type},
     Context, JsResult, JsValue,
 };
 use rustc_hash::FxHashSet;
@@ -97,9 +97,9 @@ pub(crate) fn proxy_exotic_get_prototype_of(
     let handler_proto = trap.call(&handler.into(), &[target.clone().into()], context)?;
 
     // 8. If Type(handlerProto) is neither Object nor Null, throw a TypeError exception.
-    let handler_proto = match &handler_proto {
-        JsValue::Object(obj) => Some(obj.clone()),
-        JsValue::Null => None,
+    let handler_proto = match handler_proto.variant() {
+        JsVariant::Object(obj) => Some(obj.clone()),
+        JsVariant::Null => None,
         _ => return context.throw_type_error("Proxy trap result is neither object nor null"),
     };
 
@@ -159,7 +159,7 @@ pub(crate) fn proxy_exotic_set_prototype_of(
             &handler.into(),
             &[
                 target.clone().into(),
-                val.clone().map_or(JsValue::Null, Into::into),
+                val.clone().map_or(JsValue::null(), Into::into),
             ],
             context,
         )?
@@ -700,7 +700,11 @@ pub(crate) fn proxy_exotic_set(
             if target_desc.is_accessor_descriptor() {
                 // i. If targetDesc.[[Set]] is undefined, throw a TypeError exception.
                 match target_desc.set() {
-                    None | Some(&JsValue::Undefined) => {
+                    None => {
+                        return context
+                            .throw_type_error("Proxy trap set unexpected accessor descriptor");
+                    }
+                    Some(v) if v.is_undefined() => {
                         return context
                             .throw_type_error("Proxy trap set unexpected accessor descriptor");
                     }
@@ -821,8 +825,8 @@ pub(crate) fn proxy_exotic_own_property_keys(
     let mut unchecked_result_keys: FxHashSet<PropertyKey> = FxHashSet::default();
     let mut trap_result = Vec::new();
     for value in &trap_result_raw {
-        match value {
-            JsValue::String(s) => {
+        match value.variant() {
+            JsVariant::String(s) => {
                 if !unchecked_result_keys.insert(s.clone().into()) {
                     return context.throw_type_error(
                         "Proxy trap result contains duplicate string property keys",
@@ -830,7 +834,7 @@ pub(crate) fn proxy_exotic_own_property_keys(
                 }
                 trap_result.push(s.clone().into());
             }
-            JsValue::Symbol(s) => {
+            JsVariant::Symbol(s) => {
                 if !unchecked_result_keys.insert(s.clone().into()) {
                     return context.throw_type_error(
                         "Proxy trap result contains duplicate symbol property keys",

@@ -16,6 +16,7 @@ use crate::{
     object::{JsObject, ObjectInitializer},
     property::Attribute,
     symbol::WellKnownSymbols,
+    value::JsVariant,
     Context, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
@@ -250,7 +251,7 @@ impl Reflect {
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
         Ok(target
             .__get_prototype_of__(context)?
-            .map_or(JsValue::Null, JsValue::new))
+            .map_or(JsValue::null(), JsValue::new))
     }
 
     /// Returns `true` if the object has the property, `false` otherwise.
@@ -383,9 +384,9 @@ impl Reflect {
             .get(0)
             .and_then(JsValue::as_object)
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
-        let proto = match args.get_or_undefined(1) {
-            JsValue::Object(obj) => Some(obj.clone()),
-            JsValue::Null => None,
+        let proto = match args.get_or_undefined(1).variant() {
+            JsVariant::Object(obj) => Some(obj.clone()),
+            JsVariant::Null => None,
             _ => return context.throw_type_error("proto must be an object or null"),
         };
         Ok(target.__set_prototype_of__(proto, context)?.into())

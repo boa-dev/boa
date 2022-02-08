@@ -63,7 +63,8 @@ impl ArrayIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%.next
     pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let mut array_iterator = this.as_object().map(JsObject::borrow_mut);
+        let array_iterator = this.as_object();
+        let mut array_iterator = array_iterator.map(JsObject::borrow_mut);
         let array_iterator = array_iterator
             .as_mut()
             .and_then(|obj| obj.as_array_iterator_mut())

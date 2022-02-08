@@ -186,7 +186,7 @@ impl Context {
                         self.global_bindings_mut().insert(
                             name_str,
                             PropertyDescriptor::builder()
-                                .value(JsValue::Undefined)
+                                .value(JsValue::undefined())
                                 .writable(true)
                                 .enumerable(true)
                                 .configurable(true)

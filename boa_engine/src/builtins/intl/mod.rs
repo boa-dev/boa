@@ -131,7 +131,7 @@ impl Intl {
         // 1. Let ll be ? CanonicalizeLocaleList(locales).
         let ll = Self::canonicalize_locale_list(args, context)?;
         // 2. Return CreateArrayFromList(ll).
-        Ok(JsValue::Object(Array::create_array_from_list(
+        Ok(JsValue::new(Array::create_array_from_list(
             ll.into_iter().map(Into::into),
             context,
         )))

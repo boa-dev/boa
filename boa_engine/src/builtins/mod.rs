@@ -190,7 +190,7 @@ pub trait JsArgs {
 
 impl JsArgs for [JsValue] {
     fn get_or_undefined(&self, index: usize) -> &JsValue {
-        const UNDEFINED: &JsValue = &JsValue::Undefined;
-        self.get(index).unwrap_or(UNDEFINED)
+        static UNDEFINED: JsValue = JsValue::undefined();
+        self.get(index).unwrap_or(&UNDEFINED)
     }
 }

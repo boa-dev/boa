@@ -23,6 +23,7 @@ use crate::{
     },
     property::{Attribute, PropertyNameKind},
     symbol::WellKnownSymbols,
+    value::JsVariant,
     Context, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
@@ -224,11 +225,11 @@ impl Map {
             // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
             // 3. Let entries be the List that is M.[[MapData]].
             if let Some(map) = object.borrow_mut().as_map_mut() {
-                let key = match key {
-                    JsValue::Rational(r) => {
+                let key = match key.variant() {
+                    JsVariant::Rational(r) => {
                         // 5. If key is -0𝔽, set key to +0𝔽.
                         if r.is_zero() {
-                            JsValue::Rational(0f64)
+                            JsValue::new(0f64)
                         } else {
                             key.clone()
                         }
@@ -329,29 +330,21 @@ impl Map {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        const JS_ZERO: &JsValue = &JsValue::Rational(0f64);
-
         let key = args.get_or_undefined(0);
-        let key = match key {
-            JsValue::Rational(r) => {
-                if r.is_zero() {
-                    JS_ZERO
-                } else {
-                    key
-                }
-            }
-            _ => key,
+        let key = match key.variant() {
+            JsVariant::Rational(r) if r.is_zero() => JsValue::new(0f64),
+            _ => key.clone(),
         };
 
         // 1. Let M be the this value.
-        if let JsValue::Object(ref object) = this {
+        if let Some(object) = this.as_object() {
             // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
             // 3. Let entries be the List that is M.[[MapData]].
             if let Some(map) = object.borrow().as_map_ref() {
                 // 4. For each Record { [[Key]], [[Value]] } p of entries, do
                 // a. If p.[[Key]] is not empty and SameValueZero(p.[[Key]], key) is true, return p.[[Value]].
                 // 5. Return undefined.
-                return Ok(map.get(key).cloned().unwrap_or_default());
+                return Ok(map.get(&key).cloned().unwrap_or_default());
             }
         }
 
@@ -401,29 +394,21 @@ impl Map {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        const JS_ZERO: &JsValue = &JsValue::Rational(0f64);
-
         let key = args.get_or_undefined(0);
-        let key = match key {
-            JsValue::Rational(r) => {
-                if r.is_zero() {
-                    JS_ZERO
-                } else {
-                    key
-                }
-            }
-            _ => key,
+        let key = match key.variant() {
+            JsVariant::Rational(r) if r.is_zero() => JsValue::new(0f64),
+            _ => key.clone(),
         };
 
         // 1. Let M be the this value.
-        if let JsValue::Object(ref object) = this {
+        if let Some(object) = this.as_object() {
             // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
             // 3. Let entries be the List that is M.[[MapData]].
             if let Some(map) = object.borrow().as_map_ref() {
                 // 4. For each Record { [[Key]], [[Value]] } p of entries, do
                 // a. If p.[[Key]] is not empty and SameValueZero(p.[[Key]], key) is true, return true.
                 // 5. Return false.
-                return Ok(map.contains_key(key).into());
+                return Ok(map.contains_key(&key).into());
             }
         }
 

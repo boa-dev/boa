@@ -161,7 +161,7 @@ impl Proxy {
                     .data = None;
 
                 // d. Set F.[[RevocableProxy]] to null.
-                *revocable_proxy = JsValue::Null;
+                *revocable_proxy = JsValue::null();
 
                 // h. Return undefined.
                 Ok(JsValue::undefined())

@@ -392,9 +392,7 @@ impl BuiltInFunctionObject {
         let target_name = target.get("name", context)?;
 
         // 9. If Type(targetName) is not String, set targetName to the empty String.
-        let target_name = target_name
-            .as_string()
-            .map_or(JsString::new(""), Clone::clone);
+        let target_name = target_name.as_string().cloned().unwrap_or_default();
 
         // 10. Perform SetFunctionName(F, targetName, "bound").
         set_function_name(&f, &target_name.into(), Some("bound"), context);

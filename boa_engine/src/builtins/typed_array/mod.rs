@@ -26,7 +26,7 @@ use crate::{
     },
     property::{Attribute, PropertyNameKind},
     symbol::WellKnownSymbols,
-    value::{IntegerOrInfinity, JsValue},
+    value::{IntegerOrInfinity, JsValue, JsVariant},
     Context, JsResult, JsString,
 };
 use boa_gc::{unsafe_empty_trace, Finalize, Trace};
@@ -147,7 +147,7 @@ macro_rules! typed_array {
                     // ii. If firstArgument has a [[TypedArrayName]] internal slot, then
                     if first_argument.is_typed_array() {
                         // 1. Perform ? InitializeTypedArrayFromTypedArray(O, firstArgument).
-                        TypedArray::initialize_from_typed_array(&o, first_argument, context)?;
+                        TypedArray::initialize_from_typed_array(&o, &first_argument, context)?;
                     } else if first_argument.is_array_buffer() {
                         // iii. Else if firstArgument has an [[ArrayBufferData]] internal slot, then
 
@@ -393,7 +393,9 @@ impl TypedArray {
 
         let mapping = match args.get(1) {
             // 3. If mapfn is undefined, let mapping be false.
-            None | Some(JsValue::Undefined) => None,
+            None => None,
+            Some(v) if v.is_undefined() => None,
+
             // 4. Else,
             Some(v) => match v.as_object() {
                 // b. Let mapping be true.
@@ -1888,9 +1890,9 @@ impl TypedArray {
         }
 
         let source = args.get_or_undefined(0);
-        match source {
+        match source.variant() {
             // 6. If source is an Object that has a [[TypedArrayName]] internal slot, then
-            JsValue::Object(source) if source.is_typed_array() => {
+            JsVariant::Object(source) if source.is_typed_array() => {
                 // a. Perform ? SetTypedArrayFromTypedArray(target, targetOffset, source).
                 Self::set_typed_array_from_typed_array(target, target_offset, source, context)?;
             }
@@ -2464,9 +2466,9 @@ impl TypedArray {
     /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.sort
     fn sort(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. If comparefn is not undefined and IsCallable(comparefn) is false, throw a TypeError exception.
-        let compare_fn = match args.get(0) {
-            None | Some(JsValue::Undefined) => None,
-            Some(JsValue::Object(obj)) if obj.is_callable() => Some(obj),
+        let compare_fn = match args.get(0).map(JsValue::variant) {
+            None | Some(JsVariant::Undefined) => None,
+            Some(JsVariant::Object(obj)) if obj.is_callable() => Some(obj),
             _ => {
                 return context
                     .throw_type_error("TypedArray.sort called with non-callable comparefn")
@@ -2550,7 +2552,7 @@ impl TypedArray {
                 return Ok(v.partial_cmp(&0.0).unwrap_or(Ordering::Equal));
             }
 
-            if let (JsValue::BigInt(x), JsValue::BigInt(y)) = (x, y) {
+            if let (Some(x), Some(y)) = (x.as_bigint(), y.as_bigint()) {
                 // 6. If x < y, return -1𝔽.
                 if x < y {
                     return Ok(Ordering::Less);
@@ -2798,7 +2800,7 @@ impl TypedArray {
                     .as_typed_array()
                     .map(|o| o.typed_array_name().name().into())
             })
-            .unwrap_or(JsValue::Undefined))
+            .unwrap_or_else(JsValue::undefined))
     }
 
     /// `23.2.4.1 TypedArraySpeciesCreate ( exemplar, argumentList )`
