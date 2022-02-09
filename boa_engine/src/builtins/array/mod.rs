@@ -19,6 +19,7 @@ use tap::{Conv, Pipe};
 use super::JsArgs;
 use crate::{
     builtins::array::array_iterator::ArrayIterator,
+    builtins::iterable::IteratorHint,
     builtins::BuiltIn,
     builtins::Number,
     context::intrinsics::StandardConstructors,
@@ -113,6 +114,7 @@ impl BuiltIn for Array {
         .method(Self::entries, "entries", 0)
         .method(Self::copy_within, "copyWithin", 3)
         // Static Methods
+        .static_method(Self::from, "from", 1)
         .static_method(Self::is_array, "isArray", 1)
         .static_method(Self::of, "of", 0)
         .build()
@@ -365,6 +367,185 @@ impl Array {
             )
         } else {
             context.throw_type_error("Symbol.species must be a constructor")
+        }
+    }
+
+    /// `Array.from(arrayLike)`
+    ///
+    /// The Array.from() static method creates a new,
+    /// shallow-copied Array instance from an array-like or iterable object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-array.from
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/from
+    pub(crate) fn from(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let items = args.get_or_undefined(0);
+        let mapfn = args.get_or_undefined(1);
+        let this_arg = args.get_or_undefined(2);
+
+        let mapping = if mapfn.is_undefined() {
+            // 2. If mapfn is undefined, let mapping be false
+            None
+        } else {
+            // 3. Else,
+            //     a. If IsCallable(mapfn) is false, throw a TypeError exception.
+            //     b. Let mapping be true.
+            Some(mapfn.as_callable().ok_or_else(|| {
+                context.construct_type_error(format!("{} is not a function", mapfn.display()))
+            })?)
+        };
+
+        if items.is_null_or_undefined() {
+            return context
+                .throw_type_error("Array.from requires an array-like object or iterator");
+        }
+
+        // 4. Let usingIterator be ? GetMethod(items, @@iterator).
+        let using_iterator = items
+            .get_method(WellKnownSymbols::iterator(), context)?
+            .map(JsValue::from);
+
+        if let Some(using_iterator) = using_iterator {
+            // 5. If usingIterator is not undefined, then
+
+            // a. If IsConstructor(C) is true, then
+            //     i. Let A be ? Construct(C).
+            // b. Else,
+            //     i. Let A be ? ArrayCreate(0en).
+            let a = match this.as_constructor() {
+                Some(constructor) => constructor
+                    .construct(&[], this, context)?
+                    .as_object()
+                    .cloned()
+                    .ok_or_else(|| {
+                        context.construct_type_error("Object constructor didn't return an object")
+                    })?,
+                _ => Self::array_create(0, None, context)?,
+            };
+
+            // c. Let iteratorRecord be ? GetIterator(items, sync, usingIterator).
+            let iterator_record =
+                items.get_iterator(context, Some(IteratorHint::Sync), Some(using_iterator))?;
+
+            // IfAbruptCloseIterator is a shorthand for a sequence of algorithm steps that use an Iterator Record
+            macro_rules! if_abrupt_close_iterator {
+                ($val:expr, $iterator_record:expr) => { match $val {
+                    // 2. Else if value is a Completion Record, set value to value.
+                    Ok(val) => val,
+                    // 1. If value is an abrupt completion, return ? IteratorClose(iteratorRecord, value).
+                    Err(err) => return $iterator_record.close(Err(err), context)
+                } }
+            }
+
+            // d. Let k be 0.
+            // e. Repeat,
+            //     i. If k ≥ 2^53 - 1 (MAX_SAFE_INTEGER), then
+            //     ...
+            //     x. Set k to k + 1.
+            for k in 0..9_007_199_254_740_991_u64 {
+                let next =
+                    if_abrupt_close_iterator!(iterator_record.step(context), iterator_record);
+
+                // iv. If next is false, then
+                if next.is_none() {
+                    // 1. Perform ? Set(A, "length", 𝔽(k), true).
+                    a.set("length", k, true, context)?;
+
+                    // 2. Return A.
+                    return Ok(a.into());
+                }
+
+                // NOTE: with optimizations this unwrap will be removed.
+                let next = next.expect("should not fail because we check if it is not None");
+
+                // v. Let nextValue be ? IteratorValue(next).
+                let next_value = next.value(context)?;
+
+                // vi. If mapping is true, then
+                let mapped_value = if let Some(mapfn) = mapping {
+                    // 1. Let mappedValue be Call(mapfn, thisArg, « nextValue, 𝔽(k) »).
+                    let mapped_value = mapfn.call(this_arg, &[next_value, k.into()], context);
+
+                    // 2. IfAbruptCloseIterator(mappedValue, iteratorRecord).
+                    if_abrupt_close_iterator!(mapped_value, iterator_record)
+                } else {
+                    // vii. Else, let mappedValue be nextValue.
+                    next_value
+                };
+                // viii. Let defineStatus be CreateDataPropertyOrThrow(A, Pk, mappedValue).
+                let define_status = a.create_data_property_or_throw(k, mapped_value, context);
+
+                // ix. IfAbruptCloseIterator(defineStatus, iteratorRecord).
+                if_abrupt_close_iterator!(define_status, iterator_record);
+            }
+
+            // NOTE: The loop above has to return before it reaches iteration limit,
+            // which is why it's safe to have this as the fallback return
+            //
+            // 1. Let error be ThrowCompletion(a newly created TypeError object).
+            let error = context.throw_type_error("Invalid array length");
+
+            // 2. Return ? IteratorClose(iteratorRecord, error).
+            iterator_record.close(error, context)
+        } else {
+            // 6. NOTE: items is not an Iterable so assume it is an array-like object.
+            // 7. Let arrayLike be ! ToObject(items).
+            let array_like = items
+                .to_object(context)
+                .expect("should not fail according to spec");
+
+            // 8. Let len be ? LengthOfArrayLike(arrayLike).
+            let len = array_like.length_of_array_like(context)?;
+
+            // 9. If IsConstructor(C) is true, then
+            //     a. Let A be ? Construct(C, « 𝔽(len) »).
+            // 10. Else,
+            //     a. Let A be ? ArrayCreate(len).
+            let a = match this.as_constructor() {
+                Some(constructor) => constructor
+                    .construct(&[len.into()], this, context)?
+                    .as_object()
+                    .cloned()
+                    .ok_or_else(|| {
+                        context.construct_type_error("Object constructor didn't return an object")
+                    })?,
+                _ => Self::array_create(len, None, context)?,
+            };
+
+            // 11. Let k be 0.
+            // 12. Repeat, while k < len,
+            //     ...
+            //     f. Set k to k + 1.
+            for k in 0..len {
+                // a. Let Pk be ! ToString(𝔽(k)).
+                // b. Let kValue be ? Get(arrayLike, Pk).
+                let k_value = array_like.get(k, context)?;
+
+                let mapped_value = if let Some(mapfn) = mapping {
+                    // c. If mapping is true, then
+                    //     i. Let mappedValue be ? Call(mapfn, thisArg, « kValue, 𝔽(k) »).
+                    mapfn.call(this_arg, &[k_value, k.into()], context)?
+                } else {
+                    // d. Else, let mappedValue be kValue.
+                    k_value
+                };
+
+                // e. Perform ? CreateDataPropertyOrThrow(A, Pk, mappedValue).
+                a.create_data_property_or_throw(k, mapped_value, context)?;
+            }
+
+            // 13. Perform ? Set(A, "length", 𝔽(len), true).
+            a.set("length", len, true, context)?;
+
+            // 14. Return A.
+            Ok(a.into())
         }
     }
 
