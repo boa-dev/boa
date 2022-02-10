@@ -14,15 +14,12 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number
 
 use crate::{
-    builtins::{
-        function::NativeFunctionSignature, string::is_trimmable_whitespace, BuiltIn, JsArgs,
-    },
+    builtins::{string::is_trimmable_whitespace, BuiltIn, JsArgs},
     context::StandardObjects,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
-        JsObject, ObjectData,
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
     },
-    property::{Attribute, PropertyDescriptor},
+    property::Attribute,
     value::{AbstractRelation, IntegerOrInfinity, JsValue},
     BoaProfiler, Context, JsResult,
 };
@@ -79,36 +76,10 @@ impl BuiltIn for Number {
         .static_method(Self::number_is_integer, "isInteger", 1)
         .build();
 
-        fn build_in_function(
-            name: &str,
-            length: usize,
-            function: NativeFunctionSignature,
-            context: &mut Context,
-        ) {
-            let function = FunctionBuilder::native(context, function)
-                .name(name)
-                .length(length)
-                .constructor(false)
-                .build();
-
-            let property = PropertyDescriptor::builder()
-                .value(function)
-                .writable(true)
-                .enumerable(false)
-                .configurable(true)
-                .build();
-
-            context
-                .realm
-                .global_bindings
-                .string_property_map_mut()
-                .insert(name.into(), property);
-        }
-
-        build_in_function("parseInt", 2, Self::parse_int, context);
-        build_in_function("parseFloat", 1, Self::parse_float, context);
-        build_in_function("isFinite", 1, Self::global_is_finite, context);
-        build_in_function("isNaN", 1, Self::global_is_nan, context);
+        context.register_global_builtin_function("parseInt", 2, Self::parse_int);
+        context.register_global_builtin_function("parseFloat", 1, Self::parse_float);
+        context.register_global_builtin_function("isFinite", 1, Self::global_is_finite);
+        context.register_global_builtin_function("isNaN", 1, Self::global_is_nan);
 
         number_object.into()
     }

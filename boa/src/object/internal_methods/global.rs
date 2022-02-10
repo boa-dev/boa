@@ -13,6 +13,8 @@ use crate::{
 /// [spec]: https://tc39.es/ecma262/#sec-global-object
 pub(crate) static GLOBAL_INTERNAL_METHODS: InternalObjectMethods = InternalObjectMethods {
     __get_own_property__: global_get_own_property,
+    __is_extensible__: global_is_extensible,
+    __prevent_extensions__: global_prevent_extensions,
     __define_own_property__: global_define_own_property,
     __has_property__: global_has_property,
     __get__: global_get,
@@ -34,7 +36,7 @@ pub(crate) fn global_get_own_property(
     key: &PropertyKey,
     context: &mut Context,
 ) -> JsResult<Option<PropertyDescriptor>> {
-    let _timer = BoaProfiler::global().start_event("Object::ordinary_get_own_property", "object");
+    let _timer = BoaProfiler::global().start_event("Object::global_get_own_property", "object");
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. If O does not have an own property with key P, return undefined.
     // 3. Let D be a newly created Property Descriptor with no fields.
@@ -49,7 +51,36 @@ pub(crate) fn global_get_own_property(
     // 7. Set D.[[Enumerable]] to the value of X's [[Enumerable]] attribute.
     // 8. Set D.[[Configurable]] to the value of X's [[Configurable]] attribute.
     // 9. Return D.
-    Ok(context.realm.global_bindings.get(key).cloned())
+    Ok(context.realm.global_property_map.get(key).cloned())
+}
+
+/// Abstract operation `OrdinaryIsExtensible`.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-ordinaryisextensible
+#[inline]
+#[allow(clippy::unnecessary_wraps)]
+pub(crate) fn global_is_extensible(_obj: &JsObject, context: &mut Context) -> JsResult<bool> {
+    // 1. Return O.[[Extensible]].
+    Ok(context.realm.global_extensible)
+}
+
+/// Abstract operation `OrdinaryPreventExtensions`.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-ordinarypreventextensions
+#[inline]
+#[allow(clippy::unnecessary_wraps)]
+pub(crate) fn global_prevent_extensions(_obj: &JsObject, context: &mut Context) -> JsResult<bool> {
+    // 1. Set O.[[Extensible]] to false.
+    context.realm.global_extensible = false;
+
+    // 2. Return true.
+    Ok(true)
 }
 
 /// Abstract operation `OrdinaryDefineOwnProperty`.
@@ -66,8 +97,7 @@ pub(crate) fn global_define_own_property(
     desc: PropertyDescriptor,
     context: &mut Context,
 ) -> JsResult<bool> {
-    let _timer =
-        BoaProfiler::global().start_event("Object::ordinary_define_own_property", "object");
+    let _timer = BoaProfiler::global().start_event("Object::global_define_own_property", "object");
     // 1. Let current be ? O.[[GetOwnProperty]](P).
     let current = global_get_own_property(obj, &key, context)?;
 
@@ -93,8 +123,8 @@ pub(crate) fn global_has_property(
     key: &PropertyKey,
     context: &mut Context,
 ) -> JsResult<bool> {
-    let _timer = BoaProfiler::global().start_event("Object::ordinary_has_property", "object");
-    Ok(context.realm.global_bindings.contains_key(key))
+    let _timer = BoaProfiler::global().start_event("Object::global_has_property", "object");
+    Ok(context.realm.global_property_map.contains_key(key))
 }
 
 /// Abstract operation `OrdinaryGet`.
@@ -111,7 +141,7 @@ pub(crate) fn global_get(
     receiver: JsValue,
     context: &mut Context,
 ) -> JsResult<JsValue> {
-    let _timer = BoaProfiler::global().start_event("Object::ordinary_get", "object");
+    let _timer = BoaProfiler::global().start_event("Object::global_get", "object");
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let desc be ? O.[[GetOwnProperty]](P).
     match global_get_own_property(obj, key, context)? {
@@ -149,10 +179,19 @@ pub(crate) fn global_set(
     _obj: &JsObject,
     key: PropertyKey,
     value: JsValue,
-    receiver: JsValue,
+    _receiver: JsValue,
     context: &mut Context,
 ) -> JsResult<bool> {
-    let _timer = BoaProfiler::global().start_event("Object::ordinary_set", "object");
+    global_set_no_receiver(&key, value, context)
+}
+
+#[inline]
+pub(crate) fn global_set_no_receiver(
+    key: &PropertyKey,
+    value: JsValue,
+    context: &mut Context,
+) -> JsResult<bool> {
+    let _timer = BoaProfiler::global().start_event("Object::global_set", "object");
 
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let ownDesc be ? O.[[GetOwnProperty]](P).
@@ -162,7 +201,7 @@ pub(crate) fn global_set(
     // https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarysetwithowndescriptor
 
     // 1. Assert: IsPropertyKey(P) is true.
-    let own_desc = if let Some(desc) = context.realm.global_bindings.get(&key).cloned() {
+    let own_desc = if let Some(desc) = context.realm.global_property_map.get(key).cloned() {
         desc
     }
     // c. Else,
@@ -182,15 +221,9 @@ pub(crate) fn global_set(
             return Ok(false);
         }
 
-        let receiver = match receiver.as_object() {
-            Some(obj) => obj,
-            // b. If Type(Receiver) is not Object, return false.
-            _ => return Ok(false),
-        };
-
         // c. Let existingDescriptor be ? Receiver.[[GetOwnProperty]](P).
         // d. If existingDescriptor is not undefined, then
-        if let Some(ref existing_desc) = receiver.__get_own_property__(&key, context)? {
+        let desc = if let Some(existing_desc) = context.realm.global_property_map.get(key) {
             // i. If IsAccessorDescriptor(existingDescriptor) is true, return false.
             if existing_desc.is_accessor_descriptor() {
                 return Ok(false);
@@ -203,15 +236,28 @@ pub(crate) fn global_set(
 
             // iii. Let valueDesc be the PropertyDescriptor { [[Value]]: V }.
             // iv. Return ? Receiver.[[DefineOwnProperty]](P, valueDesc).
-            return receiver.__define_own_property__(
-                key,
-                PropertyDescriptor::builder().value(value).build(),
-                context,
-            );
-        }
-        // i. Assert: Receiver does not currently have a property P.
-        // ii. Return ? CreateDataProperty(Receiver, P, V).
-        return receiver.create_data_property(key, value, context);
+            PropertyDescriptor::builder().value(value).build()
+        } else {
+            // i. Assert: Receiver does not currently have a property P.
+            // ii. Return ? CreateDataProperty(Receiver, P, V).
+            PropertyDescriptor::builder()
+                .value(value)
+                .writable(true)
+                .enumerable(true)
+                .configurable(true)
+                .build()
+        };
+
+        // 1. Let current be ? O.[[GetOwnProperty]](P).
+        let current = context.realm.global_property_map.get(key).cloned();
+
+        // 2. Let extensible be ? IsExtensible(O).
+        let extensible = context.realm.global_extensible;
+
+        // 3. Return ValidateAndApplyPropertyDescriptor(O, P, extensible, Desc, current).
+        return Ok(validate_and_apply_property_descriptor(
+            key, extensible, desc, current, context,
+        ));
     }
 
     // 4. Assert: IsAccessorDescriptor(ownDesc) is true.
@@ -221,7 +267,7 @@ pub(crate) fn global_set(
     match own_desc.set() {
         Some(set) if !set.is_undefined() => {
             // 7. Perform ? Call(setter, Receiver, « V »).
-            context.call(set, &receiver, &[value])?;
+            context.call(set, &context.global_object().clone().into(), &[value])?;
 
             // 8. Return true.
             Ok(true)
@@ -244,14 +290,14 @@ pub(crate) fn global_delete(
     key: &PropertyKey,
     context: &mut Context,
 ) -> JsResult<bool> {
-    let _timer = BoaProfiler::global().start_event("Object::ordinary_delete", "object");
+    let _timer = BoaProfiler::global().start_event("Object::global_delete", "object");
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let desc be ? O.[[GetOwnProperty]](P).
-    match context.realm.global_bindings.get(key) {
+    match context.realm.global_property_map.get(key) {
         // 4. If desc.[[Configurable]] is true, then
         Some(desc) if desc.expect_configurable() => {
             // a. Remove the own property with name P from O.
-            context.realm.global_bindings.remove(key);
+            context.realm.global_property_map.remove(key);
             // b. Return true.
             Ok(true)
         }
@@ -276,8 +322,10 @@ pub(crate) fn validate_and_apply_property_descriptor(
     current: Option<PropertyDescriptor>,
     context: &mut Context,
 ) -> bool {
-    let _timer = BoaProfiler::global()
-        .start_event("Object::validate_and_apply_property_descriptor", "object");
+    let _timer = BoaProfiler::global().start_event(
+        "Object::global_validate_and_apply_property_descriptor",
+        "object",
+    );
     // 1. Assert: If O is not undefined, then IsPropertyKey(P) is true.
 
     let mut current = if let Some(own) = current {
@@ -291,7 +339,7 @@ pub(crate) fn validate_and_apply_property_descriptor(
         }
 
         // b. Assert: extensible is true.
-        context.realm.global_bindings.insert(
+        context.realm.global_property_map.insert(
             key,
             // c. If IsGenericDescriptor(Desc) is true or IsDataDescriptor(Desc) is true, then
             if desc.is_generic_descriptor() || desc.is_data_descriptor() {
@@ -405,7 +453,7 @@ pub(crate) fn validate_and_apply_property_descriptor(
     // a. For each field of Desc that is present, set the corresponding attribute of the
     // property named P of object O to the value of the field.
     current.fill_with(&desc);
-    context.realm.global_bindings.insert(key, current);
+    context.realm.global_property_map.insert(key, current);
 
     // 10. Return true.
     true

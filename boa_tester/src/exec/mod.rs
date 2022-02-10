@@ -295,14 +295,7 @@ impl Test {
         let mut context = Context::default();
 
         // Register the print() function.
-        context
-            .register_global_function("print", 1, test262_print)
-            .map_err(|e| {
-                format!(
-                    "could not register the global print() function:\n{}",
-                    e.display()
-                )
-            })?;
+        context.register_global_function("print", 1, test262_print);
 
         // add the $262 object.
         let _js262 = js262::init(&mut context);

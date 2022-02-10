@@ -1,9 +1,9 @@
 use crate::{
     builtins::Array,
+    environments::DeclarativeEnvironment,
     gc::{Finalize, Trace},
     object::{FunctionBuilder, JsObject, ObjectData},
     property::{PropertyDescriptor, PropertyKey},
-    realm::DeclarativeEnvironment,
     symbol::{self, WellKnownSymbols},
     syntax::ast::node::FormalParameter,
     Context, JsValue,
@@ -199,7 +199,6 @@ impl Arguments {
                     (env.clone(), *binding_index),
                 )
                 .length(0)
-                .name("")
                 .build()
             };
             // 2. Let p be MakeArgSetter(name, env).
@@ -220,7 +219,6 @@ impl Arguments {
                     (env.clone(), *binding_index),
                 )
                 .length(1)
-                .name("")
                 .build()
             };
 

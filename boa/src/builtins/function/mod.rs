@@ -14,6 +14,7 @@
 use crate::{
     builtins::{BuiltIn, JsArgs},
     context::StandardObjects,
+    environments::DeclarativeEnvironmentStack,
     gc::{self, Finalize, Gc, Trace},
     object::{
         internal_methods::get_prototype_from_constructor, JsObject, NativeObject, Object,
@@ -21,7 +22,6 @@ use crate::{
     },
     object::{ConstructorBuilder, FunctionBuilder, Ref, RefMut},
     property::{Attribute, PropertyDescriptor, PropertyKey},
-    realm::DeclarativeEnvironmentStack,
     symbol::WellKnownSymbols,
     value::IntegerOrInfinity,
     BoaProfiler, Context, JsResult, JsString, JsValue,

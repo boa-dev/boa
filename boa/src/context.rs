@@ -8,7 +8,7 @@ use crate::{
     bytecompiler::ByteCompiler,
     class::{Class, ClassBuilder},
     gc::Gc,
-    object::{FunctionBuilder, JsObject, ObjectData},
+    object::{FunctionBuilder, GlobalPropertyMap, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
     syntax::{ast::node::StatementList, parser::ParseError, Parser},
@@ -512,8 +512,20 @@ impl Context {
 
     /// Return the global object.
     #[inline]
-    pub fn global_object(&self) -> JsObject {
-        self.realm.global_object.clone()
+    pub fn global_object(&self) -> &JsObject {
+        self.realm.global_object()
+    }
+
+    /// Return a reference to the global object string bindings.
+    #[inline]
+    pub(crate) fn global_bindings(&self) -> &GlobalPropertyMap {
+        self.realm.global_bindings()
+    }
+
+    /// Return a mutable reference to the global object string bindings.
+    #[inline]
+    pub(crate) fn global_bindings_mut(&mut self) -> &mut GlobalPropertyMap {
+        self.realm.global_bindings_mut()
     }
 
     /// Constructs a `Error` with the specified message.
@@ -718,14 +730,14 @@ impl Context {
         name: &str,
         length: usize,
         body: NativeFunctionSignature,
-    ) -> JsResult<()> {
+    ) {
         let function = FunctionBuilder::native(self, body)
             .name(name)
             .length(length)
             .constructor(true)
             .build();
 
-        self.realm.global_bindings.string_property_map_mut().insert(
+        self.global_bindings_mut().insert(
             name.into(),
             PropertyDescriptor::builder()
                 .value(function)
@@ -734,7 +746,43 @@ impl Context {
                 .configurable(true)
                 .build(),
         );
-        Ok(())
+    }
+
+    /// Register a global native function that is not a constructor.
+    ///
+    /// This is more efficient that creating a closure function, since this does not allocate,
+    /// it is just a function pointer.
+    ///
+    /// The function will be bound to the global object with `writable`, `non-enumerable`
+    /// and `configurable` attributes. The same as when you create a function in JavaScript.
+    ///
+    /// # Note
+    ///
+    /// The difference to [`Context::register_global_function`](Context::register_global_function) is,
+    /// that the function will not be `constructable`.
+    /// Usage of the function as a constructor will produce a `TypeError`.
+    #[inline]
+    pub fn register_global_builtin_function(
+        &mut self,
+        name: &str,
+        length: usize,
+        body: NativeFunctionSignature,
+    ) {
+        let function = FunctionBuilder::native(self, body)
+            .name(name)
+            .length(length)
+            .constructor(false)
+            .build();
+
+        self.global_bindings_mut().insert(
+            name.into(),
+            PropertyDescriptor::builder()
+                .value(function)
+                .writable(true)
+                .enumerable(false)
+                .configurable(true)
+                .build(),
+        );
     }
 
     /// Register a global closure function.
@@ -769,7 +817,7 @@ impl Context {
             .constructor(true)
             .build();
 
-        self.realm.global_bindings.string_property_map_mut().insert(
+        self.global_bindings_mut().insert(
             name.into(),
             PropertyDescriptor::builder()
                 .value(function)
@@ -820,10 +868,7 @@ impl Context {
             .configurable(T::ATTRIBUTES.configurable())
             .build();
 
-        self.realm
-            .global_bindings
-            .string_property_map_mut()
-            .insert(T::NAME.into(), property);
+        self.global_bindings_mut().insert(T::NAME.into(), property);
         Ok(())
     }
 
@@ -865,7 +910,7 @@ impl Context {
         K: Into<PropertyKey>,
         V: Into<JsValue>,
     {
-        self.realm.global_bindings.insert(
+        self.realm.global_property_map.insert(
             &key.into(),
             PropertyDescriptor::builder()
                 .value(value)
@@ -917,7 +962,7 @@ impl Context {
     /// Compile the AST into a `CodeBlock` ready to be executed by the VM.
     #[inline]
     pub fn compile(&mut self, statement_list: &StatementList) -> JsResult<Gc<CodeBlock>> {
-        let _ = BoaProfiler::global().start_event("Compilation", "Main");
+        let _timer = BoaProfiler::global().start_event("Compilation", "Main");
         let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), self);
         for node in statement_list.items() {
             compiler.create_declarations(node)?;
@@ -934,8 +979,8 @@ impl Context {
     /// `Gc<CodeBlock>` returned by the [`Self::compile()`] function.
     #[inline]
     pub fn execute(&mut self, code_block: Gc<CodeBlock>) -> JsResult<JsValue> {
-        let _ = BoaProfiler::global().start_event("Execution", "Main");
-        let global_object = self.global_object().into();
+        let _timer = BoaProfiler::global().start_event("Execution", "Main");
+        let global_object = self.global_object().clone().into();
 
         self.vm.push_frame(CallFrame {
             prev: None,
@@ -955,6 +1000,7 @@ impl Context {
             arg_count: 0,
         });
 
+        self.realm.set_global_binding_number();
         let result = self.run();
         self.vm.pop_frame();
         result

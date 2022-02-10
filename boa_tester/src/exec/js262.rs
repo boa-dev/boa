@@ -7,7 +7,7 @@ use boa::{
 
 /// Initializes the object in the context.
 pub(super) fn init(context: &mut Context) -> JsObject {
-    let global_obj = context.global_object();
+    let global_obj = context.global_object().clone();
 
     let obj = ObjectInitializer::new(context)
         .function(create_realm, "createRealm", 0)

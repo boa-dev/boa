@@ -28,6 +28,6 @@ impl BuiltIn for GlobalThis {
     fn init(context: &mut Context) -> JsValue {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        context.global_object().into()
+        context.global_object().clone().into()
     }
 }

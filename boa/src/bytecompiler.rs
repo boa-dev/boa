@@ -1,7 +1,7 @@
 use crate::{
     builtins::function::ThisMode,
-    gc::{empty_trace, Finalize, Gc, Trace},
-    property::{PropertyDescriptor, PropertyKey},
+    environments::BindingLocator,
+    gc::Gc,
     syntax::ast::{
         node::{
             declaration::{BindingPatternTypeArray, BindingPatternTypeObject, DeclarationPattern},
@@ -17,7 +17,6 @@ use crate::{
     Context, JsBigInt, JsResult, JsString, JsValue,
 };
 use boa_interner::{Interner, Sym};
-use gc::GcCell;
 use rustc_hash::FxHashMap;
 use std::mem::size_of;
 
@@ -93,11 +92,6 @@ impl<'b> ByteCompiler<'b> {
     }
 
     #[inline]
-    fn environments(&mut self) -> &mut EnvironmentStack {
-        &mut self.context.realm.compile_env
-    }
-
-    #[inline]
     fn get_or_insert_literal(&mut self, literal: Literal) -> u32 {
         if let Some(index) = self.literals_map.get(&literal) {
             return *index;
@@ -142,30 +136,26 @@ impl<'b> ByteCompiler<'b> {
     fn emit_binding(&mut self, opcode: Opcode, name: Sym) {
         match opcode {
             Opcode::DefInitVar => {
-                let binding = if self.environments().has_binding(name) {
-                    self.environments().set_mutable_binding(name)
+                let binding = if self.context.has_binding(name) {
+                    self.context.set_mutable_binding(name)
                 } else {
-                    EnvironmentStack::initialize_mutable_binding(name, true, self.context)
+                    self.context.initialize_mutable_binding(name, true)
                 };
                 let index = self.get_or_insert_binding(binding);
                 self.emit(opcode, &[index]);
             }
             Opcode::DefVar => {
-                let binding =
-                    EnvironmentStack::initialize_mutable_binding(name, true, self.context);
+                let binding = self.context.initialize_mutable_binding(name, true);
                 let index = self.get_or_insert_binding(binding);
                 self.emit(opcode, &[index]);
             }
             Opcode::DefInitLet | Opcode::DefLet | Opcode::DefInitArg => {
-                let binding =
-                    EnvironmentStack::initialize_mutable_binding(name, false, self.context);
+                let binding = self.context.initialize_mutable_binding(name, false);
                 let index = self.get_or_insert_binding(binding);
                 self.emit(opcode, &[index]);
             }
             Opcode::DefInitConst => {
-                let strict = self.code_block.strict;
-                let binding =
-                    EnvironmentStack::initialize_immutable_binding(name, strict, self.context);
+                let binding = self.context.initialize_immutable_binding(name);
                 let index = self.get_or_insert_binding(binding);
                 self.emit(opcode, &[index]);
             }
@@ -471,7 +461,7 @@ impl<'b> ByteCompiler<'b> {
     fn access_get(&mut self, access: Access<'_>, use_expr: bool) -> JsResult<()> {
         match access {
             Access::Variable { name } => {
-                let binding = self.environments().get_binding_value(name);
+                let binding = self.context.get_binding_value(name);
                 let index = self.get_or_insert_binding(binding);
                 self.emit(Opcode::GetName, &[index]);
             }
@@ -513,7 +503,7 @@ impl<'b> ByteCompiler<'b> {
 
         match access {
             Access::Variable { name } => {
-                let binding = self.environments().set_mutable_binding(name);
+                let binding = self.context.set_mutable_binding(name);
                 let index = self.get_or_insert_binding(binding);
                 self.emit(Opcode::SetName, &[index]);
             }
@@ -632,8 +622,7 @@ impl<'b> ByteCompiler<'b> {
                     UnaryOp::TypeOf => {
                         match &unary.target() {
                             Node::Identifier(identifier) => {
-                                let binding =
-                                    self.environments().get_binding_value(identifier.sym());
+                                let binding = self.context.get_binding_value(identifier.sym());
                                 let index = self.get_or_insert_binding(binding);
                                 self.emit(Opcode::GetNameOrUndefined, &[index]);
                             }
@@ -1156,7 +1145,7 @@ impl<'b> ByteCompiler<'b> {
                 }
             }
             Node::ForLoop(for_loop) => {
-                self.context.realm.compile_env.push(false);
+                self.context.push_compile_time_environment(false);
                 let push_env = self.jump_with_custom_opcode(Opcode::PushDeclarativeEnvironment);
 
                 if let Some(init) = for_loop.init() {
@@ -1195,7 +1184,7 @@ impl<'b> ByteCompiler<'b> {
                 self.pop_loop_control_info();
                 self.emit_opcode(Opcode::LoopEnd);
 
-                let num_bindings = self.context.realm.compile_env.pop().borrow().num_bindings();
+                let num_bindings = self.context.pop_compile_time_environment().num_bindings();
                 self.patch_jump_with_target(push_env, num_bindings as u32);
                 self.emit_opcode(Opcode::PopEnvironment);
             }
@@ -1208,74 +1197,52 @@ impl<'b> ByteCompiler<'b> {
                 self.push_loop_control_info_for_of_in_loop(for_in_loop.label(), start_address);
                 self.emit_opcode(Opcode::LoopContinue);
 
-                self.context.realm.compile_env.push(false);
+                self.context.push_compile_time_environment(false);
                 let push_env = self.jump_with_custom_opcode(Opcode::PushDeclarativeEnvironment);
                 let exit = self.jump_with_custom_opcode(Opcode::ForInLoopNext);
 
                 match for_in_loop.init() {
                     IterableLoopInitializer::Identifier(ref ident) => {
-                        EnvironmentStack::create_mutable_binding(
-                            ident.sym(),
-                            true,
-                            true,
-                            self.context,
-                        )?;
-                        let binding = self.environments().set_mutable_binding(ident.sym());
+                        self.context
+                            .create_mutable_binding(ident.sym(), true, true)?;
+                        let binding = self.context.set_mutable_binding(ident.sym());
                         let index = self.get_or_insert_binding(binding);
                         self.emit(Opcode::DefInitVar, &[index]);
                     }
                     IterableLoopInitializer::Var(declaration) => match declaration {
                         Declaration::Identifier { ident, .. } => {
-                            EnvironmentStack::create_mutable_binding(
-                                ident.sym(),
-                                true,
-                                true,
-                                self.context,
-                            )?;
+                            self.context
+                                .create_mutable_binding(ident.sym(), true, true)?;
                             self.emit_binding(Opcode::DefInitVar, ident.sym());
                         }
                         Declaration::Pattern(pattern) => {
                             for ident in pattern.idents() {
-                                EnvironmentStack::create_mutable_binding(
-                                    ident,
-                                    true,
-                                    true,
-                                    self.context,
-                                )?;
+                                self.context.create_mutable_binding(ident, true, true)?;
                             }
                             self.compile_declaration_pattern(pattern, Opcode::DefInitVar)?;
                         }
                     },
                     IterableLoopInitializer::Let(declaration) => match declaration {
                         Declaration::Identifier { ident, .. } => {
-                            EnvironmentStack::create_mutable_binding(
-                                ident.sym(),
-                                false,
-                                false,
-                                self.context,
-                            )?;
+                            self.context
+                                .create_mutable_binding(ident.sym(), false, false)?;
                             self.emit_binding(Opcode::DefInitLet, ident.sym());
                         }
                         Declaration::Pattern(pattern) => {
                             for ident in pattern.idents() {
-                                EnvironmentStack::create_mutable_binding(
-                                    ident,
-                                    false,
-                                    false,
-                                    self.context,
-                                )?;
+                                self.context.create_mutable_binding(ident, false, false)?;
                             }
                             self.compile_declaration_pattern(pattern, Opcode::DefInitLet)?;
                         }
                     },
                     IterableLoopInitializer::Const(declaration) => match declaration {
                         Declaration::Identifier { ident, .. } => {
-                            EnvironmentStack::create_immutable_binding(ident.sym(), self.context)?;
+                            self.context.create_immutable_binding(ident.sym())?;
                             self.emit_binding(Opcode::DefInitConst, ident.sym());
                         }
                         Declaration::Pattern(pattern) => {
                             for ident in pattern.idents() {
-                                EnvironmentStack::create_immutable_binding(ident, self.context)?;
+                                self.context.create_immutable_binding(ident)?;
                             }
                             self.compile_declaration_pattern(pattern, Opcode::DefInitConst)?;
                         }
@@ -1284,7 +1251,7 @@ impl<'b> ByteCompiler<'b> {
 
                 self.compile_stmt(for_in_loop.body(), false)?;
 
-                let num_bindings = self.context.realm.compile_env.pop().borrow().num_bindings();
+                let num_bindings = self.context.pop_compile_time_environment().num_bindings();
                 self.patch_jump_with_target(push_env, num_bindings as u32);
                 self.emit_opcode(Opcode::PopEnvironment);
 
@@ -1307,74 +1274,52 @@ impl<'b> ByteCompiler<'b> {
                 self.push_loop_control_info_for_of_in_loop(for_of_loop.label(), start_address);
                 self.emit_opcode(Opcode::LoopContinue);
 
-                self.context.realm.compile_env.push(false);
+                self.context.push_compile_time_environment(false);
                 let push_env = self.jump_with_custom_opcode(Opcode::PushDeclarativeEnvironment);
                 let exit = self.jump_with_custom_opcode(Opcode::ForInLoopNext);
 
                 match for_of_loop.init() {
                     IterableLoopInitializer::Identifier(ref ident) => {
-                        EnvironmentStack::create_mutable_binding(
-                            ident.sym(),
-                            true,
-                            true,
-                            self.context,
-                        )?;
-                        let binding = self.environments().set_mutable_binding(ident.sym());
+                        self.context
+                            .create_mutable_binding(ident.sym(), true, true)?;
+                        let binding = self.context.set_mutable_binding(ident.sym());
                         let index = self.get_or_insert_binding(binding);
                         self.emit(Opcode::DefInitVar, &[index]);
                     }
                     IterableLoopInitializer::Var(declaration) => match declaration {
                         Declaration::Identifier { ident, .. } => {
-                            EnvironmentStack::create_mutable_binding(
-                                ident.sym(),
-                                true,
-                                true,
-                                self.context,
-                            )?;
+                            self.context
+                                .create_mutable_binding(ident.sym(), true, true)?;
                             self.emit_binding(Opcode::DefInitVar, ident.sym());
                         }
                         Declaration::Pattern(pattern) => {
                             for ident in pattern.idents() {
-                                EnvironmentStack::create_mutable_binding(
-                                    ident,
-                                    true,
-                                    true,
-                                    self.context,
-                                )?;
+                                self.context.create_mutable_binding(ident, true, true)?;
                             }
                             self.compile_declaration_pattern(pattern, Opcode::DefInitVar)?;
                         }
                     },
                     IterableLoopInitializer::Let(declaration) => match declaration {
                         Declaration::Identifier { ident, .. } => {
-                            EnvironmentStack::create_mutable_binding(
-                                ident.sym(),
-                                false,
-                                false,
-                                self.context,
-                            )?;
+                            self.context
+                                .create_mutable_binding(ident.sym(), false, false)?;
                             self.emit_binding(Opcode::DefInitLet, ident.sym());
                         }
                         Declaration::Pattern(pattern) => {
                             for ident in pattern.idents() {
-                                EnvironmentStack::create_mutable_binding(
-                                    ident,
-                                    false,
-                                    false,
-                                    self.context,
-                                )?;
+                                self.context.create_mutable_binding(ident, false, false)?;
                             }
                             self.compile_declaration_pattern(pattern, Opcode::DefInitLet)?;
                         }
                     },
                     IterableLoopInitializer::Const(declaration) => match declaration {
                         Declaration::Identifier { ident, .. } => {
-                            EnvironmentStack::create_immutable_binding(ident.sym(), self.context)?;
+                            self.context.create_immutable_binding(ident.sym())?;
                             self.emit_binding(Opcode::DefInitConst, ident.sym());
                         }
                         Declaration::Pattern(pattern) => {
                             for ident in pattern.idents() {
-                                EnvironmentStack::create_immutable_binding(ident, self.context)?;
+                                self.context.create_immutable_binding(ident)?;
                             }
                             self.compile_declaration_pattern(pattern, Opcode::DefInitConst)?;
                         }
@@ -1383,7 +1328,7 @@ impl<'b> ByteCompiler<'b> {
 
                 self.compile_stmt(for_of_loop.body(), false)?;
 
-                let num_bindings = self.context.realm.compile_env.pop().borrow().num_bindings();
+                let num_bindings = self.context.pop_compile_time_environment().num_bindings();
                 self.patch_jump_with_target(push_env, num_bindings as u32);
                 self.emit_opcode(Opcode::PopEnvironment);
 
@@ -1533,7 +1478,7 @@ impl<'b> ByteCompiler<'b> {
                 }
             }
             Node::Block(block) => {
-                self.context.realm.compile_env.push(false);
+                self.context.push_compile_time_environment(false);
                 let push_env = self.jump_with_custom_opcode(Opcode::PushDeclarativeEnvironment);
                 for node in block.items() {
                     self.create_declarations(node)?;
@@ -1541,7 +1486,7 @@ impl<'b> ByteCompiler<'b> {
                 for node in block.items() {
                     self.compile_stmt(node, use_expr)?;
                 }
-                let num_bindings = self.context.realm.compile_env.pop().borrow().num_bindings();
+                let num_bindings = self.context.pop_compile_time_environment().num_bindings();
                 self.patch_jump_with_target(push_env, num_bindings as u32);
                 self.emit_opcode(Opcode::PopEnvironment);
             }
@@ -1550,7 +1495,7 @@ impl<'b> ByteCompiler<'b> {
                 self.emit(Opcode::Throw, &[]);
             }
             Node::Switch(switch) => {
-                self.context.realm.compile_env.push(false);
+                self.context.push_compile_time_environment(false);
                 let push_env = self.jump_with_custom_opcode(Opcode::PushDeclarativeEnvironment);
                 for case in switch.cases() {
                     for node in case.body().items() {
@@ -1589,7 +1534,7 @@ impl<'b> ByteCompiler<'b> {
                 self.pop_switch_control_info();
 
                 self.emit_opcode(Opcode::LoopEnd);
-                let num_bindings = self.context.realm.compile_env.pop().borrow().num_bindings();
+                let num_bindings = self.context.pop_compile_time_environment().num_bindings();
                 self.patch_jump_with_target(push_env, num_bindings as u32);
                 self.emit_opcode(Opcode::PopEnvironment);
             }
@@ -1606,7 +1551,7 @@ impl<'b> ByteCompiler<'b> {
                 self.push_try_control_info(t.finally().is_some());
                 let try_start = self.next_opcode_location();
                 self.emit(Opcode::TryStart, &[Self::DUMMY_ADDRESS, 0]);
-                self.context.realm.compile_env.push(false);
+                self.context.push_compile_time_environment(false);
                 let push_env = self.jump_with_custom_opcode(Opcode::PushDeclarativeEnvironment);
                 for node in t.block().items() {
                     self.create_declarations(node)?;
@@ -1614,7 +1559,7 @@ impl<'b> ByteCompiler<'b> {
                 for node in t.block().items() {
                     self.compile_stmt(node, false)?;
                 }
-                let num_bindings = self.context.realm.compile_env.pop().borrow().num_bindings();
+                let num_bindings = self.context.pop_compile_time_environment().num_bindings();
                 self.patch_jump_with_target(push_env, num_bindings as u32);
                 self.emit_opcode(Opcode::PopEnvironment);
                 self.emit_opcode(Opcode::TryEnd);
@@ -1629,27 +1574,18 @@ impl<'b> ByteCompiler<'b> {
                     } else {
                         None
                     };
-                    self.context.realm.compile_env.push(false);
+                    self.context.push_compile_time_environment(false);
                     let push_env = self.jump_with_custom_opcode(Opcode::PushDeclarativeEnvironment);
                     if let Some(decl) = catch.parameter() {
                         match decl {
                             Declaration::Identifier { ident, .. } => {
-                                EnvironmentStack::create_mutable_binding(
-                                    ident.sym(),
-                                    false,
-                                    false,
-                                    self.context,
-                                )?;
+                                self.context
+                                    .create_mutable_binding(ident.sym(), false, false)?;
                                 self.emit_binding(Opcode::DefInitLet, ident.sym());
                             }
                             Declaration::Pattern(pattern) => {
                                 for ident in pattern.idents() {
-                                    EnvironmentStack::create_mutable_binding(
-                                        ident,
-                                        false,
-                                        false,
-                                        self.context,
-                                    )?;
+                                    self.context.create_mutable_binding(ident, false, false)?;
                                 }
                                 self.compile_declaration_pattern(pattern, Opcode::DefInitLet)?;
                             }
@@ -1663,7 +1599,7 @@ impl<'b> ByteCompiler<'b> {
                     for node in catch.block().items() {
                         self.compile_stmt(node, use_expr)?;
                     }
-                    let num_bindings = self.context.realm.compile_env.pop().borrow().num_bindings();
+                    let num_bindings = self.context.pop_compile_time_environment().num_bindings();
                     self.patch_jump_with_target(push_env, num_bindings as u32);
                     self.emit_opcode(Opcode::PopEnvironment);
                     if let Some(catch_start) = catch_start {
@@ -1758,7 +1694,7 @@ impl<'b> ByteCompiler<'b> {
             context: self.context,
         };
 
-        compiler.context.realm.compile_env.push(true);
+        compiler.context.push_compile_time_environment(true);
 
         let mut arguments_in_parameter_names = false;
         for parameter in parameters {
@@ -1772,18 +1708,14 @@ impl<'b> ByteCompiler<'b> {
         // Note: This following just means, that we add an extra environment for the arguments.
         // - If there are default parameters or if lexical names and function names do not contain `arguments` (10.2.11.18)
         if !(kind == FunctionKind::Arrow) && !arguments_in_parameter_names {
-            EnvironmentStack::create_mutable_binding(
-                Sym::ARGUMENTS,
-                false,
-                true,
-                compiler.context,
-            )?;
-            compiler.code_block.arguments_binding =
-                Some(EnvironmentStack::initialize_mutable_binding(
-                    Sym::ARGUMENTS,
-                    false,
-                    compiler.context,
-                ));
+            compiler
+                .context
+                .create_mutable_binding(Sym::ARGUMENTS, false, true)?;
+            compiler.code_block.arguments_binding = Some(
+                compiler
+                    .context
+                    .initialize_mutable_binding(Sym::ARGUMENTS, false),
+            );
         }
 
         let mut has_rest_parameter = false;
@@ -1801,12 +1733,9 @@ impl<'b> ByteCompiler<'b> {
 
             match parameter.declaration() {
                 Declaration::Identifier { ident, .. } => {
-                    EnvironmentStack::create_mutable_binding(
-                        ident.sym(),
-                        false,
-                        true,
-                        compiler.context,
-                    )?;
+                    compiler
+                        .context
+                        .create_mutable_binding(ident.sym(), false, true)?;
                     if let Some(init) = parameter.declaration().init() {
                         let skip = compiler.jump_with_custom_opcode(Opcode::JumpIfNotUndefined);
                         compiler.compile_expr(init, true)?;
@@ -1816,12 +1745,9 @@ impl<'b> ByteCompiler<'b> {
                 }
                 Declaration::Pattern(pattern) => {
                     for ident in pattern.idents() {
-                        EnvironmentStack::create_mutable_binding(
-                            ident,
-                            false,
-                            true,
-                            compiler.context,
-                        )?;
+                        compiler
+                            .context
+                            .create_mutable_binding(ident, false, true)?;
                     }
                     compiler.compile_declaration_pattern(pattern, Opcode::DefInitArg)?;
                 }
@@ -1833,16 +1759,8 @@ impl<'b> ByteCompiler<'b> {
         }
 
         let env_label = if has_parameter_expressions {
-            compiler.code_block.num_bindings = compiler
-                .context
-                .realm
-                .compile_env
-                .stack
-                .last()
-                .expect("must have an environment")
-                .borrow()
-                .num_bindings();
-            compiler.context.realm.compile_env.push(true);
+            compiler.code_block.num_bindings = compiler.context.get_binding_number();
+            compiler.context.push_compile_time_environment(true);
             Some(compiler.jump_with_custom_opcode(Opcode::PushFunctionEnvironment))
         } else {
             None
@@ -1857,20 +1775,14 @@ impl<'b> ByteCompiler<'b> {
         if let Some(env_label) = env_label {
             let num_bindings = compiler
                 .context
-                .realm
-                .compile_env
-                .pop()
-                .borrow()
+                .pop_compile_time_environment()
                 .num_bindings();
             compiler.patch_jump_with_target(env_label, num_bindings as u32);
-            compiler.context.realm.compile_env.pop();
+            compiler.context.pop_compile_time_environment();
         } else {
             compiler.code_block.num_bindings = compiler
                 .context
-                .realm
-                .compile_env
-                .pop()
-                .borrow()
+                .pop_compile_time_environment()
                 .num_bindings();
         }
 
@@ -2139,24 +2051,14 @@ impl<'b> ByteCompiler<'b> {
                             if ident == Sym::ARGUMENTS {
                                 has_identifier_argument = true;
                             }
-                            EnvironmentStack::create_mutable_binding(
-                                ident,
-                                true,
-                                true,
-                                self.context,
-                            )?;
+                            self.context.create_mutable_binding(ident, true, true)?;
                         }
                         Declaration::Pattern(pattern) => {
                             for ident in pattern.idents() {
                                 if ident == Sym::ARGUMENTS {
                                     has_identifier_argument = true;
                                 }
-                                EnvironmentStack::create_mutable_binding(
-                                    ident,
-                                    true,
-                                    true,
-                                    self.context,
-                                )?;
+                                self.context.create_mutable_binding(ident, true, true)?;
                             }
                         }
                     }
@@ -2170,24 +2072,14 @@ impl<'b> ByteCompiler<'b> {
                             if ident == Sym::ARGUMENTS {
                                 has_identifier_argument = true;
                             }
-                            EnvironmentStack::create_mutable_binding(
-                                ident,
-                                false,
-                                false,
-                                self.context,
-                            )?;
+                            self.context.create_mutable_binding(ident, false, false)?;
                         }
                         Declaration::Pattern(pattern) => {
                             for ident in pattern.idents() {
                                 if ident == Sym::ARGUMENTS {
                                     has_identifier_argument = true;
                                 }
-                                EnvironmentStack::create_mutable_binding(
-                                    ident,
-                                    false,
-                                    false,
-                                    self.context,
-                                )?;
+                                self.context.create_mutable_binding(ident, false, false)?;
                             }
                         }
                     }
@@ -2201,14 +2093,14 @@ impl<'b> ByteCompiler<'b> {
                             if ident == Sym::ARGUMENTS {
                                 has_identifier_argument = true;
                             }
-                            EnvironmentStack::create_immutable_binding(ident, self.context)?;
+                            self.context.create_immutable_binding(ident)?;
                         }
                         Declaration::Pattern(pattern) => {
                             for ident in pattern.idents() {
                                 if ident == Sym::ARGUMENTS {
                                     has_identifier_argument = true;
                                 }
-                                EnvironmentStack::create_immutable_binding(ident, self.context)?;
+                                self.context.create_immutable_binding(ident)?;
                             }
                         }
                     }
@@ -2219,28 +2111,28 @@ impl<'b> ByteCompiler<'b> {
                 if ident == Sym::ARGUMENTS {
                     has_identifier_argument = true;
                 }
-                EnvironmentStack::create_mutable_binding(ident, true, true, self.context)?;
+                self.context.create_mutable_binding(ident, true, true)?;
             }
             Node::GeneratorDecl(decl) => {
                 let ident = decl.name();
                 if ident == Sym::ARGUMENTS {
                     has_identifier_argument = true;
                 }
-                EnvironmentStack::create_mutable_binding(ident, true, true, self.context)?;
+                self.context.create_mutable_binding(ident, true, true)?;
             }
             Node::AsyncFunctionDecl(decl) => {
                 let ident = decl.name();
                 if ident == Sym::ARGUMENTS {
                     has_identifier_argument = true;
                 }
-                EnvironmentStack::create_mutable_binding(ident, true, true, self.context)?;
+                self.context.create_mutable_binding(ident, true, true)?;
             }
             Node::AsyncGeneratorDecl(decl) => {
                 let ident = decl.name();
                 if ident == Sym::ARGUMENTS {
                     has_identifier_argument = true;
                 }
-                EnvironmentStack::create_mutable_binding(ident, true, true, self.context)?;
+                self.context.create_mutable_binding(ident, true, true)?;
             }
             Node::DoWhileLoop(do_while_loop) => {
                 if !matches!(do_while_loop.body(), Node::Block(_)) {
@@ -2260,324 +2152,5 @@ impl<'b> ByteCompiler<'b> {
             _ => {}
         }
         Ok(has_identifier_argument)
-    }
-}
-
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-pub(crate) struct BindingLocator {
-    name: Sym,
-    environment_index: usize,
-    binding_index: usize,
-    global: bool,
-    mutate_immutable: bool,
-    function_scope: bool,
-}
-
-impl BindingLocator {
-    fn declarative(
-        name: Sym,
-        environment_index: usize,
-        binding_index: usize,
-        function_scope: bool,
-    ) -> Self {
-        Self {
-            name,
-            environment_index,
-            binding_index,
-            global: false,
-            mutate_immutable: false,
-            function_scope,
-        }
-    }
-
-    fn global(name: Sym) -> Self {
-        Self {
-            name,
-            environment_index: 0,
-            binding_index: 0,
-            global: true,
-            mutate_immutable: false,
-            function_scope: true,
-        }
-    }
-
-    fn mutate_immutable(name: Sym) -> Self {
-        Self {
-            name,
-            environment_index: 0,
-            binding_index: 0,
-            global: false,
-            mutate_immutable: true,
-            function_scope: false,
-        }
-    }
-
-    pub(crate) fn throw_mutate_immutable(&self, context: &mut Context) -> JsResult<()> {
-        if self.mutate_immutable {
-            context.throw_type_error("cannot mutate an immutable binding")
-        } else {
-            Ok(())
-        }
-    }
-
-    pub(crate) fn is_global(&self) -> bool {
-        self.global
-    }
-
-    pub(crate) fn environment_index(&self) -> usize {
-        self.environment_index
-    }
-
-    pub(crate) fn binding_index(&self) -> usize {
-        self.binding_index
-    }
-
-    pub(crate) fn name(&self) -> Sym {
-        self.name
-    }
-}
-
-#[derive(Debug)]
-pub(crate) struct EnvironmentStack {
-    stack: Vec<Gc<GcCell<Environment>>>,
-}
-
-impl EnvironmentStack {
-    pub(crate) fn new() -> Self {
-        Self {
-            stack: vec![Gc::new(GcCell::new(Environment {
-                bindings: FxHashMap::default(),
-                function_scope: true,
-            }))],
-        }
-    }
-
-    fn push(&mut self, function_scope: bool) {
-        self.stack.push(Gc::new(GcCell::new(Environment {
-            bindings: FxHashMap::default(),
-            function_scope,
-        })));
-    }
-
-    fn pop(&mut self) -> Gc<GcCell<Environment>> {
-        self.stack.pop().expect("must always have an environment")
-    }
-}
-
-#[derive(Debug, Finalize)]
-struct Environment {
-    bindings: FxHashMap<Sym, Binding>,
-    function_scope: bool,
-}
-
-impl Environment {
-    fn num_bindings(&self) -> usize {
-        self.bindings.len()
-    }
-}
-
-// Safety: Environment does not contain any objects that needs to be traced.
-unsafe impl Trace for Environment {
-    empty_trace!();
-}
-
-#[derive(Debug)]
-struct Binding {
-    index: usize,
-    mutable: bool,
-    strict: bool,
-    function_scope: bool,
-}
-
-impl EnvironmentStack {
-    fn get_binding_value(&self, name: Sym) -> BindingLocator {
-        for (i, env) in self.stack.iter().enumerate().rev() {
-            if let Some(binding) = env.borrow().bindings.get(&name) {
-                return BindingLocator::declarative(name, i, binding.index, binding.function_scope);
-            }
-        }
-        BindingLocator::global(name)
-    }
-
-    fn has_binding(&self, name: Sym) -> bool {
-        for env in self.stack.iter().rev() {
-            if env.borrow().bindings.contains_key(&name) {
-                return true;
-            }
-        }
-        false
-    }
-
-    fn initialize_mutable_binding(
-        name: Sym,
-        function_scope: bool,
-        context: &mut Context,
-    ) -> BindingLocator {
-        for (i, env) in context.realm.compile_env.stack.iter().enumerate().rev() {
-            let env = env.borrow();
-            if function_scope && !env.function_scope {
-                continue;
-            }
-            if let Some(binding) = env.bindings.get(&name) {
-                return BindingLocator::declarative(
-                    name,
-                    i,
-                    binding.index,
-                    binding.function_scope,
-                );
-            }
-            return BindingLocator::global(name);
-        }
-        BindingLocator::global(name)
-    }
-
-    fn initialize_immutable_binding(
-        name: Sym,
-        strict: bool,
-        context: &mut Context,
-    ) -> BindingLocator {
-        let environment_index = context.realm.compile_env.stack.len() - 1;
-        let mut env = context
-            .realm
-            .compile_env
-            .stack
-            .last()
-            .expect("at least the global declarative environment must exist")
-            .borrow_mut();
-
-        let binding = env.bindings.get_mut(&name).expect("binding must exist");
-        binding.strict = strict;
-        BindingLocator::declarative(
-            name,
-            environment_index,
-            binding.index,
-            binding.function_scope,
-        )
-    }
-
-    fn create_immutable_binding(name: Sym, context: &mut Context) -> JsResult<()> {
-        let mut env = context
-            .realm
-            .compile_env
-            .stack
-            .last()
-            .expect("at least the global declarative environment must exist")
-            .borrow_mut();
-
-        if env.bindings.contains_key(&name)
-            || (context.realm.compile_env.stack.len() == 1
-                && context
-                    .realm
-                    .global_bindings
-                    .contains_key(&context.interner().resolve_expect(name).into()))
-        {
-            drop(env);
-            let msg = format!(
-                "Redeclaration of variable {}",
-                context.interner().resolve_expect(name)
-            );
-            return context.throw_syntax_error(msg);
-        }
-
-        let binding_index = env.bindings.len();
-        env.bindings.insert(
-            name,
-            Binding {
-                index: binding_index,
-                mutable: false,
-                strict: false,
-                function_scope: false,
-            },
-        );
-        Ok(())
-    }
-
-    fn create_mutable_binding(
-        name: Sym,
-        function_scope: bool,
-        allow_name_reuse: bool,
-        context: &mut Context,
-    ) -> JsResult<()> {
-        let mut redeclaration_error = false;
-        for (i, env) in context.realm.compile_env.stack.iter().enumerate().rev() {
-            let mut env = env.borrow_mut();
-            if !function_scope || env.function_scope {
-                if env.bindings.contains_key(&name) {
-                    if allow_name_reuse {
-                        return Ok(());
-                    }
-                    redeclaration_error = true;
-                    break;
-                }
-
-                if i == 0 {
-                    let name = context.interner().resolve_expect(name);
-                    let key = PropertyKey::from(name);
-                    let desc = context.realm.global_bindings.get(&key);
-                    let non_configurable_binding_exists = match desc {
-                        Some(desc) => !matches!(desc.configurable(), Some(true)),
-                        None => false,
-                    };
-                    if function_scope && desc.is_none() {
-                        context.realm.global_bindings.insert(
-                            &key,
-                            PropertyDescriptor::builder()
-                                .value(JsValue::Undefined)
-                                .writable(true)
-                                .enumerable(true)
-                                .configurable(true)
-                                .build(),
-                        );
-                        return Ok(());
-                    } else if function_scope {
-                        return Ok(());
-                    } else if !function_scope
-                        && !allow_name_reuse
-                        && non_configurable_binding_exists
-                    {
-                        redeclaration_error = true;
-                        break;
-                    }
-                }
-
-                let binding_index = env.bindings.len();
-                env.bindings.insert(
-                    name,
-                    Binding {
-                        index: binding_index,
-                        mutable: true,
-                        strict: false,
-                        function_scope,
-                    },
-                );
-                return Ok(());
-            }
-            continue;
-        }
-        if redeclaration_error {
-            let msg = format!(
-                "Redeclaration of variable {}",
-                context.interner().resolve_expect(name)
-            );
-            return context.throw_syntax_error(msg);
-        }
-        panic!("global binding must be function scoped")
-    }
-
-    fn set_mutable_binding(&self, name: Sym) -> BindingLocator {
-        for (i, env) in self.stack.iter().enumerate().rev() {
-            if let Some(binding) = env.borrow().bindings.get(&name) {
-                if binding.mutable {
-                    return BindingLocator::declarative(
-                        name,
-                        i,
-                        binding.index,
-                        binding.function_scope,
-                    );
-                }
-                return BindingLocator::mutate_immutable(name);
-            }
-        }
-        BindingLocator::global(name)
     }
 }

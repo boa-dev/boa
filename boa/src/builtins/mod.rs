@@ -104,9 +104,7 @@ fn init_builtin<B: BuiltIn>(context: &mut Context) {
         .configurable(B::ATTRIBUTE.configurable())
         .build();
     context
-        .realm
-        .global_bindings
-        .string_property_map_mut()
+        .global_bindings_mut()
         .insert(B::NAME.into(), property);
 }
 

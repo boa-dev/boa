@@ -7,13 +7,12 @@ use crate::{
         arguments::Arguments, Captures, ClosureFunctionSignature, Function,
         NativeFunctionSignature, ThisMode,
     },
-    bytecompiler::BindingLocator,
     context::StandardObjects,
+    environments::{BindingLocator, DeclarativeEnvironmentStack},
     gc::{Finalize, Gc, Trace},
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     profiler::BoaProfiler,
     property::PropertyDescriptor,
-    realm::DeclarativeEnvironmentStack,
     syntax::ast::node::FormalParameter,
     vm::{call_frame::FinallyReturn, CallFrame, Opcode},
     Context, JsResult, JsValue,
@@ -544,22 +543,18 @@ impl JsObject {
                     if let Some(this) = context.realm.environments.get_last_this() {
                         this
                     } else {
-                        context.realm.global_object.clone().into()
+                        context.global_object().clone().into()
                     }
                 } else if (!code.strict && !context.strict()) && this.is_null_or_undefined() {
-                    context.realm.global_object.clone().into()
+                    context.global_object().clone().into()
                 } else {
                     this.clone()
                 };
 
-                context.realm.environments.push_function(
-                    code.num_bindings,
-                    this.clone(),
-                    lexical_this_mode,
-                    this_function_object.clone(),
-                    JsValue::undefined(),
-                    JsValue::undefined(),
-                );
+                context
+                    .realm
+                    .environments
+                    .push_function(code.num_bindings, this.clone());
 
                 let mut arguments_in_parameter_names = false;
                 let mut is_simple_parameter_list = true;
@@ -703,16 +698,11 @@ impl JsObject {
                     )?;
                     Self::from_proto_and_data(prototype, ObjectData::ordinary()).into()
                 };
-                let lexical_this_mode = code.this_mode == ThisMode::Lexical;
 
-                context.realm.environments.push_function(
-                    code.num_bindings,
-                    this.clone(),
-                    lexical_this_mode,
-                    this_function_object.clone(),
-                    JsValue::undefined(),
-                    JsValue::undefined(),
-                );
+                context
+                    .realm
+                    .environments
+                    .push_function(code.num_bindings, this.clone());
 
                 let mut arguments_in_parameter_names = false;
                 let mut is_simple_parameter_list = true;
@@ -767,7 +757,7 @@ impl JsObject {
                 let param_count = code.params.len();
 
                 let this = if (!code.strict && !context.strict()) && this.is_null_or_undefined() {
-                    context.realm.global_object.clone().into()
+                    context.global_object().clone().into()
                 } else {
                     this
                 };
