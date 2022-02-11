@@ -1036,10 +1036,6 @@ impl Context {
                         .last_mut()
                         .expect("must exist") -= num_env;
                 } else {
-                    //for _ in 0..self.vm.frame().pop_env_on_return {
-                    //    self.realm.environments.pop();
-                    //}
-                    //self.vm.frame_mut().pop_env_on_return = 0;
                     return Ok(true);
                 }
             }
