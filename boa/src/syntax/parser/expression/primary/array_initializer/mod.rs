@@ -84,12 +84,13 @@ where
             let _next = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd); // Check that there are more tokens to read.
 
             if cursor.next_if(Punctuator::Spread, interner)?.is_some() {
-                let node = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                    .parse(cursor, interner)?;
+                let node =
+                    AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)
+                        .parse(cursor, interner)?;
                 elements.push(Spread::new(node).into());
             } else {
                 elements.push(
-                    AssignmentExpression::new(true, self.allow_yield, self.allow_await)
+                    AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?,
                 );
             }

@@ -108,7 +108,7 @@ where
             }
             TokenKind::Punctuator(Punctuator::OpenParen) => {
                 cursor.set_goal(InputElement::RegExp);
-                let expr = Expression::new(true, self.allow_yield, self.allow_await)
+                let expr = Expression::new(None, true, self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
                 cursor.expect(Punctuator::CloseParen, "primary expression", interner)?;
                 Ok(expr)

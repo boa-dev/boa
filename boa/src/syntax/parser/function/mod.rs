@@ -231,7 +231,7 @@ where
                             *t.kind() == TokenKind::Punctuator(Punctuator::Assign)
                         })
                         .map(|_| {
-                            Initializer::new(true, self.allow_yield, self.allow_await)
+                            Initializer::new(None, true, self.allow_yield, self.allow_await)
                                 .parse(cursor, interner)
                         })
                         .transpose()?;
@@ -257,7 +257,7 @@ where
                             *t.kind() == TokenKind::Punctuator(Punctuator::Assign)
                         })
                         .map(|_| {
-                            Initializer::new(true, self.allow_yield, self.allow_await)
+                            Initializer::new(None, true, self.allow_yield, self.allow_await)
                                 .parse(cursor, interner)
                         })
                         .transpose()?;
@@ -330,7 +330,7 @@ where
                             *t.kind() == TokenKind::Punctuator(Punctuator::Assign)
                         })
                         .map(|_| {
-                            Initializer::new(true, self.allow_yield, self.allow_await)
+                            Initializer::new(None, true, self.allow_yield, self.allow_await)
                                 .parse(cursor, interner)
                         })
                         .transpose()?;
@@ -357,7 +357,7 @@ where
                             *t.kind() == TokenKind::Punctuator(Punctuator::Assign)
                         })
                         .map(|_| {
-                            Initializer::new(true, self.allow_yield, self.allow_await)
+                            Initializer::new(None, true, self.allow_yield, self.allow_await)
                                 .parse(cursor, interner)
                         })
                         .transpose()?;

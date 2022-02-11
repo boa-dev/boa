@@ -68,8 +68,8 @@ where
         cursor.expect(Keyword::Switch, "switch statement", interner)?;
         cursor.expect(Punctuator::OpenParen, "switch statement", interner)?;
 
-        let condition =
-            Expression::new(true, self.allow_yield, self.allow_await).parse(cursor, interner)?;
+        let condition = Expression::new(None, true, self.allow_yield, self.allow_await)
+            .parse(cursor, interner)?;
 
         cursor.expect(Punctuator::CloseParen, "switch statement", interner)?;
 
@@ -130,7 +130,7 @@ where
             match cursor.next(interner)? {
                 Some(token) if token.kind() == &TokenKind::Keyword(Keyword::Case) => {
                     // Case statement.
-                    let cond = Expression::new(true, self.allow_yield, self.allow_await)
+                    let cond = Expression::new(None, true, self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
 
                     cursor.expect(Punctuator::Colon, "switch case block", interner)?;

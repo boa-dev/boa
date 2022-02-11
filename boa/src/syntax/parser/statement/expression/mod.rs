@@ -73,8 +73,8 @@ where
             _ => {}
         }
 
-        let expr =
-            Expression::new(true, self.allow_yield, self.allow_await).parse(cursor, interner)?;
+        let expr = Expression::new(None, true, self.allow_yield, self.allow_await)
+            .parse(cursor, interner)?;
 
         cursor.expect_semicolon("expression statement", interner)?;
 
